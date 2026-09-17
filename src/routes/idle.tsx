@@ -253,6 +253,11 @@ import mapinha5Url from "@/assets/mapinha5.png";
 import mapinha6Url from "@/assets/mapinha6.png";
 import mapinha7Url from "@/assets/mapinha7.png";
 import mapinha8Url from "@/assets/mapinha8.png";
+import mapinha9Url from "@/assets/mapinha9.png";
+import mapinha11Url from "@/assets/revoland.png";
+import mapinha12Url from "@/assets/bidril e kakuna.png";
+import mapinha13Url from "@/assets/mp plus.png";
+import pokemarktUrl from "@/assets/POKEMARKT.png";
 import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
 import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
 import collectIconImg from "@/assets/icons/collect-icon.png";
@@ -557,7 +562,7 @@ type IdleMapId =
   // Mapas BÔNUS DARK — variações sombrias do Vale Verdejante (abrem 2h a cada 4h)
   | "dark_vale1" | "dark_vale2" | "dark_vale3"
   // Cidade + Mapinhas (teleporte grátis)
-  | "cidade" | "mapinha1" | "mapinha2" | "mapinha3" | "mapinha4" | "mapinha5" | "mapinha6" | "mapinha7" | "mapinha8";
+  | "cidade" | "mapinha1" | "mapinha2" | "mapinha3" | "mapinha4" | "mapinha5" | "mapinha6" | "mapinha7" | "mapinha8" | "mapinha9" | "mapinha10" | "mapinha11" | "mapinha12" | "mapinha13";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -629,6 +634,11 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha6: { name: "Mapinha 6",        diff: "Difícil+", bg: mapinha6Url,  rate: 2.0, minLevel: 25, maxLevel: 100, element: "Normal",  stars: 3 },
   mapinha7: { name: "Mapinha 7",        diff: "Fácil",  bg: mapinha7Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
   mapinha8: { name: "Mapinha 8",        diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
+  mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 30, maxLevel: 120, element: "Normal", stars: 3 },
+  mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
+  mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
+  mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 180, element: "Inseto", stars: 3 },
+  mapinha13: { name: "MP Plus",         diff: "Difícil+", bg: mapinha13Url, rate: 2.8, minLevel: 45, maxLevel: 200, element: "Água",   stars: 3 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -861,8 +871,17 @@ type Obstacle = {
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
-  // Cidade e mapinhas 3/4/5/7/8: totalmente limpos
-  if (mapId === "cidade" || mapId === "mapinha3" || mapId === "mapinha4" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8") return [];
+  // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
+  if (mapId === "cidade" || mapId === "mapinha3" || mapId === "mapinha4" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
+  // Revoland (mapinha11): colisão invisível no lago (3 círculos ao longo da água)
+  if (mapId === "mapinha11") {
+    const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    return [
+      { id: 1, x: 1205, y: 180, w: 60, h: 60, src: inv, blocks: true, collideR: 105 },
+      { id: 2, x: 1205, y: 327, w: 60, h: 60, src: inv, blocks: true, collideR: 110 },
+      { id: 3, x: 1205, y: 474, w: 60, h: 60, src: inv, blocks: true, collideR: 105 },
+    ];
+  }
   // Mapinha6: colisão invisível (4 casas, lago, placa + borda da floresta)
   if (mapId === "mapinha6") {
     const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -892,6 +911,23 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       list.push({ id: nid++, x: worldW - 70, y, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
     }
     return list;
+  }
+  // Bidril e Kakuna (mapinha12): colisão invisível na colméia (cúpula + favo)
+  if (mapId === "mapinha12") {
+    const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    return [
+      { id: 1, x: 285, y: 185, w: 70, h: 70, src: inv, blocks: true, collideR: 48 },
+      { id: 2, x: 285, y: 265, w: 140, h: 110, src: inv, blocks: true, collideR: 85 },
+      { id: 3, x: 285, y: 355, w: 90, h: 60, src: inv, blocks: true, collideR: 55 },
+    ];
+  }
+  // MP Plus (mapinha13): colisão invisível no lago em cruz
+  if (mapId === "mapinha13") {
+    const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    return [
+      { id: 1, x: 260, y: 215, w: 60, h: 60, src: inv, blocks: true, collideR: 100 },
+      { id: 2, x: 400, y: 215, w: 60, h: 60, src: inv, blocks: true, collideR: 100 },
+    ];
   }
   // Mapinhas 1 e 2: pouquíssimas árvores, sem pedras (bem limpo)
   if (mapId === "mapinha1" || mapId === "mapinha2") {
@@ -2726,6 +2762,11 @@ function IdlePage() {
   // ---- Mundo em pixels + câmera que segue o treinador ----
   const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
   const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
+  const MAP_DISPLAY_SCALE: Record<string, number> = {
+    mapinha10: 0.65,
+  };
+  const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
     cidade: mapCidadeUrl,
@@ -2737,6 +2778,11 @@ function IdlePage() {
     mapinha6: mapinha6Url,
     mapinha7: mapinha7Url,
     mapinha8: mapinha8Url,
+    mapinha10: pokemarktUrl,
+    mapinha9: mapinha9Url,
+    mapinha11: mapinha11Url,
+    mapinha12: mapinha12Url,
+    mapinha13: mapinha13Url,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
   useEffect(() => {
@@ -2748,7 +2794,7 @@ function IdlePage() {
   }, [idle.currentMap]);
   useEffect(() => {
     if (customDims && customMapUrls[idle.currentMap]) {
-      setTrainerPos({ x: customDims.w / 2, y: customDims.h / 2 });
+      setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
     }
   }, [idle.currentMap, customDims]);
   useEffect(() => {
@@ -2764,8 +2810,8 @@ function IdlePage() {
       });
     }
   }, [customDims]);
-  const curWorldW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
-  const curWorldH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
+  const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
+  const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
   const ATTACK_RANGE = 90; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
@@ -2829,6 +2875,7 @@ function IdlePage() {
   const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
+  const [fishingOpen, setFishingOpen] = useState(false);
   // Orbs de energia removidos — só existem os orbs de mapa que spawnam pokémon
   // Energia do treinador: drena 100% em 30min andando e trava ao zerar
   // Orbs de mapa: comuns (2min) e épicos (2h) — aparecem conforme kills
@@ -4282,6 +4329,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Snap da câmera no pixel final evita flicker/"quadrados" quando o mapa está com zoom baixo.
   const renderCamX = Math.round(camX * zoom) / zoom;
   const renderCamY = Math.round(camY * zoom) / zoom;
+  // Centraliza o mundo quando ele é menor que o viewport (zoom-out em mapa pequeno)
+  const centerOffX = Math.max(0, (viewSize.w - curWorldW * zoom) / 2);
+  const centerOffY = Math.max(0, (viewSize.h - curWorldH * zoom) / 2);
   const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
   const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
   const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
@@ -4492,7 +4542,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
-          return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
+          let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+          if (collidesWithAny(nx, ny)) {
+            nx = clampX(tp.x + stepX);
+            if (collidesWithAny(nx, tp.y)) nx = tp.x;
+            ny = clampY(tp.y + stepY);
+            if (collidesWithAny(nx, ny)) ny = tp.y;
+          }
+          return { x: nx, y: ny };
         });
         return;
       }
@@ -4653,10 +4710,17 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           pokemonFaceRef.current = nextFace;
           setPokemonFace(nextFace);
         }
-        // AUTO: sem colisão — anda em linha reta atravessando obstáculos
+        // AUTO: respeita colisão com deslize nos eixos (não atravessa casas/lago)
         const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
         const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
-        return { x: clampX(tp.x + stepX), y: clampY(tp.y + stepY) };
+        let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+        if (collidesWithAny(nx, ny)) {
+          nx = clampX(tp.x + stepX);
+          if (collidesWithAny(nx, tp.y)) nx = tp.x;
+          ny = clampY(tp.y + stepY);
+          if (collidesWithAny(nx, ny)) ny = tp.y;
+        }
+        return { x: nx, y: ny };
       });
 
 
@@ -6726,7 +6790,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns.
-    if (idle.currentMap === "cidade" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+    if (idle.currentMap === "cidade" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -7194,7 +7258,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : 30);
 
   function spawnEnemies(): Enemy[] {
-    if (idle.currentMap === "cidade" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
+    if (idle.currentMap === "cidade" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -7253,7 +7317,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       })() }
     : rawMap;
   const visibleBuildings = BUILDINGS;
-  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#1a3d1a";
+  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#000";
 
   const collect = () => {
     setIdle((s) => {
@@ -7815,13 +7879,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") ? [] : spawnChests(Math.min(chestTarget, 2));
+    const initial = (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
-        if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return remaining.length > 0 ? [] : remaining;
+        if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
@@ -9157,6 +9221,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         {/* ============ CENTRO — ARENA (viewport com câmera) ============ */}
         <div
           ref={viewportRef}
+          onDoubleClick={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
           onClick={(e) => {
             const t = e.target as HTMLElement;
             if (t.closest && t.closest("button, a, input, select, textarea")) return;
@@ -9164,8 +9230,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             if (!rect) return;
             const sx = e.clientX - rect.left;
             const sy = e.clientY - rect.top;
-            const wx = renderCamX + sx / zoom;
-            const wy = renderCamY + sy / zoom;
+            const wx = renderCamX + (sx - centerOffX) / zoom;
+            const wy = renderCamY + (sy - centerOffY) / zoom;
+            // Pesca: clicou na água do MP Plus → abre a aba de pescaria (sem andar até lá)
+            if (idle.currentMap === "mapinha13") {
+              const ex = (wx - 325) / 175, ey = (wy - 215) / 115;
+              if (ex * ex + ey * ey <= 1) { playClick(); setFishingOpen(true); return; }
+            }
             const isSmallWalk = ["mapinha1", "mapinha2"].includes(idle.currentMap) && customDims;
             const cWw = isSmallWalk ? customDims!.w : WORLD_W;
             const cHw = isSmallWalk ? customDims!.h : WORLD_H;
@@ -9184,7 +9255,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             minHeight: 440,
             height: "calc(100vh - 200px)",
             boxShadow: "inset 0 0 40px rgba(0,0,0,0.6)",
-            cursor: "crosshair",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M7 3 L7 22 L12 17.5 L14.5 23 L17.5 21.8 L15 16.5 L20.5 16.5 Z' fill='%23FFD93B' stroke='%23111' stroke-width='1.5'/%3E%3C/svg%3E") 7 3, auto`,
           }}
         >
 
@@ -9325,6 +9398,50 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     ▼ {npcDialog.kind === "luluzinha" ? `${npcDialog.page}/3 — clique para voltar` : `${npcDialog.page + 1}/2`}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* 🎣 Aba de pescaria (MP Plus) */}
+          {fishingOpen && (
+            <div
+              onClick={() => setFishingOpen(false)}
+              style={{
+                position: "fixed", inset: 0, zIndex: 9999,
+                background: "rgba(0,0,0,0.6)", display: "grid", placeItems: "center",
+                padding: 16,
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: "min(340px, 92vw)",
+                  background: "linear-gradient(180deg, #10294d, #0a1830)",
+                  border: "2px solid #3a6a9a", borderRadius: 12, padding: 14,
+                  boxShadow: "0 0 30px rgba(80,160,255,0.35)",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: 30 }}>🎣</div>
+                <div style={{ color: "#9adcff", fontWeight: 900, fontSize: 14, letterSpacing: 2, marginTop: 4 }}>PESCARIA</div>
+                {(idle.items?.vara_pesca ?? 0) > 0 ? (
+                  <div style={{ color: "#d8ecff", fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
+                    Sistema de pesca em breve...<br />prepare suas iscas! 🐟
+                  </div>
+                ) : (
+                  <div style={{ color: "#ffb84d", fontSize: 11, marginTop: 8, lineHeight: 1.5, fontWeight: 700 }}>
+                    Você precisa de uma<br />Vara de Pescar! 🎣
+                  </div>
+                )}
+                <button
+                  onClick={() => setFishingOpen(false)}
+                  style={{
+                    marginTop: 10, width: "100%", padding: "7px",
+                    background: "linear-gradient(180deg, #2a7ad0, #1a4a8a)",
+                    color: "#fff", border: "1px solid #3a6a9a", borderRadius: 8,
+                    fontWeight: 900, fontSize: 11, letterSpacing: 1, cursor: "pointer",
+                  }}
+                >FECHAR</button>
               </div>
             </div>
           )}
@@ -9685,7 +9802,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             position: "absolute",
             left: 0, top: 0,
             width: curWorldW, height: curWorldH,
-            transform: `translate3d(${-renderCamX * zoom}px, ${-renderCamY * zoom}px, 0) scale(${zoom})`,
+            transform: `translate3d(${-renderCamX * zoom + centerOffX}px, ${-renderCamY * zoom + centerOffY}px, 0) scale(${zoom})`,
             transformOrigin: "0 0",
             transition: "none",
             backgroundColor: viewportBg,
@@ -9795,6 +9912,101 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 ["--hdx" as any]: `${hfx.dx}px`,
               }}>+</span>
             ))}
+            {/* Efeito de água no lago do Revoland (mapinha11) */}
+            {idle.currentMap === "mapinha11" && (
+              <>
+                <div style={{
+                  position: "absolute", left: 1205, top: 327,
+                  width: 200, height: 460, borderRadius: "48%",
+                  background: "radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.35) 0%, rgba(140,220,255,0.18) 45%, transparent 70%)",
+                  zIndex: 5, pointerEvents: "none",
+                  animation: "waterShimmer 2.6s ease-in-out infinite",
+                }} />
+                {[
+                  { x: 1160, y: 420, d: 0 }, { x: 1230, y: 350, d: 500 },
+                  { x: 1195, y: 250, d: 1000 }, { x: 1255, y: 480, d: 1500 },
+                ].map((b, i) => (
+                  <span key={`wbub-${i}`} style={{
+                    position: "absolute", left: b.x, top: b.y,
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: "radial-gradient(circle at 35% 30%, #fff, rgba(140,220,255,0.7))",
+                    boxShadow: "0 0 6px rgba(140,220,255,0.9)",
+                    zIndex: 6, pointerEvents: "none",
+                    animation: "healFloat 2.2s ease-out infinite",
+                    animationDelay: `${b.d}ms`,
+                    ["--hdx" as any]: "0px",
+                  }} />
+                ))}
+              </>
+            )}
+            {/* Efeito de água no lago do MP Plus (mapinha13) */}
+            {idle.currentMap === "mapinha13" && (
+              <>
+                <div style={{
+                  position: "absolute", left: 325, top: 215,
+                  width: 330, height: 220, borderRadius: "48%",
+                  background: "radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.35) 0%, rgba(140,220,255,0.18) 45%, transparent 70%)",
+                  zIndex: 5, pointerEvents: "none",
+                  animation: "waterShimmer 2.6s ease-in-out infinite",
+                }} />
+                {[
+                  { x: 270, y: 260, d: 0 }, { x: 350, y: 190, d: 500 },
+                  { x: 310, y: 150, d: 1000 }, { x: 390, y: 250, d: 1500 },
+                ].map((b, i) => (
+                  <span key={`mpbub-${i}`} style={{
+                    position: "absolute", left: b.x, top: b.y,
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: "radial-gradient(circle at 35% 30%, #fff, rgba(140,220,255,0.7))",
+                    boxShadow: "0 0 6px rgba(140,220,255,0.9)",
+                    zIndex: 6, pointerEvents: "none",
+                    animation: "healFloat 2.2s ease-out infinite",
+                    animationDelay: `${b.d}ms`,
+                    ["--hdx" as any]: "0px",
+                  }} />
+                ))}
+              </>
+            )}
+            {/* Efeito de mel na colméia do Bidril e Kakuna (mapinha12) */}
+            {idle.currentMap === "mapinha12" && (
+              <>
+                <div style={{
+                  position: "absolute", left: 285, top: 265,
+                  width: 160, height: 120, borderRadius: "30%",
+                  background: "radial-gradient(ellipse at 50% 30%, rgba(255,215,0,0.35) 0%, rgba(255,165,0,0.18) 45%, transparent 70%)",
+                  zIndex: 5, pointerEvents: "none",
+                  animation: "waterShimmer 2.8s ease-in-out infinite",
+                }} />
+                {[
+                  { x: 285, y: 310, d: 0 }, { x: 310, y: 330, d: 400 },
+                  { x: 260, y: 340, d: 800 }, { x: 285, y: 360, d: 1200 },
+                ].map((b, i) => (
+                  <span key={`honey-${i}`} style={{
+                    position: "absolute", left: b.x, top: b.y,
+                    width: 6, height: 10, borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
+                    background: "linear-gradient(180deg, #ffd700, #ff8c00)",
+                    boxShadow: "0 0 6px rgba(255,215,0,0.8)",
+                    zIndex: 6, pointerEvents: "none",
+                    animation: "healFloat 2.6s ease-out infinite",
+                    animationDelay: `${b.d}ms`,
+                    ["--hdx" as any]: "0px",
+                  }} />
+                ))}
+                {[
+                  { x: 250, y: 220, d: 0 }, { x: 320, y: 240, d: 600 }, { x: 285, y: 200, d: 1200 },
+                ].map((b, i) => (
+                  <span key={`bee-${i}`} style={{
+                    position: "absolute", left: b.x, top: b.y,
+                    width: 8, height: 8, borderRadius: "50%",
+                    background: "radial-gradient(circle at 30% 30%, #ffd700 0%, #000 55%)",
+                    boxShadow: "0 0 4px rgba(255,215,0,0.9)",
+                    zIndex: 6, pointerEvents: "none",
+                    animation: "healFloat 1.8s ease-in-out infinite",
+                    animationDelay: `${b.d}ms`,
+                    ["--hdx" as any]: `${(i % 2 ? 8 : -8)}px`,
+                  }} />
+                ))}
+              </>
+            )}
             {npcs.map((n) => {
               const isBoy = n.kind === "gordin" || n.kind === "luluzinha";
               const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
@@ -10393,46 +10605,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             })()}
 
 
-            {/* 🧙 NPC Trocador — presente em todos os mapas, canto acessível */}
-            {(() => {
-              const npcX = 260, npcY = 260;
-              return (
-                <div
-                  onClick={() => { playClick(); setWorldTraderOpen(true); }}
-                  title="Trocador — Troque Pokémon da coleção por Orbs de XP"
-                  style={{
-                    position: "absolute",
-                    left: npcX - 40, top: npcY - 60,
-                    width: 80, height: 100,
-                    cursor: "pointer",
-                    zIndex: Math.round(npcY),
-                    display: "flex", flexDirection: "column", alignItems: "center",
-                    filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.6))",
-                  }}
-                >
-                  <div style={{
-                    position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)",
-                    background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
-                    border: "1px solid #ffd94d", color: "#ffd94d",
-                    borderRadius: 999, padding: "2px 8px",
-                    fontSize: 10, fontWeight: 900, whiteSpace: "nowrap",
-                    boxShadow: "0 0 10px rgba(255,217,77,0.5)",
-                    animation: "pulse 1.6s ease-in-out infinite",
-                  }}>✦ TROCADOR</div>
-                  <img
-                    src={npcTraderUrl}
-                    alt="NPC Trocador"
-                    width={80} height={100}
-                    style={{ width: 80, height: 100, imageRendering: "pixelated", objectFit: "contain" }}
-                  />
-                  <div style={{
-                    position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
-                    width: 60, height: 8, borderRadius: "50%",
-                    background: "radial-gradient(ellipse, rgba(255,217,77,0.55), transparent 70%)",
-                  }} />
-                </div>
-              );
-            })()}
+            {/* 🧙 NPC Trocador removido de todos os mapas a pedido do usuário */}
 
             {/* 👑 NPC Governante — visível apenas no Salão do Governante */}
             {idle.currentMap === "governante_hall" && (() => {
@@ -11469,6 +11642,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               team={team}
               onReorderTeam={(nt) => { setTeam(nt); if (nt[0]) setLeaderHp(calcIdleMaxHp(nt[0])); }}
               leaderHp={leaderHp}
+              trainerEnergy={trainerEnergy}
               items={idle.items}
               caughtSpecies={idle.caughtSpecies}
               seenSpecies={idle.seenSpecies}
@@ -11746,6 +11920,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   { key: "to-mapinha6", target: "mapinha6", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#fb923c" },
                   { key: "to-mapinha7", target: "mapinha7", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#f472b6" },
                   { key: "to-mapinha8", target: "mapinha8", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#60a5fa" },
+                  { key: "to-mapinha10", target: "mapinha10", x: 160, y: 60, arriveX: 430, arriveY: 660, color: "#ffd94d" },
+                  { key: "to-mapinha9", target: "mapinha9", x: WORLD_W - 160, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#4ade80" },
+                  { key: "to-mapinha11", target: "mapinha11", x: 160, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#38bdf8" },
+                  { key: "to-mapinha12", target: "mapinha12", x: WORLD_W - 160, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#e879f9" },
+                  { key: "to-mapinha13", target: "mapinha13", x: 60, y: 160, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#fb7185" },
                 ],
                 mapinha1: [
                   { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
@@ -11769,6 +11948,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
                 mapinha8: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha10: [
+                  { key: "to-cidade", target: "cidade", x: 430, y: 732, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha9: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha11: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha12: [
+                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
+                ],
+                mapinha13: [
                   { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
               };
@@ -13038,11 +13232,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         <div className="bottom-nav-bar" style={{ gridColumn: "1 / -1", alignItems: "center" }}>
 
           <div style={{
-            display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 2,
+            display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 0,
             flex: 1, minWidth: 0,
             background: "linear-gradient(180deg, #0d1729 0%, #070c17 100%)",
             border: "1px solid rgba(100,160,255,0.38)",
-            borderRadius: 16, padding: "8px 12px 9px", margin: "0 8px",
+            borderRadius: 12, padding: "4px 8px 5px", margin: "0 8px",
             boxShadow: "0 8px 28px rgba(0,0,0,0.6), 0 0 22px rgba(70,130,255,0.16), inset 0 1px 0 rgba(150,200,255,0.28)",
           }}>
             {([
@@ -13090,22 +13284,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   className="bottomnav-btn"
                   style={{
                     flex: 1, maxWidth: 120, minWidth: 0,
-                    background: "transparent", border: "none", padding: "6px 4px 5px", cursor: "not-allowed",
-                    borderRadius: 12, display: "flex", flexDirection: "column",
-                    alignItems: "center", gap: 5, position: "relative", opacity: 0.55,
+                    background: "transparent", border: "none", padding: "3px 2px 2px", cursor: "not-allowed",
+                    borderRadius: 10, display: "flex", flexDirection: "column",
+                    alignItems: "center", gap: 2, position: "relative", opacity: 0.55,
                   }}
                 >
                   <img
                     src={t.img}
                     alt=""
-                    width={32}
-                    height={32}
+                    width={24}
+                    height={24}
                     style={{
-                      width: 32, height: 32, imageRendering: "pixelated",
+                      width: 24, height: 24, imageRendering: "pixelated",
                       filter: "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))",
                     }}
                   />
-                  <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: 0.3, color: "#6a5a70" }}>
+                  <span style={{ fontSize: 9, fontWeight: 500, letterSpacing: 0.3, color: "#6a5a70" }}>
                     {t.label}
                   </span>
                   <span style={{
@@ -14664,6 +14858,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         @keyframes orbFlashBurst { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } }
         @keyframes healRing { 0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.85; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
         @keyframes healFloat { 0% { transform: translate(calc(-50% + var(--hdx, 0px)), -50%); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--hdx, 0px)), calc(-50% - 54px)); opacity: 0; } }
+        @keyframes waterShimmer { 0%,100% { opacity: 0.28; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.55; transform: translate(-50%, -50%) scale(1.03); } }
 
         /* ===== Sidebar goodies ===== */
         @keyframes world-globe-spin {
@@ -16543,19 +16738,19 @@ function BottomNavBtn({ label, img, active, onClick }: {
         background: active
           ? "radial-gradient(ellipse at 50% 0%, rgba(90,150,255,0.25), rgba(90,150,255,0.05) 70%, transparent 100%)"
           : "transparent",
-        border: "none", padding: "6px 4px 5px", cursor: "pointer",
-        borderRadius: 12, display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 5, position: "relative",
+        border: "none", padding: "3px 2px 2px", cursor: "pointer",
+        borderRadius: 10, display: "flex", flexDirection: "column",
+        alignItems: "center", gap: 2, position: "relative",
       }}
     >
       <img
         src={img}
         alt=""
-        width={32}
-        height={32}
+        width={24}
+        height={24}
         draggable={false}
         style={{
-          width: 32, height: 32, imageRendering: "pixelated",
+          width: 24, height: 24, imageRendering: "pixelated",
           filter: active
             ? "drop-shadow(0 0 9px rgba(110,175,255,0.95)) drop-shadow(0 2px 2px rgba(0,0,0,0.5))"
             : "drop-shadow(0 2px 3px rgba(0,0,0,0.7)) saturate(0.75) brightness(0.85)",
@@ -16564,7 +16759,7 @@ function BottomNavBtn({ label, img, active, onClick }: {
         }}
       />
       <span style={{
-        fontSize: 11, letterSpacing: 0.3, whiteSpace: "nowrap",
+        fontSize: 9, letterSpacing: 0.3, whiteSpace: "nowrap",
         fontWeight: active ? 700 : 500,
         color: active ? "#ffffff" : "#8fa3c8",
         textShadow: "0 1px 2px #000",
@@ -16573,7 +16768,7 @@ function BottomNavBtn({ label, img, active, onClick }: {
       </span>
       {active && (
         <span style={{
-          width: 5, height: 5, borderRadius: "50%",
+          width: 4, height: 4, borderRadius: "50%",
           background: "#8fc0ff", boxShadow: "0 0 8px 2px rgba(110,175,255,0.9)",
         }} />
       )}
@@ -16596,14 +16791,14 @@ function CompassBtn({ active, onClick }: { active: boolean; onClick: () => void 
     >
       <span style={{
         display: "grid", placeItems: "center",
-        width: 62, height: 62, borderRadius: "50%", marginTop: -28,
+        width: 46, height: 46, borderRadius: "50%", marginTop: -20,
         background: "radial-gradient(circle at 50% 35%, #1b2f4d 0%, #0a1322 75%)",
         border: `3px solid ${active ? "#cfe6ff" : "#8fb8ef"}`,
         boxShadow: active
           ? "0 0 22px 4px rgba(120,185,255,0.75), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 12px rgba(120,185,255,0.35)"
           : "0 0 14px 2px rgba(120,185,255,0.45), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 10px rgba(120,185,255,0.2)",
       }}>
-        <svg width={36} height={36} viewBox="0 0 64 64" style={{ filter: "drop-shadow(0 0 5px rgba(160,210,255,0.9))" }}>
+        <svg width={26} height={26} viewBox="0 0 64 64" style={{ filter: "drop-shadow(0 0 5px rgba(160,210,255,0.9))" }}>
           <circle cx={32} cy={32} r={26} fill="none" stroke="rgba(160,205,255,0.5)" strokeWidth={2} />
           <polygon points="32,8 37,30 32,27 27,30" fill="#eaf4ff" />
           <polygon points="32,56 37,34 32,37 27,34" fill="#4a8fe0" />
@@ -16613,7 +16808,7 @@ function CompassBtn({ active, onClick }: { active: boolean; onClick: () => void 
         </svg>
       </span>
       <span style={{
-        fontSize: 10, letterSpacing: 0.3, fontWeight: active ? 700 : 500,
+        fontSize: 9, letterSpacing: 0.3, fontWeight: active ? 700 : 500,
         color: active ? "#ffffff" : "#8fa3c8", textShadow: "0 1px 2px #000",
       }}>
         Início
@@ -16686,7 +16881,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 
 // ============ Overlay das abas ============
 function TabOverlay({
-  tab, onClose, leader, team, onReorderTeam, leaderHp, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
+  tab, onClose, leader, team, onReorderTeam, leaderHp, trainerEnergy, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   idle, setIdle, pushChat,
@@ -16701,6 +16896,7 @@ function TabOverlay({
   team: PetInstance[];
   onReorderTeam: (next: PetInstance[]) => void;
   leaderHp: number;
+  trainerEnergy: number;
   items: Record<string, number>;
   caughtSpecies: Species[];
   seenSpecies: Species[];
@@ -16782,7 +16978,51 @@ function TabOverlay({
     tab === "config"    ? "CONFIGURAÇÕES" :
     tab === "tarefas"   ? "TAREFAS" :
     tab === "inicio"    ? "INÍCIO" : "";
-  const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other">("all");
+  const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other" | "equips">("all");
+  const [bagSel, setBagSel] = useState<string | null>(null);
+  useEffect(() => {
+    if (tab !== "mochila") return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
+      if (e.key === "Escape") { onClose(); return; }
+      const entriesNow = Object.entries(items).filter(([id, n]) => (n as number) > 0 && !id.startsWith("_")) as [string, number][];
+      const catOfKey = (id: string): string => {
+        if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
+        if (id === "potion" || id === "revive" || id === "berry") return "potions";
+        if (id.startsWith("book_")) return "books";
+        if (id.startsWith("egg_")) return "eggs";
+        return "other";
+      };
+      const listNow: [string, number][] = mochilaCat === "all" ? entriesNow : mochilaCat === "equips" ? ownedEquipment.map((eid) => [eid, 1] as [string, number]) : entriesNow.filter(([id]) => catOfKey(id) === mochilaCat);
+      const cur = listNow.some(([id]) => id === bagSel) ? (bagSel as string) : (listNow[0]?.[0] ?? null);
+      if (!cur) return;
+      const isEq = !!(TRAINER_EQUIPMENT_DATA as Record<string, unknown>)[cur];
+      if (e.key === "z" || e.key === "Z") {
+        if (isEq) return;
+        const n = items[cur] ?? 0;
+        const bulk = cur === "book_atk" || cur === "book_def" || cur === "potion";
+        if (bulk && n > 1) {
+          const raw = window.prompt(`Usar quantos ${cur}? (1–${n})`, String(n));
+          if (raw == null) return;
+          onUseItem(cur, Math.max(1, Math.min(n, parseInt(raw, 10) || 1)));
+        } else {
+          onUseItem(cur, 1);
+        }
+      } else if (e.key === "x" || e.key === "X") {
+        if (isEq) return;
+        if (!window.confirm(`Descartar 1× ${cur}?`)) return;
+        setIdle((s: any) => {
+          const c = s.items?.[cur] ?? 0;
+          if (c <= 0) return s;
+          return { ...s, items: { ...s.items, [cur]: c - 1 } };
+        });
+        pushChat(`🗑️ Descartado 1× ${cur}.`, "info");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tab, bagSel, mochilaCat, items, ownedEquipment, onClose, onUseItem, setIdle, pushChat]);
   const [itemDetail, setItemDetail] = useState<string | null>(null);
   const [orbPicker, setOrbPicker] = useState<null | { orbId: "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; rarity: Rarity; count: number; color: string; label: string }>(null);
   const [orbPickerSel, setOrbPickerSel] = useState<Set<string>>(new Set());
@@ -16842,16 +17082,20 @@ function TabOverlay({
   };
   return (
     <div style={{
-      position: "absolute", inset: 12, background: "rgba(11,5,16,0.96)",
-      border: "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
-      zIndex: 20, padding: 16, overflowY: "auto",
+      position: "absolute", inset: (tab === "mochila" || tab === "loja") ? 6 : 12,
+      background: (tab === "mochila" || tab === "loja") ? "rgba(4,8,16,0.55)" : "rgba(11,5,16,0.96)",
+      border: (tab === "mochila" || tab === "loja") ? "none" : "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
+      zIndex: 20, padding: (tab === "mochila" || tab === "loja") ? 10 : 16, overflowY: "auto",
+      display: (tab === "mochila" || tab === "loja") ? "grid" : undefined, placeItems: (tab === "mochila" || tab === "loja") ? "center" : undefined,
     }}>
+      {tab !== "mochila" && tab !== "loja" && (
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 20, color: "#f5cf6b" }}>{title}</h2>
         <button onClick={onClose} style={{ ...smallBtn, background: "#c92a2a", color: "#fff", border: "none", padding: "6px 14px" }}>
           ← Voltar
         </button>
       </div>
+      )}
 
       {tab === "pokemon" && leader && (
         <div style={{
@@ -17333,22 +17577,50 @@ function TabOverlay({
           if (id.startsWith("egg_")) return "eggs";
           return "other";
         };
-        const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other"; label: string; icon: string }[] = [
+        const CATS: { id: "all" | "balls" | "potions" | "books" | "eggs" | "other" | "equips"; label: string; icon: string }[] = [
           { id: "all", label: "Tudo", icon: catAllUrl },
           { id: "balls", label: "Bolas", icon: catBallsUrl },
           { id: "potions", label: "Poções", icon: catPotionsUrl },
           { id: "books", label: "Livros", icon: catBooksUrl },
           { id: "eggs", label: "Ovos", icon: catEggsUrl },
           { id: "other", label: "Outros", icon: catOtherUrl },
+          { id: "equips", label: "Equips", icon: catOtherUrl },
         ];
         // filtra chaves internas de contagem (não devem aparecer na mochila)
         const entries = Object.entries(items).filter(([id, n]) => n > 0 && !id.startsWith("_"));
         const totalTypes = entries.length;
         const totalCount = entries.reduce((a, [, n]) => a + n, 0);
-        const filtered = mochilaCat === "all" ? entries : entries.filter(([id]) => catOf(id) === mochilaCat);
+        const filtered = mochilaCat === "all" ? entries : mochilaCat === "equips" ? ownedEquipment.map((eid) => [eid, 1] as [string, number]) : entries.filter(([id]) => catOf(id) === mochilaCat);
         // slots: preenche a grade com mínimo de 24 slots
         const SLOTS_MIN = 24;
         const emptyCount = Math.max(0, SLOTS_MIN - filtered.length);
+        // Seleção estilo Esmeralda (derivado — sempre válido)
+        const selId = filtered.some(([id]) => id === bagSel) ? (bagSel as string) : (filtered[0]?.[0] ?? null);
+        const eqInfo = (id: string) => (TRAINER_EQUIPMENT_DATA as Record<string, EquipmentItem | undefined>)[id];
+        const isEqSel = selId != null && !!eqInfo(selId);
+        const dispName = (id: string) => eqInfo(id)?.name ?? NAMES[id] ?? id;
+        const eqDescOf = (id: string) => {
+          const e = eqInfo(id);
+          if (!e) return null;
+          const s: string[] = [];
+          if (e.stats.xpBonus) s.push(`+${Math.round(e.stats.xpBonus * 100)}% EXP`);
+          if (e.stats.goldBonus) s.push(`+${Math.round(e.stats.goldBonus * 100)}% Ouro`);
+          if (e.stats.dropRate) s.push(`+${Math.round(e.stats.dropRate * 100)}% Drop`);
+          if (e.stats.speed) s.push(`+${e.stats.speed} Vel`);
+          const slotName: Record<EquipmentSlot, string> = { head: "Elmo", body: "Armadura", weapon: "Arma", feet: "Botas", necklace: "Colar", ring: "Anel" };
+          return `${slotName[e.slot]} · ${s.join(" · ") || "Sem bônus"}`;
+        };
+        const useSelItem = (id: string, n: number) => {
+          const bulk = id === "book_atk" || id === "book_def" || id === "potion";
+          if (bulk && n > 1) {
+            const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
+            if (raw == null) return;
+            const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
+            onUseItem(id, q);
+          } else {
+            onUseItem(id, 1);
+          }
+        };
 
         // Paleta obsidiana + violeta arcano — dark fantasy
         const P = {
@@ -17361,315 +17633,349 @@ function TabOverlay({
 
         return (
           <div style={{
-            background: `
-              radial-gradient(circle at 50% 30%, rgba(168,85,247,0.28), transparent 55%),
-              url(${bagBgGlowUrl}) center/cover no-repeat,
-              linear-gradient(160deg, ${P.bg1} 0%, ${P.bg2} 60%, ${P.bg3} 100%)
-            `,
-            border: `3px solid ${P.gold}`, borderRadius: 16, padding: 14,
-            boxShadow: `inset 0 0 0 2px ${P.goldLight}55, inset 0 0 80px rgba(168,85,247,0.22), 0 8px 32px rgba(0,0,0,0.75)`,
+            background: "linear-gradient(180deg, #0d2240 0%, #081428 60%, #060d1a 100%)",
+            border: "3px solid #060d18", borderRadius: 14, padding: 10,
+            maxWidth: 740, width: "100%", margin: "0 auto",
+            boxShadow: "inset 0 0 0 2px rgba(110,200,255,0.35), 0 8px 32px rgba(0,0,0,0.75)",
             fontFamily: '"Pixelify Sans", ui-monospace, monospace',
             position: "relative",
           }}>
             <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: 16, pointerEvents: "none",
               background: "radial-gradient(ellipse at 50% 0%, rgba(212,162,255,0.18), transparent 60%)" }} />
 
-            {/* CABEÇALHO — pergaminho dourado */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
-              padding: "12px 16px",
-              background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
-              border: `2px solid ${P.goldDark}`, borderRadius: 12,
-              boxShadow: `inset 0 0 0 1px ${P.goldLight}, 0 3px 0 rgba(0,0,0,0.15)`,
-            }}>
+            {/* GRID LAYOUT — treinador + bolsa */}
+            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "168px minmax(0, 1fr)", gap: 8 }}>
+              {/* CARD DO TREINADOR */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{
-                width: 60, height: 60, borderRadius: 12, flexShrink: 0,
-                background: `radial-gradient(circle at 35% 30%, #fff4d0, ${P.goldLight} 55%, ${P.goldDark})`,
-                display: "grid", placeItems: "center",
-                border: `2px solid ${P.goldDark}`,
-                boxShadow: `inset 0 2px 4px rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.35)`,
+                background: "linear-gradient(180deg, #10294d 0%, #0a1830 100%)",
+                border: "2px solid #3a6a9a", borderRadius: 10,
+                boxShadow: "inset 0 0 0 1px rgba(140,200,255,0.25)",
+                padding: 7, display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
               }}>
-                <img src={bagIconImg} alt="" width={40} height={40} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  color: P.goldDark, fontSize: 22, fontWeight: 900, letterSpacing: 3, lineHeight: 1,
-                  textShadow: `0 1px 0 ${P.panel}, 0 2px 3px rgba(0,0,0,0.15)`,
-                }}>✦ MOCHILA ✦</div>
-                <div style={{ color: P.inkSoft, fontSize: 10.5, marginTop: 6, fontStyle: "italic" }}>
-                  "Um bom aventureiro carrega o mundo nas costas."
-                </div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end" }}>
-                <div style={{
-                  background: `linear-gradient(180deg, ${P.panel}, ${P.bg2})`, color: P.ink,
-                  border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
-                  fontSize: 10.5, fontWeight: 900, letterSpacing: 0.5,
-                  boxShadow: `inset 0 0 0 1px ${P.goldLight}80`,
-                }}>{totalTypes} tipos · {totalCount} itens</div>
-                <div style={{ display: "flex", gap: 5 }}>
-                  <div style={{
-                    background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`, color: P.ink,
-                    border: `1.5px solid ${P.goldDark}`, borderRadius: 8, padding: "3px 10px",
-                    fontSize: 11, fontWeight: 900,
-                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-                  }}>💰 {bank.gold.toLocaleString()}</div>
-                  <div style={{
-                    background: "linear-gradient(180deg, #c084fc, #9333ea)", color: "#fff",
-                    border: "1.5px solid #7e22ce", borderRadius: 8, padding: "3px 10px",
-                    fontSize: 11, fontWeight: 900,
-                    boxShadow: "0 2px 0 rgba(0,0,0,0.2)",
-                  }}>💎 {Math.floor(bank.crystals).toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* GRID LAYOUT — sidebar categorias + grade */}
-            <div className="mochila-body" style={{ display: "grid", gridTemplateColumns: "196px minmax(0, 1fr)", gap: 12 }}>
-              {/* SIDEBAR CATEGORIAS */}
-              <div style={{
-                background: `linear-gradient(180deg, ${P.panel}, ${P.bg1})`,
-                border: `2px solid ${P.goldDark}`, borderRadius: 12,
-                boxShadow: `inset 0 0 0 1px ${P.goldLight}70`,
-                padding: 8, display: "flex", flexDirection: "column", gap: 6,
-              }}>
-                <div style={{
-                  textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: 2,
-                  color: P.goldDark, padding: "4px 0 6px", borderBottom: `1px dashed ${P.goldDark}55`,
-                }}>CATEGORIAS</div>
-                {CATS.map((c) => {
-                  const active = mochilaCat === c.id;
-                  const count = c.id === "all" ? entries.length : entries.filter(([id]) => catOf(id) === c.id).length;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => setMochilaCat(c.id)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "8px 10px", fontSize: 11.5, fontWeight: 900, letterSpacing: 0.3,
-                        background: active
-                          ? `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`
-                          : `linear-gradient(180deg, ${P.panel}, ${P.bg2})`,
-                        color: P.ink,
-                        border: `1.5px solid ${active ? P.goldDark : P.gold + "77"}`,
-                        borderRadius: 9, cursor: "pointer",
-                        boxShadow: active
-                          ? `inset 0 0 0 1px #fff8e4, 0 2px 0 rgba(0,0,0,0.25)`
-                          : `0 1px 0 rgba(0,0,0,0.1)`,
-                        transform: active ? "translateX(3px)" : "translateX(0)",
-                        transition: "all 120ms",
-                        textAlign: "left", width: "100%",
-                      }}
-                    >
-                      <img
-                        src={c.icon}
-                        alt=""
-                        width={44}
-                        height={44}
-                        style={{
-                          imageRendering: "pixelated", flexShrink: 0,
-                          filter: active
-                            ? "drop-shadow(0 0 8px rgba(212,162,255,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.55))"
-                            : "drop-shadow(0 0 4px rgba(168,85,247,0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
-                          animation: active ? "cat-bounce 1.4s ease-in-out infinite" : "cat-bounce 3.2s ease-in-out infinite",
-                        }}
-                      />
-                      <span style={{ flex: 1 }}>{c.label}</span>
-                      <span style={{
-                        background: active ? P.goldDark : P.ink + "22",
-                        color: active ? "#fff8e4" : P.inkSoft,
-                        fontSize: 10, fontWeight: 900, padding: "1px 7px",
-                        borderRadius: 999, minWidth: 22, textAlign: "center",
-                      }}>{count}</span>
-                    </button>
-                  );
-                })}
-                <div style={{ flex: 1 }} />
-                <div style={{
-                  marginTop: 4, padding: "6px 8px", fontSize: 9.5, fontWeight: 700,
-                  color: P.inkSoft, textAlign: "center", fontStyle: "italic",
-                  borderTop: `1px dashed ${P.goldDark}55`,
-                }}>
-                  {SLOTS_MIN - filtered.length > 0 ? `${SLOTS_MIN - filtered.length} slots livres` : "Mochila cheia"}
-                </div>
-              </div>
-
-              {/* GRADE DE ITENS */}
-              <div style={{
-                background: `linear-gradient(180deg, ${P.panel}dd, ${P.bg1}dd)`,
-                border: `2px solid ${P.goldDark}`, borderRadius: 12,
-                boxShadow: `inset 0 0 0 1px ${P.goldLight}70, inset 0 0 22px rgba(184,134,42,0.12)`,
-                padding: 12, minHeight: 360,
-              }}>
-                {filtered.length === 0 ? (
-                  <div style={{
-                    color: P.inkSoft, fontSize: 13, padding: 60, textAlign: "center", fontStyle: "italic",
-                  }}>
-                    {entries.length === 0
-                      ? "Sua mochila está vazia. Derrote Pokémon, abra baús ou visite a Loja!"
-                      : "Nenhum item nesta categoria."}
+                {isEqSel ? (
+                <>
+                <div style={{ display: "flex", gap: 7, alignItems: "center", width: "100%" }}>
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <div style={{
+                      width: 42, height: 42, borderRadius: "50%", overflow: "hidden",
+                      border: "2px solid #7dc4ff",
+                      boxShadow: "0 0 10px rgba(125,196,255,0.6)",
+                      background: "radial-gradient(circle at 35% 30%, #1e3a5e, #0a1830)",
+                    }}>
+                      <img src={assetUrlFromJson(trainerAvatarAsset)} alt="" width={42} height={42} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
+                    </div>
                   </div>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(126px, 1fr))", gap: 10 }}>
-                    {filtered.map(([id, n]) => {
-                      const isEgg = id.startsWith("egg_");
-                      const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
-                      const img = ITEM_IMG[id];
-                      const Icon = ITEM_ICONS[id] ?? Sparkles;
-                      const sellPrice = marketSellPrices[id] ?? 0;
-                      return (
-                        <div key={id} style={{
-                          background: `linear-gradient(180deg, ${P.panel} 0%, ${P.bg1} 100%)`,
-                          border: `2px solid ${P.goldDark}`, borderRadius: 10, padding: 8,
-                          textAlign: "center", position: "relative",
-                          boxShadow: `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`,
-                          display: "flex", flexDirection: "column", gap: 6, alignItems: "center",
-                          transition: "transform 120ms, box-shadow 120ms",
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px #fff8e4, 0 6px 14px rgba(0,0,0,0.35), 0 0 14px ${color}66`; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `inset 0 0 0 1px ${P.goldLight}88, 0 3px 0 rgba(0,0,0,0.18)`; }}
-                        >
-                          <div style={{
-                            position: "absolute", top: -6, right: -6,
-                            background: `linear-gradient(180deg, ${P.rose}, #7a1e12)`, color: "#fff8e4",
-                            fontSize: 10, fontWeight: 900, padding: "2px 7px",
-                            borderRadius: 999, minWidth: 24, textAlign: "center",
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                            border: `1.5px solid ${P.panel}`,
-                          }}>x{n}</div>
-                          <div
-                            onClick={(e) => { e.stopPropagation(); setItemDetail(id); }}
-                            title="Ver detalhes"
-                            style={{
-                            width: 62, height: 62, borderRadius: 10, marginTop: 2,
-                            background: `radial-gradient(circle at 30% 30%, ${color}66, ${color}11 55%, ${P.bg2}), ${P.bg1}`,
-                            display: "grid", placeItems: "center",
-                            border: `2px inset ${P.goldDark}aa`,
-                            boxShadow: `inset 0 2px 6px rgba(0,0,0,0.25), 0 0 10px ${color}44`,
-                            position: "relative", overflow: "hidden", cursor: "pointer",
-                          }}>
-                            {img ? (
-                              <img
-                                src={img}
-                                alt=""
-                                width={52}
-                                height={52}
-                                loading="lazy"
-                                style={{
-                                  imageRendering: "pixelated",
-                                  filter: `drop-shadow(0 0 6px ${color}aa) drop-shadow(0 2px 2px rgba(0,0,0,0.45))`,
-                                  animation: "item-float 2.4s ease-in-out infinite",
-                                }}
-                              />
-                            ) : (
-                              <ItemPixelIcon id={id} size={52} color={color} />
-                            )}
-                          </div>
-                          <div style={{
-                            fontSize: 10.5, fontWeight: 900, color: P.ink, letterSpacing: 0.2, lineHeight: 1.15,
-                            minHeight: 24, display: "flex", alignItems: "center",
-                          }}>{NAMES[id] ?? id}</div>
-                          <div style={{ display: "flex", gap: 4, width: "100%" }}>
-                            <button
-                              onClick={() => {
-                                const bulk = id === "book_atk" || id === "book_def" || id === "potion";
-                                if (bulk && n > 1) {
-                                  const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
-                                  if (raw == null) return;
-                                  const q = Math.max(1, Math.min(n, parseInt(raw, 10) || 1));
-                                  onUseItem(id, q);
-                                } else {
-                                  onUseItem(id, 1);
-                                }
-                              }}
-                              style={{
-                                flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
-                                background: `linear-gradient(180deg, ${P.goldLight}, ${P.gold})`,
-                                color: P.ink, border: `1.5px solid ${P.goldDark}`,
-                                borderRadius: 6, cursor: "pointer", letterSpacing: 0.5,
-                                boxShadow: `0 2px 0 ${P.goldDark}`,
-                              }}
-                            >{isEgg ? "CHOCAR" : "USAR"}</button>
-                            {sellPrice > 0 && !id.startsWith("stone_") && (
-                              <button
-                                onClick={() => onSellItem(id, 1)}
-                                title={`Vender 1 por ${sellPrice} ouro`}
-                                style={{
-                                  flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
-                                  background: `linear-gradient(180deg, ${P.roseSoft}, ${P.rose})`,
-                                  color: "#fff8e4", border: `1.5px solid #7a1e12`,
-                                  borderRadius: 6, cursor: "pointer", letterSpacing: 0.3,
-                                  boxShadow: `0 2px 0 #7a1e12`,
-                                }}
-                              >💰{sellPrice}</button>
-                            )}
-
-                            {id.startsWith("stone_") && (
-                              <button
-                                onClick={() => {
-                                  const maxBatches = Math.floor(n / 250);
-                                  if (maxBatches <= 0) return;
-                                  const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
-                                  if (raw == null) return;
-                                  const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
-                                  onSellItem(id, b * 250, "safira");
-                                }}
-                                title="Vender por Safira Verde (250 stones = 2 safiras)"
-                                disabled={n < 250}
-                                style={{
-                                  padding: "5px 6px", fontSize: 10, fontWeight: 900,
-                                  background: n < 250 ? "#334155" : "linear-gradient(180deg,#6ee7a8,#059669)",
-                                  color: "#0b2540", border: "1.5px solid #065f46",
-                                  borderRadius: 6, cursor: n < 250 ? "not-allowed" : "pointer",
-                                  boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.5 : 1,
-                                }}
-                              >💚</button>
-                            )}
-
-                          </div>
-                          {(() => {
-                            const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
-                              book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
-                              book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
-                              book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
-                              book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
-                            };
-                            const rule = UP[id];
-                            if (!rule) return null;
-                            const okLv = trainerLevel >= rule.trainerLv;
-                            const okQty = n >= rule.cost;
-                            const enabled = okLv && okQty;
-                            const title = !okLv
-                              ? `Requer Treinador Lv.${rule.trainerLv}`
-                              : !okQty
-                                ? `Precisa de ${rule.cost}× (você tem ${n})`
-                                : `Forjar ${rule.label} usando ${rule.cost}×`;
-                            return (
-                              <button
-                                onClick={() => onUpgradeBook(id)}
-                                disabled={!enabled}
-                                title={title}
-                                style={{
-                                  marginTop: 2, width: "100%", padding: "5px 4px", fontSize: 9.5, fontWeight: 900,
-                                  background: enabled ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : `${P.bg3}88`,
-                                  color: enabled ? "#0b2010" : P.inkSoft,
-                                  border: `1.5px solid ${enabled ? "#2a5a3a" : P.gold + "77"}`,
-                                  borderRadius: 6, cursor: enabled ? "pointer" : "not-allowed", letterSpacing: 0.3,
-                                }}
-                              >⚒️ {rule.label}</button>
-                            );
-                          })()}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontWeight: 900, fontSize: 10, textShadow: "1px 1px 0 #000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      Lv. {idle.trainerLevel ?? 1} {identity?.name ?? "Treinador"}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontWeight: 900, fontSize: 11, textShadow: "1px 1px 0 #000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      Lv. {idle.trainerLevel ?? 1} {identity?.name ?? "Treinador"}
+                    </div>
+                    {(() => {
+                      const lid = team[0];
+                      const hpMax = lid ? calcIdleMaxHp(lid) : 1;
+                      const hpNow = lid ? Math.max(0, Math.min(hpMax, leaderHp)) : 0;
+                      const mpMax = 100;
+                      const mpNow = Math.max(0, Math.min(100, Math.round(trainerEnergy ?? 100)));
+                      const xpPct = Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100));
+                      const bar = (pct: number, from: string, to: string) => (
+                        <div style={{ height: 7, borderRadius: 999, background: "rgba(0,0,0,0.45)", border: "1px solid rgba(140,200,255,0.35)", overflow: "hidden" }}>
+                          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: `linear-gradient(90deg, ${from}, ${to})` }} />
                         </div>
                       );
-                    })}
-                    {Array.from({ length: emptyCount }).map((_, i) => (
-                      <div key={`empty-${i}`} style={{
-                        background: `${P.bg2}55`,
-                        border: `2px dashed ${P.gold}66`, borderRadius: 10,
-                        minHeight: 150,
-                        boxShadow: `inset 0 0 12px ${P.gold}22`,
-                      }} />
-                    ))}
+                      const row = (label: string, txt: string, pct: number, from: string, to: string, color: string) => (
+                        <div style={{ display: "grid", gridTemplateColumns: "26px 1fr auto", gap: 5, alignItems: "center" }}>
+                          <span style={{ fontSize: 9, fontWeight: 900, color }}>{label}</span>
+                          {bar(pct, from, to)}
+                          <span style={{ fontSize: 8.5, fontWeight: 800, color: "#cfe6ff", minWidth: 52, textAlign: "right" }}>{txt}</span>
+                        </div>
+                      );
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 4 }}>
+                          {row("HP", `${hpNow}/${hpMax}`, (hpNow / Math.max(1, hpMax)) * 100, "#7dd87d", "#2a9a4a", "#7dd87d")}
+                          {row("MP", `${mpNow}/${mpMax}`, (mpNow / mpMax) * 100, "#7dc4ff", "#2a6aff", "#7dc4ff")}
+                          {row("EXP", `${Math.round(xpPct)}%`, xpPct, "#c49aff", "#7a3aff", "#c49aff")}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+                <div style={{ fontSize: 9, color: "#9a9ac8", fontWeight: 800, letterSpacing: 1, textAlign: "center" }}>EQUIPAMENTO</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, width: "100%" }}>
+                  {(Object.keys(equippedItems) as EquipmentSlot[]).map((slot) => {
+                    const eqId = equippedItems[slot];
+                    const eq = eqId ? TRAINER_EQUIPMENT_DATA[eqId] : null;
+                    const slotMeta: Record<EquipmentSlot, { icon: string; label: string }> = {
+                      head: { icon: "🪖", label: "Elmo" },
+                      body: { icon: "🦺", label: "Armadura" },
+                      weapon: { icon: "🗡️", label: "Arma" },
+                      feet: { icon: "🥾", label: "Botas" },
+                      necklace: { icon: "📿", label: "Colar" },
+                      ring: { icon: "💍", label: "Anel" },
+                    };
+                    const meta = slotMeta[slot];
+                    const rColor = eq ? (RARITY_COLOR[eq.rarity] ?? "#8a7a4a") : null;
+                    return (
+                      <button
+                        key={slot}
+                        onClick={() => { playClick(); setEquipmentSlotPicker(slot); }}
+                        title={eq ? `${eq.name} — clique para trocar` : `${meta.label} vazio — clique para equipar`}
+                        style={{
+                          aspectRatio: "1", borderRadius: 8, cursor: "pointer",
+                          background: eq ? "rgba(255,217,77,0.10)" : "rgba(255,255,255,0.04)",
+                          border: eq ? `1.5px solid ${rColor}` : "1.5px dashed rgba(150,150,255,0.35)",
+                          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, padding: 2,
+                          boxShadow: eq ? `0 0 8px ${rColor}55` : "none",
+                        }}
+                      >
+                        <span style={{ fontSize: 17, lineHeight: 1, filter: eq ? "none" : "grayscale(1)", opacity: eq ? 1 : 0.55 }}>{meta.icon}</span>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: eq ? (rColor as string) : "#55557a", letterSpacing: 0.3, lineHeight: 1 }}>
+                          {eq ? eq.name.split(" ").slice(0, 2).join(" ") : meta.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {(() => {
+                  const st = getTrainerStats();
+                  const parts: string[] = [];
+                  if (st.xpBonus) parts.push(`+${Math.round(st.xpBonus * 100)}% XP`);
+                  if (st.goldBonus) parts.push(`+${Math.round(st.goldBonus * 100)}% Ouro`);
+                  if (st.dropRate) parts.push(`+${Math.round(st.dropRate * 100)}% Drop`);
+                  if (st.speed) parts.push(`+${st.speed} Vel`);
+                  return (
+                    <div style={{ fontSize: 9, color: "#8fd08f", textAlign: "center", fontWeight: 700, minHeight: 12 }}>
+                      {parts.length > 0 ? parts.join(" · ") : "Sem bônus equipado"}
+                    </div>
+                  );
+                })()}
+                </>
+                ) : (
+                  <div style={{
+                    width: "100%", borderRadius: 10, overflow: "hidden",
+                    background: "#0d2240",
+                    backgroundImage: "repeating-conic-gradient(rgba(140,200,255,0.06) 0% 25%, transparent 0% 50%), radial-gradient(circle at 50% 38%, rgba(140,200,255,0.20), transparent 62%)",
+                    backgroundSize: "12px 12px, cover",
+                    border: "2px solid #3a6a9a",
+                    boxShadow: "inset 0 0 0 2px #060d18, inset 0 0 28px rgba(0,0,0,0.55)",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                    padding: "12px 8px",
+                  }}>
+                    <img src={bagIconImg} alt="" width={72} height={72} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))" }} />
+                    <span style={{ fontSize: 9, color: "#cfe6ff", fontWeight: 900, letterSpacing: 2, textShadow: "1px 1px 0 #000" }}>MOCHILA</span>
+                    <span style={{ fontSize: 8.5, color: "#9ab8d8", fontStyle: "italic", textAlign: "center", lineHeight: 1.3, padding: "0 6px" }}>Armazena itens que você encontra em sua jornada. Use para acessar seus itens a qualquer momento.</span>
+                  </div>
+                )}
+              </div>
+              </div>
+
+              {/* BOLSA ESTILO REFERÊNCIA */}
+              <div style={{
+                background: "#0d2038",
+                border: "3px solid #060d18",
+                borderRadius: 10,
+                boxShadow: "inset 0 0 0 2px rgba(110,200,255,0.35), 0 4px 14px rgba(0,0,0,0.5)",
+                minHeight: 360, overflow: "hidden",
+                fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+              }}>
+                <div style={{ display: "flex", gap: 5, padding: "8px 8px 0", flexWrap: "wrap", alignItems: "flex-end" }}>
+                  {CATS.map((c) => {
+                    const active = mochilaCat === c.id;
+                    const count = c.id === "all" ? entries.length : c.id === "equips" ? ownedEquipment.length : entries.filter(([id]) => catOf(id) === c.id).length;
+                    const emoji = c.id === "all" ? "🎒" : c.id === "balls" ? "🔘" : c.id === "potions" ? "🧪" : c.id === "books" ? "📖" : c.id === "eggs" ? "🥚" : c.id === "equips" ? "🛡️" : "⚙️";
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => { setMochilaCat(c.id); setBagSel(null); }}
+                        style={{
+                          fontSize: 9, fontWeight: 900, padding: "4px 7px", borderRadius: "8px 8px 0 0",
+                          background: active ? "linear-gradient(180deg, #2a7ad0, #1a4a8a)" : "linear-gradient(180deg, #1a2f4d, #0e1e36)",
+                          color: active ? "#fff" : "#8fb8dd",
+                          border: "2px solid #060d18", borderBottom: active ? "2px solid #2a7ad0" : "2px solid #060d18",
+                          marginBottom: -2, cursor: "pointer", zIndex: active ? 1 : 0,
+                          boxShadow: active ? "0 0 12px rgba(80,160,255,0.5)" : "none",
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 0, minWidth: 48,
+                        }}
+                      ><span style={{ fontSize: 13 }}>{emoji}</span>{c.label}</button>
+                    );
+                  })}
+                  <span style={{
+                    marginLeft: "auto", alignSelf: "center",
+                    fontSize: 10, fontWeight: 900, color: "#cfe6ff",
+                    background: "rgba(0,0,0,0.4)", border: "1.5px solid rgba(140,200,255,0.4)",
+                    padding: "3px 9px", borderRadius: 6, whiteSpace: "nowrap",
+                  }}>{totalTypes} / 1000 ITENS</span>
+                  <button onClick={onClose} title="Fechar" style={{ alignSelf: "center", width: 24, height: 24, borderRadius: "50%", background: "#b91c1c", border: "2px solid #fff", color: "#fff", fontWeight: 900, fontSize: 12, display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.4)", flexShrink: 0 }}>✕</button>
+                </div>
+                <div className="bolsa-list" style={{ background: "#f5f0dc", borderTop: "2px solid #060d18", padding: "3px 0", maxHeight: 208, overflowY: "auto", minHeight: 120 }}>
+                  {filtered.length === 0 ? (
+                    <div style={{ color: "#5a6a8a", fontSize: 12, padding: 30, textAlign: "center", fontStyle: "italic" }}>
+                      {entries.length === 0 && mochilaCat !== "equips"
+                        ? "Mochila vazia. Derrote Pokémon, abra baús ou visite a Loja!"
+                        : "Nenhum item nesta categoria."}
+                    </div>
+                  ) : (
+                    filtered.map(([id, n]) => {
+                      const sel = selId === id;
+                      const eq = eqInfo(id);
+                      const rowImg = eq ? null : ITEM_IMG[id];
+                      const rowColor = eq ? (RARITY_COLOR[eq.rarity] ?? "#8a7a4a") : ((id.startsWith("egg_") ? EGG_COLORS[id] : ITEM_COLORS[id]) ?? "#8a7a4a");
+                      return (
+                        <div
+                          key={id}
+                          onClick={() => setBagSel(id)}
+                          onDoubleClick={() => { if (!eqInfo(id)) useSelItem(id, n); }}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 6,
+                            padding: "3px 10px 3px 4px", cursor: "pointer",
+                            background: sel ? "#7db8f0" : "transparent",
+                            fontSize: 12, fontWeight: 900, color: sel ? "#0a1830" : "#1e3a5e",
+                            borderBottom: "1px dotted rgba(30,58,94,0.25)",
+                          }}
+                        >
+                          <span style={{ width: 14, color: sel ? "#0a1830" : "transparent", fontSize: 11 }}>▶</span>
+                          {rowImg ? (
+                            <img src={rowImg} alt="" width={22} height={22} style={{ imageRendering: "pixelated", flexShrink: 0 }} />
+                          ) : eq ? (
+                            <span style={{ width: 22, height: 22, display: "grid", placeItems: "center", fontSize: 16, flexShrink: 0 }}>
+                              {{ head: "🪖", body: "🦺", weapon: "🗡️", feet: "🥾", necklace: "📿", ring: "💍" }[eq.slot]}
+                            </span>
+                          ) : (
+                            <span style={{ width: 22, height: 22, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                              <ItemPixelIcon id={id} size={20} color={rowColor} />
+                            </span>
+                          )}
+                          <span style={{ flex: 1, textTransform: "uppercase", letterSpacing: 0.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dispName(id)}</span>
+                          <span style={{ color: sel ? "#0a3050" : "#5a7a9a" }}>× {n}</span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                {selId ? (() => {
+                  const id = selId;
+                  const eq = eqInfo(id);
+                  if (eq) {
+                    const slotEmoji: Record<EquipmentSlot, string> = { head: "🪖", body: "🦺", weapon: "🗡️", feet: "🥾", necklace: "📿", ring: "💍" };
+                    const rColor = RARITY_COLOR[eq.rarity] ?? "#8a7a4a";
+                    const equipped = equippedItems[eq.slot] === id;
+                    return (
+                    <div style={{ background: "linear-gradient(180deg, #10294d, #0a1830)", borderTop: "3px solid #060d18", padding: 8 }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <div style={{ width: 46, height: 46, flexShrink: 0, background: "#0a1830", border: "2px solid #3a6a9a", borderRadius: 8, display: "grid", placeItems: "center", fontSize: 26 }}>
+                          {slotEmoji[eq.slot]}
+                        </div>
+                          <div style={{ flex: 1, minWidth: 0, background: "#fff", border: "2px solid #101808", borderRadius: 6, padding: "5px 7px", fontSize: 10.5, color: "#203018", lineHeight: 1.3 }}>
+                            <b>{eq.name}</b><br />{eqDescOf(id)}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                          <button
+                            onClick={() => { playClick(); if (equipped) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); }}
+                            style={{
+                              flex: 1, padding: "7px 4px", fontSize: 11, fontWeight: 900,
+                              background: equipped ? "linear-gradient(180deg, #9a9a9a, #5a5a5a)" : "linear-gradient(180deg, #7dd87d, #3a9a4a)",
+                              color: equipped ? "#fff" : "#0b2010", border: "2px solid #1e5a2a",
+                              borderRadius: 6, cursor: "pointer", letterSpacing: 1, boxShadow: "0 2px 0 #1e5a2a",
+                            }}
+                          >{equipped ? "DESEQUIPAR" : "EQUIPAR"}</button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  const n = items[id] ?? 0;
+                  const isEgg = id.startsWith("egg_");
+                  const color = isEgg ? (EGG_COLORS[id] ?? "#8a7a4a") : (ITEM_COLORS[id] ?? "#8a7a4a");
+                  const img = ITEM_IMG[id];
+                  const sellPrice = marketSellPrices[id] ?? 0;
+                  const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
+                    book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
+                    book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "EXP Lendário" },
+                    book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "VIP 30d" },
+                    book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "VIP 60d" },
+                  };
+                  const rule = UP[id];
+                  const okLv = rule ? (idle.trainerLevel ?? 1) >= rule.trainerLv : false;
+                  const okQty = rule ? n >= rule.cost : false;
+                  const btnBase = {
+                    flex: 1, padding: "5px 4px", fontSize: 10, fontWeight: 900,
+                    borderRadius: 6, cursor: "pointer", letterSpacing: 1,
+                  } as const;
+                  return (
+                    <div style={{ background: "linear-gradient(180deg, #10294d, #0a1830)", borderTop: "3px solid #060d18", padding: 6 }}>
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <div style={{ width: 38, height: 38, flexShrink: 0, background: "#0a1830", border: "2px solid #3a6a9a", borderRadius: 8, display: "grid", placeItems: "center", overflow: "hidden" }}>
+                          {img ? (
+                            <img src={img} alt="" width={32} height={32} style={{ imageRendering: "pixelated" }} />
+                          ) : (
+                            <ItemPixelIcon id={id} size={32} color={color} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ color: "#9adcff", fontWeight: 900, fontSize: 12, letterSpacing: 1, textShadow: "1px 1px 0 #000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dispName(id)}</div>
+                          <div style={{ color: "#d8ecff", fontSize: 10.5, lineHeight: 1.35, maxHeight: 44, overflowY: "auto", marginTop: 2 }}>
+                            {ITEM_DESC[id] ?? "Item do universo IdleMon."}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                        <button
+                          onClick={() => useSelItem(id, n)}
+                          style={{ ...btnBase, background: "linear-gradient(180deg, #7dd87d, #3a9a4a)", color: "#0b2010", border: "2px solid #1e5a2a", boxShadow: "0 2px 0 #1e5a2a" }}
+                        >{isEgg ? "CHOCAR" : "USAR"}</button>
+                        <button
+                          onClick={() => {
+                            if (!window.confirm(`Descartar 1× ${dispName(id)}?`)) return;
+                            setIdle((s) => {
+                              const cur = s.items?.[id] ?? 0;
+                              if (cur <= 0) return s;
+                              return { ...s, items: { ...s.items, [id]: cur - 1 } };
+                            });
+                            pushChat(`🗑️ Descartado 1× ${dispName(id)}.`, "info");
+                          }}
+                          title="Descartar 1 (tecla X)"
+                          style={{ ...btnBase, flex: 0.7, background: "linear-gradient(180deg, #c46a6a, #8a2a2a)", color: "#fff", border: "2px solid #5a1a1a", boxShadow: "0 2px 0 #5a1a1a" }}
+                        >✕</button>
+                        {sellPrice > 0 && !id.startsWith("stone_") && (
+                          <button
+                            onClick={() => onSellItem(id, 1)}
+                            title={`Vender 1 por ${sellPrice} ouro`}
+                            style={{ ...btnBase, background: "linear-gradient(180deg, #ffd94d, #c8901a)", color: "#1a0f00", border: "2px solid #7a5a00", boxShadow: "0 2px 0 #7a5a00" }}
+                          >💰{sellPrice}</button>
+                        )}
+                        {id.startsWith("stone_") && (
+                          <button
+                            onClick={() => {
+                              const maxBatches = Math.floor(n / 250);
+                              if (maxBatches <= 0) return;
+                              const raw = window.prompt(`Vender quantos lotes? (1–${maxBatches})\n250 stones = 2 💚 Safiras`, String(maxBatches));
+                              if (raw == null) return;
+                              const b = Math.max(1, Math.min(maxBatches, parseInt(raw, 10) || 1));
+                              onSellItem(id, b * 250, "safira");
+                            }}
+                            title="Vender por Safira Verde (250 stones = 2 safiras)"
+                            disabled={n < 250}
+                            style={{ ...btnBase, flex: 1.4, background: n < 250 ? "#9a9a9a" : "linear-gradient(180deg,#6ee7a8,#059669)", color: "#0b2540", border: "2px solid #065f46", boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.6 : 1 }}
+                          >💚</button>
+                        )}
+                        {rule && (
+                          <button
+                            onClick={() => onUpgradeBook(id)}
+                            disabled={!(okLv && okQty)}
+                            title={okLv ? (okQty ? `Forjar ${rule.label}` : `Precisa de ${rule.cost}×`) : `Requer Treinador Lv.${rule.trainerLv}`}
+                            style={{ ...btnBase, flex: 0.8, background: (okLv && okQty) ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : "#9a9a9a", color: (okLv && okQty) ? "#0b2010" : "#3a3a3a", border: "2px solid #2a5a3a", boxShadow: "0 2px 0 #2a5a3a", opacity: (okLv && okQty) ? 1 : 0.6 }}
+                          >⚒️</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <div style={{ background: "linear-gradient(180deg, #10294d, #0a1830)", borderTop: "3px solid #060d18", padding: 10, fontSize: 11, color: "#8fb8dd", fontStyle: "italic", textAlign: "center" }}>
+                    Selecione um item da lista. Duplo-clique usa direto.
                   </div>
                 )}
               </div>
@@ -18184,6 +18490,14 @@ function TabOverlay({
 
 
       {tab === "loja" && (
+        <div style={{ maxWidth: 760, width: "100%", margin: "0 auto", background: "linear-gradient(180deg, #0d2240 0%, #081428 60%, #060d1a 100%)", border: "3px solid #060d18", borderRadius: 14, padding: 12, boxShadow: "inset 0 0 0 2px rgba(110,200,255,0.35), 0 8px 32px rgba(0,0,0,0.75)", position: "relative", fontFamily: '"Pixelify Sans", ui-monospace, monospace' }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 20 }}>🛒</span>
+            <span style={{ color: "#9adcff", fontWeight: 900, fontSize: 15, letterSpacing: 2, textShadow: "1px 1px 0 #000" }}>LOJA</span>
+            <span style={{ flex: 1 }} />
+            <button onClick={onClose} title="Fechar" style={{ width: 24, height: 24, borderRadius: "50%", background: "#b91c1c", border: "2px solid #fff", color: "#fff", fontWeight: 900, fontSize: 12, display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.4)" }}>✕</button>
+          </div>
+      {tab === "loja" && (
         <div style={{
             display: "flex", gap: 12, marginBottom: 16, padding: "10px 14px",
             background: "linear-gradient(180deg, #1a0f26, #251638)",
@@ -18657,6 +18971,8 @@ function TabOverlay({
               </div>
             );
           })()}
+        </div>
+      )}
         </div>
       )}
 
