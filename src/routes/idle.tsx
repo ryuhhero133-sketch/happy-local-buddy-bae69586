@@ -17430,7 +17430,7 @@ function TabOverlay({
                     return (
                       <button
                         key={slot}
-                        onClick={() => { playClick(); setEquipmentSlotPicker(slot); }}
+                        onClick={() => setEquipmentSlotPicker(slot)}
                         title={eq ? `${eq.name} — clique para trocar` : `${meta.label} vazio — clique para equipar`}
                         style={{
                           aspectRatio: "1", borderRadius: 8, cursor: "pointer",
@@ -17583,7 +17583,7 @@ function TabOverlay({
                         </div>
                         <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                           <button
-                            onClick={() => { playClick(); if (equipped) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); }}
+                            onClick={() => { if (equipped) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); }}
                             style={{
                               flex: 1, padding: "7px 4px", fontSize: 11, fontWeight: 900,
                               background: equipped ? "linear-gradient(180deg, #9a9a9a, #5a5a5a)" : "linear-gradient(180deg, #7dd87d, #3a9a4a)",
@@ -17638,7 +17638,7 @@ function TabOverlay({
                         <button
                           onClick={() => {
                             if (!window.confirm(`Descartar 1× ${dispName(id)}?`)) return;
-                            setIdle((s) => {
+                            setIdle((s: IdleState) => {
                               const cur = s.items?.[id] ?? 0;
                               if (cur <= 0) return s;
                               return { ...s, items: { ...s.items, [id]: cur - 1 } };
