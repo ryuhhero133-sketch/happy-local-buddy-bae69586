@@ -540,29 +540,9 @@ const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
 
 type IdleMapId =
-  | "arena" | "terra" | "deserto_purpura" | "terry" | "n2" | "n3" | "pantano_fogo" | "venofogo" | "praia" | "neve" | "deserto" | "caverna" | "fantasma"
-  | "gelius1" | "gelius2"
-  // Cadeia endgame — 3 bases (Vale das Rochas, Vulcão Ativo, Núcleo) + 4 recolores
-  | "vale_rochas" | "vale_planta" | "vale_gelo" | "vale_veneno" | "vale_fogo"
-  | "vulcao_ativo" | "nucleo_primordial"
-  // Cadeia Abissal — 5 mapas 1000-3000, recolores do Pântano em Chamas
-  | "abismo_gelo" | "abismo_veneno" | "abismo_raio" | "abismo_sombra" | "abismo_dragao"
-  // Cadeia estendida — Lv 3000 até 6000, continuação natural do Abismo do Dragão
-  | "cadeia_ab" | "cadeia_ab1" | "cadeia_f1"
-  // Evento Mítico Shiny — abre 5min a cada 1h
-  | "evento_myth"
-  // Evento Oddish Odyssey — 24h aberto, 3 mapas conectados por portal
-  | "oddish_o1" | "oddish_o2" | "oddish_o3"
-  // Evento Grass Oddish — mapa exclusivo, entrada custa 20 Stone Verdejante
-  | "grass_oddish"
-  // Continente do Governante — acesso via Carta do Governante
-  | "absol_start" | "governante_hall"
-  // Terceiro Continente — Bônus
-  | "continent3_map1" | "continent3_map2"
-  // Mapas BÔNUS DARK — variações sombrias do Vale Verdejante (abrem 2h a cada 4h)
-  | "dark_vale1" | "dark_vale2" | "dark_vale3"
-  // Cidade + Mapinhas (teleporte grátis)
-  | "cidade" | "mapinha1" | "mapinha2" | "mapinha3" | "mapinha4" | "mapinha5" | "mapinha6" | "mapinha7" | "mapinha8" | "mapinha9" | "mapinha10" | "mapinha11" | "mapinha12" | "mapinha13";
+  | "arena" | "terra"
+  | "mapinha5" | "mapinha6" | "mapinha7" | "mapinha8"
+  | "mapinha9" | "mapinha10" | "mapinha11" | "mapinha12" | "mapinha13";
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -574,116 +554,22 @@ type IdleMapDef = {
   raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
-  arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
-  deserto_purpura: { name: "Areias de Anúbis", diff: "Médio",     bg: mapDesertoPurpuraUrl, rate: 1.8, minLevel: 20, maxLevel: 55, element: "Terra/Veneno", stars: 2, entryCrystals: 5 },
-  terry:    { name: "Terras de Terry",         diff: "Elite",     bg: mapTerryUrl,     rate: 3.2, minLevel: 200, maxLevel: 400, element: "Terra", stars: 4, entryCrystals: 8 },
-  n2:       { name: "Planície de Terry",        diff: "Elite+",    bg: mapN2Url,        rate: 3.8, minLevel: 350, maxLevel: 550, element: "Terra", stars: 5, entryCrystals: 20 },
-  n3:       { name: "Confins de Terry",         diff: "Lendário",  bg: mapN3Url,        rate: 4.5, minLevel: 500, maxLevel: 700, element: "Terra", stars: 5, entryCrystals: 20 },
-  pantano_fogo: { name: "Pântano em Chamas",   diff: "PRIMORDIAL",bg: mapPantanoFogoUrl,rate: 12.0, minLevel: 700, maxLevel: 1200, element: "Fogo/Veneno", stars: 8, entryCrystals: 400 },
-  // ═══ CADEIA ABISSAL — Lv 1000 a 3000 (5 mapas recolorizados do Pântano) ═══
-  abismo_gelo:   { name: "Abismo Gélido",      diff: "ABISSAL",   bg: mapPantanoFogoUrl, rate: 14.0, minLevel: 1000, maxLevel: 1500, element: "Gelo",     stars: 8, entryCrystals: 800,  overlay: "rgba(120,200,255,0.55)" },
-  abismo_veneno: { name: "Abismo Tóxico",      diff: "ABISSAL+",  bg: mapPantanoFogoUrl, rate: 16.0, minLevel: 1400, maxLevel: 2000, element: "Veneno",   stars: 9, entryCrystals: 1200, overlay: "rgba(170,80,220,0.55)" },
-  abismo_raio:   { name: "Abismo do Trovão",   diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 18.0, minLevel: 1800, maxLevel: 2400, element: "Elétrico", stars: 9, entryCrystals: 1600, overlay: "rgba(255,220,80,0.50)" },
-  abismo_sombra: { name: "Abismo Sombrio",     diff: "APOCALIP.", bg: mapPantanoFogoUrl, rate: 20.0, minLevel: 2200, maxLevel: 2700, element: "Sombra",   stars: 10, entryCrystals: 2200, overlay: "rgba(40,20,60,0.65)" },
-  abismo_dragao: { name: "Abismo do Dragão",   diff: "ABSOLUTO",  bg: mapPantanoFogoUrl, rate: 22.0, minLevel: 2500, maxLevel: 3000, element: "Dragão",   stars: 10, entryCrystals: 3000, overlay: "rgba(255,150,40,0.55)" },
-  // ═══ CADEIA ESTENDIDA — continuação após Abismo do Dragão (3000→6000) ═══
-  cadeia_ab:  { name: "Fenda Estelar",          diff: "TRANSC.",   bg: mapCadeiaAbUrl,  rate: 26.0, minLevel: 3000, maxLevel: 3500, element: "Estelar", stars: 10, entryCrystals: 4000 },
-  cadeia_ab1: { name: "Cripta Etérea",          diff: "TRANSC.+",  bg: mapCadeiaAb1Url, rate: 30.0, minLevel: 3500, maxLevel: 5000, element: "Etéreo",  stars: 10, entryCrystals: 6000 },
-  cadeia_f1:  { name: "Chamas do Fim",          diff: "COSMICO",   bg: mapCadeiaF1Url,  rate: 34.0, minLevel: 4000, maxLevel: 6000, element: "Fogo/Cosmico", stars: 10, entryCrystals: 8000 },
-  // ═══ EVENTO MÍTICO SHINY — abre 5min a cada 1h ═══
-  evento_myth: { name: "Domínio Mítico Shiny",  diff: "EVENTO",    bg: mapMythshinyEventUrl, rate: 40.0, minLevel: 1, maxLevel: 9999, element: "Todos", stars: 10 },
-  praia:    { name: "Praia Coral",             diff: "Fácil+",    bg: mapBeachUrl,     rate: 1.3, minLevel: 15, maxLevel: 40, element: "Água", stars: 1 },
-  venofogo: { name: "Pântano Ardente",         diff: "Difícil",   bg: mapVenofogoOrangeUrl, rate: 1.8, minLevel: 25, maxLevel: 120, element: "Veneno/Fogo", stars: 2 },
-
-  neve:     { name: "Vale Verdejante de Neve", diff: "Médio",     bg: mapSnowUrl,      rate: 1.6, minLevel: 40, maxLevel: 65, element: "Gelo", stars: 2 },
-  deserto:  { name: "Deserto Escaldante",      diff: "Médio+",    bg: mapDesertUrl,    rate: 2.0, minLevel: 50, maxLevel: 75, element: "Fogo", stars: 2 },
-  caverna:  { name: "Caverna Rochosa",         diff: "Extremo",   bg: mapCaveUrl,      rate: 3.5, minLevel: 60, maxLevel: 90, element: "Pedra", stars: 3,
-              cycle: { cycleMs: 2.5 * 60 * 60 * 1000, openMs: 30 * 60 * 1000 } },
-  fantasma: { name: "Cemitério Assombrado",    diff: "RAID",      bg: mapFantasmaUrl,  rate: 4.0, minLevel: 1,  maxLevel: 9999, element: "Fantasma", stars: 4, raid: true },
-  // ═══ ENDGAME — cadeia progressiva, portal visível mas exige nível de treinador ═══
-  vale_rochas:       { name: "Vale das Rochas",   diff: "Lendário",   bg: mapPedreiraCavernaUrl, rate: 6.0, minLevel: 50,  maxLevel: 150, element: "Pedra",  stars: 4 },
-  vale_planta:       { name: "Vale Esmeralda",    diff: "Lendário+",  bg: mapPedreiraCavernaUrl, rate: 6.5, minLevel: 120, maxLevel: 220, element: "Planta", stars: 5, overlay: "rgba(70,210,90,0.42)" },
-  vale_gelo:         { name: "Vale Gélido",       diff: "Mítico",     bg: mapPedreiraCavernaUrl, rate: 7.0, minLevel: 190, maxLevel: 290, element: "Gelo",   stars: 6, overlay: "rgba(140,220,255,0.45)" },
-  vale_veneno:       { name: "Vale Tóxico",       diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 7.5, minLevel: 260, maxLevel: 360, element: "Veneno", stars: 7, overlay: "rgba(180,90,220,0.48)" },
-  vale_fogo:         { name: "Vale Ígneo",        diff: "Mítico+",    bg: mapPedreiraCavernaUrl, rate: 8.0, minLevel: 330, maxLevel: 420, element: "Fogo",   stars: 7, overlay: "rgba(255,95,45,0.45)" },
-  vulcao_ativo:      { name: "Vulcão Ativo",      diff: "PRIMORDIAL", bg: mapVictoryRoadUrl,     rate: 9.0, minLevel: 400, maxLevel: 470, element: "Fogo",   stars: 8 },
-  nucleo_primordial: { name: "Núcleo Primordial", diff: "PRIMORDIAL", bg: mapVenenoUrl,          rate: 10.0, minLevel: 460, maxLevel: 500, element: "Misto", stars: 8 },
-  // ═══ EVENTO GELIUS (a cada 2h, 10min de duração, troca de fase aos 5min) ═══
-  gelius1: { name: "Gelius — Onda 1", diff: "EVENTO", bg: assetUrlFromJson(mapGelius1Asset), rate: 5.0, minLevel: 1,   maxLevel: 200,  element: "Gelo/Evento", stars: 5 },
-  gelius2: { name: "Gelius — Onda 2", diff: "EVENTO", bg: assetUrlFromJson(mapGelius2Asset), rate: 7.0, minLevel: 400, maxLevel: 1000, element: "Gelo/Evento", stars: 8 },
-  // ═══ EVENTO ODDISH ODYSSEY — 48h, abre 30min a cada 2h ═══
-  oddish_o1: { name: "Odisséia Oddish — Bosque",   diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
-  oddish_o2: { name: "Odisséia Oddish — Clareira", diff: "EVENTO", bg: assetUrlFromJson(mapOddish2Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta/Caos", stars: 6 },
-  oddish_o3: { name: "Odisséia Oddish — Caverna Sombria", diff: "EVENTO", bg: mapOddish3Url, rate: 9.0, minLevel: 1, maxLevel: 9999, element: "Fantasma/Caos", stars: 7 },
-  grass_oddish: { name: "🌿 Grass Oddish", diff: "EVENTO", bg: assetUrlFromJson(mapOddish1Asset), rate: 8.0, minLevel: 1, maxLevel: 9999, element: "Planta", stars: 6, overlay: "rgba(120,255,140,0.18)" },
-  absol_start:      { name: "Continente do Governante — Absol", diff: "LENDÁRIO", bg: assetUrlFromJson(absolStartMapAsset),      rate: 4.0, minLevel: 1, maxLevel: 9999, element: "Sombrio/Lendário", stars: 8 },
-  governante_hall:  { name: "Salão do Governante",              diff: "LENDÁRIO", bg: assetUrlFromJson(governanteHallMapAsset),  rate: 3.0, minLevel: 1, maxLevel: 9999, element: "Lendário",         stars: 9 },
-  continent3_map1:  { name: "Fosso de Magma",                    diff: "MÍTICO++", bg: assetUrlFromJson(continent3Map1Asset),      rate: 45.0, minLevel: 6000, maxLevel: 8000, element: "Fogo/Lava",    stars: 10 },
-  continent3_map2:  { name: "Pântano de Safira",                 diff: "DIVINO",   bg: assetUrlFromJson(continent3Map2Asset),      rate: 55.0, minLevel: 8000, maxLevel: 10000, element: "Veneno/Planta", stars: 10 },
-  // --- BÔNUS DARK: 3 variações sombrias do Vale Verdejante (2h abertas a cada 4h) ---
-  dark_vale1: { name: "Vale Sombrio",     diff: "BÔNUS DARK",  bg: idleArenaUrl, rate: 2.4, minLevel: 1, element: "Sombra/Grama",   stars: 8,  overlay: "linear-gradient(180deg, rgba(4,6,14,0.72), rgba(24,4,38,0.78))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
-  dark_vale2: { name: "Vale Amaldiçoado", diff: "BÔNUS DARK+", bg: idleArenaUrl, rate: 3.0, minLevel: 1, element: "Sombra/Veneno",  stars: 9,  overlay: "linear-gradient(180deg, rgba(10,2,16,0.78), rgba(40,0,20,0.82))", cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
-  dark_vale3: { name: "Vale do Vazio",    diff: "BÔNUS VOID",  bg: idleArenaUrl, rate: 3.6, minLevel: 1, element: "Sombra/Dragão",  stars: 10, overlay: "linear-gradient(180deg, rgba(0,0,0,0.86), rgba(12,0,32,0.9))",  cycle: { cycleMs: 4 * 60 * 60 * 1000, openMs: 2 * 60 * 60 * 1000 } },
-  cidade:   { name: "Cidade Principal", diff: "Fácil",  bg: mapCidadeUrl, rate: 0.8, minLevel: 1,  maxLevel: 30, element: "Normal", stars: 1 },
-  mapinha1: { name: "Mapinha 1",        diff: "Fácil",  bg: mapinha1Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
-  mapinha2: { name: "Mapinha 2",        diff: "Fácil+", bg: mapinha2Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
-  mapinha3: { name: "Mapinha 3",        diff: "Médio",  bg: mapinha3Url,  rate: 1.4, minLevel: 10, maxLevel: 40, element: "Fogo",   stars: 2 },
-  mapinha4: { name: "Mapinha 4",        diff: "Médio+", bg: mapinha4Url,  rate: 1.6, minLevel: 15, maxLevel: 60, element: "Terra",  stars: 2 },
-  mapinha5: { name: "Mapinha 5",        diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 20, maxLevel: 80, element: "Planta",  stars: 3 },
-  mapinha6: { name: "Mapinha 6",        diff: "Difícil+", bg: mapinha6Url,  rate: 2.0, minLevel: 25, maxLevel: 100, element: "Normal",  stars: 3 },
-  mapinha7: { name: "Mapinha 7",        diff: "Fácil",  bg: mapinha7Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
-  mapinha8: { name: "Mapinha 8",        diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
-  mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 30, maxLevel: 120, element: "Normal", stars: 3 },
-  mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
-  mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
+  arena: { name: "Vale Verdejante", diff: "Fácil", bg: idleArenaUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Grama", stars: 1 },
+  terra: { name: "Ninho de Marimbondo", diff: "Fácil+", bg: mapTerraUrl, rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
+  mapinha5: { name: "Mapinha 5", diff: "Difícil", bg: mapinha5Url, rate: 1.8, minLevel: 20, maxLevel: 80, element: "Planta", stars: 3 },
+  mapinha6: { name: "Mapinha 6", diff: "Difícil+", bg: mapinha6Url, rate: 2.0, minLevel: 25, maxLevel: 100, element: "Normal", stars: 3 },
+  mapinha7: { name: "Mapinha 7", diff: "Fácil", bg: mapinha7Url, rate: 1.0, minLevel: 1, maxLevel: 20, element: "Normal", stars: 1 },
+  mapinha8: { name: "Mapinha 8", diff: "Fácil+", bg: mapinha8Url, rate: 1.1, minLevel: 5, maxLevel: 25, element: "Água", stars: 1 },
+  mapinha9: { name: "Mapinha 9", diff: "Difícil+", bg: mapinha9Url, rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
+  mapinha10: { name: "Pokemarkt", diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 30, maxLevel: 120, element: "Normal", stars: 3 },
+  mapinha11: { name: "Revoland", diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra", stars: 3 },
   mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 180, element: "Inseto", stars: 3 },
-  mapinha13: { name: "MP Plus",         diff: "Difícil+", bg: mapinha13Url, rate: 2.8, minLevel: 45, maxLevel: 200, element: "Água",   stars: 3 },
+  mapinha13: { name: "MP Plus", diff: "Difícil+", bg: mapinha13Url, rate: 2.8, minLevel: 45, maxLevel: 200, element: "Água", stars: 3 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
-// Cadeia endgame — portais visíveis em todos os mapas, mas exigem nível de treinador para atravessar
-const ENDGAME_CHAIN: Array<{ from: IdleMapId; to: IdleMapId; req: number; color: string }> = [
-  { from: "terra",             to: "vale_rochas",       req: 40,  color: "#c9a76a" },
-  { from: "vale_rochas",       to: "vale_planta",       req: 110, color: "#4ade80" },
-  { from: "vale_planta",       to: "vale_gelo",         req: 180, color: "#7dd3fc" },
-  { from: "vale_gelo",         to: "vale_veneno",       req: 250, color: "#c084fc" },
-  { from: "vale_veneno",       to: "vale_fogo",         req: 320, color: "#fb923c" },
-  { from: "vale_fogo",         to: "vulcao_ativo",      req: 390, color: "#ef4444" },
-  { from: "vulcao_ativo",      to: "nucleo_primordial", req: 460, color: "#f0abfc" },
-];
-const WORLD_PORTALS: WorldPortalDef[] = ENDGAME_CHAIN.flatMap((c) => {
-  const toName = IDLE_MAPS[c.to].name;
-  const fromName = IDLE_MAPS[c.from].name;
-  return [
-    { key: `${c.from}->${c.to}`, from: c.from, to: c.to, x: 1720, y: 260, arriveX: 220, arriveY: 1660, color: c.color, label: toName, reqLevel: c.req },
-    { key: `${c.to}->${c.from}`, from: c.to, to: c.from, x: 200, y: 1660, arriveX: 1700, arriveY: 260, color: "#94a3b8", label: `↩ ${fromName}` },
-  ];
-});
+const WORLD_PORTALS: WorldPortalDef[] = [];
 
-// Portal da Casa
-const HOUSE_PORTALS: WorldPortalDef[] = [
-
-];
-
-WORLD_PORTALS.push(...HOUSE_PORTALS);
-
-// Retorna se a caverna está atualmente aberta e ms para o próximo evento (abrir/fechar)
-function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
-  const c = IDLE_MAPS.caverna.cycle!;
-  const t = now % c.cycleMs;
-  if (t < c.openMs) return { open: true, msUntilChange: c.openMs - t };
-  return { open: false, msUntilChange: c.cycleMs - t };
-}
-
-// Evento Mítico Shiny — abre 5 minutos a cada 1 hora.
-function mythEventInfo(now: number = Date.now()): { open: boolean; msUntilChange: number } {
-  const CYCLE = 60 * 60 * 1000;
-  const OPEN = 5 * 60 * 1000;
-  const t = now % CYCLE;
-  if (t < OPEN) return { open: true, msUntilChange: OPEN - t };
-  return { open: false, msUntilChange: CYCLE - t };
-}
 
 const GIF: Partial<Record<Species, string>> = {
   charizard: charizardGif, pikachu: pikachuGif,
@@ -871,8 +757,8 @@ type Obstacle = {
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
-  // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
-  if (mapId === "cidade" || mapId === "mapinha3" || mapId === "mapinha4" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
+  // Mapas sem obstáculos adicionais.
+  if (mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
   // Revoland (mapinha11): colisão invisível no lago (3 círculos ao longo da água)
   if (mapId === "mapinha11") {
     const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -929,130 +815,9 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       { id: 2, x: 400, y: 215, w: 60, h: 60, src: inv, blocks: true, collideR: 100 },
     ];
   }
-  // Mapinhas 1 e 2: pouquíssimas árvores, sem pedras (bem limpo)
-  if (mapId === "mapinha1" || mapId === "mapinha2") {
-    let seed2 = 777;
-    const rand2 = () => { seed2 = (seed2 * 1103515245 + 12345) & 0x7fffffff; return seed2 / 0x7fffffff; };
-    const kinds = [
-      { src: treeOakUrl, w: 110, h: 124, collideR: 0, blocks: false },
-      { src: treePineUrl, w: 90, h: 132, collideR: 0, blocks: false },
-    ];
-    const list: Obstacle[] = [];
-    let id = 1;
-    let tries = 0;
-    while (list.length < 3 && tries < 500) {
-      tries++;
-      const k = kinds[Math.floor(rand2() * kinds.length)];
-      const x = 120 + rand2() * (worldW - 240);
-      const y = 120 + rand2() * (worldH - 240);
-      if (Math.hypot(x - worldW / 2, y - worldH / 2) < 200) continue;
-      let ok = true;
-      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < 120) { ok = false; break; }
-      if (!ok) continue;
-      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
-    }
-    return list;
-  }
-
    // PRNG determinístico simples
-   let seed = mapId === "terra" ? 98765 : mapId === "fantasma" ? 66613 : 12345;
+   let seed = mapId === "terra" ? 98765 : 12345;
    const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-
-  // Cemitério Assombrado (fantasma): mesma composição do Ninho de Marimbondo,
-  // porém re-tematizado — lápides gigantes no lugar dos casulos, árvores mortas ao redor.
-  if (mapId === "fantasma") {
-    const kinds = [
-      { src: treeOakUrl,     w: 110, h: 124, collideR: 0,  blocks: false },
-      { src: rockBoulderUrl, w:  86, h:  76, collideR: 10, blocks: true  },
-    ];
-    const list: Obstacle[] = [];
-    let id = 1;
-    // 4 lápides/portais espirituais espalhados (mesmos slots dos casulos)
-    const graveSpots: { x: number; y: number }[] = [
-      { x: worldW * 0.28, y: worldH * 0.30 },
-      { x: worldW * 0.72, y: worldH * 0.28 },
-      { x: worldW * 0.30, y: worldH * 0.72 },
-      { x: worldW * 0.74, y: worldH * 0.70 },
-    ];
-    for (const c of graveSpots) {
-      list.push({ id: id++, x: c.x, y: c.y, w: 120, h: 140, src: rockBoulderUrl, blocks: true, collideR: 42 });
-    }
-    // Enxame decorativo de zubats/venomoths espectrais
-    const swarm: string[] = [zubatUrl, venonatUrl];
-    let sTries = 0;
-    let placed = 0;
-    while (placed < 24 && sTries < 1500) {
-      sTries++;
-      const src = swarm[Math.floor(rand() * swarm.length)];
-      const x = 80 + rand() * (worldW - 160);
-      const y = 100 + rand() * (worldH - 200);
-      let ok = true;
-      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < 120) { ok = false; break; }
-      if (!ok) continue;
-      list.push({ id: id++, x, y, w: 38, h: 38, src, blocks: false, collideR: 0 });
-      placed++;
-    }
-    // Árvores mortas espalhadas evitando as lápides
-    const MIN_GAP = 130;
-    let tries = 0;
-    while (list.length < graveSpots.length * 3 + 14 && tries < 2500) {
-      tries++;
-      const k = kinds[Math.floor(rand() * kinds.length)];
-      const x = 80 + rand() * (worldW - 160);
-      const y = 100 + rand() * (worldH - 200);
-      let nearGrave = false;
-      for (const c of graveSpots) if (Math.hypot(x - c.x, y - c.y) < 260) { nearGrave = true; break; }
-      if (nearGrave) continue;
-      let ok = true;
-      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < MIN_GAP) { ok = false; break; }
-      if (!ok) continue;
-      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
-    }
-    return list;
-  }
-
-  // Pântano em Chamas (venofogo): MESMA composição do Vale Verdejante (arena),
-  // porém re-tematizada — árvores/matos de fogo, 2 lagos de lava e um vulcão central.
-  if (mapId === "venofogo") {
-    const kinds = [
-      { src: rockLavaUrl, w: 56, h: 50, collideR: 8, blocks: true },
-    ];
-    const list: Obstacle[] = [];
-    let id = 1;
-
-    // 2 lagos de lava pequenos (posições espelhadas, fora do centro)
-    const lakeSpots: { x: number; y: number }[] = [
-      { x: worldW * 0.22, y: worldH * 0.30 },
-      { x: worldW * 0.78, y: worldH * 0.72 },
-    ];
-    for (const c of lakeSpots) {
-      list.push({ id: id++, x: c.x, y: c.y, w: 130, h: 130, src: redLakeUrl, blocks: true, collideR: 52 });
-    }
-
-    // Vulcão central (grande, bloqueia — substitui o "centro limpo" do arena)
-    const volcano = { x: worldW * 0.5, y: worldH * 0.5 };
-    list.push({ id: id++, x: volcano.x, y: volcano.y, w: 240, h: 240, src: volcanoUrl, blocks: true, collideR: 96 });
-
-    // Distribuição espalhada IDÊNTICA ao arena (mesmo seed, mesmos parâmetros),
-    // apenas evitando lagos e o vulcão.
-    const MIN_GAP = 60;
-    let tries = 0;
-    while (list.length < 18 && tries < 2000) {
-      tries++;
-      const k = kinds[Math.floor(rand() * kinds.length)];
-      const x = 60 + rand() * (worldW - 120);
-      const y = 80 + rand() * (worldH - 160);
-      if (Math.hypot(x - volcano.x, y - volcano.y) < 180) continue;
-      let nearLake = false;
-      for (const c of lakeSpots) if (Math.hypot(x - c.x, y - c.y) < 130) { nearLake = true; break; }
-      if (nearLake) continue;
-      let ok = true;
-      for (const o of list) if (Math.hypot(x - o.x, y - o.y) < MIN_GAP) { ok = false; break; }
-      if (!ok) continue;
-      list.push({ id: id++, x, y, w: k.w, h: k.h, src: k.src, blocks: k.blocks, collideR: k.collideR });
-    }
-    return list;
-  }
 
 
 
@@ -2122,28 +1887,7 @@ function IdlePage() {
     }, 1000);
     return () => clearInterval(iv);
   }, []);
-  // Fecha a caverna: expulsa o treinador quando o ciclo terminar
-  useEffect(() => {
-    if (idle.currentMap !== "caverna") return;
-    const w = caveWindow();
-    if (!w.open) {
-      setIdle((s) => ({ ...s, currentMap: "arena" }));
-      pushChat(`⛰ Caverna Rochosa fechou. Você foi levado ao Vale Verdejante.`, "info");
-      pushEvent("⛰", "CAVERNA FECHADA", "Volte quando reabrir", "#a08770");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [energyTick, idle.currentMap]);
 
-  // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
-  const [governanteOpen, setGovernanteOpen] = useState(false);
-  useEffect(() => {
-    // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
-    if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
-      setEnemies([]);
-    }
-    if (idle.currentMap !== "governante_hall") return;
-    setGovernanteOpen(true);
-  }, [idle.currentMap]);
 
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
   // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
@@ -2606,86 +2350,6 @@ function IdlePage() {
     pushToast(`+${q.reward} ouro`, "chest");
   };
 
-  // ============================================================
-  // 🌑 MAPAS BÔNUS DARK — expulsão automática ao fechar a janela (4h ciclo / 2h aberto)
-  // ============================================================
-  useEffect(() => {
-    const check = () => {
-      const w = darkBonusWindow();
-      if (w.open) return;
-      setIdle((s) => {
-        if (!isDarkBonusMap(s.currentMap)) return s;
-        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌑 Vale fechado", body: "A fenda sombria se fechou — de volta à Arena.", tone: "info" } })); } catch {}
-        return { ...s, currentMap: "arena" };
-      });
-    };
-    check();
-    const t = setInterval(check, 15000);
-    return () => clearInterval(t);
-  }, []);
-
-
-  // ============================================================
-  // AVISO GLOBAL — ODISSÉIA ODDISH
-  // O evento abre no mesmo horário pra todo mundo (startedAt fixo).
-  // Aqui despachamos toasts/chat sincronizados: T-5min, T-1min, ABERTO, FECHADO.
-  // ============================================================
-  const oddishAnnouncedRef = useRef<Set<string>>(new Set());
-  // Guarda o mapa de origem antes do jogador entrar na Odisséia Oddish;
-  // ao fechar o portal, devolvemos ele pra esse mapa automaticamente.
-  const oddishReturnMapRef = useRef<IdleMapId | null>(null);
-  useEffect(() => {
-    const check = () => {
-      const st = oddishEventStatus();
-      // Se o evento está desligado/encerrado, apenas retira quem ainda está no mapa.
-      if (!ODDISH_EVENT.enabled || st.phase === "finished" || st.phase === "disabled") {
-        setIdle((s) => {
-          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2" && s.currentMap !== "oddish_o3") return s;
-          const back = oddishReturnMapRef.current ?? "arena";
-          oddishReturnMapRef.current = null;
-          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Evento encerrado", body: "Odisséia Oddish acabou — de volta ao mapa anterior.", tone: "info" } })); } catch {}
-          return { ...s, currentMap: back };
-        });
-        return;
-      }
-      const cycleMs = ODDISH_EVENT.cycleHours * 60 * 60 * 1000;
-      const cycleIndex = Math.floor(st.elapsedMs / cycleMs);
-      const key = (k: string) => `${cycleIndex}:${k}`;
-      const seen = oddishAnnouncedRef.current;
-      if (st.phase === "closed") {
-        const ms = st.msUntilChange;
-        if (ms <= 5 * 60 * 1000 && ms > 4 * 60 * 1000 && !seen.has(key("t5"))) {
-          seen.add(key("t5"));
-          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "Portal abre em 5 minutos!", tone: "info" } })); } catch {}
-        }
-        if (ms <= 60 * 1000 && ms > 30 * 1000 && !seen.has(key("t1"))) {
-          seen.add(key("t1"));
-          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "ODISSÉIA ODDISH", body: "1 minuto para abrir!", tone: "warn" } })); } catch {}
-        }
-      }
-      if (st.phase === "open" && !seen.has(key("open"))) {
-        seen.add(key("open"));
-        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 PORTAL ABERTO!", body: "ODISSÉIA ODDISH — janela de 30 min ativa pra geral!", tone: "success" } })); } catch {}
-      }
-      if (st.phase === "open" && st.msUntilChange <= 60 * 1000 && st.msUntilChange > 30 * 1000 && !seen.has(key("closing"))) {
-        seen.add(key("closing"));
-      }
-      // Auto-retorno: portal fechou e o jogador ainda está no mapa do evento.
-      if (st.phase !== "open") {
-        setIdle((s) => {
-          if (s.currentMap !== "oddish_o1" && s.currentMap !== "oddish_o2" && s.currentMap !== "oddish_o3") return s;
-          const back = oddishReturnMapRef.current ?? "arena";
-          oddishReturnMapRef.current = null;
-          try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Portal fechado", body: "Você foi teletransportado de volta.", tone: "info" } })); } catch {}
-          return { ...s, currentMap: back };
-        });
-      }
-    };
-    check();
-    const iv = setInterval(check, 10_000);
-    return () => clearInterval(iv);
-  }, []);
-
   // Chat global (cooldown 10 min por jogador)
   const [chatInput, setChatInput] = useState("");
   const [chatCooldownUntil, setChatCooldownUntil] = useState<number>(0);
@@ -2760,8 +2424,8 @@ function IdlePage() {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
-  const WORLD_H = idle.currentMap === "deserto_purpura" ? 3840 : 1920;
+  const WORLD_W = 1920;
+  const WORLD_H = 1920;
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
   const MAP_DISPLAY_SCALE: Record<string, number> = {
     mapinha10: 0.65,
@@ -2769,11 +2433,6 @@ function IdlePage() {
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
-    cidade: mapCidadeUrl,
-    mapinha1: mapinha1Url,
-    mapinha2: mapinha2Url,
-    mapinha3: mapinha3Url,
-    mapinha4: mapinha4Url,
     mapinha5: mapinha5Url,
     mapinha6: mapinha6Url,
     mapinha7: mapinha7Url,
@@ -2797,19 +2456,6 @@ function IdlePage() {
       setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
     }
   }, [idle.currentMap, customDims]);
-  useEffect(() => {
-    if (customDims && (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2")) {
-      setEnemies((prev) => {
-        if (prev.filter((e) => e.hp > 0).length > 0) return prev;
-        const fresh = spawnEnemies();
-        return fresh.length > 0 ? fresh : prev;
-      });
-      setChests((prev) => {
-        if (prev.filter((c) => !c.opened).length > 0) return prev;
-        return spawnChests(chestTarget);
-      });
-    }
-  }, [customDims]);
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
   const ATTACK_RANGE = 90; // px
@@ -2921,23 +2567,6 @@ function IdlePage() {
     return () => clearInterval(iv);
   }, [enemies, moving, team]);
   // Coleta de orbs de energia removida — só existem orbs de mapa que spawnam pokémon
-  // NPCs: garotos + bulbasaurs nos mapinhas 1 e 2
-  useEffect(() => {
-    if (idle.currentMap === "mapinha1") {
-      setNpcs([
-        { id: 1, kind: "luluzinha", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
-        { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
-      ]);
-    } else if (idle.currentMap === "mapinha2") {
-      setNpcs([
-        { id: 3, kind: "gordin", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
-        { id: 4, kind: "bulbaFlower", x: customDims ? customDims.w * 0.65 : 1200, y: customDims ? customDims.h * 0.55 : 1000, dir: "down", frame: 0 },
-      ]);
-    } else {
-      setNpcs([]);
-      setNpcDialog(null);
-    }
-  }, [idle.currentMap, customDims]);
   // Anima e move NPCs (spritesheet 4x4)
   useEffect(() => {
     if (npcDialog) return;
@@ -4621,7 +4250,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (!wp || reached || expired) {
             // Escolhe destino longe da posição atual (pelo menos 40% do mapa)
             // Nos mapinhas fica só no centro 30-70% pra nunca ir pro canto verde
-            const isSmallWander = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+            const isSmallWander = false && customDims;
             const wW = isSmallWander ? customDims!.w : WORLD_W;
             const wH = isSmallWander ? customDims!.h : WORLD_H;
             const minDist = Math.min(wW, wH) * 0.4;
@@ -4652,7 +4281,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           return { x: tp.x + (wdx / wd) * spd, y: tp.y + (wdy / wd) * spd };
         }
-        const isSmallMapTgt = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+        const isSmallMapTgt = false && customDims;
         const useWT = isSmallMapTgt ? customDims!.w : WORLD_W;
         const useHT = isSmallMapTgt ? customDims!.h : WORLD_H;
         const centerXT = useWT / 2;
@@ -4813,7 +4442,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               if (healGot) ne = { ...ne, hp: Math.min(ne.maxHp, ne.hp + healGot.amount) };
               if (healDone) ne = { ...ne, healCd: nowB + 9000 };
               changed = true;
-              const isSmallMapB = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+              const isSmallMapB = false && customDims;
               const maxXB = isSmallMapB ? customDims!.w * 0.78 : curWorldW - 20;
               const maxYB = isSmallMapB ? customDims!.h * 0.78 : curWorldH - 20;
               const minXB = isSmallMapB ? customDims!.w * 0.22 : 20;
@@ -4865,7 +4494,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const wSpeed = 1.5;
               const wnx = ne.x + Math.cos(angle) * wSpeed;
               const wny = ne.y + Math.sin(angle) * wSpeed;
-              const isSmallMap = (idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2") && customDims;
+              const isSmallMap = false && customDims;
               const maxX = isSmallMap ? customDims!.w * 0.78 : curWorldW - 20;
               const maxY = isSmallMap ? customDims!.h * 0.78 : curWorldH - 20;
               const minX = isSmallMap ? customDims!.w * 0.22 : 20;
@@ -5245,14 +4874,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             pushFxAt(followerAtX, followerAtY - 70, "DESMAIOU!", "enemyDmg");
             pushChat(`Seu Pokémon desmaiou!`, "hit");
             // Penalidade por desmaio — perde ouro sempre
-            const deathPct = idle.currentMap === "n3" ? 0.10 : 0.05;
-            if (idle.currentMap === "n3") {
-              setTeam((tm) => tm.map((p, idx) => idx === 0 && p.level > 1 ? { ...p, level: p.level - 1, xp: 0 } : p));
-            }
+            const deathPct = 0.05;
             setIdle((s) => {
               const lose = Math.floor((s.bank.gold ?? 0) * deathPct);
               if (lose > 0) {
-                pushChat(`💀 Você desmaiou — perdeu ${lose} 🪙${idle.currentMap === "n3" ? " e -1 nível" : ""}.`, "hit");
+                pushChat(`💀 Você desmaiou — perdeu ${lose} 🪙.`, "hit");
               }
               return { ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - lose) } };
             });
@@ -5349,18 +4975,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 4 : 1;
           const elemSyn = computeTeamSynergies(team);
-          const mythEventXpMult = idle.currentMap === "evento_myth" ? 6 : 1;
-          const grassOddishXpMult = idle.currentMap === "grass_oddish" ? 3 : 1;
-          // 🌿 Odisséia Oddish — no evento o ÚNICO benefício é XP extra.
-          const oddishEventXpMult = (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") ? ODDISH_EVENT_XP_MULT : 1;
-          // 🌑 Mapas Bônus Dark — XP MUITO maior (é o único ganho relevante lá).
-          const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
+          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
-          const baseGold = idle.currentMap === "neve"
-            ? (2 + Math.floor(Math.random() * 4))
-            : Math.floor(35 + Math.random() * 55);
+          const baseGold = Math.floor(35 + Math.random() * 55);
           // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
@@ -5387,10 +5005,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.map = idle.currentMap;
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
-          const isOddishMap = idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3";
-          if (isOddishMap) {
-            // 🌿 EVENTO ODISSÉIA ODDISH — sem drops. O único benefício é XP extra.
-          } else {
             for (const it of ITEM_POOL) {
               if (it.id === "pokeball") continue;
               if (Math.random() < it.chance * (1 + totalBonus) * honeyMult) drops.push(it.id);
@@ -5415,7 +5029,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 pushChat(`💎 Stone Elemental dropada: ${STONE_LABEL[stoneId] ?? stoneId}!`, "cap");
               }
             }
-          }
           // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar
           if (target.sp === "raichu") {
             drops.push("stone_electric");
@@ -5492,16 +5105,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 }
               }
             }
-            // Evento Gelius: só permite capturar espécies específicas (ditto/gengar/magmar)
-            const inGelius = s.currentMap === "gelius1" || s.currentMap === "gelius2";
-            if (inGelius && !GELIUS_CAPTURABLE.has(target.sp)) {
-              usedBall = null;
-            }
-            // 🌿 EVENTO ODISSÉIA ODDISH — captura BLOQUEADA. Aqui só cai Stone.
-            const inOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
-            if (inOddishEvent) {
-              usedBall = null;
-            }
             let captured = false;
             let capturedPet: PetInstance | null = null;
             const isEventLeg = !!target.eventLegendary;
@@ -5551,7 +5154,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 }
               } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || target.sp === "onix_shiny" || target.sp === "riolu" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
                 // 🐉⚡⚡ Bosses raros globais: exigem MUITAS Ultra Balls antes de qualquer chance.
-                const inGrass = idle.currentMap === "grass_oddish";
+                const inGrass = false;
                 const isRaichuMy = target.sp === "raichu";
                 const isBlastoiseMy = target.sp === "blastoise_shiny";
                 const isRayquaza = target.sp === "rayquaza";
@@ -5701,7 +5304,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
             }
             const newCollection = capturedPet && !colFull
-              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: isDarkBonusMap(s.currentMap) ? 1 : capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits, ...(s.currentMap === "grass_oddish" ? { event: "grass_oddish" } : {}) }]
+              ? [...prevCol, { uid: capturedPet.uid, species: capturedPet.species, level: capturedPet.level, rarity: capturedPet.rarity, capturedAt: Date.now(), traits: capturedPet.traits }]
               : prevCol;
             // Anuncia traits sorteados no chat
             if (capturedPet && capturedPet.traits && capturedPet.traits.length > 0) {
@@ -5726,7 +5329,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const overCap = Math.max(0, trLv - mapCap);
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
-            const mythEvKillMult = idle.currentMap === "evento_myth" ? 6 : 1;
+            const mythEvKillMult = 1;
             
             const tStats = getTrainerStats();
             const trXpMult = 1 + tStats.xpBonus;
@@ -5761,13 +5364,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const itemsWithBalls = surpriseBalls > 0
               ? { ...newItems, pokeball: (newItems.pokeball ?? 0) + surpriseBalls }
               : newItems;
-            const isGrassOddishAuto = captured && s.currentMap === "grass_oddish";
-            if (isGrassOddishAuto) {
-              const total = (s.grassOddishCaptured ?? 0) + 1;
-              queueMicrotask(() => {
-                try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
-              });
-            }
+            const isGrassOddishAuto = false;
             return {
               ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + 0 },
@@ -6005,43 +5602,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     setEnemies((prev) => prev.filter((e) => e.sp !== "lugia"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ==== Timer de permanência em n2/n3 (máx 3h → volta para Terry) ====
-  useEffect(() => {
-    mapEnterAtRef.current = Date.now();
-    atkDebuffUntilRef.current = 0;
-    poisonUntilRef.current = 0;
-    if (idle.currentMap !== "n2" && idle.currentMap !== "n3") return;
-    const cm = idle.currentMap;
-    const warn1 = setTimeout(() => pushChat(`⏳ ${IDLE_MAPS[cm].name}: 30min para você ser levado de volta a Terras de Terry.`, "info"), 2.5 * 60 * 60 * 1000);
-    const kick = setTimeout(() => {
-      setIdle((s) => ({ ...s, currentMap: "terry" }));
-      setTrainerPos({ x: 200, y: WORLD_H / 2 });
-      setEnemies([]);
-      pushChat(`⌛ Você excedeu 3h em ${IDLE_MAPS[cm].name}. Retornado para Terras de Terry.`, "cap");
-    }, 3 * 60 * 60 * 1000);
-    return () => { clearTimeout(warn1); clearTimeout(kick); };
-  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const geliusReturnMapRef = useRef<IdleMapId | null>(null);
-  const mythEventReturnMapRef = useRef<IdleMapId | null>(null);
-  const mythEventEnteredAtRef = useRef<number>(0);
-  // ==== EVENTO MÍTICO SHINY — tick: expulsa aos 5min OU quando janela fecha ====
-  useEffect(() => {
-    const iv = setInterval(() => {
-      if (idle.currentMap !== "evento_myth") return;
-      const mi = mythEventInfo();
-      const sessionExpired = Date.now() - mythEventEnteredAtRef.current >= 5 * 60 * 1000;
-      if (!mi.open || sessionExpired) {
-        const ret = (mythEventReturnMapRef.current ?? "arena") as IdleMapId;
-        setIdle((s) => ({ ...s, currentMap: ret }));
-        setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
-        setEnemies([]);
-        mythEventReturnMapRef.current = null;
-        pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
-      }
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO GELIUS — tick 1s: troca fase aos 5min, expulsa aos 10min ====
   useEffect(() => {
@@ -6167,13 +5728,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
    const throwBallAt = (enemyId: number) => {
     const target = enemies.find((e) => e.id === enemyId);
     if (!target || target.hp <= 0) return;
-    // Evento Gelius: apenas ditto/gengar/magmar capturáveis
-    const curMap = idle.currentMap;
-    if ((curMap === "gelius1" || curMap === "gelius2") && !GELIUS_CAPTURABLE.has(target.sp)) {
-      pushFxAt(target.x, target.y - 60, "Não pode capturar no evento!", "enemyDmg");
-      pushChat(`⚠ Neste evento só é possível capturar Ditto, Gengar e Magmar.`, "info");
-      return;
-    }
     const abCfg = autoBattleRef.current;
     const pref = abCfg?.preferredBall ?? "auto";
     // seleciona bola
@@ -6294,21 +5848,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
-        const isOddishEvent = s.currentMap === "oddish_o1" || s.currentMap === "oddish_o2" || s.currentMap === "oddish_o3";
-        const isGrassOddish = s.currentMap === "grass_oddish";
-        const finalLevel = (isOddishEvent || isDarkBonusMap(s.currentMap)) ? 1 : np.level;
-        if (isGrassOddish) {
-          const total = (s.grassOddishCaptured ?? 0) + 1;
-          queueMicrotask(() => {
-            try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
-          });
-        }
+        const finalLevel = np.level;
         return {
           ...s,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
-          grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddish ? 1 : 0),
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
-          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}), ...(isGrassOddish ? { event: "grass_oddish" } : {}) }],
+          collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled }],
         };
       });
     } else {
@@ -6790,7 +6335,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns.
-    if (idle.currentMap === "cidade" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") {
+    if (idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -6849,447 +6394,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   "ekans", "arbok", "zubat", "venomoth", "beedrill", "weedle", "kakuna"] as Species[];
           if (Math.random() < 0.05) pool = ["blaziken"] as Species[];
           else if (Math.random() < 0.05) pool = ["venonat"] as Species[];
-          // Pântano em Chamas: pokémons sempre 10-15 níveis acima do líder (zona de risco).
-          mapLvRange = [leaderLv + 10, leaderLv + 15];
-        }
-        if (idle.currentMap === "fantasma") {
-          // Cemitério Assombrado: zona endgame nível 200+.
-          // Até 249 o mapa empurra acima do líder; a partir de 250 exige parear níveis.
-          pool = ["zubat", "venomoth", "gloom", "ekans", "arbok", "abra", "kadabra", "meowth", "persian"] as Species[];
-          if (leaderLv < 200) mapLvRange = [200, 225];
-          else if (leaderLv < 250) mapLvRange = [leaderLv + 12, leaderLv + 32];
-          else mapLvRange = [Math.max(250, leaderLv - 2), leaderLv + 18];
-        }
-        if (idle.currentMap === "terry") {
-          // Terras de Terry — Elite Lv 200-400 com pokémons peçonhentos
-          pool = ["arbok", "ekans", "venomoth", "venonat", "beedrill", "nidoking", "nidorina", "gloom", "oddish", "primeape", "machamp", "hariyama", "ursaring"] as Species[];
-          mapLvRange = [200, 400];
-        }
-        if (idle.currentMap === "n2") {
-          // Planície de Terry — Elite+ Lv 350-550, criaturas com debuff de ataque
-          pool = ["arbok", "venomoth", "nidoking", "machamp", "hariyama", "ursaring", "primeape", "gyarados", "arcanine", "kadabra", "persian"] as Species[];
-          mapLvRange = [350, 550];
-        }
-        if (idle.currentMap === "n3") {
-          // Confins de Terry — Lendário Lv 500-700, ataques fortes
-          pool = ["gyarados", "arcanine", "machamp", "nidoking", "ursaring", "hariyama", "arbok", "venomoth", "kadabra", "dragonair", "clefable", "magmortar", "raichu"] as Species[];
-          mapLvRange = [500, 700];
-        }
-        if (idle.currentMap === "pantano_fogo") {
-          // Pântano em Chamas — PRIMORDIAL Lv 700-1200. Pool multi-elemento p/ sinergias fortes.
-          // Fogo + Dragão + Lutador + Voador + Veneno + Pedra — combos brutais.
-          pool = [
-            "charizard", "charizard_shiny", "blaziken", "magmortar", "arcanine", "moltres",
-            "dragonite", "dragonite_shiny", "dragonair", "gyarados",
-            "tyranitar", "infernape", "krookodile", "machamp", "nidoking", "nidoking_shiny",
-            "rapidash", "rapidash_shiny", "skarmory", "ho_oh", "groudon",
-            "ursaring", "hariyama", "primeape",
-          ] as Species[];
-          mapLvRange = [700, 1200];
-        }
-        // ═══ CADEIA ABISSAL — Lv 1000-3000 ═══
-        if (idle.currentMap === "abismo_gelo") {
-          pool = ["lapras", "lapras_shiny", "articuno", "dragonair", "dragonite", "dragonite_shiny", "gyarados", "skarmory", "tyranitar", "machamp", "ursaring"] as Species[];
-          mapLvRange = [1000, 1500];
-        }
-        if (idle.currentMap === "abismo_veneno") {
-          pool = ["arbok", "venomoth", "nidoking", "nidoking_shiny", "gengar", "tyranitar", "ursaring", "hariyama", "krookodile", "machamp", "dragonite"] as Species[];
-          mapLvRange = [1400, 2000];
-        }
-        if (idle.currentMap === "abismo_raio") {
-          pool = ["raichu", "jolteon", "electabuzz", "magneton", "zapdos", "dragonite", "dragonite_shiny", "skarmory", "tyranitar", "gyarados", "scizor"] as Species[];
-          mapLvRange = [1800, 2400];
-        }
-        if (idle.currentMap === "abismo_sombra") {
-          pool = ["gengar", "umbreon", "darkrai", "krookodile", "tyranitar", "dialga", "ho_oh", "dragonite_shiny", "nidoking_shiny", "gyarados", "infernape"] as Species[];
-          mapLvRange = [2200, 2700];
-        }
-        if (idle.currentMap === "abismo_dragao") {
-          pool = ["dragonite", "dragonite_shiny", "dragonair", "charizard", "charizard_shiny", "dialga", "ho_oh", "groudon", "tyranitar", "rapidash_shiny", "gyarados", "infernape", "moltres"] as Species[];
-          mapLvRange = [2500, 3000];
-        }
-        if (idle.currentMap === "deserto_purpura") {
-          // Areias de Anúbis — deserto tóxico continuação do Ninho de Marimbondo
-          pool = ["ekans", "arbok", "sandshrew", "sandslash", "cubone", "nidoran_f", "nidorina", "nidoking", "beedrill", "kakuna", "weedle", "diglett", "meowth", "persian"] as Species[];
-          mapLvRange = [Math.max(20, leaderLv - 3), Math.min(55, leaderLv + 8)];
-        }
-        pool = pool.filter(hasGif);
-        if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
-        // Evento Gelius: rosters específicos, sobrescreve pool
-        if (idle.currentMap === "gelius1") {
-          pool = [...GELIUS_PHASE1_POOL].filter(hasGif) as Species[];
-          if (pool.length === 0) pool = ["magmar", "gengar", "ditto"] as Species[];
-          mapLvRange = [50, 200];
-        } else if (idle.currentMap === "gelius2") {
-          pool = [...GELIUS_PHASE2_POOL].filter(hasGif) as Species[];
-          if (pool.length === 0) pool = ["gengar", "magmar", "tyranitar"] as Species[];
-          mapLvRange = [400, 1000];
-        }
-        // Cadeia estendida (3000→6000) — reaproveita pool do abismo do dragão / míticos
-        if (idle.currentMap === "cadeia_ab") {
-          pool = ["dragonite", "dragonite_shiny", "charizard", "charizard_shiny", "tyranitar", "gyarados", "rapidash_shiny", "infernape", "nidoking_shiny", "krookodile", "gengar", "umbreon"] as Species[];
-          mapLvRange = [3000, 3500];
-        } else if (idle.currentMap === "cadeia_ab1") {
-          pool = ["dialga", "ho_oh", "groudon", "darkrai", "dragonite_shiny", "tyranitar", "nidoking_shiny", "rapidash_shiny", "charizard_shiny", "moltres", "krookodile"] as Species[];
-          mapLvRange = [3500, 5000];
-        } else if (idle.currentMap === "cadeia_f1") {
-          pool = ["dialga", "ho_oh", "groudon", "darkrai", "moltres", "zapdos", "articuno", "dragonite_shiny", "charizard_shiny", "rapidash_shiny", "nidoking_shiny", "tyranitar"] as Species[];
-          mapLvRange = [4000, 6000];
-        } else if (idle.currentMap === "evento_myth") {
-          // Domínio Mítico Shiny — variedade grande, todos serão forçados a mythic_shiny
-          pool = ["charizard_shiny", "dragonite_shiny", "nidoking_shiny", "rapidash_shiny", "lapras_shiny", "suicune_shiny", "ditto_shiny", "jolteon_shiny", "sandshrew_shiny", "kakuna_shiny", "weedle_shiny", "metapod_shiny", "magikarp_shiny", "flareon_shiny", "vaporeon_shiny", "blastoise_shiny", "butterfree_shiny", "wartortle_shiny", "sandslash_shiny", "dragonite_shiny"] as Species[];
-          pool = pool.filter(hasGif);
-          if (pool.length === 0) pool = ["charizard_shiny", "dragonite_shiny"] as Species[];
-          // Pareia com o líder — grande variação para não ficar previsível
-          const leadForRange = Math.max(1, leaderLv);
-          mapLvRange = [Math.max(1, leadForRange - 15), leadForRange + 25];
-        } else if (idle.currentMap === "grass_oddish") {
-          // 🌿 EVENTO GRASS ODDISH — Oddish + Oddish Shiny (12% chance), raridades Raro/Épico/Mítico.
-          // Captura usa as MESMAS taxas globais do servidor.
-          const shinyRoll = Math.random();
-          if (shinyRoll < 0.12) {
-            pool = ["oddish_shiny"] as Species[];
-            forcedRarity = "mythic_shiny";
-          } else {
-            pool = ["oddish"] as Species[];
-            const rr = Math.random();
-            forcedRarity = rr < 0.60 ? "rare" : rr < 0.90 ? "epic" : "mythic";
-          }
-          mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-        } else if (idle.currentMap === "oddish_o1" || idle.currentMap === "oddish_o2" || idle.currentMap === "oddish_o3") {
-          // Odisséia Oddish — evento ROTATIVO: a cada 2h muda o roster de pokémon.
-          // Aqui não se captura e não cai item: o único ganho é XP extra.
-          const rollShiny = Math.random();
-          if (rollShiny < 0.12) {
-            // ✦ ODDISH SHINY — brilho fixo do evento
-            pool = ["oddish_shiny"] as Species[];
-            forcedRarity = "mythic_shiny";
-            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-          } else {
-            const roster = (oddishRosterForCycle().species as Species[]).filter(hasGif);
-            pool = roster.length ? roster : (["oddish"] as Species[]);
-            // Raridade mista: epic 55%, mythic 25%, mythic_shiny 20%
-            const rr = Math.random();
-            forcedRarity = rr < 0.55 ? "epic" : rr < 0.80 ? "mythic" : "mythic_shiny";
-            mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
-          }
-        }
-        // ⚡ ZAPDOS EVENT — ENCERRADO
-        // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey e Grass Oddish
-        {
-          const oddyMaps: string[] = ["oddish_o1", "oddish_o2", "oddish_o3", "grass_oddish"];
-          const isOddy = oddyMaps.includes(idle.currentMap as string);
-          if (isOddy) {
-            const raichuOnMap = enemies.some((e) => e.sp === "raichu");
-            const isGrass = idle.currentMap === "grass_oddish";
-            // ~0.4% Odyssey / ~0.8% Grass Oddish, no máximo 1 por mapa
-            const chance = isGrass ? 0.008 : 0.004;
-            if (!raichuOnMap && Math.random() < chance) {
-              pool = ["raichu"] as Species[];
-              forcedRarity = isGrass ? "mythic" : "mythic_shiny";
-              mapLvRange = isGrass ? [Math.max(1, leaderLv), leaderLv + 5] : [500, 500];
-              pushChat(
-                isGrass
-                  ? "⚡✦ RAICHU MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Elétrica ⚡"
-                  : "⚡✦ RAICHU MÍTICO surgiu na Odisséia Oddish! (2000 Ultra Balls para capturar)",
-                "cap"
-              );
-            }
-          }
-        }
-        // 🐉✦ RAYQUAZA MÍTICO — spawn RARO exclusivo do Grass Oddish (carrega Stone Dragão)
-        {
-          const isGrass = idle.currentMap === "grass_oddish";
-          if (isGrass) {
-            const rayOnMap = enemies.some((e) => e.sp === "rayquaza");
-            if (!rayOnMap && Math.random() < 0.006) {
-              pool = ["rayquaza"] as Species[];
-              forcedRarity = "mythic_shiny";
-              mapLvRange = [500, 500];
-              pushChat("🐉✦ RAYQUAZA MÍTICO apareceu no Grass Oddish! Ele carrega uma Stone Dragão 🐉 (3000 Ultra Balls para capturar)", "cap");
-            }
-          }
-        }
-        // ✦XP✦ Bosses raros exclusivos do Grass Oddish — Dragonite Shiny / Onix Shiny / Riolu
-        {
-          const isGrass = idle.currentMap === "grass_oddish";
-          if (isGrass && !forcedRarity) {
-            const rare: Array<{ sp: Species; chance: number; lv: number; label: string }> = [
-              { sp: "dragonite_shiny" as Species, chance: 0.005, lv: 500, label: "🐲✦ DRAGONITE SHINY" },
-              { sp: "onix_shiny" as Species, chance: 0.005, lv: 400, label: "🪨✦ ONIX SHINY" },
-              { sp: "riolu" as Species, chance: 0.006, lv: 300, label: "🐺✦ RIOLU" },
-            ];
-            for (const b of rare) {
-              const already = enemies.some((e) => e.sp === b.sp);
-              if (!already && Math.random() < b.chance) {
-                pool = [b.sp] as Species[];
-                forcedRarity = "mythic_shiny";
-                mapLvRange = [b.lv, b.lv];
-                pushChat(`${b.label} apareceu no Grass Oddish! Ele carrega XP extra ⭐ (3000 Ultra Balls para capturar)`, "cap");
-                break;
-              }
-            }
-          }
-        }
-        // 🌑 MAPAS BÔNUS DARK — roster sombrio e nível escalado pelo treinador + time.
-        if (isDarkBonusMap(idle.currentMap)) {
-          const dpool = (DARK_BONUS_POOLS[idle.currentMap as DarkBonusMapId] as Species[]).filter(hasGif);
-          if (dpool.length > 0) pool = dpool;
-          mapLvRange = darkBonusLevelRange(idle.trainerLevel ?? 1, Math.max(1, maxTeamLv), idle.currentMap as DarkBonusMapId);
-          const rr = Math.random();
-          forcedRarity = rr < 0.45 ? "epic" : rr < 0.80 ? "legendary" : rr < 0.95 ? "mythic" : "mythic_shiny";
-        }
-        // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas normais.
-        if (!forcedRarity) {
-          const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
-          const filtered = pool.filter((p) => !BANNED.has(p));
-          if (filtered.length > 0) pool = filtered;
-          else pool = ["oddish"] as Species[];
-        }
-        sp = pool[Math.floor(Math.random() * pool.length)];
-        // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
-        // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
-        // um mon mais comum da pool caso não passe. Deixa os valiosos MUITO mais raros.
-        if (!forcedRarity) {
-          const baseRar = SPECIES_BASE[sp]?.rarity;
-          const gate =
-            baseRar === "mythic_shiny" ? 0.05 :
-            baseRar === "mythic"       ? 0.08 :
-            baseRar === "legendary"    ? 0.15 :
-            baseRar === "epic"         ? 0.35 : 1;
-          if (gate < 1 && Math.random() > gate) {
-            const cheaper = pool.filter((p) => {
-              const rr = SPECIES_BASE[p]?.rarity;
-              return rr !== "mythic" && rr !== "mythic_shiny" && rr !== "legendary" && rr !== "epic";
-            });
-            if (cheaper.length > 0) sp = cheaper[Math.floor(Math.random() * cheaper.length)];
-          }
-        }
-      }
-
-
-      // 🌟 MYTHIC ROAMER: pokémons míticos Lv 500 (deoxys/groudon/lapras✦/snorlax✦) que
-      // aparecem raro em qualquer mapa. Máx 1 por mapa. Muito difícil de capturar (event legendary).
-      const MYTHIC_ROAMERS: Species[] = ["deoxys", "groudon", "lapras_shiny", "snorlax_mythic"];
-      const currentRoamers = enemies.filter((e) => e.eventLegendary && e.level >= 400).length;
-      // ✨ EVENTO ESPECIAL DIALGA — Lv 800, a cada 3 horas (persistente via localStorage)
-      // Máx 1 no mapa. Foge fácil, crit brutal, captura só via ultraball (super difícil).
-      const DIALGA_INTERVAL_MS = 3 * 60 * 60 * 1000;
-      const dialgaOnMap = enemies.some((e) => e.sp === "dialga");
-      let isDialgaEvent = false;
-      try {
-        const last = Number(localStorage.getItem("dialga_last_spawn_ms") || 0);
-        if (!dialgaOnMap && !currentRoamers && Date.now() - last >= DIALGA_INTERVAL_MS && Math.random() < 0.02) {
-          isDialgaEvent = true;
-          localStorage.setItem("dialga_last_spawn_ms", String(Date.now()));
-        }
-      } catch {}
-      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.0015;
-      if (isDialgaEvent) {
-        sp = "dialga";
-        forcedRarity = "mythic_shiny";
-        mapLvRange = [800, 800];
-      } else if (isMythicRoamer) {
-        sp = MYTHIC_ROAMERS[Math.floor(Math.random() * MYTHIC_ROAMERS.length)];
-        forcedRarity = "mythic_shiny";
-        mapLvRange = [500, 500];
-      }
-      // Domínio Mítico Shiny — força a raridade e nível alto próximo do líder
-      const isMythShinyEvent = idle.currentMap === "evento_myth";
-      if (isMythShinyEvent) {
-        forcedRarity = "mythic_shiny";
-      }
-
-      // 🐉 DRAGONITE SHINY GLOBAL — DESATIVADO (removido dos mapas por decisão do admin).
-
-
-
-      const rareStrong = Math.random() < 0.05;
-      const offset = rareStrong
-        ? 5 + Math.floor(Math.random() * 6)
-        : -5 + Math.floor(Math.random() * 16);
-      let baseLv = Math.max(1, leaderLv + offset);
-      let lv = elite ? baseLv + 1 : baseLv;
-      if (mapLvRange) {
-        const [lo, hi] = mapLvRange;
-        lv = Math.max(lo, Math.min(hi, lv));
-      }
-      const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
-      if (hardCap != null && !isMythicRoamer && !isDialgaEvent) lv = Math.min(lv, hardCap);
-      if (isMythicRoamer) lv = 500;
-      if (isDialgaEvent) lv = 800;
-      // Épico só aparece quando o líder chega ao nível 50.
-      const allowEpic = leaderLv >= 50;
-      if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
-      let pet = makePet(sp, lv, forcedRarity);
-      if (!isMythicRoamer && (pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
-        pet = makePet(sp, lv, "rare");
-      }
-      // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
-      const isRider = !isMythicRoamer && !isDialgaEvent && Math.random() < 0.005 && !mapLvRange;
-      if (isRider) {
-        const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
-        lv = leaderLv + boost;
-        if (hardCap != null) lv = Math.min(lv, hardCap + 50); // riders podem passar do cap
-        pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
-      }
-      // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
-      // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
-      // Raridade varia de comum a mítico.
-      const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
-      const guardianEligible = !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
-      const isGuardian = guardianEligible && Math.random() < 0.003;
-      if (isGuardian) {
-        sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
-        const rarityRoll = Math.random();
-        const gRarity: Rarity =
-          rarityRoll < 0.35 ? "common" :
-          rarityRoll < 0.60 ? "uncommon" :
-          rarityRoll < 0.80 ? "rare" :
-          rarityRoll < 0.93 ? "epic" :
-          rarityRoll < 0.99 ? "legendary" : "mythic";
-        const gLv = Math.max(100, leaderLv + Math.floor(Math.random() * 20) - 5);
-        pet = makePet(sp, gLv, gRarity);
-        lv = gLv;
-      }
-      // 🔥 APEX BOSSES — Infernape / Krookodile / Tyranitar / Nidoking Shiny
-      // Aparição rara em mapas de nv 300+. Fortes, crit alto, muito difíceis de capturar.
-      const APEX_MONS: Array<{ sp: Species; minLv: number; rarityFloor: Rarity }> = [
-        { sp: "infernape",      minLv: 300, rarityFloor: "epic" },
-        { sp: "krookodile",     minLv: 350, rarityFloor: "epic" },
-        { sp: "tyranitar",      minLv: 500, rarityFloor: "legendary" },
-        { sp: "nidoking_shiny", minLv: 600, rarityFloor: "mythic" },
-        { sp: "rapidash",       minLv: 300, rarityFloor: "epic" },
-        { sp: "rapidash_shiny", minLv: 400, rarityFloor: "legendary" },
-        { sp: "skarmory",       minLv: 350, rarityFloor: "legendary" },
-      ];
-      const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
-      const apexEligible = !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
-      // 0.6% chance quando elegível (aparição escassa)
-      const isApex = apexEligible && Math.random() < 0.0025;
-      if (isApex) {
-        const pick = apexPool[Math.floor(Math.random() * apexPool.length)];
-        sp = pick.sp;
-        const rarityRoll = Math.random();
-        const aRarity: Rarity =
-          pick.rarityFloor === "mythic"    ? (rarityRoll < 0.75 ? "mythic" : "mythic_shiny") :
-          pick.rarityFloor === "legendary" ? (rarityRoll < 0.60 ? "legendary" : rarityRoll < 0.92 ? "mythic" : "mythic_shiny") :
-          /* epic */                         (rarityRoll < 0.50 ? "epic" : rarityRoll < 0.85 ? "legendary" : rarityRoll < 0.98 ? "mythic" : "mythic_shiny");
-        const aLv = Math.max(pick.minLv, Math.min(700, leaderLv + Math.floor(Math.random() * 40) - 10));
-        pet = makePet(sp, aLv, aRarity);
-        lv = aLv;
-      }
-      // ✦ MTC — Míticos Brilhantes (Lv 500-1000)
-      // Aparecem em qualquer mapa quando o líder tem Lv >= 500.
-      // Todos rarity "mythic_shiny". Só capturáveis com ULTRA BALL.
-      // Chance de captura ~1.7% por ultra (média ~60 tentativas, cauda pode passar de 200).
-      const MTC_MONS: Species[] = [
-        "abomasnow","cloyster","cloyster_shiny","exeggutor","exeggutor_shiny",
-        "feraligatr","heracross","heracross_shiny","hitmonchan_shiny",
-        "kangaskhan","meganium","meganium_shiny","moltres_shiny","onix_shiny",
-      ];
-      let isMtcBoss = false;
-      if (!isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
-        // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
-        const chance = Math.min(0.008, 0.003 + (leaderLv - 500) * 0.000008);
-        if (Math.random() < chance) {
-          isMtcBoss = true;
-          sp = MTC_MONS[Math.floor(Math.random() * MTC_MONS.length)];
-          lv = 500 + Math.floor(Math.random() * 501); // 500..1000
-          pet = makePet(sp, lv, "mythic_shiny");
-          setTimeout(() => pushChat(`✦ Um MÍTICO BRILHANTE surgiu! (${sp.replace(/_/g," ").toUpperCase()} Lv ${lv}) — só Ultra Ball funciona.`, "cap"), 60);
-        }
-      }
-      // 💀 PERIGO ABISSAL — criatura mítica não identificada. Aparece 1x por mapa
-      // a cada ~1h. Nível 500-900, HP monstruoso, dá crítico devastador (3-hit-kill).
-      // Não tem aggro, não foge. Ao ser atacada com pokébola vira agressiva.
-      // Impossível de capturar.
-      const MENACE_INTERVAL_MS = 55 * 60 * 1000;
-      const menaceOnMap = enemies.some((en) => en.menace);
-      let isMenace = false;
-      try {
-        const last = Number(localStorage.getItem("menace_last_spawn_ms") || 0);
-        if (!menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && !isApex
-            && leaderLv >= 400
-            && Date.now() - last >= MENACE_INTERVAL_MS
-            && Math.random() < 0.015) {
-          isMenace = true;
-          localStorage.setItem("menace_last_spawn_ms", String(Date.now()));
-          setTimeout(() => pushChat(`💀 UMA PRESENÇA ABISSAL NÃO IDENTIFICADA SURGIU NO MAPA... TENHA CUIDADO!`, "cap"), 100);
-        }
-      } catch {}
-      if (isMenace) {
-        const MENACE_POOL: Species[] = ["tyranitar","gengar","machamp","gyarados","nidoking_shiny","groudon","krookodile","infernape"];
-        const filtered = MENACE_POOL.filter(hasGif);
-        sp = (filtered.length ? filtered : MENACE_POOL)[Math.floor(Math.random() * (filtered.length || MENACE_POOL.length))];
-        lv = 500 + Math.floor(Math.random() * 401); // 500..900
-        pet = makePet(sp, lv, "mythic_shiny");
-      }
-      const baseHp = calcIdleMaxHp(pet);
-      const highHp = highLevelEnemyHpMult(lv, leaderLv);
-      const roamerHpMult = isMythicRoamer ? 6 : isDialgaEvent ? 12 : 1;
-      const guardianHpMult = isGuardian ? 2.2 : 1;
-      const apexHpMult = isApex ? 4.5 : 1;
-      const menaceHpMult = isMenace ? 18 : 1;
-      const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
-      const isAggro = isMenace ? false : true; // menace começa passivo
-      const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
-
-      // 🎭 Camuflagem do Ditto — se transforma em outra espécie até levar o primeiro hit
-      let disguise: Species | undefined = undefined;
-      if (isGuardian && (sp === "ditto" || sp === "ditto_shiny")) {
-        const DISGUISE_POOL: Species[] = [
-          "rattata_f","pidgeotto","oddish","bellsprout","zubat","weedle",
-          "paras","meowth","psyduck","poliwag","abra",
-          "diglett","cubone","nidoran_f","sandshrew","clefairy","growlithe",
-        ];
-        disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
-      }
-
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
-
-
-    }
-    return null;
-  }
-
-  // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "grass_oddish" ? 48 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : 30);
-
-  function spawnEnemies(): Enemy[] {
-    if (idle.currentMap === "cidade" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || idle.currentMap === "absol_start" || idle.currentMap === "governante_hall") return [];
-    const nowTs = Date.now();
-    if (nowTs - lastSpawnAtRef.current < 1500) return [];
-    lastSpawnAtRef.current = nowTs;
-    const isFirst = isFirstSpawnRef.current;
-    if (isFirst) setTimeout(() => { isFirstSpawnRef.current = false; }, 1800);
-    // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
-    const isGrassOddish = idle.currentMap === "grass_oddish";
-    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, outros: 16-20
-    const placed: { x: number; y: number }[] = [];
-    const arr: Enemy[] = [];
-    while (arr.length < initial) {
-      const e = spawnOneEnemy(placed);
-      if (!e) break;
-      arr.push(e);
-    }
-    if (!isFirst) {
-      const rareRank: Record<string, number> = { mythic_shiny: 3, mythic: 2, legendary: 1 };
-      const rareOnes = arr.filter((e) => e.rarity === "legendary" || e.rarity === "mythic" || e.rarity === "mythic_shiny")
-        .sort((a, b) => (rareRank[b.rarity] ?? 0) - (rareRank[a.rarity] ?? 0))
-        .slice(0, 1);
-      for (const r of rareOnes) {
-        const label = r.rarity === "mythic_shiny" ? "MÍTICO SHINY" : r.rarity.toUpperCase();
-        const color = r.rarity === "mythic_shiny" ? "#ffd94d" : r.rarity === "mythic" ? "#ff5252" : "#ff8b3d";
-        pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
-
-      }
-    }
-    return arr;
-  }
-
-  function pushFxAt(x: number, y: number, text: string, kind: FxKind) {
+          function pushFxAt(x: number, y: number, text: string, kind: FxKind) {
     const id = fxIdRef.current++;
     setFx((prev) => [...prev, { id, x, y, text, kind }]);
     const ttl = kind === "crit" ? 1900 : kind === "myDmg" || kind === "enemyDmg" ? 1500 : 1200;
@@ -7307,17 +6412,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   const activeTime = now - idle.startedAt;
   const rawMap = IDLE_MAPS[idle.currentMap];
-  // Grass Oddish rotaciona 3 backgrounds a cada 4 min pra ampliar a área do evento
-  const grassOddishBg2 = assetUrlFromJson(mapGrassOddish2Asset);
-  const grassOddishBg3 = assetUrlFromJson(mapGrassOddish3Asset);
-  const map = idle.currentMap === "grass_oddish"
-    ? { ...rawMap, bg: (() => {
-        const idx = Math.floor(now / (4 * 60 * 1000)) % 3;
-        return idx === 0 ? rawMap.bg : idx === 1 ? grassOddishBg2 : grassOddishBg3;
-      })() }
-    : rawMap;
+  const map = rawMap;
   const visibleBuildings = BUILDINGS;
-  const viewportBg = idle.currentMap === "caverna" ? "#1f2028" : "#000";
+  const viewportBg = "#000";
 
   const collect = () => {
     setIdle((s) => {
@@ -7852,7 +6949,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   function spawnChests(count = 4): Chest[] {
     const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
     const useH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
-    const isSmallMapChest = idle.currentMap === "mapinha1" || idle.currentMap === "mapinha2";
+    const isSmallMapChest = false;
     const insetX = isSmallMapChest ? useW * 0.30 : 140;
     const insetY = isSmallMapChest ? useH * 0.30 : 140;
     const spanW = isSmallMapChest ? useW * 0.40 : useW - 280;
@@ -7879,13 +6976,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") ? [] : spawnChests(Math.min(chestTarget, 2));
+    const initial = (idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
-        if (idle.currentMap === "absol_start" || idle.currentMap === "governante_hall" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") return remaining.length > 0 ? [] : remaining;
+        if (idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
@@ -9237,7 +8334,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const ex = (wx - 325) / 175, ey = (wy - 215) / 115;
               if (ex * ex + ey * ey <= 1) { playClick(); setFishingOpen(true); return; }
             }
-            const isSmallWalk = ["mapinha1", "mapinha2"].includes(idle.currentMap) && customDims;
+            const isSmallWalk = false && customDims;
             const cWw = isSmallWalk ? customDims!.w : WORLD_W;
             const cHw = isSmallWalk ? customDims!.h : WORLD_H;
             const clampedWx = isSmallWalk ? Math.max(cWw * 0.22, Math.min(cWw * 0.78, wx)) : wx;
@@ -9500,106 +8597,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               ready={hasReadyEgg(identity?.id ?? "guest")}
               onOpen={() => { playClick(); openBlackEggHud(); }}
             />
-            {(() => {
-              const gi = currentGeliusInfo();
-              if (gi.phase === "closed") return null;
-              const mins = Math.floor(gi.msUntilChange / 60000);
-              const secs = Math.floor((gi.msUntilChange % 60000) / 1000);
-              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-              const entriesLeft = 3 - getGeliusEntries();
-              const inEvent = idle.currentMap === "gelius1" || idle.currentMap === "gelius2";
-              const canEnter = !inEvent && entriesLeft > 0;
-              return (
-                <button
-                  onClick={() => {
-                    if (inEvent) { pushChat(`🐧 Evento Gelius — ${gi.phase === "phase1" ? "Onda 1" : "Onda 2"} · ${timeStr}`, "info"); return; }
-                    if (!isGeliusActive()) { pushChat(`🐧 Evento encerrado — aguarde o próximo ciclo.`, "info"); return; }
-                    if (entriesLeft <= 0) { pushChat(`🐧 Você já usou suas 3 entradas de hoje no Gelius.`, "info"); return; }
-                    consumeGeliusEntry();
-                    const target: IdleMapId = gi.phase === "phase2" ? "gelius2" : "gelius1";
-                    geliusReturnMapRef.current = idle.currentMap;
-                    setIdle((s) => ({ ...s, currentMap: target }));
-                    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
-                    setEnemies([]);
-                    pushChat(`🐧 Entrou no evento GELIUS — ${IDLE_MAPS[target].name}!`, "cap");
-                    playBonus();
-                  }}
-                  title={inEvent
-                    ? `Evento ativo — ${timeStr} restante`
-                    : canEnter
-                      ? `Entrar no Gelius (${entriesLeft} entradas restantes hoje)`
-                      : "Sem entradas hoje"}
-                  style={{
-                    marginTop: 6,
-                    padding: 3,
-                    background: "linear-gradient(180deg,#0b2e4a,#082035)",
-                    border: "1.5px solid #7fd8ff",
-                    borderRadius: 10,
-                    boxShadow: "0 0 14px rgba(127,216,255,0.7), inset 0 0 6px rgba(180,235,255,0.4)",
-                    cursor: canEnter || inEvent ? "pointer" : "not-allowed",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                    
-                  }}
-                >
-                  <img
-                    src={assetUrlFromJson(eventPenguinAsset)}
-                    alt="Evento Gelius"
-                    width={34}
-                    height={34}
-                    style={{ filter: "drop-shadow(0 0 6px rgba(127,216,255,0.9))" }}
-                    draggable={false}
-                  />
-                  <span style={{ fontSize: 9, color: "#d0f0ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
-                  <span style={{ fontSize: 8, color: "#7fd8ff", fontWeight: 700, lineHeight: 1 }}>{gi.phase === "phase1" ? "ONDA 1" : "ONDA 2"}</span>
-                </button>
-              );
-            })()}
-            {(() => {
-              const mi = mythEventInfo();
-              if (!mi.open) return null;
-              const mins = Math.floor(mi.msUntilChange / 60000);
-              const secs = Math.floor((mi.msUntilChange % 60000) / 1000);
-              const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-              const inEvent = idle.currentMap === "evento_myth";
-              return (
-                <button
-                  onClick={() => {
-                    if (inEvent) { pushChat(`❄ Evento Mítico Shiny — ${timeStr} restante`, "info"); return; }
-                    mythEventReturnMapRef.current = idle.currentMap;
-                    mythEventEnteredAtRef.current = Date.now();
-                    setIdle((s) => ({ ...s, currentMap: "evento_myth" }));
-                    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
-                    setEnemies([]);
-                    pushChat(`❄ Entrou no DOMÍNIO MÍTICO SHINY! Somente Ultra Ball captura aqui. 5min de sessão.`, "cap");
-                    playBonus();
-                  }}
-                  title={inEvent ? `Evento ativo — ${timeStr} restante` : `Evento Mítico Shiny aberto — ${timeStr}`}
-                  style={{
-                    marginTop: 6,
-                    padding: 3,
-                    background: "linear-gradient(180deg,#0e3a55,#052030)",
-                    border: "1.5px solid #9be7ff",
-                    borderRadius: 10,
-                    boxShadow: "0 0 16px rgba(155,231,255,0.85), inset 0 0 6px rgba(200,240,255,0.4)",
-                    cursor: "pointer",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                    animation: "iceBallPulse 1.8s ease-in-out infinite",
-                  }}
-                >
-                  <img
-                    src={iceBallIconUrl}
-                    alt="Evento Mítico Shiny"
-                    width={34}
-                    height={34}
-                    style={{ filter: "drop-shadow(0 0 8px rgba(155,231,255,0.95))" }}
-                    draggable={false}
-                  />
-                  <span style={{ fontSize: 9, color: "#e0f6ff", fontWeight: 800, lineHeight: 1 }}>{timeStr}</span>
-                  <span style={{ fontSize: 8, color: "#9be7ff", fontWeight: 700, lineHeight: 1 }}>MYTH.SHINY</span>
-                  <style>{`@keyframes iceBallPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }`}</style>
-                </button>
-              );
-            })()}
+
             {(() => {
               const orbUntil = idle.buffs.orbUntil ?? 0;
               const teamUntil = idle.buffs.teamOrbUntil ?? 0;
@@ -10607,46 +9605,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
             {/* 🧙 NPC Trocador removido de todos os mapas a pedido do usuário */}
 
-            {/* 👑 NPC Governante — visível apenas no Salão do Governante */}
-            {idle.currentMap === "governante_hall" && (() => {
-              const npcX = WORLD_W / 2, npcY = WORLD_H / 2 - 40;
-              return (
-                <div
-                  onClick={() => { playClick(); setGovernanteOpen(true); }}
-                  title="Governante — Entregue Cartas da Incubadora para receber Black Mitic Plus Egg"
-                  style={{
-                    position: "absolute",
-                    left: npcX - 60, top: npcY - 90,
-                    width: 120, height: 160,
-                    cursor: "pointer",
-                    zIndex: Math.round(npcY),
-                    display: "flex", flexDirection: "column", alignItems: "center",
-                    filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.7))",
-                  }}
-                >
-                  <div style={{
-                    position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)",
-                    background: "linear-gradient(180deg,#3a2a5c,#1a1030)",
-                    border: "1px solid #ffd44a", color: "#ffd44a",
-                    borderRadius: 999, padding: "3px 10px",
-                    fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
-                    boxShadow: "0 0 12px rgba(255,212,74,0.7)",
-                    animation: "pulse 1.6s ease-in-out infinite",
-                  }}>👑 GOVERNANTE</div>
-                  <img
-                    src={npcGovernanteUrl}
-                    alt="Governante"
-                    width={120} height={160}
-                    style={{ width: 120, height: 160, imageRendering: "pixelated", objectFit: "contain" }}
-                  />
-                  <div style={{
-                    position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
-                    width: 90, height: 12, borderRadius: "50%",
-                    background: "radial-gradient(ellipse, rgba(255,212,74,0.6), transparent 70%)",
-                  }} />
-                </div>
-              );
-            })()}
+
 
 
 
@@ -10842,7 +9801,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       }}>🐉</span>
                     </div>
                   )}
-                  {idle.currentMap === "grass_oddish" && !camouflaged && (e.sp === "dragonite_shiny" || e.sp === "onix_shiny" || e.sp === "riolu") && (
+                  {false && !camouflaged && (e.sp === "dragonite_shiny" || e.sp === "onix_shiny" || e.sp === "riolu") && (
                     <div style={{
                       position: "absolute", top: -46, left: "50%",
                       transform: `translateX(-50%) scaleX(${sx})`,
@@ -11773,7 +10732,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {(() => {
               const leaderLv = team[0]?.level ?? 1;
               const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
-                const isSmallGoto = ["mapinha1", "mapinha2"].includes(idle.currentMap) && customDims;
+                const isSmallGoto = false && customDims;
                 const gW = isSmallGoto ? customDims!.w : WORLD_W;
                 const gH = isSmallGoto ? customDims!.h : WORLD_H;
                 const cx = isSmallGoto ? Math.max(gW * 0.22, Math.min(gW * 0.78, x)) : x;
@@ -11791,180 +10750,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 arriveX: number; arriveY: number;
                 color: string;
               };
-              // Fluxo: arena → praia → neve → deserto → caverna
+              const returnGate = (key: string): GateDef => ({ key, target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" });
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
-                arena: [
-                  { key: "to-praia", target: "praia",    x: WORLD_W - 60, y: 60,           arriveX: 100,          arriveY: WORLD_H - 100, color: "#5cd3ff" },
-                  { key: "to-neve",  target: "neve",     x: WORLD_W / 2,  y: 40,           arriveX: WORLD_W / 2,  arriveY: WORLD_H - 100, color: "#9bd8ff" },
-                  { key: "to-terra", target: "terra",    x: WORLD_W / 2,  y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#d9873a" },
-                  { key: "to-vale_rochas", target: "vale_rochas", x: 60,  y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
-                ],
-                terra: [
-                  { key: "to-arena",    target: "arena",    x: WORLD_W / 2, y: 40,           arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-venofogo", target: "venofogo", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100,           color: "#ff5c2e" },
-                  { key: "to-fantasma", target: "fantasma", x: 60,          y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a259ff" },
-                  { key: "to-deserto_purpura", target: "deserto_purpura", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                ],
-                deserto_purpura: [
-                  { key: "to-terra", target: "terra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9873a" },
-                  { key: "to-terry", target: "terry", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
-                ],
-                terry: [
-                  { key: "to-deserto_purpura", target: "deserto_purpura", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#b45adc" },
-                  { key: "to-n2", target: "n2", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
-                ],
-                n2: [
-                  { key: "to-terry", target: "terry", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c9a76a" },
-                  { key: "to-n3", target: "n3", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#e8b878" },
-                ],
-                n3: [
-                  { key: "to-n2", target: "n2", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#d9a86a" },
-                  { key: "to-pantano_fogo", target: "pantano_fogo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
-                ],
-                pantano_fogo: [
-                  { key: "to-n3", target: "n3", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#e8b878" },
-                  { key: "to-abismo_gelo", target: "abismo_gelo", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
-                ],
-                abismo_gelo: [
-                  { key: "ag-back", target: "pantano_fogo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff4a1a" },
-                  { key: "ag-next", target: "abismo_veneno", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
-                ],
-                abismo_veneno: [
-                  { key: "av-back", target: "abismo_gelo", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#78c8ff" },
-                  { key: "av-next", target: "abismo_raio", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
-                ],
-                abismo_raio: [
-                  { key: "ar-back", target: "abismo_veneno", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#aa50dc" },
-                  { key: "ar-next", target: "abismo_sombra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#28143c" },
-                ],
-                abismo_sombra: [
-                  { key: "as-back", target: "abismo_raio", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ffdc50" },
-                  { key: "as-next", target: "abismo_dragao", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff9628" },
-                ],
-                abismo_dragao: [
-                  { key: "ad-back", target: "abismo_sombra", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#28143c" },
-                  { key: "ad-next", target: "cadeia_ab", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
-                ],
-                cadeia_ab: [
-                  { key: "cab-back", target: "abismo_dragao", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#ff9628" },
-                  { key: "cab-next", target: "cadeia_ab1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#c084fc" },
-                ],
-                cadeia_ab1: [
-                  { key: "cab1-back", target: "cadeia_ab", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#8ac9ff" },
-                  { key: "cab1-next", target: "cadeia_f1", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#ff5c2e" },
-                ],
-                cadeia_f1: [
-                  { key: "cf1-back", target: "cadeia_ab1", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#c084fc" },
-                ],
-                oddish_o1: [],
-                oddish_o2: [],
-                oddish_o3: [],
-                grass_oddish: [],
-                absol_start: [
-                  { key: "absol-to-hall", target: "governante_hall", x: WORLD_W - 80, y: WORLD_H / 2, arriveX: 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                governante_hall: [
-                  { key: "hall-to-absol", target: "absol_start", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 120, arriveY: WORLD_H / 2, color: "#c58bff" },
-                ],
-                vale_planta: [],
-                vale_gelo: [],
-                vale_veneno: [],
-                vale_fogo: [],
-                vulcao_ativo: [],
-                nucleo_primordial: [],
-                gelius1: [],
-                gelius2: [],
-                continent3_map1: [],
-                continent3_map2: [],
-                venofogo: [
-                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#d9873a" },
-                ],
-                fantasma: [
-                  { key: "to-terra", target: "terra", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#d9873a" },
-                ],
-                praia: [
-                  { key: "to-arena",   target: "arena",   x: WORLD_W - 60, y: 60,          arriveX: 100,           arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-deserto", target: "deserto", x: 60,           y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#f5b25c" },
-                ],
-                neve: [
-                  { key: "to-arena",   target: "arena",   x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2,  arriveY: 100,           color: "#7ef27a" },
-                  { key: "to-caverna", target: "caverna", x: 60,          y: 60,           arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#a08770" },
-                ],
-                deserto: [
-                  { key: "to-praia",    target: "praia",    x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100,           arriveY: WORLD_H / 2, color: "#5cd3ff" },
-                ],
-                caverna: [
-                  { key: "to-neve", target: "neve", x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100, arriveY: 100, color: "#9bd8ff" },
-                ],
-                vale_rochas: [
-                  { key: "vr-back", target: "arena",       x: WORLD_W - 60, y: WORLD_H - 40, arriveX: 100,           arriveY: 100,           color: "#7ef27a" },
-                  { key: "vr-next", target: "vale_planta", x: 60,           y: WORLD_H / 2,  arriveX: WORLD_W - 100, arriveY: WORLD_H / 2,   color: "#7ef27a" },
-                ],
-                evento_myth: [],
-                dark_vale1: [
-                  { key: "dv1-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
-                ],
-                dark_vale2: [
-                  { key: "dv2-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
-                ],
-                dark_vale3: [
-                  { key: "dv3-back", target: "arena", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#7ef27a" },
-                ],
-                cidade: [
-                  { key: "to-arena", target: "arena", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha1", target: "mapinha1", x: 60, y: 60, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#ff6b6b" },
-                  { key: "to-mapinha2", target: "mapinha2", x: WORLD_W - 60, y: 60, arriveX: 100, arriveY: WORLD_H - 100, color: "#6bd4ff" },
-                  { key: "to-mapinha3", target: "mapinha3", x: 60, y: WORLD_H - 60, arriveX: WORLD_W - 100, arriveY: 100, color: "#f5cf6b" },
-                  { key: "to-mapinha4", target: "mapinha4", x: WORLD_W - 60, y: WORLD_H - 60, arriveX: 100, arriveY: 100, color: "#c084fc" },
-                  { key: "to-mapinha5", target: "mapinha5", x: 60, y: WORLD_H / 2, arriveX: WORLD_W - 100, arriveY: WORLD_H / 2, color: "#a3e635" },
-                  { key: "to-mapinha6", target: "mapinha6", x: WORLD_W - 60, y: WORLD_H / 2, arriveX: 100, arriveY: WORLD_H / 2, color: "#fb923c" },
-                  { key: "to-mapinha7", target: "mapinha7", x: WORLD_W / 2, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#f472b6" },
-                  { key: "to-mapinha8", target: "mapinha8", x: WORLD_W / 2, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#60a5fa" },
-                  { key: "to-mapinha10", target: "mapinha10", x: 160, y: 60, arriveX: 430, arriveY: 660, color: "#ffd94d" },
-                  { key: "to-mapinha9", target: "mapinha9", x: WORLD_W - 160, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#4ade80" },
-                  { key: "to-mapinha11", target: "mapinha11", x: 160, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#38bdf8" },
-                  { key: "to-mapinha12", target: "mapinha12", x: WORLD_W - 160, y: WORLD_H - 60, arriveX: WORLD_W / 2, arriveY: 100, color: "#e879f9" },
-                  { key: "to-mapinha13", target: "mapinha13", x: 60, y: 160, arriveX: WORLD_W - 100, arriveY: WORLD_H - 100, color: "#fb7185" },
-                ],
-                mapinha1: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha2: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha3: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha4: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha5: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha6: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha7: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha8: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha10: [
-                  { key: "to-cidade", target: "cidade", x: 430, y: 732, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha9: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha11: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha12: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
-                mapinha13: [
-                  { key: "to-cidade", target: "cidade", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
-                ],
+                arena: [{ key: "to-terra", target: "terra", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#d9873a" }],
+                terra: [returnGate("to-arena")],
+                mapinha5: [returnGate("mapinha5-to-arena")],
+                mapinha6: [returnGate("mapinha6-to-arena")],
+                mapinha7: [returnGate("mapinha7-to-arena")],
+                mapinha8: [returnGate("mapinha8-to-arena")],
+                mapinha9: [returnGate("mapinha9-to-arena")],
+                mapinha10: [returnGate("mapinha10-to-arena")],
+                mapinha11: [returnGate("mapinha11-to-arena")],
+                mapinha12: [returnGate("mapinha12-to-arena")],
+                mapinha13: [returnGate("mapinha13-to-arena")],
               };
               const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
@@ -11973,27 +10771,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 if (!unlocked) {
                   pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
                   return;
-                }
-                // 🌑 MAPAS BÔNUS DARK — janela de 4h/2h + 5 stones de cada elemento
-                if (isDarkBonusMap(g.target)) {
-                  const dw = darkBonusWindow();
-                  if (!dw.open) {
-                    pushChat(`🌑 ${targetMap.name} está fechado. Abre em ${fmtMS(dw.msUntilChange)}.`, "info");
-                    return;
-                  }
-                  if (!hasDarkEntryStones(idle.items as any)) {
-                    const miss = missingDarkEntryStones(idle.items as any);
-                    pushChat(`🌑 ${targetMap.name} exige ${DARK_ENTRY_STONE_QTY} stones de CADA elemento. Falta: ${miss.join(" · ")}`, "info");
-                    return;
-                  }
-                  setIdle((s) => ({ ...s, items: payDarkEntryStones(s.items as any) as any }));
-                  pushChat(`🌑 Pagou ${DARK_ENTRY_STONE_QTY} stones de cada elemento para entrar em ${targetMap.name}. Você tem ${fmtMS(dw.msUntilChange)} lá dentro.`, "cap");
-                } else if (targetMap.cycle) {
-                  const w = caveWindow();
-                  if (!w.open) {
-                    pushChat(`⛰ ${targetMap.name} fechada. Abre em ${fmtMS(w.msUntilChange)}.`, "info");
-                    return;
-                  }
                 }
                 if (targetMap.entryCrystals && idle.currentMap !== g.target) {
                   const cost = targetMap.entryCrystals;
@@ -12247,53 +11024,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   )}
 
                   {worldMapOpen && (() => {
-                    const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
-                      { id: "arena" as IdleMapId, x: 44, y: 17, type: "castle", order: 1 },
-                      { id: "terra" as IdleMapId, x: 38, y: 12, type: "forest", order: 2 },
-                      { id: "praia" as IdleMapId, x: 22, y: 45, type: "beach", order: 3 },
-                      { id: "vale_rochas" as IdleMapId, x: 16, y: 40, type: "mountain", order: 4 },
-                      { id: "neve" as IdleMapId, x: 19.5, y: 15.5, type: "snow", order: 5 },
-                      { id: "deserto" as IdleMapId, x: 70, y: 17, type: "desert", order: 6 },
-                      { id: "deserto_purpura" as IdleMapId, x: 78, y: 22, type: "volcano", order: 7 },
-                      { id: "caverna" as IdleMapId, x: 74, y: 12, type: "cave", order: 8 },
-                      { id: "n2" as IdleMapId, x: 28, y: 42, type: "forest", order: 9 },
-                      { id: "pantano_fogo" as IdleMapId, x: 46, y: 44, type: "volcano", order: 10 },
-                      { id: "venofogo" as IdleMapId, x: 41, y: 52, type: "volcano", order: 11 },
-                      { id: "terry" as IdleMapId, x: 52, y: 48, type: "village", order: 12 },
-                      { id: "n3" as IdleMapId, x: 55, y: 42, type: "forest", order: 13 },
-                      { id: "abismo_gelo" as IdleMapId, x: 80, y: 40, type: "cave", order: 14 },
-                      { id: "abismo_veneno" as IdleMapId, x: 85, y: 45, type: "cave", order: 15 },
-                      { id: "abismo_dragao" as IdleMapId, x: 92, y: 40, type: "cave", order: 16 },
-                      { id: "fantasma" as IdleMapId, x: 15, y: 78, type: "cave", order: 17 },
-                      { id: "cadeia_ab" as IdleMapId, x: 22, y: 82, type: "cave", order: 18 },
-                      { id: "cadeia_ab1" as IdleMapId, x: 26, y: 88, type: "cave", order: 19 },
-                      { id: "cadeia_f1" as IdleMapId, x: 28, y: 92, type: "cave", order: 20 },
-                      ...(isGeliusActive() ? [{ id: "gelius1" as IdleMapId, x: 20, y: 30, type: "event", order: 100 }] : []),
-                    ].sort((a, b) => a.order - b.order);
-                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "absol_start" as IdleMapId, x: 45, y: 75, type: "village" },
-                      { id: "governante_hall" as IdleMapId, x: 44, y: 17, type: "castle" },
+                      { id: "arena", x: 44, y: 17, type: "castle", order: 1 },
+                      { id: "terra", x: 38, y: 32, type: "forest", order: 2 },
+                      { id: "mapinha5", x: 20, y: 48, type: "forest", order: 3 },
+                      { id: "mapinha6", x: 34, y: 58, type: "village", order: 4 },
+                      { id: "mapinha7", x: 50, y: 48, type: "forest", order: 5 },
+                      { id: "mapinha8", x: 66, y: 58, type: "beach", order: 6 },
+                      { id: "mapinha9", x: 80, y: 48, type: "forest", order: 7 },
+                      { id: "mapinha10", x: 78, y: 72, type: "village", order: 8 },
+                      { id: "mapinha11", x: 60, y: 80, type: "island", order: 9 },
+                      { id: "mapinha12", x: 40, y: 78, type: "forest", order: 10 },
+                      { id: "mapinha13", x: 22, y: 72, type: "beach", order: 11 },
                     ];
-                    const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [
-                      { id: "continent3_map1" as IdleMapId, x: 80, y: 40, type: "island" },
-                      { id: "continent3_map2" as IdleMapId, x: 85, y: 45, type: "island" },
-                      { id: "fosso_cristal" as IdleMapId, x: 74, y: 12, type: "cave" },
-                      { id: "vale_ruby" as IdleMapId, x: 78, y: 22, type: "volcano" },
-                      { id: "ilha_safira" as IdleMapId, x: 92, y: 40, type: "beach" },
-                      // 🌑 MAPAS BÔNUS DARK — exigem 5 stones de cada elemento, abrem de 4 em 4h por 2h
-                      { id: "dark_vale1" as IdleMapId, x: 22, y: 62, type: "cave" },
-                      { id: "dark_vale2" as IdleMapId, x: 30, y: 72, type: "cave" },
-                      { id: "dark_vale3" as IdleMapId, x: 38, y: 82, type: "cave" },
-                    ];
-                    const activeTab = worldTab;
-                    const isC1Unlocked = true; // Continente 1 sempre liberado
-                    const isC2Unlocked = (idle.items?.carta_governante ?? 0) > 0;
-                    const isC3Unlocked = (idle.trainerLevel ?? 1) >= 200; // Exemplo de requisito
-                    const isC4Unlocked = false; // Em breve
-
-                    const continentUnlocked = activeTab === 1 ? isC1Unlocked : activeTab === 2 ? isC2Unlocked : activeTab === 3 ? isC3Unlocked : isC4Unlocked;
-
+                    const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [];
+                    const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [];
                     const WORLD_PINS_C4: Array<{ id: IdleMapId; x: number; y: number; type: string; name?: string; lv?: string; desc?: string; boss?: string }> = [
                       { id: "mapa_c4_1" as IdleMapId, x: 15, y: 25, type: "crystal", name: "Catedral de Cristal", lv: "Lv 10.000+", desc: "Torres de cristal puro ecoam cânticos antigos.", boss: "Guardião Prismático" },
                       { id: "mapa_c4_2" as IdleMapId, x: 25, y: 20, type: "crystal", name: "Veias Congeladas", lv: "Lv 10.500+", desc: "Rios de cristal líquido cortam a rocha.", boss: "Serpente de Quartzo" },
@@ -12359,12 +11104,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                           <div style={{ display: "flex", gap: 6, marginBottom: 8, padding: "0 4px" }}>
                             {([
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
-                              { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
-                              { id: 3 as const, label: "🌋 Continente III", sub: "Novas Fronteiras (Bônus)" },
+                              { id: 2 as const, label: "👑 Continente II", sub: "Sem mapas disponíveis" },
+                              { id: 3 as const, label: "🌋 Continente III", sub: "Sem mapas disponíveis" },
                               { id: 4 as const, label: "🌌 Continente IV", sub: "Profundezas Abissais (Em Breve)" },
                             ]).map((t) => {
                               const active = worldTab === t.id;
-                              const locked = t.id === 2 && !hasGovCard;
+                              const locked = t.id === 2 || t.id === 3;
                               return (
                                 <button
                                   key={t.id}
@@ -13121,8 +11866,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   onClick={() => {
                     playClick();
                     setIdle((s) => {
-                      if (s.currentMap === "cidade") {
-                        pushChat("Você já está na Cidade!", "info");
+                      if (s.currentMap === "arena") {
+                        pushChat("Você já está no Vale Verdejante!", "info");
                         return s;
                       }
                       pushChat("Teleportando para a Cidade Principal...", "info");
@@ -13145,7 +11890,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                   }}
                 >
-                  <span style={{ fontSize: 11 }}>⌂</span> VOLTAR PARA CIDADE
+                  <span style={{ fontSize: 11 }}>⌂</span> VOLTAR AO VALE
                 </button>
               </div>
             )}
