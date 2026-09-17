@@ -2037,28 +2037,9 @@ function IdlePage() {
     }, 1000);
     return () => clearInterval(iv);
   }, []);
-  // Fecha a caverna: expulsa o treinador quando o ciclo terminar
-  useEffect(() => {
-    if (idle.currentMap !== "arena") return;
-    const w = caveWindow();
-    if (!w.open) {
-      setIdle((s) => ({ ...s, currentMap: "arena" }));
-      pushChat(`⛰ Caverna Rochosa fechou. Você foi levado ao Vale Verdejante.`, "info");
-      pushEvent("⛰", "CAVERNA FECHADA", "Volte quando reabrir", "#a08770");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [energyTick, idle.currentMap]);
 
-  // Governante NPC — abre a cutscene de diálogo ao entrar no Salão do Governante.
+
   const [governanteOpen, setGovernanteOpen] = useState(false);
-  useEffect(() => {
-    // Zona sagrada — limpa qualquer inimigo que tenha ficado do mapa anterior.
-    if (idle.currentMap === "arena" || idle.currentMap === "arena") {
-      setEnemies([]);
-    }
-    if (idle.currentMap !== "arena") return;
-    setGovernanteOpen(true);
-  }, [idle.currentMap]);
 
   // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
   // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
@@ -2684,11 +2665,6 @@ function IdlePage() {
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
-    cidade: mapCidadeUrl,
-    mapinha1: mapinha1Url,
-    mapinha2: mapinha2Url,
-    mapinha3: mapinha3Url,
-    mapinha4: mapinha4Url,
     mapinha5: mapinha5Url,
     mapinha6: mapinha6Url,
     mapinha7: mapinha7Url,
@@ -17454,7 +17430,7 @@ function TabOverlay({
                     return (
                       <button
                         key={slot}
-                        onClick={() => { playClick(); setEquipmentSlotPicker(slot); }}
+                        onClick={() => setEquipmentSlotPicker(slot)}
                         title={eq ? `${eq.name} — clique para trocar` : `${meta.label} vazio — clique para equipar`}
                         style={{
                           aspectRatio: "1", borderRadius: 8, cursor: "pointer",
@@ -17607,7 +17583,7 @@ function TabOverlay({
                         </div>
                         <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                           <button
-                            onClick={() => { playClick(); if (equipped) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); }}
+                            onClick={() => { if (equipped) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); }}
                             style={{
                               flex: 1, padding: "7px 4px", fontSize: 11, fontWeight: 900,
                               background: equipped ? "linear-gradient(180deg, #9a9a9a, #5a5a5a)" : "linear-gradient(180deg, #7dd87d, #3a9a4a)",
@@ -17662,7 +17638,7 @@ function TabOverlay({
                         <button
                           onClick={() => {
                             if (!window.confirm(`Descartar 1× ${dispName(id)}?`)) return;
-                            setIdle((s) => {
+                            setIdle((s: IdleState) => {
                               const cur = s.items?.[id] ?? 0;
                               if (cur <= 0) return s;
                               return { ...s, items: { ...s.items, [id]: cur - 1 } };
