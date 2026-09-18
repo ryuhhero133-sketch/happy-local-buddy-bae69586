@@ -2830,6 +2830,7 @@ function IdlePage() {
     } else {
       setNpcs([]);
       setNpcDialog(null);
+      setPokemarktShopOpen(false);
     }
   }, [idle.currentMap, customDims]);
   // Anima e move NPCs (spritesheet 4x4)
@@ -9295,6 +9296,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 )}
               </div>
             </div>
+          )}
+
+          {pokemarktShopOpen && idle.currentMap === "mapinha10" && (
+            <PokemarktNpcShop
+              gold={idle.bank.gold}
+              crystals={idle.bank.crystals}
+              inventory={idle.items}
+              onClose={() => setPokemarktShopOpen(false)}
+              onBuyBall={(id, quantity) => {
+                const ball = SHOP_BALLS.find((entry) => entry.id === id);
+                if (ball) buyBall(ball, quantity);
+              }}
+              onBuyPotion={buyPotion}
+              onBuyBook={(id, quantity) => {
+                const book = SHOP_BOOKS.find((entry) => entry.id === id);
+                if (book) buyBook(book, quantity);
+              }}
+            />
           )}
 
           {/* 🎣 Aba de pescaria (MP Plus) */}
