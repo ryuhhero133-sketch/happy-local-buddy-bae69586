@@ -9903,17 +9903,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </>
             )}
             {npcs.map((n) => {
-              const isBoy = n.kind === "gordin" || n.kind === "luluzinha";
-              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk";
+              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
               const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
               return (
                 <div
                   key={`npc-${n.id}`}
-                  onClick={(e) => { e.stopPropagation(); if (isBoy) setNpcDialog({ kind: n.kind, page: 0 }); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isInteractive) return;
+                    setAuto(false);
+                    walkTargetRef.current = null;
+                    setWalkingTo(null);
+                    if (n.kind === "pokemarktClerk") setPokemarktShopOpen(true);
+                    else setNpcDialog({ kind: n.kind, page: 0 });
+                  }}
                   style={{
                     position: "absolute", left: n.x, top: n.y, width: 48, height: 48,
                     transform: "translate(-50%, -50%)",
-                    zIndex: Math.round(n.y), cursor: isBoy ? "pointer" : "default",
+                    zIndex: Math.round(n.y), cursor: isInteractive ? "pointer" : "default",
                   }}
                 >
                   <div style={{
@@ -9924,12 +9932,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     imageRendering: "pixelated",
                     filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
                   }} />
-                  {isBoy && (
+                  {isInteractive && (
                     <div style={{
                       position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)",
                       background: "#fff", border: "1px solid #1a1a1a", borderRadius: 4, padding: "1px 4px",
                       fontSize: 9, fontWeight: 900, whiteSpace: "nowrap", boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                    }}>💬</div>
+                    }}>{n.kind === "pokemarktClerk" ? "🛒 LOJA" : "💬"}</div>
                   )}
                 </div>
               );
