@@ -32,6 +32,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
+import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
@@ -96,6 +97,7 @@ import npcOakSprite from "@/assets/npc-oak.png";
 import npcAbyssWitch from "@/assets/npc-abyss-witch.png";
 import continent4Bg from "@/assets/continent4-abyss.jpg";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
+import pokemarktClerkAsset from "@/assets/pokemarkt-clerk.png.asset.json";
 
 import { AuthGate, loadIdentity, signOutRubyM, type LocalIdentity } from "@/components/AuthGate";
 import overworldPixelAsset from "@/assets/world/overworld.png.asset.json";
@@ -487,6 +489,7 @@ const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.png", import.meta.url)).hre
 const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.png", import.meta.url)).href;
 const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.png", import.meta.url)).href;
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
+const pokemarktClerkUrl = assetUrlFromJson(pokemarktClerkAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
 const volcanoUrl = assetUrlFromJson(volcanoAsset);
 const rubyGemUrl = assetUrlFromJson(rubyGemAsset);
@@ -2781,9 +2784,10 @@ function IdlePage() {
   const [healFx, setHealFx] = useState<HealFx[]>([]);
   const healFxIdRef = useRef(1);
   const [trainerEnergy, setTrainerEnergy] = useState(100);
-  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower";
+  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk";
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
+  const [pokemarktShopOpen, setPokemarktShopOpen] = useState(false);
   // Energia do treinador: drena 100% em 30min andando e trava ao zerar
   useEffect(() => {
     const iv = setInterval(() => {
@@ -2819,19 +2823,19 @@ function IdlePage() {
         { id: 1, kind: "luluzinha", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
         { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
       ]);
-    } else if (idle.currentMap === "arena") {
+    } else if (idle.currentMap === "mapinha10") {
       setNpcs([
-        { id: 3, kind: "gordin", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
-        { id: 4, kind: "bulbaFlower", x: customDims ? customDims.w * 0.65 : 1200, y: customDims ? customDims.h * 0.55 : 1000, dir: "down", frame: 0 },
+        { id: 3, kind: "pokemarktClerk", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.48 : 800, dir: "down", frame: 0 },
       ]);
     } else {
       setNpcs([]);
       setNpcDialog(null);
+      setPokemarktShopOpen(false);
     }
   }, [idle.currentMap, customDims]);
   // Anima e move NPCs (spritesheet 4x4)
   useEffect(() => {
-    if (npcDialog) return;
+    if (npcDialog || pokemarktShopOpen) return;
     if (npcs.length === 0) return;
     const iv = setInterval(() => {
       setNpcs((prev) => prev.map((n) => {
@@ -2860,7 +2864,7 @@ function IdlePage() {
       }));
     }, 140);
     return () => clearInterval(iv);
-  }, [npcs.length, npcDialog, customDims]);
+  }, [npcs.length, npcDialog, pokemarktShopOpen, customDims]);
   const [coletaCollapsed, setColetaCollapsed] = useState(false);
   const [pacotesCollapsed, setPacotesCollapsed] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
@@ -2885,6 +2889,7 @@ function IdlePage() {
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       // Prioridade: modais → painéis → tabs secundárias.
       if (statsCardPet) { setStatsCardPet(null); return; }
+      if (pokemarktShopOpen) { setPokemarktShopOpen(false); return; }
       if (cashShopOpen) { setCashShopOpen(false); return; }
       if (blackEggHudOpen) { setBlackEggHudOpen(false); return; }
       if (governanteOpen) { setGovernanteOpen(false); return; }
@@ -2898,7 +2903,7 @@ function IdlePage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [statsCardPet, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+  }, [statsCardPet, pokemarktShopOpen, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
 
 
@@ -9293,6 +9298,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             </div>
           )}
 
+          {pokemarktShopOpen && idle.currentMap === "mapinha10" && (
+            <PokemarktNpcShop
+              gold={idle.bank.gold}
+              crystals={idle.bank.crystals}
+              inventory={idle.items}
+              onClose={() => setPokemarktShopOpen(false)}
+              onBuyBall={(id, quantity) => {
+                const ball = SHOP_BALLS.find((entry) => entry.id === id);
+                if (ball) buyBall(ball, quantity);
+              }}
+              onBuyPotion={buyPotion}
+              onBuyBook={(id, quantity) => {
+                const book = SHOP_BOOKS.find((entry) => entry.id === id);
+                if (book) buyBook(book, quantity);
+              }}
+            />
+          )}
+
           {/* 🎣 Aba de pescaria (MP Plus) */}
           {fishingOpen && (
             <div
@@ -9899,17 +9922,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </>
             )}
             {npcs.map((n) => {
-              const isBoy = n.kind === "gordin" || n.kind === "luluzinha";
-              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk";
+              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
               const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
               return (
                 <div
                   key={`npc-${n.id}`}
-                  onClick={(e) => { e.stopPropagation(); if (isBoy) setNpcDialog({ kind: n.kind, page: 0 }); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isInteractive) return;
+                    setAuto(false);
+                    walkTargetRef.current = null;
+                    setWalkingTo(null);
+                    if (n.kind === "pokemarktClerk") setPokemarktShopOpen(true);
+                    else setNpcDialog({ kind: n.kind, page: 0 });
+                  }}
                   style={{
                     position: "absolute", left: n.x, top: n.y, width: 48, height: 48,
                     transform: "translate(-50%, -50%)",
-                    zIndex: Math.round(n.y), cursor: isBoy ? "pointer" : "default",
+                    zIndex: Math.round(n.y), cursor: isInteractive ? "pointer" : "default",
                   }}
                 >
                   <div style={{
@@ -9920,12 +9951,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     imageRendering: "pixelated",
                     filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
                   }} />
-                  {isBoy && (
+                  {isInteractive && (
                     <div style={{
                       position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)",
                       background: "#fff", border: "1px solid #1a1a1a", borderRadius: 4, padding: "1px 4px",
                       fontSize: 9, fontWeight: 900, whiteSpace: "nowrap", boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                    }}>💬</div>
+                    }}>{n.kind === "pokemarktClerk" ? "🛒 LOJA" : "💬"}</div>
                   )}
                 </div>
               );
