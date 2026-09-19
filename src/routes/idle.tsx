@@ -33,6 +33,7 @@ import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
+import { WorldMapTeleportHud } from "@/components/WorldMapTeleportHud";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
@@ -13093,68 +13094,32 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
           {mapTeleportOpen && (
-            <div
-              onClick={() => setMapTeleportOpen(false)}
-              style={{
-                position: "fixed", inset: 0, zIndex: 9999,
-                background: "rgba(0,0,0,0.85)", display: "grid", placeItems: "center",
-                padding: 16, cursor: "pointer",
+            <WorldMapTeleportHud
+              currentMap={idle.currentMap}
+              trainerEnergy={trainerEnergy}
+              destinations={["mapinha6","mapinha13","terra","mapinha5","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"]
+                .filter((id) => Boolean(IDLE_MAPS[id]))
+                .map((id) => ({ id, ...IDLE_MAPS[id] }))}
+              onClose={() => setMapTeleportOpen(false)}
+              onTeleport={(destination) => {
+                const m = IDLE_MAPS[destination.id];
+                if (!m) return;
+                if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
+                if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                playClick();
+                setTrainerEnergy((energy) => Math.max(0, energy - 5));
+                setIdle((state) => ({ ...state, currentMap: destination.id as IdleMapId }));
+                setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                walkTargetRef.current = null;
+                setWalkingTo(null);
+                setEnemies([]);
+                setChests([]);
+                setMapOrbs([]);
+                clearBattleScene();
+                pushChat(`Teleportado para ${m.name}! (-5 ⚡)`, "info");
+                setMapTeleportOpen(false);
               }}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: "linear-gradient(180deg, #0f2a5a, #0d2450)", border: "2px solid #4a7ad0",
-                  borderRadius: 12, padding: 16, maxWidth: 640, width: "100%",
-                  cursor: "default", boxShadow: "0 0 40px rgba(74,122,208,0.4)",
-                  maxHeight: "85vh", overflowY: "auto",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div style={{ color: "#ffcc33", fontWeight: 900, fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>🗺 MAPA — Teleporte Grátis</div>
-                  <button onClick={() => setMapTeleportOpen(false)} style={{ background: "#1a2e6b", border: "1px solid #4a7ad0", color: "#fff", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}>✕</button>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
-                  {(() => {
-                    const order: IdleMapId[] = ["mapinha6","mapinha13","terra","mapinha5","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"];
-                    return order.filter((oid) => !!IDLE_MAPS[oid]).map((id) => {
-                    const m = IDLE_MAPS[id];
-                    const isCurrent = idle.currentMap === id;
-                    return (
-                      <button
-                        key={id}
-                        onClick={() => {
-                          if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
-                          if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
-                          playClick();
-                          setTrainerEnergy((e) => Math.max(0, e - 5));
-                          setIdle((s) => ({ ...s, currentMap: id as IdleMapId }));
-                          setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
-                          walkTargetRef.current = null; setWalkingTo(null);
-                          setEnemies([]); setChests([]); setMapOrbs([]); clearBattleScene();
-                          pushChat(`Teleportado para ${m.name}! (-5 ⚡)`, "info");
-                          setMapTeleportOpen(false);
-                        }}
-                        style={{
-                          background: isCurrent ? "linear-gradient(180deg, #ffcc33, #c8a050)" : "linear-gradient(180deg, #fff, #e8f0ff)",
-                          border: isCurrent ? "2px solid #ffcc33" : "1.5px solid #1a2e6b",
-                          borderRadius: 8, padding: 10, cursor: "pointer",
-                          textAlign: "left", boxShadow: isCurrent ? "0 0 12px rgba(255,204,51,0.5)" : "0 2px 6px rgba(0,0,0,0.15)",
-                          opacity: isCurrent ? 1 : 0.95,
-                        }}
-                      >
-                        <div style={{ fontWeight: 900, fontSize: 12, color: "#1a2e6b", lineHeight: 1 }}>{m.name}</div>
-                        <div style={{ fontSize: 10, color: isCurrent ? "#5a4a10" : "#5a6a8a", marginTop: 2 }}>{m.diff} • Lv.{m.minLevel}{m.element ? ` • ${m.element}` : ""}</div>
-                        <div style={{ marginTop: 6, fontSize: 9, fontWeight: 800, color: isCurrent ? "#1a2e6b" : "#2c4a8a", background: isCurrent ? "#fff" : "#f0f0ff", border: "1px solid #1a1a1a", borderRadius: 999, padding: "2px 6px", display: "inline-block" }}>{isCurrent ? "Atual" : "Teleportar →"}</div>
-                      </button>
-                    );
-                  }); })()}
-                </div>
-                <div style={{ marginTop: 12, fontSize: 10, color: "#8ab4ff", textAlign: "center", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(74,122,208,0.2)", borderRadius: 6, padding: "6px 8px" }}>
-                  💡 Clique em qualquer mapa para teleportar — 5 ⚡ por teleporte.
-                </div>
-              </div>
-            </div>
+            />
           )}
 
           {/* QUESTS — luzes neon, 9 bolas */}
