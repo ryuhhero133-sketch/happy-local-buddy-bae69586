@@ -10962,6 +10962,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 legendary: "★★★", mythic: "★★★★", mythic_shiny: "✦★★★★",
               };
               const stars = camouflaged ? "" : rarityStars[e.rarity];
+              // Shiny: nome rosa brilhando acima do pokémon
+              const isShinyE = !camouflaged && String(e.sp).includes("shiny");
               const starColor = e.rarity === "mythic_shiny" ? "#ff97e1"
                 : e.rarity === "mythic" ? "#ff6b3d"
                 : e.rarity === "legendary" ? "#f5cf6b"
@@ -11183,18 +11185,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       filter: `drop-shadow(0 0 4px ${starColor})`,
                     }}>{stars}</div>
                   )}
-                  {/* Nível + cristal de raridade */}
+                  {/* Nível + cristal de raridade (shiny: nome rosa brilhando) */}
                   <div style={{
                     position: "absolute", top: -14, left: "50%",
                     transform: `translateX(-50%) scaleX(${sx})`,
-                    color: e.elite ? "#ff4a4a" : "#eadfe8",
+                    color: isShinyE ? "#ff97e1" : e.elite ? "#ff4a4a" : "#eadfe8",
                     fontSize: 10, fontWeight: 700, lineHeight: 1,
-                    textShadow: "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000",
+                    textShadow: isShinyE
+                      ? "0 0 6px #ff97e1, 0 0 12px #ff4bd6, 1px 1px 0 #000"
+                      : "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000",
                     whiteSpace: "nowrap", pointerEvents: "none",
                     display: "flex", alignItems: "center", gap: 3,
+                    animation: isShinyE ? "pulse 1.2s ease-in-out infinite" : undefined,
                   }}>
                     <span style={{ fontSize: 9 }}>{crystal}</span>
-                    Lv.{e.level}
+                    {isShinyE && <span>{e.sp.replace(/_/g, " ").toUpperCase()} </span>}Lv.{e.level}
                   </div>
                   <div style={{
                     position: "absolute", bottom: -6, left: 4, right: 4, height: 5,
