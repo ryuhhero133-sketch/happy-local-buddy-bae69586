@@ -259,6 +259,17 @@ import mapinha9Url from "@/assets/mapinha9.png";
 import mapinha11Url from "@/assets/revoland.png";
 import mapinha12Url from "@/assets/bidril e kakuna.png";
 import mapinha13Url from "@/assets/mp plus.png";
+import cave01Url from "@/assets/Cave 01.png";
+import cristalCaveUrl from "@/assets/Cristal Cave.png";
+import florestBoneUrl from "@/assets/Florest Bone.png";
+import florestIceUrl from "@/assets/Florest Ice.png";
+import florestShinyUrl from "@/assets/Florest Shiny.png";
+import ruinasDeVenusUrl from "@/assets/Ruinas De Venus.png";
+import ruinasUrl from "@/assets/Ruinas.png";
+import valleyPlumeUrl from "@/assets/Valley Plume.png";
+import revoRoutUrl from "@/assets/revo rout.png";
+import cidadePrincipalUrl from "@/assets/cidade-principal.png";
+import portalImg from "@/assets/Portal.png";
 import pokemarktUrl from "@/assets/POKEMARKT.png";
 import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
 import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
@@ -301,6 +312,8 @@ import luluzinhaPng from "@/assets/luluzinha.png";
 import charmanderGif from "@/assets/charmander.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import rattataFAsset from "@/assets/rattata-f.gif.asset.json";
+import vaporeonAsset from "@/assets/vaporeon.gif.asset.json";
+import vaporeonPng from "@/assets/Vaporeon.png";
 import pidgeyGif from "@/assets/pidgey.gif";
 import beedrillGif from "@/assets/beedrill.gif";
 import butterfreeGif from "@/assets/butterfree.gif";
@@ -499,6 +512,7 @@ const rockBoulderUrl = assetUrlFromJson(rockBoulderAsset);
 const bushBerryUrl = assetUrlFromJson(bushBerryAsset);
 const rockLavaUrl = assetUrlFromJson(rockLavaAsset);
 const rattataFUrl = assetUrlFromJson(rattataFAsset);
+const vaporeonUrl = assetUrlFromJson(vaporeonAsset);
 const zubatUrl = assetUrlFromJson(zubatAsset);
 const ekansUrl = assetUrlFromJson(ekansAsset);
 const machopUrl = assetUrlFromJson(machopAsset);
@@ -554,17 +568,27 @@ type IdleMapDef = {
   raid?: boolean;
 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
+  mapinha6: { name: "Revoland",        diff: "Inicial", bg: mapinha6Url,  rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Normal",  stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
   terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
   mapinha5: { name: "Mapinha 5",        diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 20, maxLevel: 80, element: "Planta",  stars: 3 },
-  mapinha6: { name: "Mapinha 6",        diff: "Difícil+", bg: mapinha6Url,  rate: 2.0, minLevel: 25, maxLevel: 100, element: "Normal",  stars: 3 },
   mapinha7: { name: "Mapinha 7",        diff: "Fácil",  bg: mapinha7Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
   mapinha8: { name: "Mapinha 8",        diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
   mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 30, maxLevel: 120, element: "Normal", stars: 3 },
   mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
   mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
   mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 180, element: "Inseto", stars: 3 },
-  mapinha13: { name: "MP Plus",         diff: "Difícil+", bg: mapinha13Url, rate: 2.8, minLevel: 45, maxLevel: 200, element: "Água",   stars: 3 },
+  mapinha13: { name: "Verdejante 1",  diff: "Fácil",   bg: mapinha13Url, rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
+  cave01: { name: "Cave 01", diff: "Inicial", bg: cave01Url, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  cristal_cave: { name: "Cristal Cave", diff: "Inicial", bg: cristalCaveUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  florest_bone: { name: "Florest Bone", diff: "Inicial", bg: florestBoneUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  florest_ice: { name: "Florest Ice", diff: "Inicial", bg: florestIceUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  florest_shiny: { name: "Florest Shiny", diff: "Inicial", bg: florestShinyUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  ruinas_de_venus: { name: "Ruinas De Venus", diff: "Inicial", bg: ruinasDeVenusUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  ruinas: { name: "Ruinas", diff: "Inicial", bg: ruinasUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  valley_plume: { name: "Valley Plume", diff: "Inicial", bg: valleyPlumeUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  revo_rout: { name: "Revo Rout", diff: "Inicial", bg: revoRoutUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  cidade_principal: { name: "Cidade Principal", diff: "Inicial", bg: cidadePrincipalUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
 };
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
@@ -648,6 +672,7 @@ const GIF: Partial<Record<Species, string>> = {
   rayquaza: rayquazaUrl,
   bulbasaur_flower: bulbasaurFlowerPng,
   bulbasaur_orange: bulbasaurOrangePng,
+  vaporeon: vaporeonPng,
 };
 
 
@@ -658,6 +683,7 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   mew: mewAuraUrl,
   bulbasaur_flower: bulbasaurFlowerPng,
   bulbasaur_orange: bulbasaurOrangePng,
+  vaporeon: vaporeonPng,
 };
 
 
@@ -800,35 +826,9 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       { id: 3, x: 1205, y: 474, w: 60, h: 60, src: inv, blocks: true, collideR: 105 },
     ];
   }
-  // Mapinha6: colisão invisível (4 casas, lago, placa + borda da floresta)
+  // Mapinha6 (Revoland): sem colisão — andar livre
   if (mapId === "mapinha6") {
-    const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-    const list: Obstacle[] = [
-      // Casa topo-esquerda (telhado marrom)
-      { id: 1, x: 345, y: 347, w: 220, h: 205, src: inv, blocks: true, collideR: 150 },
-      // SHOP topo-direita (azul)
-      { id: 2, x: 1057, y: 347, w: 245, h: 205, src: inv, blocks: true, collideR: 160 },
-      // P.C base-esquerda (vermelho)
-      { id: 3, x: 345, y: 792, w: 220, h: 195, src: inv, blocks: true, collideR: 150 },
-      // Casa base-direita (marrom)
-      { id: 4, x: 1057, y: 792, w: 245, h: 195, src: inv, blocks: true, collideR: 155 },
-      // Lago lado esquerdo
-      { id: 5, x: 147, y: 420, w: 175, h: 180, src: inv, blocks: true, collideR: 125 },
-      // Placa centro
-      { id: 6, x: 705, y: 550, w: 50, h: 60, src: inv, blocks: true, collideR: 40 },
-    ];
-    // Borda da floresta — círculos invisíveis ao longo do perímetro
-    let nid = 7;
-    const step = 90;
-    for (let x = 70; x <= worldW - 70; x += step) {
-      list.push({ id: nid++, x, y: 70, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
-      list.push({ id: nid++, x, y: worldH - 70, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
-    }
-    for (let y = 160; y <= worldH - 160; y += step) {
-      list.push({ id: nid++, x: 70, y, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
-      list.push({ id: nid++, x: worldW - 70, y, w: 40, h: 40, src: inv, blocks: true, collideR: 55 });
-    }
-    return list;
+    return [];
   }
   // Bidril e Kakuna (mapinha12): colisão invisível na colméia (cúpula + favo)
   if (mapId === "mapinha12") {
@@ -838,6 +838,10 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       { id: 2, x: 285, y: 265, w: 140, h: 110, src: inv, blocks: true, collideR: 85 },
       { id: 3, x: 285, y: 355, w: 90, h: 60, src: inv, blocks: true, collideR: 55 },
     ];
+  }
+  // Novos mapas grátis: sem colisão, sem objetos
+  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"].includes(mapId)) {
+    return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
   if (mapId === "mapinha13") {
@@ -1271,9 +1275,9 @@ function loadIdle(): IdleState {
       const uskins = Array.isArray(s.unlockedSkins) ? s.unlockedSkins.slice() : [];
       if (!uskins.includes("default")) uskins.unshift("default");
       s.unlockedSkins = uskins;
-      // Sanitiza mapas removidos (Pedreira Antiga, Casa do Treinador) — mantém o mapa atual
-      if ((s.currentMap as string) === "casa_do_treinador") s.currentMap = "arena";
-      if (!IDLE_MAPS[s.currentMap]) s.currentMap = "arena";
+      // Sanitiza mapas removidos — Vale Verdejante (arena) migrado para Revoland (mapinha6)
+      if ((s.currentMap as string) === "casa_do_treinador" || (s.currentMap as string) === "arena") s.currentMap = "mapinha6";
+      if (!IDLE_MAPS[s.currentMap] || s.currentMap === "arena") s.currentMap = "mapinha6";
       return s;
     }
   } catch { /* ignore */ }
@@ -1285,7 +1289,7 @@ function freshIdle(): IdleState {
     startedAt: now, lastTickAt: now,
     pending: { gold: 0, rubies: 0, crystals: 0 },
     totals: { gold: 0, captured: 0, kills: 0 },
-    currentMap: "arena",
+    currentMap: "mapinha6",
     tasks: DEFAULT_TASKS(),
     mapsUnlocked: 3,
     caughtSpecies: [],
@@ -1510,7 +1514,7 @@ function IdlePage() {
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
   const [mapId, setMapId] = useState<IdleMapId>(() => {
     const s = loadIdle();
-    return s.currentMap || "arena";
+    return s.currentMap || "mapinha6";
   });
   const [trainerTheme, setTrainerTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "dark";
@@ -1812,7 +1816,8 @@ function IdlePage() {
         if (blob.idle) {
           setIdle((prev) => {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
-            if (!IDLE_MAPS[merged.currentMap]) merged.currentMap = "arena";
+            if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
+            if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
             if (!uskins.includes("default")) uskins.unshift("default");
             merged.unlockedSkins = uskins;
@@ -2066,7 +2071,7 @@ function IdlePage() {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit" | "heal";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
@@ -2514,8 +2519,8 @@ function IdlePage() {
       if (w.open) return;
       setIdle((s) => {
         if (!isDarkBonusMap(s.currentMap)) return s;
-        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌑 Vale fechado", body: "A fenda sombria se fechou — de volta à Arena.", tone: "info" } })); } catch {}
-        return { ...s, currentMap: "arena" };
+        try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌑 Vale fechado", body: "A fenda sombria se fechou — de volta à Revoland.", tone: "info" } })); } catch {}
+        return { ...s, currentMap: "mapinha6" };
       });
     };
     check();
@@ -2611,8 +2616,8 @@ function IdlePage() {
       return {
         ...cur,
         items: { ...cur.items, stone_grass: (cur.items.stone_grass ?? 0) - need },
-        grassOddishReturnMap: cur.currentMap === "arena" ? cur.grassOddishReturnMap : cur.currentMap,
-        currentMap: "arena",
+        grassOddishReturnMap: cur.currentMap === "mapinha6" ? cur.grassOddishReturnMap : cur.currentMap,
+        currentMap: "mapinha6",
       };
     });
     setOddishConfirm(null);
@@ -2622,11 +2627,11 @@ function IdlePage() {
     if (ODDISH_EVENT.enabled) return;
     const inEvent = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena";
     if (!inEvent) return;
-    setIdle((s) => ({ ...s, currentMap: "arena", grassOddishReturnMap: undefined }));
-    try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado. Você voltou para a Arena.", tone: "info" } })); } catch {}
+    setIdle((s) => ({ ...s, currentMap: "mapinha6", grassOddishReturnMap: undefined }));
+    try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: "Evento encerrado. Você voltou para Revoland.", tone: "info" } })); } catch {}
   }, [idle.currentMap]);
   useEffect(() => {
-    if (idle.currentMap !== "arena") return;
+    if (idle.currentMap !== "mapinha6") return;
     setGrassOddishSplash(true);
     const t = setTimeout(() => setGrassOddishSplash(false), 4200);
     return () => clearTimeout(t);
@@ -2677,8 +2682,41 @@ function IdlePage() {
     mapinha11: mapinha11Url,
     mapinha12: mapinha12Url,
     mapinha13: mapinha13Url,
+    cave01: cave01Url,
+    cristal_cave: cristalCaveUrl,
+    florest_bone: florestBoneUrl,
+    florest_ice: florestIceUrl,
+    florest_shiny: florestShinyUrl,
+    ruinas_de_venus: ruinasDeVenusUrl,
+    ruinas: ruinasUrl,
+    valley_plume: valleyPlumeUrl,
+    revo_rout: revoRoutUrl,
+    cidade_principal: cidadePrincipalUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
+  // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
+  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"];
+  const getPlayableBounds = (w: number, h: number, mapId: string) => {
+    if (FREE_WALK_MAPS.includes(mapId)) {
+      // Revoland + novos mapas grátis: andar livre — sem colisão
+      return { minX: w * 0.05, maxX: w * 0.95, minY: h * 0.05, maxY: h * 0.95 };
+    }
+    const isSmall = !!customMapUrls[mapId];
+    if (isSmall) {
+      // mapinhas / MP Plus: só área central 35-65% (30% span) — exclui bordas verdes
+      return { minX: w * 0.35, maxX: w * 0.65, minY: h * 0.35, maxY: h * 0.65 };
+    }
+    // mapas grandes: 8% margem
+    return { minX: w * 0.08, maxX: w * 0.92, minY: h * 0.08, maxY: h * 0.92 };
+  };
+  // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
+  // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
+  const allowedSpeciesForMap = (mapId: string): Species[] | null => {
+    if (mapId === "florest_ice") return ["vaporeon"];
+    if (mapId === "mapinha13") return ["bulbasaur_flower", "bulbasaur_orange"];
+    if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || FREE_WALK_MAPS.includes(mapId)) return [];
+    return null;
+  };
   useEffect(() => {
     const url = customMapUrls[idle.currentMap];
     if (!url) { setCustomDims(null); return; }
@@ -2692,7 +2730,7 @@ function IdlePage() {
     }
   }, [idle.currentMap, customDims]);
   useEffect(() => {
-    if (customDims && (idle.currentMap === "arena" || idle.currentMap === "arena")) {
+    if (customDims && (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice")) {
       setEnemies((prev) => {
         if (prev.filter((e) => e.hp > 0).length > 0) return prev;
         const fresh = spawnEnemies();
@@ -2704,6 +2742,14 @@ function IdlePage() {
       });
     }
   }, [customDims]);
+  useEffect(() => {
+    if (idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice") {
+      const t = setTimeout(() => {
+        setEnemies((prev) => prev.filter((e) => e.hp > 0).length > 0 ? prev : spawnEnemies());
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [idle.currentMap]);
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
   const ATTACK_RANGE = 90; // px
@@ -2784,6 +2830,8 @@ function IdlePage() {
   const [healFx, setHealFx] = useState<HealFx[]>([]);
   const healFxIdRef = useRef(1);
   const [trainerEnergy, setTrainerEnergy] = useState(100);
+  const trainerEnergyRef = useRef(100);
+  useEffect(() => { trainerEnergyRef.current = trainerEnergy; }, [trainerEnergy]);
   type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk";
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
@@ -2826,6 +2874,10 @@ function IdlePage() {
     } else if (idle.currentMap === "mapinha10") {
       setNpcs([
         { id: 3, kind: "pokemarktClerk", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.48 : 800, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "mapinha13") {
+      setNpcs([
+        { id: 4, kind: "gordin", x: customDims ? customDims.w * 0.45 : 700, y: customDims ? customDims.h * 0.35 : 500, dir: "down", frame: 0 },
       ]);
     } else {
       setNpcs([]);
@@ -4262,7 +4314,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       try {
         const snap = loadBattleScene(idle.currentMap);
         if (snap && Array.isArray(snap.enemies) && snap.enemies.length > 0) {
-          const restored = snap.enemies as Enemy[];
+          const restoredAll = (snap.enemies as Enemy[]).map((e) => ({
+            ...e,
+            spawnX: e.spawnX ?? e.x,
+            spawnY: e.spawnY ?? e.y,
+            wanderRadius: e.wanderRadius ?? 110,
+            detectionRadius: e.detectionRadius ?? e.aggroR ?? 180,
+            maxChaseDistance: e.maxChaseDistance ?? 340,
+            aiState: e.aiState ?? "WANDER",
+          }));
+          // POOL ESTRITA: snapshot de outro mapa não vaza espécies para cá
+          const allowedRestore = allowedSpeciesForMap(idle.currentMap);
+          const restored = allowedRestore ? restoredAll.filter((e) => allowedRestore.includes(e.sp)) : restoredAll;
           setEnemies(restored);
           const maxId = restored.reduce((m, e) => Math.max(m, e.id ?? 0), 0);
           if (maxId >= enemyIdRef.current) enemyIdRef.current = maxId + 1;
@@ -4316,8 +4379,39 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const stuckRef = useRef<{ id: number; count: number }>({ id: 0, count: 0 });
   const blacklistRef = useRef<Map<number, number>>(new Map()); // id -> expiresAt
   const wanderRef = useRef<{ x: number; y: number; until: number } | null>(null);
+  const trainerStuckPosRef = useRef<{ x: number; y: number; ts: number } | null>(null);
+  const currentTargetRef = useRef<number | null>(null);
   const overCapMsgRef = useRef<number>(0);
-
+  useEffect(() => {
+    wanderRef.current = null;
+    blacklistRef.current.clear();
+    stuckRef.current = { id: 0, count: 0 };
+    currentTargetRef.current = null;
+    trainerStuckPosRef.current = null;
+    // Despawna inimigos que ficaram em área verde (fora do playable bounds) ao trocar para mapinha
+    if (customMapUrls[idle.currentMap] && customDims) {
+      const pb = getPlayableBounds(customDims.w, customDims.h, idle.currentMap);
+      setEnemies((prev) => {
+        if (prev.length === 0) return prev;
+        const filtered = prev.filter((e) => e.x >= pb.minX && e.x <= pb.maxX && e.y >= pb.minY && e.y <= pb.maxY);
+        return filtered.length !== prev.length ? filtered : prev;
+      });
+    }
+    // POOL ESTRITA: ao trocar de mapa, remove qualquer espécie que não pertence a ele
+    const allowed = allowedSpeciesForMap(idle.currentMap);
+    if (allowed) {
+      setEnemies((prev) => {
+        if (prev.length === 0) return prev;
+        const filtered = prev.filter((e) => allowed.includes(e.sp));
+        return filtered.length !== prev.length ? filtered : prev;
+      });
+    }
+    // Mapas grátis sem objetos: limpa baús/orbs herdados de outros mapas
+    if (FREE_WALK_MAPS.includes(idle.currentMap)) {
+      setChests((prev) => (prev.length > 0 ? [] : prev));
+      setMapOrbs((prev) => (prev.length > 0 ? [] : prev));
+    }
+  }, [idle.currentMap, customDims]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     const lv = idle.trainerLevel ?? 1;
     if (p.reqLevel && lv < p.reqLevel) {
@@ -4359,6 +4453,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) { if (moving) setMoving(false); return; }
+      if ((trainerEnergyRef.current ?? 100) <= 0) { if (moving) setMoving(false); walkTargetRef.current = null; setWalkingTo(null); return; }
       // ---- Modo manual (WASD) — só se NÃO houver destino clicado ----
       if (!autoRef.current && !walkTargetRef.current) {
         const keys = keysRef.current;
@@ -4509,56 +4604,124 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           ...enemyPool.map((e) => ({ x: e.x, y: e.y, kind: "enemy" as const, id: e.id, range: ATTACK_RANGE * 0.7 })),
         ];
         if (candidates.length === 0) {
-          // Sem alvos válidos no mapa. Vagueia com trajetos LONGOS cobrindo
-          // regiões diferentes, pra não ficar preso rondando o mesmo ponto.
+          currentTargetRef.current = null;
+          // WANDER ancorado: destino próximo (wanderRadius 90-160), validado, com IDLE/RETURNING
+          const ARRIVAL_THR = 14;
           const wp = wanderRef.current;
-          const reached = wp ? Math.hypot(wp.x - tp.x, wp.y - tp.y) < 60 : true;
+          const distToWp = wp ? Math.hypot(wp.x - tp.x, wp.y - tp.y) : Infinity;
+          const reached = wp ? distToWp < ARRIVAL_THR : false;
           const expired = wp ? nowT > wp.until : true;
+          // Chegou -> IDLE: para e espera 0.9-1.6s antes de novo destino
+          if (reached) {
+            if (moving) setMoving(false);
+            // pausa curta ainda dentro do until = IDLE
+            if (wp && nowT < wp.until) return tp;
+          }
+          // STUCK detection: se moving mas pos não muda 1px em 500ms -> força novo destino
+          const stuckPos = trainerStuckPosRef.current;
+          if (moving && stuckPos && nowT - stuckPos.ts > 500 && Math.hypot(stuckPos.x - tp.x, stuckPos.y - tp.y) < 1) {
+            wanderRef.current = null;
+            trainerStuckPosRef.current = { x: tp.x, y: tp.y, ts: nowT };
+            if (moving) setMoving(false);
+            return tp;
+          }
+          if (moving && (!stuckPos || nowT - stuckPos.ts > 300)) {
+            trainerStuckPosRef.current = { x: tp.x, y: tp.y, ts: nowT };
+          }
           if (!wp || reached || expired) {
-            // Escolhe destino longe da posição atual (pelo menos 40% do mapa)
-            // Nos mapinhas fica só no centro 30-70% pra nunca ir pro canto verde
-            const isSmallWander = (idle.currentMap === "arena" || idle.currentMap === "arena") && customDims;
-            const wW = isSmallWander ? customDims!.w : WORLD_W;
-            const wH = isSmallWander ? customDims!.h : WORLD_H;
-            const minDist = Math.min(wW, wH) * 0.4;
-            let nx = 0, ny = 0;
-            for (let i = 0; i < 8; i++) {
-              nx = isSmallWander ? wW * 0.30 + Math.random() * wW * 0.40 : 120 + Math.random() * (wW - 240);
-              ny = isSmallWander ? wH * 0.30 + Math.random() * wH * 0.40 : 120 + Math.random() * (wH - 240);
-              if (Math.hypot(nx - tp.x, ny - tp.y) >= minDist) break;
+            const isSmallWander = !!customMapUrls[idle.currentMap] && customDims;
+            const wW = isSmallWander ? customDims!.w : curWorldW;
+            const wH = isSmallWander ? customDims!.h : curWorldH;
+            const tpb = getPlayableBounds(wW, wH, idle.currentMap);
+            // destino validado dentro de bounds + colisão + longe de portal trancado
+            let nx = tp.x, ny = tp.y;
+            let found = false;
+            for (let attempt = 0; attempt < 12; attempt++) {
+              const ang = Math.random() * Math.PI * 2;
+              const rad = 90 + Math.random() * 70;
+              let cx = tp.x + Math.cos(ang) * rad;
+              let cy = tp.y + Math.sin(ang) * rad;
+              // clamp estrito ao playable bounds (equilíbrio: nunca canto verde)
+              cx = Math.max(tpb.minX + 10, Math.min(tpb.maxX - 10, cx));
+              cy = Math.max(tpb.minY + 10, Math.min(tpb.maxY - 10, cy));
+              // rejeita se colide ou perto de portal trancado
+              if (collidesWithAny(cx, cy)) continue;
+              if (lockedPortals.some((p) => Math.hypot(cx - p.x, cy - p.y) < 180)) continue;
+              nx = cx; ny = cy; found = true; break;
             }
-            wanderRef.current = { x: nx, y: ny, until: nowT + 15000 };
+            if (!found) {
+              // fallback: centro do mapa
+              nx = wW / 2 + (Math.random() - 0.5) * 80;
+              ny = wH / 2 + (Math.random() - 0.5) * 80;
+            }
+            // IDLE pause incluída no until: wander 8-12s + idle 0.9-1.6s
+            const idlePause = 900 + Math.random() * 700;
+            const wanderDur = 8000 + Math.random() * 4000;
+            wanderRef.current = { x: nx, y: ny, until: nowT + wanderDur + idlePause };
+            // guarda duração de wander separada para detectar chegada vs idle
+            (wanderRef.current as any)._wanderUntil = nowT + wanderDur;
           }
           const w = wanderRef.current!;
+          const wWanderUntil = (w as any)._wanderUntil ?? w.until;
+          // se estamos na fase IDLE (após chegar mas antes do until) já retornamos acima; aqui ainda em WANDER
+          if (nowT > wWanderUntil && Math.hypot(w.x - tp.x, w.y - tp.y) < ARRIVAL_THR) {
+            if (moving) setMoving(false);
+            return tp;
+          }
           const wdx = w.x - tp.x, wdy = w.y - tp.y;
           const wd = Math.hypot(wdx, wdy) || 1;
+          // valida movimento: se próximo da borda e destino além, interrompe
+          if (tp.x < 30 || tp.x > curWorldW - 30 || tp.y < 30 || tp.y > curWorldH - 30) {
+            wanderRef.current = null;
+            if (moving) setMoving(false);
+            return tp;
+          }
           if (!moving) setMoving(true);
-          const spd = 16 * (1 + honeyBonusNow());
-          const wnd: Dir = Math.abs(wdx) > Math.abs(wdy)
-            ? (wdx > 0 ? "right" : "left")
-            : (wdy > 0 ? "down" : "up");
-          if (wnd !== walkDirRef.current) {
-            walkDirRef.current = wnd;
-            setWalkDir(wnd);
-          }
+          const spd = 6 * (1 + honeyBonusNow());
+          const wnd: Dir = Math.abs(wdx) > Math.abs(wdy) ? (wdx > 0 ? "right" : "left") : (wdy > 0 ? "down" : "up");
+          if (wnd !== walkDirRef.current) { walkDirRef.current = wnd; setWalkDir(wnd); }
           const wFace = wdx >= 0 ? "right" : "left";
-          if (wFace !== pokemonFaceRef.current) {
-            pokemonFaceRef.current = wFace;
-            setPokemonFace(wFace);
+          if (wFace !== pokemonFaceRef.current) { pokemonFaceRef.current = wFace; setPokemonFace(wFace); }
+          const stepX = (wdx / wd) * spd;
+          const stepY = (wdy / wd) * spd;
+          const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
+          const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
+          let nwx = clampX(tp.x + stepX), nwy = clampY(tp.y + stepY);
+          if (collidesWithAny(nwx, nwy)) {
+            const altX = clampX(tp.x + stepX);
+            if (collidesWithAny(altX, tp.y)) nwx = tp.x; else nwx = altX;
+            const altY = clampY(tp.y + stepY);
+            if (collidesWithAny(nwx, altY)) nwy = tp.y; else nwy = altY;
+            if (nwx === tp.x && nwy === tp.y) { wanderRef.current = null; if (moving) setMoving(false); return tp; }
           }
-          return { x: tp.x + (wdx / wd) * spd, y: tp.y + (wdy / wd) * spd };
+          return { x: nwx, y: nwy };
         }
-        const isSmallMapTgt = (idle.currentMap === "arena" || idle.currentMap === "arena") && customDims;
-        const useWT = isSmallMapTgt ? customDims!.w : WORLD_W;
-        const useHT = isSmallMapTgt ? customDims!.h : WORLD_H;
+        const isSmallMapTgt = !!customMapUrls[idle.currentMap] && customDims;
+        const useWT = isSmallMapTgt ? customDims!.w : curWorldW;
+        const useHT = isSmallMapTgt ? customDims!.h : curWorldH;
         const centerXT = useWT / 2;
         const centerYT = useHT / 2;
-        const maxDistFromCenter = Math.min(useWT, useHT) * 0.42;
+        const maxDistFromCenter = Math.min(useWT, useHT) * 0.34;
         const filteredCandidates = isSmallMapTgt ? candidates.filter(t => Math.hypot(t.x - centerXT, t.y - centerYT) < maxDistFromCenter) : candidates;
         filteredCandidates.sort((a, b) =>
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
-        const target = filteredCandidates[0];
+        // TARGET LOCK com hysteresis: mantém currentTarget se ainda válido e não muito mais longe
+        let target = filteredCandidates[0] as typeof filteredCandidates[0] | undefined;
+        const curId = currentTargetRef.current;
+        if (curId != null && target) {
+          const curTgt = filteredCandidates.find((c) => c.id === curId);
+          if (curTgt) {
+            const curDist = Math.hypot(curTgt.x - tp.x, curTgt.y - tp.y);
+            const bestDist = Math.hypot(target.x - tp.x, target.y - tp.y);
+            // hysteresis 12px ou 8% — evita flip-flop a cada frame
+            if (curDist < bestDist + 12 || curDist < bestDist * 1.08) {
+              target = curTgt;
+            }
+          }
+        }
+        if (target) currentTargetRef.current = target.id;
+        else currentTargetRef.current = null;
         if (!target) return tp;
         const dx = target.x - tp.x;
         const dy = target.y - tp.y;
@@ -4628,7 +4791,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const ty = trainerPos.y;
         // Pré-scan: bulbasaurs curam aliado machucado colado OU o inimigo que você ataca. Cura 10-13%.
         const nowB = Date.now();
-        const isBulbaSp = (sp: Species) => sp === "bulbasaur_flower" || sp === "bulbasaur_orange";
+        const isBulbaSp = (sp: Species) => sp === "bulbasaur_flower" || sp === "bulbasaur_orange" || sp === "vaporeon";
         const tid = attackTargetIdRef.current;
         const playerTarget = tid != null ? prev.find((o) => o.id === tid && o.hp > 0 && o.hp < o.maxHp) ?? null : null;
         const healPlan: { healerId: number; targetId: number; amount: number; x: number; y: number }[] = [];
@@ -4709,11 +4872,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               if (healGot) ne = { ...ne, hp: Math.min(ne.maxHp, ne.hp + healGot.amount) };
               if (healDone) ne = { ...ne, healCd: nowB + 9000 };
               changed = true;
-              const isSmallMapB = (idle.currentMap === "arena" || idle.currentMap === "arena") && customDims;
-              const maxXB = isSmallMapB ? customDims!.w * 0.78 : curWorldW - 20;
-              const maxYB = isSmallMapB ? customDims!.h * 0.78 : curWorldH - 20;
-              const minXB = isSmallMapB ? customDims!.w * 0.22 : 20;
-              const minYB = isSmallMapB ? customDims!.h * 0.22 : 20;
+              const wWb = customDims && customMapUrls[idle.currentMap] ? customDims.w : curWorldW;
+              const hWb = customDims && customMapUrls[idle.currentMap] ? customDims.h : curWorldH;
+              const pbB = getPlayableBounds(wWb, hWb, idle.currentMap);
+              const maxXB = pbB.maxX, maxYB = pbB.maxY, minXB = pbB.minX, minYB = pbB.minY;
               // Aliado bulba machucado num raio de 220? Vai até ele.
               // Senão, vai até o inimigo que você está atacando (se machucado, raio 320).
               let allyT: Enemy | null = null;
@@ -4755,37 +4917,89 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }
               return { ...ne, wx: undefined, wy: undefined };
             }
-            // Pokémon não-agressivos dão uma andada leve (wander) ~8% chance por tick
-            if (Math.random() < 0.08) {
-              const angle = Math.random() * Math.PI * 2;
-              const wSpeed = 1.5;
-              const wnx = ne.x + Math.cos(angle) * wSpeed;
-              const wny = ne.y + Math.sin(angle) * wSpeed;
-              const isSmallMap = (idle.currentMap === "arena" || idle.currentMap === "arena") && customDims;
-              const maxX = isSmallMap ? customDims!.w * 0.78 : curWorldW - 20;
-              const maxY = isSmallMap ? customDims!.h * 0.78 : curWorldH - 20;
-              const minX = isSmallMap ? customDims!.w * 0.22 : 20;
-              const minY = isSmallMap ? customDims!.h * 0.22 : 20;
-              const cx = Math.max(minX, Math.min(maxX, wnx));
-              const cy = Math.max(minY, Math.min(maxY, wny));
-              if (!collidesWithAny(cx, cy)) {
+            // WANDER ancorado em spawnX/spawnY (RETURNING se longe demais)
+            const sX = ne.spawnX ?? ne.x;
+            const sY = ne.spawnY ?? ne.y;
+            const wR = ne.wanderRadius ?? 110;
+            const distSpawn = Math.hypot(ne.x - sX, ne.y - sY);
+            // Se fugiu demais do spawn -> RETURNING (prioridade sobre wander)
+            if (distSpawn > wR * 1.45) {
+              const rdx = sX - ne.x, rdy = sY - ne.y;
+              const rd = Math.hypot(rdx, rdy) || 1;
+              if (rd < 10) return { ...ne, aiState: "IDLE" };
+              const rs = 2.2;
+              const rnx = ne.x + (rdx / rd) * rs;
+              const rny = ne.y + (rdy / rd) * rs;
+              if (collidesWithAny(rnx, rny)) return ne;
+              changed = true;
+              return { ...ne, x: rnx, y: rny, aiState: "RETURNING", face: (rdx >= 0 ? "right" : "left") as "left" | "right" };
+            }
+            // Se tem destino wander, anda até ele (arrival 8)
+            if (ne.wx != null && ne.wy != null) {
+              const wdx = ne.wx - ne.x, wdy = ne.wy - ne.y;
+              const wd = Math.hypot(wdx, wdy);
+              if (wd < 8) return { ...ne, wx: undefined, wy: undefined, aiState: "IDLE" };
+              const ws = 1.5;
+              const wnx = ne.x + (wdx / wd) * ws;
+              const wny = ne.y + (wdy / wd) * ws;
+              if (!collidesWithAny(wnx, wny)) {
                 changed = true;
-                return { ...ne, x: cx, y: cy, face: (Math.cos(angle) >= 0 ? "right" : "left") as "left" | "right" };
+                return { ...ne, x: wnx, y: wny, aiState: "WANDER", face: (wdx >= 0 ? "right" : "left") as "left" | "right" };
+              } else {
+                return { ...ne, wx: undefined, wy: undefined, aiState: "IDLE" };
               }
             }
-            return ne;
+            // Sem destino: ~8% chance/tick de escolher novo destino próximo do spawn
+            if (Math.random() < 0.08) {
+              let btx: number | undefined, bty: number | undefined;
+              for (let attempt = 0; attempt < 8; attempt++) {
+                const ang = Math.random() * Math.PI * 2;
+                const rad = 30 + Math.random() * (wR * 0.85);
+                const cx = sX + Math.cos(ang) * rad;
+                const cy = sY + Math.sin(ang) * rad;
+              const wWe = customDims && customMapUrls[idle.currentMap] ? customDims.w : curWorldW;
+              const hWe = customDims && customMapUrls[idle.currentMap] ? customDims.h : curWorldH;
+              const pbE = getPlayableBounds(wWe, hWe, idle.currentMap);
+              const maxX = pbE.maxX, maxY = pbE.maxY, minX = pbE.minX, minY = pbE.minY;
+                const ccx = Math.max(minX, Math.min(maxX, cx));
+                const ccy = Math.max(minY, Math.min(maxY, cy));
+                if (!collidesWithAny(ccx, ccy) && Math.hypot(ccx - ne.x, ccy - ne.y) > 18) { btx = ccx; bty = ccy; break; }
+              }
+              if (btx != null && bty != null) {
+                changed = true;
+                return { ...ne, wx: btx, wy: bty, aiState: "WANDER" };
+              }
+            }
+            return { ...ne, aiState: "IDLE" };
+          }
+          // CHASING_PLAYER com maxChaseDistance (ancorado no spawn)
+          const sX2 = ne.spawnX ?? ne.x;
+          const sY2 = ne.spawnY ?? ne.y;
+          const maxChase = ne.maxChaseDistance ?? 340;
+          const distSpawn2 = Math.hypot(ne.x - sX2, ne.y - sY2);
+          if (distSpawn2 > maxChase) {
+            // abandonou chase -> RETURNING
+            const rdx = sX2 - ne.x, rdy = sY2 - ne.y;
+            const rd = Math.hypot(rdx, rdy) || 1;
+            if (rd < 10) return ne;
+            const rs = 2.8;
+            const rnx = ne.x + (rdx / rd) * rs;
+            const rny = ne.y + (rdy / rd) * rs;
+            if (collidesWithAny(rnx, rny)) return ne;
+            changed = true;
+            return { ...ne, x: rnx, y: rny, aiState: "RETURNING", face: (rdx >= 0 ? "right" : "left") as "left" | "right" };
           }
           const dx = tx - ne.x;
           const dy = ty - ne.y;
           const dist = Math.hypot(dx, dy);
-          const aggroR = ne.aggroR ?? 180;
-          if (dist < 50 || dist > aggroR) return ne;
+          const aggroR = ne.detectionRadius ?? ne.aggroR ?? 180;
+          if (dist < 50 || dist > aggroR) return { ...ne, aiState: dist < 50 ? "ATTACKING" : "WANDER" };
           const speed = 3;
           const nx = ne.x + (dx / dist) * speed;
           const ny = ne.y + (dy / dist) * speed;
           if (collidesWithAny(nx, ny)) return ne;
           changed = true;
-          return { ...ne, x: nx, y: ny, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
+          return { ...ne, x: nx, y: ny, aiState: "CHASING_PLAYER", face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
@@ -4805,6 +5019,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
         }
+        // Florest Ice tem timer próprio de 25s (vaporeon) — top-up genérico não mexe
+        if (idle.currentMap === "florest_ice") return prev;
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length >= ENEMY_TARGET) return prev;
         // Rajada de reposição: mapa quase vazio (<6 vivos) repõe até 6 de uma vez (recuperação rápida pós-wipe)
@@ -4834,6 +5050,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         return [...pruned, ...fresh];
       });
     }, 20000 + Math.floor(Math.random() * 10000)); // 20-30s entre spawns
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+  // ---- Vaporeon na Florest Ice: 1 a cada 25s (movimento padrão bulbasaur orange) ----
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      if (idle.currentMap !== "florest_ice") return;
+      setEnemies((prev) => {
+        const alive = prev.filter((e) => e.hp > 0 && e.sp === "vaporeon");
+        if (alive.length >= 6) return prev;
+        const placed = prev.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+        const ne = spawnOneEnemy(placed);
+        if (!ne) return prev;
+        const pruned = prev.filter((e) => e.hp > 0);
+        return [...pruned, ne];
+      });
+    }, 25000);
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
@@ -4871,6 +5106,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           pool = ["charmander", "squirtle", "bulbasaur", "pikachu"] as Species[];
         } else {
           pool = ["pidgey", "rattata_f", "zubat", "oddish", "bellsprout"] as Species[];
+        }
+        // POOL ESTRITA: orb só choca espécie do mapa atual (nada em mapa sem spawn)
+        const allowedHatch = allowedSpeciesForMap(idle.currentMap);
+        if (allowedHatch) {
+          if (allowedHatch.length === 0) continue;
+          pool = [...allowedHatch] as Species[];
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
@@ -6685,26 +6926,32 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
-    // Zonas sagradas ou seguras, sem spawns.
-    if (idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || idle.currentMap === "arena" || idle.currentMap === "arena") {
+    // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto vaporeon na florest_ice).
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
-    const MIN_DIST = 220;
     if ((idle.currentMap === "arena" || idle.currentMap === "arena") && !customDims) return null;
-    const isSmallMapSpawn = idle.currentMap === "arena" || idle.currentMap === "arena";
+    const isSmallMapSpawn = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || !!customMapUrls[idle.currentMap];
     const useW = isSmallMapSpawn && customDims ? customDims.w : WORLD_W;
     const useH = isSmallMapSpawn && customDims ? customDims.h : WORLD_H;
-    const insetX = isSmallMapSpawn ? useW * 0.30 : 120;
-    const insetY = isSmallMapSpawn ? useH * 0.30 : 120;
-    const spanW = isSmallMapSpawn ? useW * 0.40 : useW - 240;
-    const spanH = isSmallMapSpawn ? useH * 0.40 : useH - 240;
+    const isSmall = !!customMapUrls[idle.currentMap];
+    // Spawn: área um pouco maior que wander para caber MIN_DIST; wander/target continuam mais restritos via getPlayableBounds
+    const spawnMinX = isSmall ? useW * 0.28 : 120;
+    const spawnMaxX = isSmall ? useW * 0.72 : useW - 120;
+    const spawnMinY = isSmall ? useH * 0.28 : 120;
+    const spawnMaxY = isSmall ? useH * 0.72 : useH - 120;
+    const insetX = spawnMinX;
+    const insetY = spawnMinY;
+    const spanW = spawnMaxX - spawnMinX;
+    const spanH = spawnMaxY - spawnMinY;
+    const MIN_DIST = isSmall ? 90 : 220;
     for (let attempts = 0; attempts < 40; attempts++) {
       const x = insetX + Math.random() * spanW;
       const y = insetY + Math.random() * spanH;
       const dt = Math.hypot(x - useW / 2, y - useH / 2);
-      if (dt < 300) continue;
+      if (dt < (isSmall ? 80 : 300)) continue;
       let ok = true;
       for (const p of placed) {
         if (Math.hypot(x - p.x, y - p.y) < MIN_DIST) { ok = false; break; }
@@ -6733,6 +6980,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (idle.currentMap === "terra" && maxTeamLv >= 30) {
           // blaziken removido do pool comum (aparece raramente via evento/spawn épico)
           pool = ["beedrill", "butterfree", "pinsir", "golem", "jolteon", "lapras"] as Species[];
+        }
+        if (idle.currentMap === "mapinha13") {
+          // MP Plus: bulbasaur_flower (75%) e bulbasaur_orange (25%)
+          pool = ["bulbasaur_flower", "bulbasaur_flower", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+          mapLvRange = [45, 80];
+        }
+        if (idle.currentMap === "florest_ice") {
+          // Florest Ice: só vaporeon
+          pool = ["vaporeon"] as Species[];
+          mapLvRange = [1, 20];
         }
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           // Mapinhas iniciais: só Metapod, Pidgey e Rattata, Lv 1-20
@@ -7143,7 +7400,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         disguise = DISGUISE_POOL[Math.floor(Math.random() * DISGUISE_POOL.length)];
       }
 
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss };
+      const wanderR = 90 + Math.floor(Math.random() * 50);
+      const detectR = aggroR;
+      const maxChase = 320 + Math.floor(Math.random() * 60);
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: "WANDER" };
 
 
     }
@@ -7151,10 +7411,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "arena" ? 48 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : 30);
+  const ENEMY_TARGET = idle.currentMap === "arena" ? 48 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" ? 6 : 30);
 
   function spawnEnemies(): Enemy[] {
-    if (idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || idle.currentMap === "arena" || idle.currentMap === "arena") return [];
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -7162,7 +7422,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (isFirst) setTimeout(() => { isFirstSpawnRef.current = false; }, 1800);
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "arena";
-    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, outros: 16-20
+    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : idle.currentMap === "florest_ice" ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, Florest Ice: 4-6, outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
@@ -7775,13 +8035,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   // spawna baús no início; respawna a cada 10 min mantendo até `chestTarget` no mapa
   useEffect(() => {
-    const initial = (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") ? [] : spawnChests(Math.min(chestTarget, 2));
+    const initial = (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || FREE_WALK_MAPS.includes(idle.currentMap)) ? [] : spawnChests(Math.min(chestTarget, 2));
     setChests(initial);
     const iv = setInterval(() => {
       setChests((prev) => {
         const remaining = prev.filter((c) => !c.opened || (Date.now() - (c.openedAt ?? 0) < 4000));
         const active = remaining.filter((c) => !c.opened);
-        if (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13") return remaining.length > 0 ? [] : remaining;
+        if (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || FREE_WALK_MAPS.includes(idle.currentMap)) return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
         if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
@@ -8773,11 +9033,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 {c.el}{c.val}
               </span>
             ))}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 2, paddingLeft: 10, borderLeft: "1px solid rgba(100,160,255,0.22)" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 800, color: "#fff" }}><img src={ballPokeImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />×{idle.items.pokeball ?? 0}</span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 800, color: "#fff" }}><img src={ballGreatImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />×{idle.items.greatball ?? 0}</span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 800, color: "#fff" }}><img src={ballUltraImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />×{idle.items.ultraball ?? 0}</span>
-            </div>
             <button
               onClick={() => { playClick(); setTab("loja"); }}
               title="Loja"
@@ -9158,6 +9413,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         >
 
 
+          {/* Nome/Estilo no canto esquerdo — Revoland (mapinha6) */}
+          {idle.currentMap === "mapinha6" && (() => { const m = IDLE_MAPS["mapinha6"]; return (
+            <div style={{ position: "absolute", top: 12, left: 12, zIndex: 68, pointerEvents: "none", background: "rgba(11,5,16,0.88)", border: "1px solid rgba(245,207,107,0.45)", borderRadius: 10, padding: "6px 10px", display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
+              <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13, letterSpacing: 0.5, textShadow: "1px 1px 0 #000" }}>{m.name}</span>
+              <span style={{ color: "#c8b8d0", fontSize: 11, fontWeight: 700 }}>{m.diff} · {m.element} {m.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(m.stars)}</span> : null}</span>
+            </div>
+          ); })()}
           {/* ===== Toasts de eventos (não-bloqueantes) ===== */}
           <div style={{
             position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
@@ -11465,88 +11727,37 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   </button>
                 </div>
               )}
-              {/* Quick ball selector — troca rápida sem abrir configurações */}
+              {/* Barra compacta: Auto + Config */}
               <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.35)",
+                background: "rgba(11,5,16,0.92)", border: "1px solid rgba(245,207,107,0.35)",
                 borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
-              }}>
-                {([
-                  { id: "auto" as const, img: null, label: "A", count: null as number | null, tint: "#f5cf6b" },
-                  { id: "pokeball" as const, img: ballPokeImg, label: "Poké", count: idle.items.pokeball ?? 0, tint: "#ff8080" },
-                  { id: "greatball" as const, img: ballGreatImg, label: "Great", count: idle.items.greatball ?? 0, tint: "#7ec4ff" },
-                  { id: "ultraball" as const, img: ballUltraImg, label: "Ultra", count: idle.items.ultraball ?? 0, tint: "#ffd66b" },
-                ]).map((b) => {
-                  const sel = ab.preferredBall === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => setAB({ preferredBall: b.id, useBall: true })}
-                      title={b.id === "auto" ? "Auto (melhor disponível)" : `${b.label} (${b.count})`}
-                      style={{
-                        position: "relative", background: sel ? "rgba(245,207,107,0.18)" : "transparent",
-                        border: sel ? `1.5px solid ${b.tint}` : "1.5px solid transparent",
-                        boxShadow: sel ? `0 0 8px ${b.tint}88` : "none",
-                        borderRadius: 8, padding: 3, cursor: "pointer",
-                        width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      {b.img ? (
-                        <img src={b.img} alt={b.label} width={24} height={24} style={{ imageRendering: "pixelated", filter: sel ? "none" : "grayscale(0.4)" }} />
-                      ) : (
-                        <span style={{ fontSize: 14, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>A</span>
-                      )}
-                      {b.count !== null && (
-                        <span style={{
-                          position: "absolute", bottom: -2, right: -2, background: "#0b0510",
-                          border: `1px solid ${b.tint}`, borderRadius: 6, padding: "0 3px",
-                          fontSize: 8, fontWeight: 800, color: b.tint, lineHeight: "10px", minWidth: 12, textAlign: "center",
-                        }}>{b.count > 999 ? "999+" : b.count}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{
-                background: "rgba(11,5,16,0.9)", border: "1px solid rgba(245,207,107,0.4)",
-                borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10,
               }}>
                 <button
                   onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
-                  title={on ? "Auto-batalha ATIVA (clique para desativar)" : "Auto-batalha desativada (clique para ativar)"}
+                  title={on ? "Auto-batalha ATIVA" : "Auto-batalha desativada"}
                   style={{
                     background: "transparent", border: "none", padding: 0, cursor: "pointer",
-                    width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
-                    position: "relative",
+                    width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <img
-                    src={autoIconImg}
-                    alt="Auto"
-                    width={40}
-                    height={40}
+                  <img src={autoIconImg} alt="Auto" width={26} height={26}
                     style={{
-                      width: 40, height: 40, imageRendering: "pixelated",
-                      filter: on
-                        ? "drop-shadow(0 0 6px #5ec26a) drop-shadow(0 0 10px rgba(94,194,106,0.6))"
-                        : "grayscale(1) opacity(0.55)",
+                      imageRendering: "pixelated",
+                      filter: on ? "drop-shadow(0 0 4px #5ec26a)" : "grayscale(1) opacity(0.45)",
                       animation: on ? "autoIconPulse 1.2s ease-in-out infinite, autoIconSpin 6s linear infinite" : "none",
-                      transformOrigin: "50% 50%",
                     }}
                   />
                 </button>
-                <div style={{ fontSize: 10, color: "#c8b8d0", minWidth: 90 }}>
-                  Lv.{team[0]?.level ?? 1} · EXP {team[0]?.xp ?? 0}/{100 + (team[0]?.level ?? 1) * 20}
-                </div>
                 <button
                   onClick={() => setShowAutoSettings((v) => !v)}
                   title="Configurar"
                   style={{
                     background: showAutoSettings ? "#f5cf6b" : "rgba(255,255,255,0.06)",
                     color: showAutoSettings ? "#0b0510" : "#f5cf6b",
-                    border: "1px solid rgba(245,207,107,0.5)",
-                    borderRadius: 8, width: 30, height: 30, cursor: "pointer",
+                    border: "1px solid rgba(245,207,107,0.4)",
+                    borderRadius: 6, width: 24, height: 24, cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16,
+                    fontSize: 13,
                   }}
                 >⚙</button>
               </div>
@@ -11716,27 +11927,38 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               // Fluxo: arena → praia → neve → deserto → caverna
               const gatesByMap: Record<IdleMapId, GateDef[]> = {
                 arena: [
-                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#d9873a" },
-                  { key: "to-mapinha5", target: "mapinha5", x: 100, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha6", target: "mapinha6", x: 250, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha7", target: "mapinha7", x: 400, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha8", target: "mapinha8", x: 550, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha9", target: "mapinha9", x: 700, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha10", target: "mapinha10", x: 850, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha11", target: "mapinha11", x: 1000, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha12", target: "mapinha12", x: 1150, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha13", target: "mapinha13", x: 1300, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" },
                 ],
-                terra: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" }],
-                mapinha5: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha6: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha7: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha8: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha9: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha10: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha11: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha12: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha13: [{ key: "to-arena", target: "arena", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                terra: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: 40, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" }],
+                mapinha5: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha6: [
+                  { key: "to-terra", target: "terra", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#d9873a" },
+                  { key: "to-mapinha13", target: "mapinha13", x: 100, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha5", target: "mapinha5", x: 300, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha7", target: "mapinha7", x: 500, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha8", target: "mapinha8", x: 700, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha9", target: "mapinha9", x: 850, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha10", target: "mapinha10", x: 1000, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha11", target: "mapinha11", x: 1150, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                  { key: "to-mapinha12", target: "mapinha12", x: 1300, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
+                ],
+                mapinha7: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha8: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha9: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha10: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha11: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha12: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha13: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                cave01: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                cristal_cave: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                florest_bone: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                florest_ice: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                florest_shiny: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                ruinas_de_venus: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                ruinas: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                valley_plume: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                revo_rout: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                cidade_principal: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
@@ -11973,7 +12195,57 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     </div>
                   </div>
 
-
+                  {/* Lista bonita de mapas - teleporte rápido (Revoland primeiro) */}
+                  <div style={{ marginTop: 12, background: "rgba(11,5,16,0.6)", border: "1px solid rgba(245,207,107,0.2)", borderRadius: 10, padding: 8 }}>
+                    <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1, marginBottom: 8, textAlign: "center" }}>✦ TELEPORTE RÁPIDO — 5 ⚡</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                      {(() => {
+                        const order: IdleMapId[] = ["mapinha6","mapinha13","terra","mapinha5","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"];
+                        return order.filter((id) => !!IDLE_MAPS[id]).map((id) => {
+                          const m = IDLE_MAPS[id];
+                          const isCurrent = idle.currentMap === id;
+                          const lvOk = (idle.trainerLevel ?? 1) >= m.minLevel;
+                          const energyOk = trainerEnergy >= 5;
+                          const canTp = lvOk && energyOk && !isCurrent;
+                          return (
+                            <div key={id} style={{ background: isCurrent ? "rgba(245,207,107,0.15)" : "rgba(0,0,0,0.4)", border: `1px solid ${isCurrent ? "#f5cf6b" : "rgba(245,207,107,0.25)"}`, borderRadius: 8, overflow: "hidden", opacity: isCurrent ? 1 : lvOk ? 1 : 0.55 }}>
+                              <div style={{ height: 56, overflow: "hidden", position: "relative", background: "#0b0510" }}>
+                                <img src={m.bg} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "auto" }} draggable={false} />
+                                <div style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.7)", borderRadius: 6, padding: "1px 5px", fontSize: 9, color: "#ffd94d", fontWeight: 900 }}>{m.stars ? "★".repeat(m.stars) : "★"}</div>
+                                {isCurrent && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(245,207,107,0.9)", color: "#1a0f26", fontSize: 8, fontWeight: 900, textAlign: "center", padding: "1px 0" }}>VOCÊ ESTÁ AQUI</div>}
+                              </div>
+                              <div style={{ padding: "5px 6px" }}>
+                                <div style={{ color: "#fff", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name}</div>
+                                <div style={{ color: "#c8b8d0", fontSize: 9, fontWeight: 700 }}>{m.diff} · {m.element} · Lv {m.minLevel}</div>
+                                <button
+                                  disabled={!canTp}
+                                  onClick={() => {
+                                    if (isCurrent) return;
+                                    if (!lvOk) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
+                                    if (!energyOk) { pushChat("⚡ Sem energia (precisa 5).", "info"); return; }
+                                    setTrainerEnergy((e) => Math.max(0, e - 5));
+                                    setIdle((s) => ({ ...s, currentMap: id as IdleMapId }));
+                                    setTrainerPos({ x: Math.round(curWorldW / 2), y: Math.round(curWorldH / 2) });
+                                    walkTargetRef.current = null; setWalkingTo(null);
+                                    setEnemies([]); setChests([]); setMapOrbs([]); clearBattleScene();
+                                    pushChat(`✦ Teleportado para ${m.name} (-5 ⚡)`, "cap");
+                                    playClick();
+                                  }}
+                                  style={{
+                                    marginTop: 4, width: "100%", padding: "5px 0", borderRadius: 6, border: "none",
+                                    background: !canTp ? "#2a1a2e" : "linear-gradient(135deg,#f5cf6b,#d9a441)", color: !canTp ? "#6a5a5a" : "#1a0f26",
+                                    fontWeight: 900, fontSize: 10, cursor: canTp ? "pointer" : "not-allowed",
+                                    opacity: canTp ? 1 : 0.6,
+                                  }}
+                                >{isCurrent ? "ATUAL" : !lvOk ? `Lv ${m.minLevel}` : !energyOk ? "SEM ENERGIA" : "TELEPORTAR"}</button>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                    <div style={{ marginTop: 6, textAlign: "center", fontSize: 9, color: "#8a7a9c" }}>Energia atual: {Math.floor(trainerEnergy)}/100 ⚡ · Custo: 5 por teleporte</div>
+                  </div>
 
                   {bigMapOpen && (
                     <div
@@ -12020,8 +12292,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   {worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
-                      { id: "arena", x: 44, y: 17, type: "castle", order: 1 },
-                      { id: "terra", x: 38, y: 12, type: "forest", order: 2 },
+                      { id: "mapinha6", x: 44, y: 17, type: "castle", order: 1 },
+                      { id: "mapinha13", x: 48, y: 14, type: "forest", order: 2 },
+                      { id: "terra", x: 38, y: 12, type: "forest", order: 3 },
                     ];
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [];
                     const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [];
@@ -12524,13 +12797,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                   };
                                   const scrolls = idle.items?.scroll_teleport ?? 0;
                                   if (scrolls > 0) {
+                                    if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                                     setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
+                                    setTrainerEnergy((e) => Math.max(0, e - 5));
                                     setWorldMapOpen(false);
                                     setSelectedMapInfo(null);
                                     travelToGate(synthGate);
-                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}.`, "cap");
+                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}. (-5 ⚡)`, "cap");
                                     return;
                                   }
+                                  if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                                   setWorldMapOpen(false);
                                   setSelectedMapInfo(null);
                                   setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
@@ -12559,7 +12835,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     const gold = 0; // Taxa de ouro removida
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                     const goldOk = true;
-                    const canGo = crystalOk;
+                    const energyOk = trainerEnergy >= 5;
+                    const canGo = crystalOk && energyOk && lvOk;
                     const close = () => setPendingGate(null);
                     return (
                       <div
@@ -12598,10 +12875,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                 </span>
                               </div>
                             )}
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid #7ef27a`, borderRadius: 8, padding: "8px 12px" }}>
-                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>🪙 Taxa de teleporte</span>
-                              <span style={{ color: "#7ef27a", fontWeight: 900 }}>
-                                GRÁTIS ✓
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${energyOk ? "#7ef27a" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
+                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>⚡ Energia</span>
+                              <span style={{ color: energyOk ? "#7ef27a" : "#ff8888", fontWeight: 900 }}>
+                                5 {energyOk ? "✓" : `(você: ${Math.floor(trainerEnergy)})`}
                               </span>
                             </div>
                             {tm.raid ? (
@@ -12623,6 +12900,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                             <button
                               disabled={!canGo}
                               onClick={() => {
+                                if (!energyOk) { pushChat("⚡ Sem energia (precisa 5).", "info"); return; }
                                 const g = pendingGate.gate;
                                 const wasBig = pendingGate.fromBig;
                                 setPendingGate(null);
@@ -12630,6 +12908,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                    ...s,
                                    bank: { ...s.bank, crystals: Math.max(0, s.bank.crystals - cost) }
                                  }));
+                                 setTrainerEnergy((e) => Math.max(0, e - 5));
                                  travelToGate(g);
                                  if (wasBig) setBigMapOpen(false);
                               }}
@@ -12642,7 +12921,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                 fontSize: 13, letterSpacing: 1,
                                 boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
                               }}
-                            >{lvOk ? (crystalOk ? "✓ VIAJAR" : "💎 CRISTAIS INSUFICIENTES") : "🔒 NÍVEL INSUFICIENTE"}</button>
+                            >{!energyOk ? "⚡ SEM ENERGIA (5)" : !lvOk ? "🔒 NÍVEL INSUFICIENTE" : !crystalOk ? "💎 CRISTAIS INSUFICIENTES" : "✓ VIAJAR"}</button>
                           </div>
                         </div>
                       </div>
@@ -12677,16 +12956,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   <button onClick={() => setMapTeleportOpen(false)} style={{ background: "#1a2e6b", border: "1px solid #4a7ad0", color: "#fff", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}>✕</button>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
-                  {Object.entries(IDLE_MAPS).map(([id, m]) => {
+                  {(() => {
+                    const order: IdleMapId[] = ["mapinha6","mapinha13","terra","mapinha5","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"];
+                    return order.filter((oid) => !!IDLE_MAPS[oid]).map((id) => {
+                    const m = IDLE_MAPS[id];
                     const isCurrent = idle.currentMap === id;
                     return (
                       <button
                         key={id}
                         onClick={() => {
+                          if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
+                          if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                           playClick();
+                          setTrainerEnergy((e) => Math.max(0, e - 5));
                           setIdle((s) => ({ ...s, currentMap: id as IdleMapId }));
                           setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
-                          pushChat(`Teleportado para ${m.name}!`, "info");
+                          walkTargetRef.current = null; setWalkingTo(null);
+                          setEnemies([]); setChests([]); setMapOrbs([]); clearBattleScene();
+                          pushChat(`Teleportado para ${m.name}! (-5 ⚡)`, "info");
                           setMapTeleportOpen(false);
                         }}
                         style={{
@@ -12702,10 +12989,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         <div style={{ marginTop: 6, fontSize: 9, fontWeight: 800, color: isCurrent ? "#1a2e6b" : "#2c4a8a", background: isCurrent ? "#fff" : "#f0f0ff", border: "1px solid #1a1a1a", borderRadius: 999, padding: "2px 6px", display: "inline-block" }}>{isCurrent ? "Atual" : "Teleportar →"}</div>
                       </button>
                     );
-                  })}
+                  }); })()}
                 </div>
                 <div style={{ marginTop: 12, fontSize: 10, color: "#8ab4ff", textAlign: "center", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(74,122,208,0.2)", borderRadius: 6, padding: "6px 8px" }}>
-                  💡 Clique em qualquer mapa para teleportar grátis, sem custo e sem nível.
+                  💡 Clique em qualquer mapa para teleportar — 5 ⚡ por teleporte.
                 </div>
               </div>
             </div>
