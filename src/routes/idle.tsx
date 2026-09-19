@@ -345,6 +345,10 @@ import parasectAsset from "@/assets/parasect.gif.asset.json";
 import venonatAsset from "@/assets/venonat.gif.asset.json";
 import clefairyAsset from "@/assets/clefairy.gif.asset.json";
 import sandshrewAsset from "@/assets/sandshrew.gif.asset.json";
+import sandslashPng from "@/assets/Sandslash.png";
+import sandslashShinyPng from "@/assets/Sandslash Shiny.png";
+import sandsrewPng from "@/assets/Sandsrew.png";
+import sandsrewShinyPng from "@/assets/Sandsrew Shiny.png";
 import mankeyAsset from "@/assets/mankey.gif.asset.json";
 import poliwagAsset from "@/assets/poliwag.gif.asset.json";
 import growlitheAsset from "@/assets/growlithe.gif.asset.json";
@@ -644,7 +648,8 @@ const GIF: Partial<Record<Species, string>> = {
   oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
   caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif,
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
-  clefairy: clefairyUrl, sandshrew: sandshrewUrl, mankey: mankeyUrl,
+  clefairy: clefairyUrl, sandshrew: sandshrewUrl, sandslash: sandslashPng,
+  sandshrew_shiny: sandsrewShinyPng, sandslash_shiny: sandslashShinyPng, mankey: mankeyUrl,
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
@@ -684,6 +689,10 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   bulbasaur_flower: bulbasaurFlowerPng,
   bulbasaur_orange: bulbasaurOrangePng,
   vaporeon: vaporeonPng,
+  sandshrew: sandsrewPng,
+  sandslash: sandslashPng,
+  sandshrew_shiny: sandsrewShinyPng,
+  sandslash_shiny: sandslashShinyPng,
 };
 
 
@@ -2712,7 +2721,7 @@ function IdlePage() {
   // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
   // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
-    if (mapId === "florest_ice") return ["vaporeon"];
+    if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "mapinha13") return ["bulbasaur_flower", "bulbasaur_orange"];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
@@ -2823,6 +2832,10 @@ function IdlePage() {
   const [mapOrbs, setMapOrbs] = useState<MapOrb[]>([]);
   const mapOrbIdRef = useRef(1);
   const killCountRef = useRef(0); // kills desde o último orb
+  // Shiny oculto da Florest Ice: a cada 100-300 kills no mapa, o próximo spawn é shiny (SEM aviso no jogo)
+  const florestIceKillsRef = useRef(0);
+  const florestIceShinyAtRef = useRef(100 + Math.floor(Math.random() * 201));
+  const florestIceShinyDueRef = useRef(false);
   const [orbFlashes, setOrbFlashes] = useState<{ id: number; x: number; y: number; kind: "common" | "epic" }[]>([]);
   const orbFlashIdRef = useRef(1);
   // Partículas suaves de cura (anel + "+" subindo) — substitui o clarão forte
@@ -4781,15 +4794,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         }
         return { x: nx, y: ny };
       });
+    }, 60);
+    return () => clearInterval(iv);
+  }, [enemies, moving, obstacles, chests]);
 
-
-      // ---- Inimigos agressivos perseguem o pokémon do treinador ----
+  // ---- IA dos inimigos: movimentação autônoma (SEMPRE roda, independente do auto) ----
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
       setEnemies((prev) => {
         if (prev.length === 0) return prev;
         let changed = false;
-        const tx = trainerPos.x;
-        const ty = trainerPos.y;
-        // Pré-scan: bulbasaurs curam aliado machucado colado OU o inimigo que você ataca. Cura 10-13%.
+        const followerNow = followerStateRef.current;
+        const tx = followerNow.x;
+        const ty = followerNow.y;
         const nowB = Date.now();
         const isBulbaSp = (sp: Species) => sp === "bulbasaur_flower" || sp === "bulbasaur_orange" || sp === "vaporeon";
         const tid = attackTargetIdRef.current;
@@ -5111,7 +5130,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const allowedHatch = allowedSpeciesForMap(idle.currentMap);
         if (allowedHatch) {
           if (allowedHatch.length === 0) continue;
-          pool = [...allowedHatch] as Species[];
+          // Shiny NUNCA sai de orb — só via contador oculto de kills
+          pool = allowedHatch.filter((s) => !String(s).includes("shiny")) as Species[];
+          if (pool.length === 0) continue;
         }
         pool = pool.filter(hasGif);
         if (pool.length === 0) pool = (Object.keys(GIF) as Species[]);
@@ -5431,6 +5452,15 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             // Drop de orb de energia removido — só existem orbs de mapa que spawnam pokémon
             // Orbs de mapa: a cada ~15 kills nasce 1 orb comum; a cada 60 kills nasce 1 épico
             killCountRef.current += 1;
+            // Contador OCULTO de shiny da Florest Ice (100-300 kills → próximo spawn shiny, sem aviso)
+            if (idle.currentMap === "florest_ice") {
+              florestIceKillsRef.current += 1;
+              if (florestIceKillsRef.current >= florestIceShinyAtRef.current) {
+                florestIceKillsRef.current = 0;
+                florestIceShinyAtRef.current = 100 + Math.floor(Math.random() * 201);
+                florestIceShinyDueRef.current = true;
+              }
+            }
             const orbChance = killCountRef.current % 60 === 0 ? 1.0 : killCountRef.current % 15 === 0 ? 0.7 : 0;
             if (orbChance > 0 && Math.random() < orbChance) {
               const isEpic = killCountRef.current % 60 === 0;
@@ -6987,8 +7017,15 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           mapLvRange = [45, 80];
         }
         if (idle.currentMap === "florest_ice") {
-          // Florest Ice: só vaporeon
-          pool = ["vaporeon"] as Species[];
+          // Florest Ice: vaporeon (comum); sandshrew/sandslash com chance BAIXA (~8% cada).
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (100-300).
+          pool = ["vaporeon", "vaporeon", "vaporeon", "vaporeon", "vaporeon", "vaporeon", "vaporeon", "vaporeon", "vaporeon", "vaporeon", "sandshrew", "sandslash"] as Species[];
+          if (florestIceShinyDueRef.current && !enemies.some((e) => e.sp === "sandshrew_shiny" || e.sp === "sandslash_shiny")) {
+            pool = [Math.random() < 0.5 ? "sandshrew_shiny" : "sandslash_shiny"] as Species[];
+            florestIceShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos (sandslash_shiny é base mythic)
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
           mapLvRange = [1, 20];
         }
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
@@ -7200,6 +7237,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           else pool = ["oddish"] as Species[];
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
+        // Florest Ice: vaporeon NUNCA nasce épico/shiny (só comum/incomum/raro)
+        if (idle.currentMap === "florest_ice" && sp === "vaporeon" && !forcedRarity) {
+          const vr = Math.random();
+          forcedRarity = vr < 0.70 ? "common" : vr < 0.90 ? "uncommon" : "rare";
+        }
         // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
         // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
         // um mon mais comum da pool caso não passe. Deixa os valiosos MUITO mais raros.
@@ -7411,7 +7453,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "arena" ? 48 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" ? 6 : 30);
+  const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" ? 6 : 7);
 
   function spawnEnemies(): Enemy[] {
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice") return [];
