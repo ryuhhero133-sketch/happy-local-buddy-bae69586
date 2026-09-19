@@ -4395,6 +4395,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const trainerStuckPosRef = useRef<{ x: number; y: number; ts: number } | null>(null);
   const currentTargetRef = useRef<number | null>(null);
   const overCapMsgRef = useRef<number>(0);
+  // HOME da caçada: treinador caça só por perto (não atravessa o mapa nem vai pros cantos)
+  const trainerHomeRef = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
     wanderRef.current = null;
     blacklistRef.current.clear();
@@ -4423,6 +4425,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (FREE_WALK_MAPS.includes(idle.currentMap)) {
       setChests((prev) => (prev.length > 0 ? [] : prev));
       setMapOrbs((prev) => (prev.length > 0 ? [] : prev));
+    }
+    // HOME da caçada: centro do mapa — treinador anda um pouco e para por perto
+    {
+      const homeUrl = customMapUrls[idle.currentMap];
+      const hw = homeUrl && customDims ? customDims.w : WORLD_W;
+      const hh = homeUrl && customDims ? customDims.h : WORLD_H;
+      trainerHomeRef.current = { x: hw / 2, y: hh / 2 };
     }
   }, [idle.currentMap, customDims]);
   const enterWorldPortal = (p: WorldPortalDef) => {
@@ -4616,7 +4625,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           ...openChests.map((c) => ({ x: c.x, y: c.y, kind: "chest" as const, id: c.id, range: 30 })),
           ...enemyPool.map((e) => ({ x: e.x, y: e.y, kind: "enemy" as const, id: e.id, range: ATTACK_RANGE * 0.7 })),
         ];
-        if (candidates.length === 0) {
+        // CAÇADA CURTA: só persegue o que está por perto (inimigo ≤420, baú ≤550).
+        // Nada por perto = anda um pouco e para (wander), sem atravessar o mapa.
+        const HUNT_R_ENEMY = 420, HUNT_R_CHEST = 550;
+        const nearby: Tgt[] = candidates.filter((c) =>
+          Math.hypot(c.x - tp.x, c.y - tp.y) <= (c.kind === "chest" ? HUNT_R_CHEST : HUNT_R_ENEMY));
+        if (nearby.length === 0) {
           currentTargetRef.current = null;
           // WANDER ancorado: destino próximo (wanderRadius 90-160), validado, com IDLE/RETURNING
           const ARRIVAL_THR = 14;
@@ -4667,6 +4681,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               nx = wW / 2 + (Math.random() - 0.5) * 80;
               ny = wH / 2 + (Math.random() - 0.5) * 80;
             }
+            // ÂNCORA: destino sempre perto do home (320px) — sem deriva pro canto do mapa.
+            // Se o treinador está longe do home, o destino puxa de volta.
+            {
+              const home = trainerHomeRef.current;
+              if (home) {
+                const HOME_R = 320;
+                const hx = nx - home.x, hy = ny - home.y;
+                const hd = Math.hypot(hx, hy);
+                if (hd > HOME_R) {
+                  nx = home.x + (hx / (hd || 1)) * HOME_R;
+                  ny = home.y + (hy / (hd || 1)) * HOME_R;
+                }
+                const td = Math.hypot(tp.x - home.x, tp.y - home.y);
+                if (td > HOME_R + 120) { nx = home.x; ny = home.y; }
+              }
+            }
             // IDLE pause incluída no until: wander 8-12s + idle 0.9-1.6s
             const idlePause = 900 + Math.random() * 700;
             const wanderDur = 8000 + Math.random() * 4000;
@@ -4715,7 +4745,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const centerXT = useWT / 2;
         const centerYT = useHT / 2;
         const maxDistFromCenter = Math.min(useWT, useHT) * 0.34;
-        const filteredCandidates = isSmallMapTgt ? candidates.filter(t => Math.hypot(t.x - centerXT, t.y - centerYT) < maxDistFromCenter) : candidates;
+        const filteredCandidates = isSmallMapTgt ? nearby.filter(t => Math.hypot(t.x - centerXT, t.y - centerYT) < maxDistFromCenter) : nearby;
         filteredCandidates.sort((a, b) =>
           ((a.x - tp.x) ** 2 + (a.y - tp.y) ** 2) - ((b.x - tp.x) ** 2 + (b.y - tp.y) ** 2)
         );
@@ -4741,7 +4771,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const dist = Math.hypot(dx, dy);
         // ---- Detecção de "preso": se ficar muito tempo tentando alcançar
         // o mesmo alvo (inimigo) sem entrar no alcance, blacklist e busca outro.
-        // NÃO usa distância como critério — inimigo longe é válido, só anda até ele.
+        // Alvos longe nem entram na lista (filtro nearby acima) — caçada sempre curta.
         if (target.kind === "enemy") {
           const sr = stuckRef.current;
           if (sr.id === target.id) {
@@ -6121,8 +6151,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => { currentMapRef.current = idle.currentMap; }, [idle.currentMap]);
   useEffect(() => {
     const trigger = () => {
-      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial)
-      if (currentMapRef.current === "arena") return;
+      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial) nem nos mapas de pool estrita
+      if (currentMapRef.current === "arena" || currentMapRef.current === "florest_ice" || currentMapRef.current === "mapinha13") return;
       const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
       let rw = Math.random() * totalW;
       let pick = LEGEND_ROSTER[0];
@@ -7298,6 +7328,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       // 🐉 DRAGONITE SHINY GLOBAL — DESATIVADO (removido dos mapas por decisão do admin).
 
 
+
+      // POOL ESTRITA FINAL: mapa com pool fechada ignora roamers/guardians/apex/riders/eventos —
+      // sorteia de novo só dentro da pool do mapa (shiny só via contador oculto)
+      {
+        const strict = allowedSpeciesForMap(idle.currentMap);
+        if (strict && strict.length > 0 && !strict.includes(sp)) {
+          const sPool = strict.filter((s) => !String(s).includes("shiny") && hasGif(s));
+          if (sPool.length > 0) {
+            sp = sPool[Math.floor(Math.random() * sPool.length)];
+            forcedRarity = undefined;
+            if (idle.currentMap === "florest_ice" && sp === "vaporeon") {
+              const vr2 = Math.random();
+              forcedRarity = vr2 < 0.70 ? "common" : vr2 < 0.90 ? "uncommon" : "rare";
+            }
+          }
+        }
+      }
 
       const rareStrong = Math.random() < 0.05;
       const offset = rareStrong
