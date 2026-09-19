@@ -160,7 +160,9 @@ export type Species =
   // Rayquaza — evento Grass Oddish (dragão mítico, carrega Stone Dragão)
   | "rayquaza"
   // Bulbasaurs custom — florido (verde) e laranja (azul), sprites 4x4
-  | "bulbasaur_flower" | "bulbasaur_orange";
+  | "bulbasaur_flower" | "bulbasaur_orange"
+  // Florest Bone — cubone/marowak/rhyhorn + shinys + Marowak Plus (sprites 4x4)
+  | "cubone_shiny" | "marowak" | "marowak_shiny" | "marowak_plus" | "rhyhorn" | "rhyhorn_shiny";
 
 
 
@@ -384,6 +386,12 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   clefable:        { hp: 95, atk: 70, def: 73, spa: 95, spd: 90, spe: 60, rarity: "epic", goldRange: [20, 34], crystalChance: 0.1, catchMod: 1.5, minLv: 24 },
   clefairy:        { hp: 70, atk: 45, def: 48, spa: 60, spd: 65, spe: 35, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.05, minLv: 6 },
   cubone:          { hp: 50, atk: 50, def: 95, spa: 40, spd: 50, spe: 35, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.05, minLv: 8 },
+  cubone_shiny:   { hp: 55, atk: 55, def: 100, spa: 45, spd: 55, spe: 40, rarity: "rare", goldRange: [14, 27], crystalChance: 0.075, catchMod: 1.25, minLv: 10 },
+  marowak:         { hp: 60, atk: 80, def: 110, spa: 50, spd: 80, spe: 45, rarity: "uncommon", goldRange: [6, 10], crystalChance: 0.03, catchMod: 1.1, minLv: 20 },
+  marowak_shiny:  { hp: 65, atk: 85, def: 115, spa: 55, spd: 85, spe: 50, rarity: "rare", goldRange: [16, 30], crystalChance: 0.08, catchMod: 1.3, minLv: 20 },
+  marowak_plus:   { hp: 78, atk: 102, def: 128, spa: 60, spd: 95, spe: 60, rarity: "epic", goldRange: [32, 58], crystalChance: 0.12, catchMod: 1.6, minLv: 30 },
+  rhyhorn:        { hp: 80, atk: 85, def: 95, spa: 30, spd: 30, spe: 25, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.02, catchMod: 1.0, minLv: 10 },
+  rhyhorn_shiny:  { hp: 85, atk: 90, def: 100, spa: 35, spd: 35, spe: 30, rarity: "rare", goldRange: [15, 28], crystalChance: 0.08, catchMod: 1.25, minLv: 10 },
   diglett:         { hp: 10, atk: 55, def: 25, spa: 35, spd: 45, spe: 95, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 0.95, minLv: 4 },
   magnemite:       { hp: 25, atk: 35, def: 70, spa: 95, spd: 55, spe: 45, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.0, minLv: 6 },
   machamp:         { hp: 90, atk: 130, def: 80, spa: 65, spd: 85, spe: 55, rarity: "epic", goldRange: [21, 35], crystalChance: 0.11, catchMod: 1.6, minLv: 26 },

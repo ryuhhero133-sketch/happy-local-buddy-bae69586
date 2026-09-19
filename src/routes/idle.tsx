@@ -349,6 +349,13 @@ import sandslashPng from "@/assets/Sandslash.png";
 import sandslashShinyPng from "@/assets/Sandslash Shiny.png";
 import sandsrewPng from "@/assets/Sandsrew.png";
 import sandsrewShinyPng from "@/assets/Sandsrew Shiny.png";
+import cubonePng from "@/assets/Cubone.png";
+import cuboneShinyPng from "@/assets/Cubone Shiny.png";
+import marowakPng from "@/assets/Marowak.png";
+import marowakShinyPng from "@/assets/Marowak Shiny.png";
+import marowakPlusPng from "@/assets/Marowak Plus.png";
+import rhyhornPng from "@/assets/Rhyhorn.png";
+import rhyhornShinyPng from "@/assets/Rhyhorn Shiny.png";
 import mankeyAsset from "@/assets/mankey.gif.asset.json";
 import poliwagAsset from "@/assets/poliwag.gif.asset.json";
 import growlitheAsset from "@/assets/growlithe.gif.asset.json";
@@ -650,6 +657,9 @@ const GIF: Partial<Record<Species, string>> = {
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
   clefairy: clefairyUrl, sandshrew: sandshrewUrl, sandslash: sandslashPng,
   sandshrew_shiny: sandsrewShinyPng, sandslash_shiny: sandslashShinyPng, mankey: mankeyUrl,
+  cubone_shiny: cuboneShinyPng,
+  marowak: marowakPng, marowak_shiny: marowakShinyPng, marowak_plus: marowakPlusPng,
+  rhyhorn: rhyhornPng, rhyhorn_shiny: rhyhornShinyPng,
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
@@ -693,6 +703,13 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   sandslash: sandslashPng,
   sandshrew_shiny: sandsrewShinyPng,
   sandslash_shiny: sandslashShinyPng,
+  cubone: cubonePng,
+  cubone_shiny: cuboneShinyPng,
+  marowak: marowakPng,
+  marowak_shiny: marowakShinyPng,
+  marowak_plus: marowakPlusPng,
+  rhyhorn: rhyhornPng,
+  rhyhorn_shiny: rhyhornShinyPng,
 };
 
 
@@ -736,7 +753,9 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Pedra / terra
   diglett: "rock", dugtrio: "rock",
   sandshrew: "rock", sandslash: "rock",
-  cubone: "rock", marowak: "rock",
+  cubone: "rock", cubone_shiny: "rock",
+  marowak: "rock", marowak_shiny: "rock", marowak_plus: "rock",
+  rhyhorn: "rock", rhyhorn_shiny: "rock",
   golem: "rock", geodude: "rock", graveler: "rock",
   // Fighting
   machop: "fighting", machoke: "fighting", machamp: "fighting",
@@ -2721,6 +2740,7 @@ function IdlePage() {
   // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
   // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
+    if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "mapinha13") return ["bulbasaur_flower", "bulbasaur_orange"];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || FREE_WALK_MAPS.includes(mapId)) return [];
@@ -2836,6 +2856,13 @@ function IdlePage() {
   const florestIceKillsRef = useRef(0);
   const florestIceShinyAtRef = useRef(100 + Math.floor(Math.random() * 201));
   const florestIceShinyDueRef = useRef(false);
+  // Florest Bone oculto: shiny a cada 100-300 kills; Marowak Plus (mais raro que shiny) a cada 400-700
+  const florestBoneShinyKillsRef = useRef(0);
+  const florestBoneShinyAtRef = useRef(100 + Math.floor(Math.random() * 201));
+  const florestBoneShinyDueRef = useRef(false);
+  const florestBonePlusKillsRef = useRef(0);
+  const florestBonePlusAtRef = useRef(400 + Math.floor(Math.random() * 301));
+  const florestBonePlusDueRef = useRef(false);
   const [orbFlashes, setOrbFlashes] = useState<{ id: number; x: number; y: number; kind: "common" | "epic" }[]>([]);
   const orbFlashIdRef = useRef(1);
   // Partículas suaves de cura (anel + "+" subindo) — substitui o clarão forte
@@ -5068,8 +5095,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
         }
-        // Florest Ice tem timer próprio de 25s (vaporeon) — top-up genérico não mexe
-        if (idle.currentMap === "florest_ice") return prev;
+        // Florest Ice/Bone têm timer próprio de 25s — top-up genérico não mexe
+        if (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone") return prev;
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length >= ENEMY_TARGET) return prev;
         // Rajada de reposição: mapa quase vazio (<6 vivos) repõe até 6 de uma vez (recuperação rápida pós-wipe)
@@ -5102,22 +5129,29 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
-  // ---- Vaporeon na Florest Ice: 1 a cada 25s (movimento padrão bulbasaur orange) ----
+  // ---- Florest Ice/Bone: 2 a cada 10s (pool e raridade via spawnOneEnemy, teto 6) ----
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
-      if (idle.currentMap !== "florest_ice") return;
+      if (idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone") return;
       setEnemies((prev) => {
-        const alive = prev.filter((e) => e.hp > 0 && e.sp === "vaporeon");
+        const allowed = allowedSpeciesForMap(idle.currentMap) ?? [];
+        const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
         if (alive.length >= 6) return prev;
         const placed = prev.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
-        const ne = spawnOneEnemy(placed);
-        if (!ne) return prev;
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < 2 && alive.length + fresh.length < 6; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
+          placed.push({ x: ne.x, y: ne.y });
+          fresh.push(ne);
+        }
+        if (fresh.length === 0) return prev;
         const pruned = prev.filter((e) => e.hp > 0);
-        return [...pruned, ne];
+        return [...pruned, ...fresh];
       });
-    }, 25000);
+    }, 10000);
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
@@ -5160,8 +5194,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const allowedHatch = allowedSpeciesForMap(idle.currentMap);
         if (allowedHatch) {
           if (allowedHatch.length === 0) continue;
-          // Shiny NUNCA sai de orb — só via contador oculto de kills
-          pool = allowedHatch.filter((s) => !String(s).includes("shiny")) as Species[];
+          // Shiny e Marowak Plus NUNCA saem de orb — só via contadores ocultos de kills
+          pool = allowedHatch.filter((s) => !String(s).includes("shiny") && s !== "marowak_plus") as Species[];
           if (pool.length === 0) continue;
         }
         pool = pool.filter(hasGif);
@@ -5489,6 +5523,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 florestIceKillsRef.current = 0;
                 florestIceShinyAtRef.current = 100 + Math.floor(Math.random() * 201);
                 florestIceShinyDueRef.current = true;
+              }
+            }
+            // Contadores OCULTOS da Florest Bone: shiny (100-300) e Marowak Plus (400-700, mais raro)
+            if (idle.currentMap === "florest_bone") {
+              florestBoneShinyKillsRef.current += 1;
+              florestBonePlusKillsRef.current += 1;
+              if (florestBoneShinyKillsRef.current >= florestBoneShinyAtRef.current) {
+                florestBoneShinyKillsRef.current = 0;
+                florestBoneShinyAtRef.current = 100 + Math.floor(Math.random() * 201);
+                florestBoneShinyDueRef.current = true;
+              }
+              if (florestBonePlusKillsRef.current >= florestBonePlusAtRef.current) {
+                florestBonePlusKillsRef.current = 0;
+                florestBonePlusAtRef.current = 400 + Math.floor(Math.random() * 301);
+                florestBonePlusDueRef.current = true;
               }
             }
             const orbChance = killCountRef.current % 60 === 0 ? 1.0 : killCountRef.current % 15 === 0 ? 0.7 : 0;
@@ -6152,7 +6201,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => {
     const trigger = () => {
       // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial) nem nos mapas de pool estrita
-      if (currentMapRef.current === "arena" || currentMapRef.current === "florest_ice" || currentMapRef.current === "mapinha13") return;
+      if (currentMapRef.current === "arena" || currentMapRef.current === "florest_ice" || currentMapRef.current === "florest_bone" || currentMapRef.current === "mapinha13") return;
       const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
       let rw = Math.random() * totalW;
       let pick = LEGEND_ROSTER[0];
@@ -6987,7 +7036,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto vaporeon na florest_ice).
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice") {
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -7054,6 +7103,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             pool = [Math.random() < 0.5 ? "sandshrew_shiny" : "sandslash_shiny"] as Species[];
             florestIceShinyDueRef.current = false;
             // Garante raridade boa e pula o gate de valiosos (sandslash_shiny é base mythic)
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
+          mapLvRange = [1, 20];
+        }
+        if (idle.currentMap === "florest_bone") {
+          // Florest Bone: cubone comum; marowak/rhyhorn menos frequentes.
+          // Shiny e Marowak Plus SÓ via contadores ocultos (Plus mais raro que shiny).
+          pool = ["cubone", "cubone", "cubone", "cubone", "cubone", "cubone", "marowak", "marowak", "rhyhorn", "rhyhorn"] as Species[];
+          const boneShinies = ["cubone_shiny", "marowak_shiny", "rhyhorn_shiny"] as Species[];
+          if (florestBonePlusDueRef.current && !enemies.some((e) => e.sp === "marowak_plus")) {
+            pool = ["marowak_plus"] as Species[];
+            florestBonePlusDueRef.current = false;
+            forcedRarity = "epic";
+          } else if (florestBoneShinyDueRef.current && !enemies.some((e) => boneShinies.includes(e.sp))) {
+            pool = [boneShinies[Math.floor(Math.random() * boneShinies.length)]] as Species[];
+            florestBoneShinyDueRef.current = false;
             forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
           }
           mapLvRange = [1, 20];
@@ -7500,10 +7565,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" ? 6 : 7);
+  const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" ? 6 : 7);
 
   function spawnEnemies(): Enemy[] {
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice") return [];
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -7511,7 +7576,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (isFirst) setTimeout(() => { isFirstSpawnRef.current = false; }, 1800);
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "arena";
-    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : idle.currentMap === "florest_ice" ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, Florest Ice: 4-6, outros: 16-20
+    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone") ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, Ice/Bone: 4-6, outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
