@@ -6,31 +6,41 @@ import caveImage from "@/assets/worldmap-cave.jpg";
 import ruinsImage from "@/assets/worldmap-ruins.jpg";
 import townImage from "@/assets/worldmap-town.jpg";
 import marketImage from "@/assets/worldmap-market.jpg";
+import meadowImage from "@/assets/worldmap-meadow.jpg";
+import hiveImage from "@/assets/worldmap-hive.jpg";
+import crystalImage from "@/assets/worldmap-crystal.jpg";
+import blossomImage from "@/assets/worldmap-blossom.jpg";
 
-type Destination = {
+export type WorldMapDestination = {
   id: string;
   name: string;
   diff: string;
   minLevel: number;
   element?: string;
+  bg?: string;
+  previewImage?: string;
 };
 
 type Props = {
-  destinations: Destination[];
+  destinations: WorldMapDestination[];
   currentMap: string;
   trainerEnergy: number;
   onClose: () => void;
-  onTeleport: (destination: Destination) => void;
+  onTeleport: (destination: WorldMapDestination) => void;
 };
 
-const imageForDestination = (destination: Destination) => {
+const imageForDestination = (destination: WorldMapDestination) => {
   const key = `${destination.id} ${destination.name} ${destination.element ?? ""}`.toLowerCase();
   if (key.includes("pokemarkt")) return marketImage;
-  if (key.includes("cidade") || key.includes("revo") || key.includes("revoland")) return townImage;
+  if (destination.id === "mapinha13" || destination.id === "mapinha7") return meadowImage;
+  if (destination.id === "terra" || destination.id === "mapinha12") return hiveImage;
+  if (destination.id === "cristal_cave") return crystalImage;
+  if (destination.id === "florest_shiny" || destination.id === "ruinas_de_venus") return blossomImage;
+  if (key.includes("cidade") || key.includes("revo") || key.includes("revoland")) return destination.bg ?? townImage;
   if (key.includes("ice") || key.includes("gelo")) return iceImage;
-  if (key.includes("cave") || key.includes("cristal") || key.includes("ninho")) return caveImage;
-  if (key.includes("ruina") || key.includes("bone") || key.includes("venus")) return ruinsImage;
-  return forestImage;
+  if (key.includes("cave") || key.includes("cristal") || key.includes("ninho")) return destination.bg ?? caveImage;
+  if (key.includes("ruina") || key.includes("bone") || key.includes("venus")) return destination.bg ?? ruinsImage;
+  return destination.bg ?? forestImage;
 };
 
 const elementIcon = (element?: string) => {
@@ -67,10 +77,11 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
           {destinations.map((destination) => {
             const isCurrent = currentMap === destination.id;
             const isLocked = false;
+            const previewImage = imageForDestination(destination);
             return (
               <article className={`world-destination ${isCurrent ? "is-current" : ""}`} key={destination.id}>
                 <img
-                  src={imageForDestination(destination)}
+                  src={previewImage}
                   alt=""
                   loading="lazy"
                   width={992}
@@ -89,7 +100,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                     type="button"
                     className="world-destination__button"
                     disabled={isLocked}
-                    onClick={() => onTeleport(destination)}
+                    onClick={() => onTeleport({ ...destination, previewImage })}
                   >
                     {isCurrent ? "Atual" : "Teleportar"}
                     {!isCurrent && <span aria-hidden="true">→</span>}
