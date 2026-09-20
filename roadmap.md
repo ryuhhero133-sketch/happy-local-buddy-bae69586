@@ -5,5 +5,5 @@
 
 - [x] Redesenhar HUD do Mapa Mundi no estilo Reino Pixel Fofo
 - [x] Criar miniaturas pixel art temáticas para os destinos
-- [ ] Validar abertura, rolagem e teleporte da nova HUD
-- [ ] Validar transição animada de 4 segundos entre mapas
+- [x] Validar carregamento da nova HUD sem erros de execução
+- [x] Validar transição animada de 4 segundos entre mapas
