@@ -33,7 +33,7 @@ import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
-import { WorldMapTeleportHud } from "@/components/WorldMapTeleportHud";
+import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
@@ -2845,7 +2845,13 @@ function IdlePage() {
   const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
+  const [teleportTransition, setTeleportTransition] = useState<WorldMapDestination | null>(null);
+  const teleportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [fishingOpen, setFishingOpen] = useState(false);
+
+  useEffect(() => () => {
+    if (teleportTimerRef.current) clearTimeout(teleportTimerRef.current);
+  }, []);
   // Orbs de energia removidos — só existem os orbs de mapa que spawnam pokémon
   // Energia do treinador: drena 100% em 30min andando e trava ao zerar
   // Orbs de mapa: comuns (2min) e épicos (2h) — aparecem conforme kills
@@ -13103,23 +13109,42 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onClose={() => setMapTeleportOpen(false)}
               onTeleport={(destination) => {
                 const m = IDLE_MAPS[destination.id];
-                if (!m) return;
+                if (!m || teleportTransition) return;
                 if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
                 if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                 playClick();
                 setTrainerEnergy((energy) => Math.max(0, energy - 5));
-                setIdle((state) => ({ ...state, currentMap: destination.id as IdleMapId }));
-                setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
-                walkTargetRef.current = null;
-                setWalkingTo(null);
-                setEnemies([]);
-                setChests([]);
-                setMapOrbs([]);
-                clearBattleScene();
-                pushChat(`Teleportado para ${m.name}! (-5 ⚡)`, "info");
                 setMapTeleportOpen(false);
+                setTeleportTransition(destination);
+                teleportTimerRef.current = setTimeout(() => {
+                  setIdle((state) => ({ ...state, currentMap: destination.id as IdleMapId }));
+                  setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                  walkTargetRef.current = null;
+                  setWalkingTo(null);
+                  setEnemies([]);
+                  setChests([]);
+                  setMapOrbs([]);
+                  clearBattleScene();
+                  pushChat(`Teleportado para ${m.name}! (-5 ⚡)`, "info");
+                  setTeleportTransition(null);
+                  teleportTimerRef.current = null;
+                }, 4000);
               }}
             />
+          )}
+
+          {teleportTransition && (
+            <div className="map-teleport-loading" role="status" aria-live="polite" aria-label={`Teleportando para ${teleportTransition.name}`}>
+              <img src={teleportTransition.previewImage ?? teleportTransition.bg} alt="" className="map-teleport-loading__scene pixelated" />
+              <div className="map-teleport-loading__veil" />
+              <div className="map-teleport-loading__portal" aria-hidden="true"><span /><span /><span /></div>
+              <div className="map-teleport-loading__content">
+                <span className="map-teleport-loading__eyebrow">Abrindo portal</span>
+                <strong>{teleportTransition.name}</strong>
+                <div className="map-teleport-loading__track"><span /></div>
+                <small>Preparando a aventura...</small>
+              </div>
+            </div>
           )}
 
           {/* QUESTS — luzes neon, 9 bolas */}

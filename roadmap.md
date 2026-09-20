@@ -3,6 +3,7 @@
 - [x] Preservar saves com fallback para arena
 - [x] Validar tipos, execução e mapa principal
 
-- [ ] Redesenhar HUD do Mapa Mundi no estilo Reino Pixel Fofo
-- [ ] Criar miniaturas pixel art temáticas para os destinos
+- [x] Redesenhar HUD do Mapa Mundi no estilo Reino Pixel Fofo
+- [x] Criar miniaturas pixel art temáticas para os destinos
 - [ ] Validar abertura, rolagem e teleporte da nova HUD
+- [ ] Validar transição animada de 4 segundos entre mapas
