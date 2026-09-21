@@ -43,7 +43,9 @@ function createSupabaseClient() {
     throw new Error(message);
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  const isDummy = SUPABASE_URL.includes('dummy.supabase.co');
+
+  const client = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
@@ -53,6 +55,26 @@ function createSupabaseClient() {
       autoRefreshToken: true,
     }
   });
+
+  if (isDummy) {
+    // Wrap auth methods to avoid network errors with dummy URL
+    const originalGetSession = client.auth.getSession.bind(client.auth);
+    client.auth.getSession = async () => {
+      try {
+        return await originalGetSession();
+      } catch {
+        return { data: { session: null }, error: null };
+      }
+    };
+    const originalOnAuthStateChange = client.auth.onAuthStateChange.bind(client.auth);
+    client.auth.onAuthStateChange = (callback) => {
+      // Immediately call with null session for dummy
+      setTimeout(() => callback('INITIAL_SESSION', null), 0);
+      return { data: { subscription: { unsubscribe: () => {} } } };
+    };
+  }
+
+  return client;
 }
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
