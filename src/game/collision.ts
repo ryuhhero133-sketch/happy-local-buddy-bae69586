@@ -1,4 +1,3 @@
-import cold6MaskUrl from "@/assets/colidir/COLD6.png";
 // Carrega cada imagem em um canvas offscreen e gera uma grid por tile.
 // Cada tile amostra vários pixels e decide pela maioria, e no fim aplica
 // uma "abertura" (dilatação) pra que o jogador não trave em sombras ou
@@ -29,7 +28,7 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "palletRoute";
+  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6";
 }
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
@@ -44,8 +43,10 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
   switch (mapId) {
     // ---- Revoland (mapinha6) com máscara exata COLD6.png ----
     case "mapinha6": {
-      // Branco = caminhável (l > 0.5), Preto = bloqueado.
-      return l > 0.5;
+      // Branco = caminhável; laranja = porta/portal; preto = bloqueado.
+      const whitePath = r > 200 && g > 200 && b > 200;
+      const orangeDoor = r > 220 && g > 120 && g < 230 && b < 90;
+      return whitePath || orangeDoor;
     }
     case "village":
     case "town": {
@@ -373,6 +374,19 @@ export function isWalkable(mapId: CollisionMapId, x: number, y: number): boolean
     cellWalkable(x + r, y) &&
     cellWalkable(x, y - r) &&
     cellWalkable(x, y + r)
+  );
+}
+
+const REVOLAND_ORANGE_DOORS = [
+  { x0: 922, y0: 289, x1: 980, y1: 343 },
+  { x0: 319, y0: 336, x1: 366, y1: 397 },
+  { x0: 404, y0: 817, x1: 452, y1: 865 },
+  { x0: 937, y0: 824, x1: 979, y1: 884 },
+] as const;
+
+export function isRevolandOrangeDoor(x: number, y: number): boolean {
+  return REVOLAND_ORANGE_DOORS.some((door) =>
+    x >= door.x0 && x <= door.x1 && y >= door.y0 && y <= door.y1
   );
 }
 

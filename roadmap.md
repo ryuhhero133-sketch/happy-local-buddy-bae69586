@@ -7,3 +7,8 @@
 - [x] Criar miniaturas pixel art temáticas para os destinos
 - [x] Validar carregamento da nova HUD sem erros de execução
 - [x] Validar transição animada de 4 segundos entre mapas
+
+- [x] Corrigir tela branca causada por referência ausente de mapa
+- [x] Estabilizar o carregamento da colisão de Revoland sem ciclo de atualização
+- [x] Aplicar a máscara COLD6: branco caminhável, preto bloqueado e portas laranja para o Pokemarkt
+- [ ] Validar entrada, colisão e teleporte no preview

@@ -70,7 +70,15 @@ function createSupabaseClient() {
     client.auth.onAuthStateChange = (callback) => {
       // Immediately call with null session for dummy
       setTimeout(() => callback('INITIAL_SESSION', null), 0);
-      return { data: { subscription: { unsubscribe: () => {} } } };
+      return {
+        data: {
+          subscription: {
+            id: 'dummy-auth-subscription',
+            callback,
+            unsubscribe: () => {},
+          },
+        },
+      };
     };
   }
 
