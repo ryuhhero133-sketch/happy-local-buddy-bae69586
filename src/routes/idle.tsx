@@ -113,7 +113,15 @@ import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync"
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
-import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem } from "@/game/systems";
+import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
+import {
+  detectTimezone, trustedNow, processMealCycles,
+  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, TELEPORT_ENERGY_COST,
+  energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
+  MAX_THROW_COUNT, THROW_REGEN_MS,
+  processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
+  type CaredPet,
+} from "@/game/resources";
 import { TYPE_COLOR } from "@/game/movesets";
 import { computeTeamSynergies, computePower } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
@@ -257,7 +265,8 @@ import mapinha6Url from "@/assets/mapinha6.png";
 import mapinha7Url from "@/assets/mapinha7.png";
 import mapinha8Url from "@/assets/mapinha8.png";
 import mapinha9Url from "@/assets/mapinha9.png";
-import mapinha11Url from "@/assets/revoland.png";
+import cold6MaskUrl from "@/assets/colidir/COLD6.png";
+import { ensureCollision, isWalkable } from "@/game/collision";
 import mapinha12Url from "@/assets/bidril e kakuna.png";
 import mapinha13Url from "@/assets/mp plus.png";
 import cave01Url from "@/assets/Cave 01.png";
@@ -310,6 +319,19 @@ import bulbasaurFlowerPng from "@/assets/bulbasaur-flower.png";
 import bulbasaurOrangePng from "@/assets/bulbasaur-orange.png";
 import gordinPng from "@/assets/gordin.png";
 import luluzinhaPng from "@/assets/luluzinha.png";
+// Saga "As Memórias Apagadas" — retratos dos 5 NPCs
+import bobyPng from "@/assets/Boby.png";
+import sanPng from "@/assets/San.png";
+import nanizinhaPng from "@/assets/Nanizinha.png";
+import paykaPng from "@/assets/Payka.png";
+import panPng from "@/assets/Pan.png";
+import {
+  SAGA_NPCS, SAGA_STAGES, SAGA_FINAL_ID, SAGA_TOTAL_STAGES,
+  activeStage, freshSaga, SAGA_FORGOTTEN_LINES, SAGA_KEPT_LINES,
+  SAGA_KEPT_GIFTS, SAGA_GIFT_COOLDOWN_MS, sagaRewardText,
+  sagaProgressText as sagaProgressTextPure,
+  type SagaNpcId, type SagaProgress,
+} from "@/game/saga";
 import charmanderGif from "@/assets/charmander.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import rattataFAsset from "@/assets/rattata-f.gif.asset.json";
@@ -357,6 +379,91 @@ import marowakShinyPng from "@/assets/Marowak Shiny.png";
 import marowakPlusPng from "@/assets/Marowak Plus.png";
 import rhyhornPng from "@/assets/Rhyhorn.png";
 import rhyhornShinyPng from "@/assets/Rhyhorn Shiny.png";
+// Valley Plume — oddish/gloom/vileplume/paras/parasect + shinys + eevee (sprites 4x4)
+import oddishSheetPng from "@/assets/Oddish.png";
+import oddishShinySheetPng from "@/assets/Oddish Shiny.png";
+import gloomSheetPng from "@/assets/Gloom.png";
+import gloomShinySheetPng from "@/assets/Gloom Shiny.png";
+import vileplumeSheetPng from "@/assets/Vileplume.png";
+import vileplumeShinySheetPng from "@/assets/Vileplume Shiny.png";
+import parasSheetPng from "@/assets/Paras.png";
+import parasShinySheetPng from "@/assets/Paras Shiny.png";
+import parasectSheetPng from "@/assets/Parasect.png";
+import parasectShinySheetPng from "@/assets/Parasect Shiny.png";
+import eeveeSheetPng from "@/assets/Eevee.png";
+// Verdejante 1 — butterfree/caterpie + shinys + butterfree shiny plus (sprites 4x4)
+import butterfreeSheetPng from "@/assets/Butterfree.png";
+import butterfreeShinySheetPng from "@/assets/Butterfree Shiny.png";
+import butterfreeShinyPlusSheetPng from "@/assets/Butterfree Shiny Plus.png";
+import caterpieSheetPng from "@/assets/Caterpie.png";
+import caterpieShinySheetPng from "@/assets/Caterpie Shiny.png";
+// Rota Flower — bellsprout/weepinbell/victreebel/voltorb/electrode/exeggcute/exeggutor + shinys + exeggutor alola (sprites 4x4)
+import bellsproutSheetPng from "@/assets/Bellsprout.png";
+import bellsproutShinySheetPng from "@/assets/Bellsprout Shiny.png";
+import weepinbellSheetPng from "@/assets/Weepinbell.png";
+import weepinbellShinySheetPng from "@/assets/Weepinbell Shiny.png";
+import victreebelSheetPng from "@/assets/Victreebel.png";
+import victreebelShinySheetPng from "@/assets/Victreebel Shiny.png";
+import voltorbSheetPng from "@/assets/Voltorb.png";
+import voltorbShinySheetPng from "@/assets/Voltorb Shiny.png";
+import electrodeSheetPng from "@/assets/Electrode.png";
+import electrodeShinySheetPng from "@/assets/Electrode Shiny.png";
+import exeggcuteSheetPng from "@/assets/Exeggcute.png";
+import exeggcuteShinySheetPng from "@/assets/Exeggcute Shiny.png";
+import exeggutorSheetPng from "@/assets/Exeggutor.png";
+import exeggutorShinySheetPng from "@/assets/Exeggutor Shiny.png";
+import exeggutorAlolaSheetPng from "@/assets/Exeggutor de Alola.png";
+import exeggutorAlolaShinySheetPng from "@/assets/Exeggutor Alola Shiny.png";
+// Snolax — especial da Rota Flower e Valley Plume (sprite 4x4, só via contador de 700 kills)
+import snolaxSheetPng from "@/assets/Snolax.png";
+// Ruínas — geodude/graveler/golem/arcanine/growlithe/sprigatito + shinys/plus + graveler alola (sprites 4x4)
+import geodudeSheetPng from "@/assets/Geodude.png";
+import geodudeShinySheetPng from "@/assets/Geodude Shiny.png";
+import gravelerSheetPng from "@/assets/Graveler.png";
+import gravelerShinySheetPng from "@/assets/Graveler Shiny.png";
+import gravelerAlolaSheetPng from "@/assets/Graveler de Alola.png";
+import golemSheetPng from "@/assets/Golem.png";
+import golemShinySheetPng from "@/assets/Golem Shiny.png";
+import golemPlusSheetPng from "@/assets/Golem Plus.png";
+import arcanineSheetPng from "@/assets/Arcanine.png";
+import arcanineShinySheetPng from "@/assets/Arcanine Shiny.png";
+import arcanineShinyPlusSheetPng from "@/assets/Arcananine Shiny Plus.png";
+import growlitheSheetPng from "@/assets/Growlithe.png";
+import growlitheShinySheetPng from "@/assets/Growlithe Shiny.png";
+import sprigatitoSheetPng from "@/assets/Sprigatito.png";
+import sprigatitoShinySheetPng from "@/assets/Sprigatito Shiny.png";
+// Ruínas de Vênus — ekans/arbok/gastly/haunter/grimer/muk/swalot + shinys (sprites 4x4, mapa peçonhento)
+import ekansSheetPng from "@/assets/Ekans.png";
+import ekansShinySheetPng from "@/assets/Ekans Shiny.png";
+import arbokSheetPng from "@/assets/Arbok.png";
+import arbokShinySheetPng from "@/assets/Arbok Shiny.png";
+import gastlySheetPng from "@/assets/Gastly.png";
+import gastlyShinySheetPng from "@/assets/Gastly Shiny.png";
+import haunterSheetPng from "@/assets/Haunter.png";
+import haunterShinySheetPng from "@/assets/Haunter Shiny.png";
+import grimerSheetPng from "@/assets/Grimer.png";
+import grimerShinySheetPng from "@/assets/Grimer Shiny.png";
+import mukSheetPng from "@/assets/Muk.png";
+import mukShinySheetPng from "@/assets/Muk Shiny.png";
+import swalotSheetPng from "@/assets/Swalot.png";
+import swalotShinySheetPng from "@/assets/Swalot Shiny.png";
+import gengarSheetPng from "@/assets/Gengar.png";
+import gengarShinySheetPng from "@/assets/Gengar Shiny.png";
+// Mapa Dos Céus — zubat/pidgey/pidgeotto/pidgeot/spearow/golbat/fearow + shinys (sprites 4x4)
+import zubatSheetPng from "@/assets/Zubat.png";
+import zubatShinySheetPng from "@/assets/Zubat Shiny.png";
+import pidgeySheetPng from "@/assets/Pidgey.png";
+import pidgeyShinySheetPng from "@/assets/Pidgey Shiny.png";
+import pidgeottoSheetPng from "@/assets/Pidgeotto.png";
+import pidgeottoShinySheetPng from "@/assets/Pidgeotto Shiny.png";
+import pidgeotSheetPng from "@/assets/Pidgeot.png";
+import pidgeotShinySheetPng from "@/assets/Pidgeot Shiny.png";
+import spearowSheetPng from "@/assets/Spearow.png";
+import spearowShinySheetPng from "@/assets/Spearow Shiny.png";
+import golbatSheetPng from "@/assets/Golbat.png";
+import golbatShinySheetPng from "@/assets/Golbat Shiny.png";
+import fearowSheetPng from "@/assets/Fearow.png";
+import fearowShinySheetPng from "@/assets/Fearow Shiny.png";
 import mankeyAsset from "@/assets/mankey.gif.asset.json";
 import poliwagAsset from "@/assets/poliwag.gif.asset.json";
 import growlitheAsset from "@/assets/growlithe.gif.asset.json";
@@ -582,26 +689,59 @@ type IdleMapDef = {
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha6: { name: "Revoland",        diff: "Inicial", bg: mapinha6Url,  rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Normal",  stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
-  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 10, maxLevel: 35, element: "Terra", stars: 1 },
-  mapinha5: { name: "Mapinha 5",        diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 20, maxLevel: 80, element: "Planta",  stars: 3 },
+  terra:    { name: "Ninho de Marimbondo",     diff: "Fácil+",    bg: mapTerraUrl,     rate: 1.2, minLevel: 40, maxLevel: 55, element: "Terra", stars: 1 },
+  mapinha5: { name: "Rota Flower",       diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 30, maxLevel: 42, element: "Planta",  stars: 3 },
   mapinha7: { name: "Mapinha 7",        diff: "Fácil",  bg: mapinha7Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
-  mapinha8: { name: "Mapinha 8",        diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 5,  maxLevel: 25, element: "Água",   stars: 1 },
+  mapinha8: { name: "Mapa Dos Céus",   diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 24, maxLevel: 33, element: "Água",   stars: 1 },
   mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 30, maxLevel: 120, element: "Normal", stars: 3 },
   mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
   mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
   mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 180, element: "Inseto", stars: 3 },
-  mapinha13: { name: "Verdejante 1",  diff: "Fácil",   bg: mapinha13Url, rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
+  mapinha13: { name: "Verdejante 1",  diff: "Fácil",   bg: mapinha13Url, rate: 1.0, minLevel: 1,  maxLevel: 8, element: "Grama", stars: 1 },
   cave01: { name: "Cave 01", diff: "Inicial", bg: cave01Url, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
   cristal_cave: { name: "Cristal Cave", diff: "Inicial", bg: cristalCaveUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
-  florest_bone: { name: "Florest Bone", diff: "Inicial", bg: florestBoneUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
-  florest_ice: { name: "Florest Ice", diff: "Inicial", bg: florestIceUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  florest_bone: { name: "Florest Bone", diff: "Inicial", bg: florestBoneUrl, rate: 1.0, minLevel: 12, maxLevel: 19, element: "Normal", stars: 1 },
+  florest_ice: { name: "Florest Ice", diff: "Inicial", bg: florestIceUrl, rate: 1.0, minLevel: 6, maxLevel: 12, element: "Normal", stars: 1 },
   florest_shiny: { name: "Florest Shiny", diff: "Inicial", bg: florestShinyUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
-  ruinas_de_venus: { name: "Ruinas De Venus", diff: "Inicial", bg: ruinasDeVenusUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
-  ruinas: { name: "Ruinas", diff: "Inicial", bg: ruinasUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
-  valley_plume: { name: "Valley Plume", diff: "Inicial", bg: valleyPlumeUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
-  revo_rout: { name: "Revo Rout", diff: "Inicial", bg: revoRoutUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  ruinas_de_venus: { name: "Ruinas De Venus", diff: "Inicial", bg: ruinasDeVenusUrl, rate: 1.0, minLevel: 20, maxLevel: 28, element: "Normal", stars: 1 },
+  ruinas: { name: "Ruinas", diff: "Inicial", bg: ruinasUrl, rate: 1.0, minLevel: 16, maxLevel: 24, element: "Normal", stars: 1 },
+  valley_plume: { name: "Valley Plume", diff: "Inicial", bg: valleyPlumeUrl, rate: 1.0, minLevel: 9, maxLevel: 15, element: "Normal", stars: 1 },
+  revo_rout: { name: "Revo Rout", diff: "Inicial", bg: revoRoutUrl, rate: 1.0, minLevel: 50, maxLevel: 65, element: "Normal", stars: 1 },
   cidade_principal: { name: "Cidade Principal", diff: "Inicial", bg: cidadePrincipalUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
 };
+
+// ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
+// Mapas iniciais têm bônus para começo rápido; mapas avançados pagam mais via
+// nível dos inimigos (lvlMult) + raridades melhores. Nenhum mapa avançado paga
+// menos XP/hora que o inicial.
+const MAP_XP_MULT: Partial<Record<string, number>> = {
+  mapinha13: 1.1,       // Verdejante 1 (Lv3–8)
+  florest_ice: 0.9,     // Florest Ice (Lv6–12, pool épica)
+  valley_plume: 1.1,    // Valley Plume (Lv9–15)
+  florest_bone: 1.3,    // Florest Bone (Lv12–19)
+  ruinas: 1.4,          // Ruínas (Lv16–24)
+  ruinas_de_venus: 1.5, // Ruínas de Vênus (Lv20–28)
+  mapinha8: 1.8,        // Mapa Dos Céus (Lv24–33, pool comum)
+  mapinha5: 1.6,        // Rota Flower (Lv30–42)
+  terra: 1.2,           // Ninho de Marimbondo (Lv40–55)
+  arena: 1.0,
+  mapinha7: 1.0,
+};
+function mapXpMult(mapId: string): number {
+  return MAP_XP_MULT[mapId] ?? 1.0;
+}
+
+// ⚖️ REGION SYNC — poder efetivo e penalidade ao farmar mapa muito abaixo do nível.
+// NÃO altera nível real, XP acumulado, evolução, moves ou atributos. Só limita o
+// ganho (XP/ouro ×0.12) e o dano (nível efetivo = teto do mapa + 5) enquanto o
+// líder estiver 5+ níveis acima do teto da região.
+const SYNC_OVER_MAP = 5;
+const SYNC_XP_MULT = 0.12;
+function regionSyncFor(leaderLv: number, mapId: string): { synced: boolean; effLv: number; xpMult: number } {
+  const cap = IDLE_MAPS[mapId]?.maxLevel;
+  if (cap == null || leaderLv <= cap + SYNC_OVER_MAP) return { synced: false, effLv: leaderLv, xpMult: 1 };
+  return { synced: true, effLv: cap + SYNC_OVER_MAP, xpMult: SYNC_XP_MULT };
+}
 
 type WorldPortalDef = { key: string; from: IdleMapId; to: IdleMapId; x: number; y: number; arriveX: number; arriveY: number; color: string; label: string; reqLevel?: number };
 // Cadeia endgame — portais visíveis em todos os mapas, mas exigem nível de treinador para atravessar
@@ -661,6 +801,29 @@ const GIF: Partial<Record<Species, string>> = {
   cubone_shiny: cuboneShinyPng,
   marowak: marowakPng, marowak_shiny: marowakShinyPng, marowak_plus: marowakPlusPng,
   rhyhorn: rhyhornPng, rhyhorn_shiny: rhyhornShinyPng,
+  vileplume: vileplumeSheetPng, vileplume_shiny: vileplumeShinySheetPng,
+  gloom_shiny: gloomShinySheetPng, paras_shiny: parasShinySheetPng, parasect_shiny: parasectShinySheetPng,
+  eevee: eeveeSheetPng,
+  caterpie_shiny: caterpieShinySheetPng, butterfree_shiny_plus: butterfreeShinyPlusSheetPng,
+  bellsprout_shiny: bellsproutShinySheetPng, weepinbell: weepinbellSheetPng, weepinbell_shiny: weepinbellShinySheetPng,
+  victreebel: victreebelSheetPng, victreebel_shiny: victreebelShinySheetPng,
+  voltorb: voltorbSheetPng, voltorb_shiny: voltorbShinySheetPng,
+  electrode: electrodeSheetPng, electrode_shiny: electrodeShinySheetPng,
+  exeggcute: exeggcuteSheetPng, exeggcute_shiny: exeggcuteShinySheetPng,
+  exeggutor_alola: exeggutorAlolaSheetPng, exeggutor_alola_shiny: exeggutorAlolaShinySheetPng,
+  snolax: snolaxSheetPng,
+  geodude_shiny: geodudeShinySheetPng, graveler: gravelerSheetPng, graveler_shiny: gravelerShinySheetPng,
+  geodude: geodudeSheetPng, arcanine: arcanineSheetPng,
+  ekans: ekansSheetPng, ekans_shiny: ekansShinySheetPng, arbok: arbokSheetPng, arbok_shiny: arbokShinySheetPng,
+  gastly: gastlySheetPng, gastly_shiny: gastlyShinySheetPng, haunter: haunterSheetPng, haunter_shiny: haunterShinySheetPng,
+  grimer: grimerSheetPng, grimer_shiny: grimerShinySheetPng, muk: mukSheetPng, muk_shiny: mukShinySheetPng,
+  swalot: swalotSheetPng, swalot_shiny: swalotShinySheetPng,
+  spearow: spearowSheetPng, spearow_shiny: spearowShinySheetPng,
+  golbat: golbatSheetPng, golbat_shiny: golbatShinySheetPng, pidgeot: pidgeotSheetPng, pidgeot_shiny: pidgeotShinySheetPng,
+  zubat_shiny: zubatShinySheetPng, pidgey_shiny: pidgeyShinySheetPng, pidgeotto_shiny: pidgeottoShinySheetPng, fearow_shiny: fearowShinySheetPng,
+  graveler_alola: gravelerAlolaSheetPng, golem_shiny: golemShinySheetPng, golem_plus: golemPlusSheetPng,
+  arcanine_shiny: arcanineShinySheetPng, arcanine_shiny_plus: arcanineShinyPlusSheetPng,
+  growlithe_shiny: growlitheShinySheetPng, sprigatito: sprigatitoSheetPng, sprigatito_shiny: sprigatitoShinySheetPng,
   poliwag: poliwagUrl, growlithe: growlitheUrl, abra: abraUrl,
   cubone: cuboneUrl, magnemite: magnemiteUrl, nidoran_f: nidoranFUrl, snorlax: snorlaxUrl,
   pidgeotto: pidgeottoUrl, raticate_f: raticateFUrl, fearow: fearowUrl,
@@ -711,6 +874,84 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   marowak_plus: marowakPlusPng,
   rhyhorn: rhyhornPng,
   rhyhorn_shiny: rhyhornShinyPng,
+  oddish: oddishSheetPng,
+  oddish_shiny: oddishShinySheetPng,
+  gloom: gloomSheetPng,
+  gloom_shiny: gloomShinySheetPng,
+  vileplume: vileplumeSheetPng,
+  vileplume_shiny: vileplumeShinySheetPng,
+  paras: parasSheetPng,
+  paras_shiny: parasShinySheetPng,
+  parasect: parasectSheetPng,
+  parasect_shiny: parasectShinySheetPng,
+  eevee: eeveeSheetPng,
+  butterfree: butterfreeSheetPng,
+  butterfree_shiny: butterfreeShinySheetPng,
+  butterfree_shiny_plus: butterfreeShinyPlusSheetPng,
+  caterpie: caterpieSheetPng,
+  caterpie_shiny: caterpieShinySheetPng,
+  bellsprout: bellsproutSheetPng,
+  bellsprout_shiny: bellsproutShinySheetPng,
+  weepinbell: weepinbellSheetPng,
+  weepinbell_shiny: weepinbellShinySheetPng,
+  victreebel: victreebelSheetPng,
+  victreebel_shiny: victreebelShinySheetPng,
+  voltorb: voltorbSheetPng,
+  voltorb_shiny: voltorbShinySheetPng,
+  electrode: electrodeSheetPng,
+  electrode_shiny: electrodeShinySheetPng,
+  exeggcute: exeggcuteSheetPng,
+  exeggcute_shiny: exeggcuteShinySheetPng,
+  exeggutor: exeggutorSheetPng,
+  exeggutor_shiny: exeggutorShinySheetPng,
+  exeggutor_alola: exeggutorAlolaSheetPng,
+  exeggutor_alola_shiny: exeggutorAlolaShinySheetPng,
+  snolax: snolaxSheetPng,
+  geodude: geodudeSheetPng,
+  geodude_shiny: geodudeShinySheetPng,
+  graveler: gravelerSheetPng,
+  graveler_shiny: gravelerShinySheetPng,
+  graveler_alola: gravelerAlolaSheetPng,
+  golem: golemSheetPng,
+  golem_shiny: golemShinySheetPng,
+  golem_plus: golemPlusSheetPng,
+  arcanine: arcanineSheetPng,
+  arcanine_shiny: arcanineShinySheetPng,
+  arcanine_shiny_plus: arcanineShinyPlusSheetPng,
+  growlithe: growlitheSheetPng,
+  growlithe_shiny: growlitheShinySheetPng,
+  sprigatito: sprigatitoSheetPng,
+  sprigatito_shiny: sprigatitoShinySheetPng,
+  ekans: ekansSheetPng,
+  ekans_shiny: ekansShinySheetPng,
+  arbok: arbokSheetPng,
+  arbok_shiny: arbokShinySheetPng,
+  gastly: gastlySheetPng,
+  gastly_shiny: gastlyShinySheetPng,
+  gengar: gengarSheetPng,
+  gengar_shiny: gengarShinySheetPng,
+  haunter: haunterSheetPng,
+  haunter_shiny: haunterShinySheetPng,
+  grimer: grimerSheetPng,
+  grimer_shiny: grimerShinySheetPng,
+  muk: mukSheetPng,
+  muk_shiny: mukShinySheetPng,
+  swalot: swalotSheetPng,
+  swalot_shiny: swalotShinySheetPng,
+  zubat: zubatSheetPng,
+  zubat_shiny: zubatShinySheetPng,
+  pidgey: pidgeySheetPng,
+  pidgey_shiny: pidgeyShinySheetPng,
+  pidgeotto: pidgeottoSheetPng,
+  pidgeotto_shiny: pidgeottoShinySheetPng,
+  pidgeot: pidgeotSheetPng,
+  pidgeot_shiny: pidgeotShinySheetPng,
+  spearow: spearowSheetPng,
+  spearow_shiny: spearowShinySheetPng,
+  golbat: golbatSheetPng,
+  golbat_shiny: golbatShinySheetPng,
+  fearow: fearowSheetPng,
+  fearow_shiny: fearowShinySheetPng,
 };
 
 
@@ -723,9 +964,28 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   bulbasaur: "grass", ivysaur: "grass", venusaur: "grass",
   bulbasaur_flower: "grass", bulbasaur_orange: "grass",
   oddish: "grass", gloom: "grass", vileplume: "grass",
+  oddish_shiny: "grass", gloom_shiny: "grass", vileplume_shiny: "grass",
+  paras_shiny: "grass", parasect_shiny: "grass",
   bellsprout: "grass", weepinbell: "grass", victreebel: "grass",
   paras: "grass", parasect: "grass",
   caterpie: "grass", metapod: "grass", butterfree: "flying",
+  caterpie_shiny: "grass", butterfree_shiny_plus: "flying",
+  bellsprout_shiny: "grass", weepinbell_shiny: "grass",
+  victreebel_shiny: "grass",
+  voltorb: "electric", voltorb_shiny: "electric", electrode: "electric", electrode_shiny: "electric",
+  exeggcute: "grass", exeggcute_shiny: "grass", exeggutor_alola: "grass", exeggutor_alola_shiny: "grass",
+  snolax: "water",
+  geodude_shiny: "rock", graveler_shiny: "rock", graveler_alola: "rock",
+  golem_shiny: "rock", golem_plus: "rock", arcanine_shiny: "fire", arcanine_shiny_plus: "fire",
+  growlithe_shiny: "fire", sprigatito: "grass", sprigatito_shiny: "grass",
+  ekans_shiny: "poison", arbok_shiny: "poison",
+  gastly: "poison", gastly_shiny: "poison", haunter: "poison", haunter_shiny: "poison",
+  gengar_shiny: "poison",
+  grimer: "poison", grimer_shiny: "poison", muk: "poison", muk_shiny: "poison",
+  swalot: "poison", swalot_shiny: "poison",
+  zubat_shiny: "poison", golbat_shiny: "poison",
+  pidgey_shiny: "flying", pidgeotto_shiny: "flying", pidgeot_shiny: "flying",
+  spearow_shiny: "flying", fearow_shiny: "flying",
   virizion: "grass",
   // Fogo
   charmander: "fire", charmeleon: "fire", charizard: "fire",
@@ -1135,6 +1395,23 @@ type IdleState = {
   lastReset?: number;
   /** UIDs de Black Mitic Plus que já usaram sua troca única (1 troca por Pokémon). */
   bmpSwapUsedUids?: string[];
+  // ===== Saga "As Memórias Apagadas" (por jogador, persistido) =====
+  saga?: SagaProgress;
+  // ===== Sistema de Recursos (fome/energia/arremessos — horário local real) =====
+  /** Fome do treinador (0–100). Ciclos 05/12/18 no horário local. */
+  trainerHunger?: number;
+  /** Timestamp absoluto do último ciclo de refeição processado. */
+  lastMealCycle?: number;
+  /** Timestamp absoluto da última alimentação do treinador. */
+  trainerLastFedAt?: number | null;
+  /** Arremessos restantes (0–100). */
+  throwsLeft?: number;
+  /** Timestamp base da regen de arremessos. */
+  throwsRegenAt?: number;
+  /** Timezone IANA do jogador (ex.: America/Sao_Paulo). */
+  timezone?: string;
+  /** Último instante confiável visto (anti-manipulação de relógio). */
+  lastSeenTs?: number;
 };
 
 
@@ -1221,6 +1498,8 @@ const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = 
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
   { id: "pokeball",  name: "Pokébola",  icon: "🔴", chance: 0.15 },
   { id: "berry",     name: "Berry",     icon: "🫐", chance: 0.12 },
+  { id: "morango",   name: "Morango",   icon: "🍓", chance: 0.08 },
+  { id: "limao",     name: "Limão",     icon: "🍋", chance: 0.05 },
   { id: "revive",    name: "Revive",    icon: "💖", chance: 0.05 },
   { id: "key",       name: "Chave",     icon: "🗝", chance: 0.03 },
 ];
@@ -1307,6 +1586,17 @@ function loadIdle(): IdleState {
       // Sanitiza mapas removidos — Vale Verdejante (arena) migrado para Revoland (mapinha6)
       if ((s.currentMap as string) === "casa_do_treinador" || (s.currentMap as string) === "arena") s.currentMap = "mapinha6";
       if (!IDLE_MAPS[s.currentMap] || s.currentMap === "arena") s.currentMap = "mapinha6";
+      // Backfill do Sistema de Recursos (saves antigos): sem penalidade retroativa.
+      const nowBk = Date.now();
+      if (s.trainerHunger == null) s.trainerHunger = TRAINER_HUNGER_MAX;
+      if (s.lastMealCycle == null) s.lastMealCycle = nowBk;
+      if (s.trainerLastFedAt === undefined) s.trainerLastFedAt = null;
+      if (s.throwsLeft == null) s.throwsLeft = MAX_THROW_COUNT;
+      if (s.throwsRegenAt == null) s.throwsRegenAt = nowBk;
+      if (!s.timezone) s.timezone = detectTimezone();
+      if (s.lastSeenTs == null) s.lastSeenTs = nowBk;
+      // Backfill da saga (saves antigos começam do zero, sem retroativo).
+      if (!s.saga) s.saga = freshSaga();
       return s;
     }
   } catch { /* ignore */ }
@@ -1343,6 +1633,16 @@ function freshIdle(): IdleState {
     chestEnergy: 200,
     dailyChestsOpened: 0,
     lastReset: Date.now(),
+    // Sistema de Recursos: fome cheia, 100 arremessos, timezone local real.
+    trainerHunger: TRAINER_HUNGER_MAX,
+    lastMealCycle: Date.now(),
+    trainerLastFedAt: null,
+    throwsLeft: MAX_THROW_COUNT,
+    throwsRegenAt: Date.now(),
+    timezone: detectTimezone(),
+    lastSeenTs: Date.now(),
+    // Saga "As Memórias Apagadas" começa zerada.
+    saga: freshSaga(),
   };
 }
 function saveIdle(s: IdleState) {
@@ -1404,23 +1704,23 @@ function playerDamageVsHighLevelMult(_leaderLevel: number, _enemyLevel: number) 
 }
 
 
-// ===== Energia por raridade =====
-// Regen passivo (0→100) SÓ conta quando o pokémon está fora do time (na coleção).
-// Enquanto está no time ativo, a energia apenas DRENA — raridade define quanto
-// tempo ele aguenta em atividade antes de cansar.
+// ===== Energia por raridade — REMOVIDA (Sistema de Recursos) =====
+// Pokémon NÃO têm mais energia temporal. O cuidado usa FOME + LEALDADE
+// (ciclo ~3h, ver src/game/resources.ts). Funções abaixo viraram no-op
+// para não quebrar chamadas legadas — NÃO reintroduzir dreno.
 const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
-  common: 30 * 60 * 1000, uncommon: 50 * 60 * 1000,
-  rare: 110 * 60 * 1000, epic: 180 * 60 * 1000, legendary: 180 * 60 * 1000,
+  common: 0, uncommon: 0,
+  rare: 0, epic: 0, legendary: 0,
   mythic: 0, mythic_shiny: 0,
 };
 
 // Duração (segundos) que 100 de energia dura em auto-battle como líder.
 const ENERGY_ACTIVE_DURATION_S: Partial<Record<Rarity, number>> = {
-  common: 25 * 60,       // 25 min
-  uncommon: 35 * 60,     // 35 min
-  rare: 1 * 3600,        // 1 h
-  epic: 2 * 3600,        // 2 h
-  legendary: 5 * 3600,   // 5 h
+  common: 0,       // removido
+  uncommon: 0,     // removido
+  rare: 0,        // removido
+  epic: 0,        // removido
+  legendary: 0,   // removido
   mythic: 0, mythic_shiny: 0,
 };
 function energyDrainPerSec(rarity: Rarity): number {
@@ -1469,11 +1769,11 @@ function petMsToFull(pet: PetInstance, now: number = Date.now()): number {
   return Math.round(((ENERGY_MAX - cur) / ENERGY_MAX) * regen);
 }
 function petIsExhausted(pet: PetInstance, now: number = Date.now(), opts?: { active?: boolean }): boolean {
-  const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
-  if (infinite) return false;
-  const p = pet as PetEnergyExt;
-  if (p.azulRestUntil && p.azulRestUntil > now) return true;
-  return petCurrentEnergy(pet, now, opts) <= 0;
+  // Energia temporal REMOVIDA: "exausto" agora = FOME crítica ou bloqueio de cuidado.
+  void now; void opts;
+  const cp = pet as CaredPet;
+  if (cp.needFeeding) return true;
+  return (cp.fome ?? 100) <= 0;
 }
 function fmtMS(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -2078,21 +2378,9 @@ function IdlePage() {
 
   const [governanteOpen, setGovernanteOpen] = useState(false);
 
-  // Se algum pokémon do time ficar sem energia, ele é enviado automaticamente
-  // para a Casa Azul (5💎 = 5min; sem cristais = 1h grátis). Assim ele sai
-  // do time e o próximo assume — o treinador não fica preso.
-  useEffect(() => {
-    const now = Date.now();
-    const exhausted = team.find((p) => {
-      const pe = p as PetEnergyExt;
-      if (pe.azulRestUntil && pe.azulRestUntil > now) return false;
-      return petIsExhausted(p, now, { active: true });
-    });
-    if (!exhausted) return;
-    pushChat(`⚡ ${exhausted.species.replace(/_/g, " ").toUpperCase()} sem energia — indo para a Casa Azul.`, "info");
-    restPetInAzul(exhausted.uid, { auto: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [energyTick]);
+  // (removido) envio automático à Casa Azul por "falta de energia" — energia
+  // temporal dos Pokémon foi removida. O bloqueio agora é por FOME crítica /
+  // lealdade zerada (LOCKED_NEEDS_FEEDING), tratado no tick de Recursos (30s).
 
   // (removido) bônus inicial de ouro/cristal — jogador começa com 0 ouro e 30 💎
 
@@ -2743,24 +3031,34 @@ function IdlePage() {
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
     if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
-    if (mapId === "mapinha13") return ["bulbasaur_flower", "bulbasaur_orange"];
+    if (mapId === "valley_plume") return ["oddish", "gloom", "vileplume", "paras", "parasect", "eevee", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "paras_shiny", "parasect_shiny", "snolax"];
+    if (mapId === "mapinha13") return ["bulbasaur_flower", "bulbasaur_orange", "butterfree", "caterpie", "butterfree_shiny", "caterpie_shiny", "butterfree_shiny_plus"];
+    if (mapId === "mapinha5") return ["bellsprout", "weepinbell", "victreebel", "voltorb", "electrode", "exeggcute", "exeggutor", "exeggutor_alola", "bellsprout_shiny", "weepinbell_shiny", "victreebel_shiny", "voltorb_shiny", "electrode_shiny", "exeggcute_shiny", "exeggutor_shiny", "exeggutor_alola_shiny", "snolax"];
+    if (mapId === "ruinas") return ["geodude", "graveler", "growlithe", "sprigatito", "arcanine", "golem", "graveler_alola", "geodude_shiny", "graveler_shiny", "growlithe_shiny", "arcanine_shiny", "sprigatito_shiny", "golem_shiny", "golem_plus", "arcanine_shiny_plus"];
+    if (mapId === "ruinas_de_venus") return ["ekans", "grimer", "gastly", "haunter", "muk", "arbok", "swalot", "ekans_shiny", "grimer_shiny", "gastly_shiny", "haunter_shiny", "muk_shiny", "swalot_shiny", "arbok_shiny"];
+    if (mapId === "mapinha8") return ["zubat", "pidgey", "pidgeotto", "pidgeot", "spearow", "golbat", "fearow", "zubat_shiny", "pidgey_shiny", "pidgeotto_shiny", "pidgeot_shiny", "spearow_shiny", "golbat_shiny", "fearow_shiny"];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
   };
   useEffect(() => {
     const url = customMapUrls[idle.currentMap];
+    if (idle.currentMap === "mapinha6") {
+      const w = customDims ? customDims.w : WORLD_W;
+      const h = customDims ? customDims.h : WORLD_H;
+      ensureCollision("mapinha6", cold6MaskUrl, w, h);
+    }
     if (!url) { setCustomDims(null); return; }
     const img = new Image();
     img.src = url;
     img.onload = () => setCustomDims({ w: img.naturalWidth, h: img.naturalHeight });
-  }, [idle.currentMap]);
+  }, [idle.currentMap, customDims]);
   useEffect(() => {
     if (customDims && customMapUrls[idle.currentMap]) {
       setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
     }
   }, [idle.currentMap, customDims]);
   useEffect(() => {
-    if (customDims && (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice")) {
+    if (customDims && (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8")) {
       setEnemies((prev) => {
         if (prev.filter((e) => e.hp > 0).length > 0) return prev;
         const fresh = spawnEnemies();
@@ -2773,7 +3071,7 @@ function IdlePage() {
     }
   }, [customDims]);
   useEffect(() => {
-    if (idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice") {
+    if (idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8") {
       const t = setTimeout(() => {
         setEnemies((prev) => prev.filter((e) => e.hp > 0).length > 0 ? prev : spawnEnemies());
       }, 400);
@@ -2805,6 +3103,9 @@ function IdlePage() {
 
   const TRAINER_R = 10; // raio do treinador
   const collidesWithAny = (x: number, y: number) => {
+    if (idle.currentMap === "mapinha6") {
+      return !isWalkable("mapinha6", x, y);
+    }
     for (const o of obstacles) {
       if (!o.blocks) continue;
       if (Math.hypot(x - o.x, y - o.y) < o.collideR + TRAINER_R) return true;
@@ -2853,16 +3154,48 @@ function IdlePage() {
     if (teleportTimerRef.current) clearTimeout(teleportTimerRef.current);
   }, []);
   // Orbs de energia removidos — só existem os orbs de mapa que spawnam pokémon
-  // Energia do treinador: drena 100% em 30min andando e trava ao zerar
+  // Energia do treinador: 100% em ~5h andando; energia baixa reduz velocidade (nunca trava)
   // Orbs de mapa: comuns (2min) e épicos (2h) — aparecem conforme kills
   type MapOrb = { id: number; x: number; y: number; kind: "common" | "epic"; spawnAt: number; duration: number };
   const [mapOrbs, setMapOrbs] = useState<MapOrb[]>([]);
   const mapOrbIdRef = useRef(1);
   const killCountRef = useRef(0); // kills desde o último orb
+  // ⚖️ REGION SYNC — throttle do aviso (1x por mapa a cada 60s)
+  const syncNoticeRef = useRef<{ map: string; ts: number }>({ map: "", ts: 0 });
   // Shiny oculto da Florest Ice: a cada 100-300 kills no mapa, o próximo spawn é shiny (SEM aviso no jogo)
   const florestIceKillsRef = useRef(0);
   const florestIceShinyAtRef = useRef(100 + Math.floor(Math.random() * 201));
   const florestIceShinyDueRef = useRef(false);
+  // Valley Plume oculto: shiny a cada 300-500 kills no mapa (SEM aviso no jogo)
+  const valleyPlumeKillsRef = useRef(0);
+  const valleyPlumeShinyAtRef = useRef(300 + Math.floor(Math.random() * 201));
+  const valleyPlumeShinyDueRef = useRef(false);
+  // Verdejante 1 oculto: Butterfree Shiny Plus a cada 1000 kills no mapa (SEM aviso no jogo)
+  const verdejante1KillsRef = useRef(0);
+  const verdejante1PlusDueRef = useRef(false);
+  // Rota Flower oculto: shiny a cada 800 kills no mapa (SEM aviso no jogo)
+  const rotaFlowerKillsRef = useRef(0);
+  const rotaFlowerShinyDueRef = useRef(false);
+  // Snolax oculto: a cada 700 kills na Rota Flower ou Valley Plume (SEM aviso no jogo)
+  const rotaFlowerSnolaxKillsRef = useRef(0);
+  const rotaFlowerSnolaxDueRef = useRef(false);
+  const valleyPlumeSnolaxKillsRef = useRef(0);
+  const valleyPlumeSnolaxDueRef = useRef(false);
+  // Ruínas oculto: shiny a cada 800-1200 kills; Plus (Golem/Arcanine) a cada 1500-2000 (SEM aviso no jogo)
+  const ruinasKillsRef = useRef(0);
+  const ruinasShinyAtRef = useRef(800 + Math.floor(Math.random() * 401));
+  const ruinasShinyDueRef = useRef(false);
+  const ruinasPlusKillsRef = useRef(0);
+  const ruinasPlusAtRef = useRef(1500 + Math.floor(Math.random() * 501));
+  const ruinasPlusDueRef = useRef(false);
+  // Ruínas de Vênus oculto: shiny a cada 800-1200 kills (SEM aviso no jogo)
+  const venusKillsRef = useRef(0);
+  const venusShinyAtRef = useRef(800 + Math.floor(Math.random() * 401));
+  const venusShinyDueRef = useRef(false);
+  // Mapa Dos Céus oculto: shiny acima de 2000 kills (2000-2400, SEM aviso no jogo)
+  const ceusKillsRef = useRef(0);
+  const ceusShinyAtRef = useRef(2000 + Math.floor(Math.random() * 401));
+  const ceusShinyDueRef = useRef(false);
   // Florest Bone oculto: shiny a cada 100-300 kills; Marowak Plus (mais raro que shiny) a cada 400-700
   const florestBoneShinyKillsRef = useRef(0);
   const florestBoneShinyAtRef = useRef(100 + Math.floor(Math.random() * 201));
@@ -2879,22 +3212,116 @@ function IdlePage() {
   const [trainerEnergy, setTrainerEnergy] = useState(100);
   const trainerEnergyRef = useRef(100);
   useEffect(() => { trainerEnergyRef.current = trainerEnergy; }, [trainerEnergy]);
-  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk";
+  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan";
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
+  // Saga "As Memórias Apagadas" — diálogo do NPC da saga + página atual
+  const [sagaTalk, setSagaTalk] = useState<SagaNpcId | "choice" | null>(null);
+  const [sagaPage, setSagaPage] = useState(0);
+  const [sagaChoiceSel, setSagaChoiceSel] = useState<SagaNpcId[]>([]);
   const [pokemarktShopOpen, setPokemarktShopOpen] = useState(false);
-  // Energia do treinador: drena 100% em 30min andando e trava ao zerar
+  // Energia do treinador: drena 100% em ~5h andando (20/hora). Energia 0 NÃO trava —
+  // só deixa o movimento a 10% (ver energySpeedMult). Teleporte custa 5.
+  const exhaustNoticeRef = useRef(0);
   useEffect(() => {
     const iv = setInterval(() => {
       if (!autoRef.current && !walkTargetRef.current) return;
       setTrainerEnergy((e) => {
-        const ne = Math.max(0, e - 100 / 1800);
-        if (ne <= 0.01) { setAuto(false); if (moving) setMoving(false); }
+        const ne = Math.max(0, e - TRAINER_ENERGY_DRAIN_PER_SEC);
+        if (ne <= 0) {
+          const now = Date.now();
+          if (now - exhaustNoticeRef.current > 60000) {
+            exhaustNoticeRef.current = now;
+            queueMicrotask(() => pushChat("⚡ Você está exausto. Alimente-se para recuperar energia.", "info"));
+          }
+        }
         return ne;
       });
     }, 1000);
     return () => clearInterval(iv);
   }, [moving]);
+  // ===== Sistema de Recursos (30s): ciclos 05/12/18 + regen de arremessos + cuidado Pokémon =====
+  // Ciclos calculados no timezone local real; funcionam offline (recupera os realmente
+  // perdidos via lastMealCycle absoluto — nunca debita 2x, nunca duplica em troca de país).
+  useEffect(() => {
+    const processResources = () => {
+      if (!starterChosenRef.current) return;
+      const { now, manipulated } = trustedNow();
+      if (manipulated) {
+        pushChat("🔐 Relógio do sistema inconsistente — recursos pausados até normalizar.", "info");
+        return;
+      }
+      const s = idleRef.current;
+      const tz = s.timezone || detectTimezone();
+      // 1) Ciclos de refeição do treinador
+      const meal = processMealCycles(
+        {
+          hunger: s.trainerHunger ?? TRAINER_HUNGER_MAX,
+          energy: trainerEnergyRef.current ?? TRAINER_ENERGY_MAX,
+          lastProcessed: s.lastMealCycle ?? now,
+          lastFedAt: s.trainerLastFedAt ?? null,
+        },
+        now, tz,
+      );
+      // 2) Regen de arremessos (+1 a cada 3 min, teto 100)
+      const curThrows = s.throwsLeft ?? MAX_THROW_COUNT;
+      const curRegenAt = s.throwsRegenAt ?? now;
+      let throwsLeft = curThrows;
+      let throwsRegenAt = curRegenAt;
+      if (curThrows < MAX_THROW_COUNT) {
+        const gain = Math.floor(Math.max(0, now - curRegenAt) / THROW_REGEN_MS);
+        if (gain > 0) {
+          throwsLeft = Math.min(MAX_THROW_COUNT, curThrows + gain);
+          throwsRegenAt = curRegenAt + gain * THROW_REGEN_MS;
+        }
+      } else {
+        throwsRegenAt = now;
+      }
+      setTrainerEnergy(meal.energy);
+      setIdle((prev) => {
+        if (
+          (prev.trainerHunger ?? TRAINER_HUNGER_MAX) === meal.hunger &&
+          (prev.lastMealCycle ?? now) >= meal.lastProcessed &&
+          (prev.throwsLeft ?? MAX_THROW_COUNT) === throwsLeft
+        ) return prev;
+        return { ...prev, trainerHunger: meal.hunger, lastMealCycle: meal.lastProcessed, throwsLeft, throwsRegenAt, lastSeenTs: now, timezone: tz };
+      });
+      for (const m of meal.missed) {
+        pushChat(`🍖 Ciclo das ${m.label} perdido: −30 fome, −25 energia. Alimente-se!`, "info");
+      }
+      // 3) Cuidado Pokémon do time (fome real + ciclo ~3h + trava por lealdade crítica)
+      const tm = teamRef.current;
+      if (tm.length > 0) {
+        const locked: CaredPet[] = [];
+        let changed = false;
+        const next = tm.map((p) => {
+          const q = decayHungerForPet(p, now);
+          const r = processPetCare(q as CaredPet, now);
+          const np = r.pet as CaredPet;
+          const op = p as CaredPet;
+          if (np.fome !== op.fome || np.lealdade !== op.lealdade || np.lastFedAt !== op.lastFedAt || !!np.needFeeding !== !!op.needFeeding) changed = true;
+          if (r.locked) locked.push(np);
+          return np as PetInstance;
+        });
+        if (locked.length > 0) {
+          const lockedUids = new Set(locked.map((l) => l.uid));
+          setRestingBench((b) => [...b.filter((x) => !lockedUids.has(x.uid)), ...locked]);
+          const kept = next.filter((p) => !lockedUids.has(p.uid));
+          setTeam(kept);
+          if (kept[0]) setLeaderHp(calcIdleMaxHp(kept[0]));
+          for (const l of locked) {
+            pushChat(`🔒 ${(l.species as string).replace(/_/g, " ").toUpperCase()} precisa ser alimentado antes de voltar para a batalha!`, "hit");
+          }
+        } else if (changed) {
+          setTeam(next);
+        }
+      }
+    };
+    processResources();
+    const iv = setInterval(processResources, 30000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Recupera HP do líder quando parado sem pokémon por perto
   useEffect(() => {
     const iv = setInterval(() => {
@@ -2925,6 +3352,15 @@ function IdlePage() {
     } else if (idle.currentMap === "mapinha13") {
       setNpcs([
         { id: 4, kind: "gordin", x: customDims ? customDims.w * 0.45 : 700, y: customDims ? customDims.h * 0.35 : 500, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "mapinha6") {
+      // Saga "As Memórias Apagadas" — os 5 NPCs em Revoland
+      setNpcs([
+        { id: 20, kind: "boby", x: 420, y: 720, dir: "down", frame: 0 },
+        { id: 21, kind: "san", x: 760, y: 640, dir: "down", frame: 0 },
+        { id: 22, kind: "nanizinha", x: 1100, y: 700, dir: "down", frame: 0 },
+        { id: 23, kind: "payka", x: 1400, y: 640, dir: "down", frame: 0 },
+        { id: 24, kind: "pan", x: 1640, y: 720, dir: "down", frame: 0 },
       ]);
     } else {
       setNpcs([]);
@@ -4509,7 +4945,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) { if (moving) setMoving(false); return; }
-      if ((trainerEnergyRef.current ?? 100) <= 0) { if (moving) setMoving(false); walkTargetRef.current = null; setWalkingTo(null); return; }
+      // Energia 0 NÃO trava o movimento — apenas reduz a velocidade (energySpeedMult).
       // ---- Modo manual (WASD) — só se NÃO houver destino clicado ----
       if (!autoRef.current && !walkTargetRef.current) {
         const keys = keysRef.current;
@@ -4521,7 +4957,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
-        const speed = 7 * (1 + honeyBonusNow());
+        const speed = 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
         const stepX = (dx / mag) * speed;
         const stepY = (dy / mag) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -4576,7 +5012,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 7 * (1 + honeyBonusNow());
+          const speed = 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -4831,7 +5267,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 6 * distBoost * (1 + honeyBonusNow());
+        const speed = 6 * distBoost * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -5015,7 +5451,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const rny = ne.y + (rdy / rd) * rs;
               if (collidesWithAny(rnx, rny)) return ne;
               changed = true;
-              return { ...ne, x: rnx, y: rny, aiState: "RETURNING", face: (rdx >= 0 ? "right" : "left") as "left" | "right" };
+              return { ...ne, x: rnx, y: rny, aiState: "RETURNING", wdir: (Math.abs(rdx) > Math.abs(rdy) ? (rdx >= 0 ? "right" : "left") : (rdy >= 0 ? "down" : "up")) as Dir, face: (rdx >= 0 ? "right" : "left") as "left" | "right" };
             }
             // Se tem destino wander, anda até ele (arrival 8)
             if (ne.wx != null && ne.wy != null) {
@@ -5027,7 +5463,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const wny = ne.y + (wdy / wd) * ws;
               if (!collidesWithAny(wnx, wny)) {
                 changed = true;
-                return { ...ne, x: wnx, y: wny, aiState: "WANDER", face: (wdx >= 0 ? "right" : "left") as "left" | "right" };
+                return { ...ne, x: wnx, y: wny, aiState: "WANDER", wdir: (Math.abs(wdx) > Math.abs(wdy) ? (wdx >= 0 ? "right" : "left") : (wdy >= 0 ? "down" : "up")) as Dir, face: (wdx >= 0 ? "right" : "left") as "left" | "right" };
               } else {
                 return { ...ne, wx: undefined, wy: undefined, aiState: "IDLE" };
               }
@@ -5070,7 +5506,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const rny = ne.y + (rdy / rd) * rs;
             if (collidesWithAny(rnx, rny)) return ne;
             changed = true;
-            return { ...ne, x: rnx, y: rny, aiState: "RETURNING", face: (rdx >= 0 ? "right" : "left") as "left" | "right" };
+            return { ...ne, x: rnx, y: rny, aiState: "RETURNING", wdir: (Math.abs(rdx) > Math.abs(rdy) ? (rdx >= 0 ? "right" : "left") : (rdy >= 0 ? "down" : "up")) as Dir, face: (rdx >= 0 ? "right" : "left") as "left" | "right" };
           }
           const dx = tx - ne.x;
           const dy = ty - ne.y;
@@ -5082,7 +5518,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const ny = ne.y + (dy / dist) * speed;
           if (collidesWithAny(nx, ny)) return ne;
           changed = true;
-          return { ...ne, x: nx, y: ny, aiState: "CHASING_PLAYER", face: (dx >= 0 ? "right" : "left") as "left" | "right" };
+          return { ...ne, x: nx, y: ny, aiState: "CHASING_PLAYER", wdir: (Math.abs(dx) > Math.abs(dy) ? (dx >= 0 ? "right" : "left") : (dy >= 0 ? "down" : "up")) as Dir, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
@@ -5102,8 +5538,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
         }
-        // Florest Ice/Bone têm timer próprio de 25s — top-up genérico não mexe
-        if (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone") return prev;
+        // Florest Ice/Bone/Valley Plume têm timer próprio de 25s — top-up genérico não mexe
+        // Verdejante 1 (mapinha13), Rota Flower (mapinha5), Ruínas e Mapa Dos Céus também têm cadência própria e mansa — top-up genérico não mexe
+        if (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8") return prev;
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length >= ENEMY_TARGET) return prev;
         // Rajada de reposição: mapa quase vazio (<6 vivos) repõe até 6 de uma vez (recuperação rápida pós-wipe)
@@ -5136,12 +5573,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
-  // ---- Florest Ice/Bone: 2 a cada 10s (pool e raridade via spawnOneEnemy, teto 6) ----
+  // ---- Florest Ice/Bone/Valley Plume: 2 a cada 10s (pool e raridade via spawnOneEnemy, teto 6) ----
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
-      if (idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone") return;
+      if (idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume") return;
       setEnemies((prev) => {
         const allowed = allowedSpeciesForMap(idle.currentMap) ?? [];
         const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
@@ -5159,6 +5596,237 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         return [...pruned, ...fresh];
       });
     }, 10000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+  // ---- Verdejante 1 (mapinha13): cadência MANSA de iniciante ----
+  // Teto de 3 vivos (nunca 6 em cima do jogador), nasce até 2 por vez a cada 12s,
+  // e no máximo 1 agressivo (o resto só passeia). Normaliza todo tick.
+  useEffect(() => {
+    const tick = () => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      if (idle.currentMap !== "mapinha13") return;
+      setEnemies((prev) => {
+        const allowed = allowedSpeciesForMap("mapinha13") ?? [];
+        const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
+        // Normaliza: no máximo 1 agressivo entre os vivos
+        let keeperKept = false;
+        let next = prev.map((e) => {
+          if (e.hp <= 0 || !allowed.includes(e.sp)) return e;
+          if (e.aggressive && !keeperKept) { keeperKept = true; return e; }
+          if (!e.aggressive) return e;
+          return { ...e, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const aliveCount = next.filter((e) => e.hp > 0 && allowed.includes(e.sp)).length;
+        if (aliveCount >= 3) return next;
+        const placed = next.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < 2 && aliveCount + fresh.length < 3; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
+          placed.push({ x: ne.x, y: ne.y });
+          fresh.push(ne);
+        }
+        if (fresh.length === 0) return next;
+        // O primeiro novo vira o agressivo (se ainda não houver um); o resto passeia
+        const normed = fresh.map((f, i) => {
+          if (i === 0 && !keeperKept) {
+            keeperKept = true;
+            return { ...f, aggressive: true, aggroR: 220, detectionRadius: 220, maxChaseDistance: 280 };
+          }
+          return { ...f, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const pruned = next.filter((e) => e.hp > 0);
+        return [...pruned, ...normed];
+      });
+    };
+    tick();
+    const iv = setInterval(tick, 12000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+  // ---- Rota Flower (mapinha5): cadência MANSA igual à do Verdejante 1 ----
+  // Teto de 3 vivos, nasce até 2 por vez a cada 12s, no máximo 1 agressivo (resto passeia).
+  useEffect(() => {
+    const tick = () => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      if (idle.currentMap !== "mapinha5") return;
+      setEnemies((prev) => {
+        const allowed = allowedSpeciesForMap("mapinha5") ?? [];
+        const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
+        // Normaliza: no máximo 1 agressivo entre os vivos
+        let keeperKept = false;
+        let next = prev.map((e) => {
+          if (e.hp <= 0 || !allowed.includes(e.sp)) return e;
+          if (e.aggressive && !keeperKept) { keeperKept = true; return e; }
+          if (!e.aggressive) return e;
+          return { ...e, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const aliveCount = next.filter((e) => e.hp > 0 && allowed.includes(e.sp)).length;
+        if (aliveCount >= 3) return next;
+        const placed = next.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < 2 && aliveCount + fresh.length < 3; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
+          placed.push({ x: ne.x, y: ne.y });
+          fresh.push(ne);
+        }
+        if (fresh.length === 0) return next;
+        // O primeiro novo vira o agressivo (se ainda não houver um); o resto passeia
+        const normed = fresh.map((f, i) => {
+          if (i === 0 && !keeperKept) {
+            keeperKept = true;
+            return { ...f, aggressive: true, aggroR: 220, detectionRadius: 220, maxChaseDistance: 280 };
+          }
+          return { ...f, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const pruned = next.filter((e) => e.hp > 0);
+        return [...pruned, ...normed];
+      });
+    };
+    tick();
+    const iv = setInterval(tick, 12000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+  // ---- Ruínas: cadência MANSA igual à do Verdejante 1 / Rota Flower ----
+  // Teto de 3 vivos, nasce até 2 por vez a cada 12s, no máximo 1 agressivo (resto passeia).
+  useEffect(() => {
+    const tick = () => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      if (idle.currentMap !== "ruinas") return;
+      setEnemies((prev) => {
+        const allowed = allowedSpeciesForMap("ruinas") ?? [];
+        const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
+        // Normaliza: no máximo 1 agressivo entre os vivos
+        let keeperKept = false;
+        let next = prev.map((e) => {
+          if (e.hp <= 0 || !allowed.includes(e.sp)) return e;
+          if (e.aggressive && !keeperKept) { keeperKept = true; return e; }
+          if (!e.aggressive) return e;
+          return { ...e, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const aliveCount = next.filter((e) => e.hp > 0 && allowed.includes(e.sp)).length;
+        if (aliveCount >= 3) return next;
+        const placed = next.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < 2 && aliveCount + fresh.length < 3; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
+          placed.push({ x: ne.x, y: ne.y });
+          fresh.push(ne);
+        }
+        if (fresh.length === 0) return next;
+        // O primeiro novo vira o agressivo (se ainda não houver um); o resto passeia
+        const normed = fresh.map((f, i) => {
+          if (i === 0 && !keeperKept) {
+            keeperKept = true;
+            return { ...f, aggressive: true, aggroR: 220, detectionRadius: 220, maxChaseDistance: 280 };
+          }
+          return { ...f, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const pruned = next.filter((e) => e.hp > 0);
+        return [...pruned, ...normed];
+      });
+    };
+    tick();
+    const iv = setInterval(tick, 12000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+  // ---- Ruínas de Vênus: cadência MANSA igual à das Ruínas ----
+  // Teto de 3 vivos, nasce até 2 por vez a cada 12s, no máximo 1 agressivo (resto passeia).
+  useEffect(() => {
+    const tick = () => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      if (idle.currentMap !== "ruinas_de_venus") return;
+      setEnemies((prev) => {
+        const allowed = allowedSpeciesForMap("ruinas_de_venus") ?? [];
+        const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
+        // Normaliza: no máximo 1 agressivo entre os vivos
+        let keeperKept = false;
+        let next = prev.map((e) => {
+          if (e.hp <= 0 || !allowed.includes(e.sp)) return e;
+          if (e.aggressive && !keeperKept) { keeperKept = true; return e; }
+          if (!e.aggressive) return e;
+          return { ...e, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const aliveCount = next.filter((e) => e.hp > 0 && allowed.includes(e.sp)).length;
+        if (aliveCount >= 3) return next;
+        const placed = next.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < 2 && aliveCount + fresh.length < 3; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
+          placed.push({ x: ne.x, y: ne.y });
+          fresh.push(ne);
+        }
+        if (fresh.length === 0) return next;
+        // O primeiro novo vira o agressivo (se ainda não houver um); o resto passeia
+        const normed = fresh.map((f, i) => {
+          if (i === 0 && !keeperKept) {
+            keeperKept = true;
+            return { ...f, aggressive: true, aggroR: 220, detectionRadius: 220, maxChaseDistance: 280 };
+          }
+          return { ...f, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const pruned = next.filter((e) => e.hp > 0);
+        return [...pruned, ...normed];
+      });
+    };
+    tick();
+    const iv = setInterval(tick, 12000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, team, obstacles]);
+
+  // ---- Mapa Dos Céus (mapinha8): cadência MANSA ----
+  // Teto de 3 vivos, nasce até 2 por vez a cada 12s, no máximo 1 agressivo (resto passeia).
+  useEffect(() => {
+    const tick = () => {
+      if (!starterChosenRef.current) return;
+      if (restingRef.current) return;
+      if (idle.currentMap !== "mapinha8") return;
+      setEnemies((prev) => {
+        const allowed = allowedSpeciesForMap("mapinha8") ?? [];
+        const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
+        // Normaliza: no máximo 1 agressivo entre os vivos
+        let keeperKept = false;
+        let next = prev.map((e) => {
+          if (e.hp <= 0 || !allowed.includes(e.sp)) return e;
+          if (e.aggressive && !keeperKept) { keeperKept = true; return e; }
+          if (!e.aggressive) return e;
+          return { ...e, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const aliveCount = next.filter((e) => e.hp > 0 && allowed.includes(e.sp)).length;
+        if (aliveCount >= 3) return next;
+        const placed = next.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+        const fresh: Enemy[] = [];
+        for (let i = 0; i < 2 && aliveCount + fresh.length < 3; i++) {
+          const ne = spawnOneEnemy(placed);
+          if (!ne) break;
+          placed.push({ x: ne.x, y: ne.y });
+          fresh.push(ne);
+        }
+        if (fresh.length === 0) return next;
+        // O primeiro novo vira o agressivo (se ainda não houver um); o resto passeia
+        const normed = fresh.map((f, i) => {
+          if (i === 0 && !keeperKept) {
+            keeperKept = true;
+            return { ...f, aggressive: true, aggroR: 220, detectionRadius: 220, maxChaseDistance: 280 };
+          }
+          return { ...f, aggressive: false, aggroR: 0, detectionRadius: 0 };
+        });
+        const pruned = next.filter((e) => e.hp > 0);
+        return [...pruned, ...normed];
+      });
+    };
+    tick();
+    const iv = setInterval(tick, 12000);
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
@@ -5201,8 +5869,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const allowedHatch = allowedSpeciesForMap(idle.currentMap);
         if (allowedHatch) {
           if (allowedHatch.length === 0) continue;
-          // Shiny e Marowak Plus NUNCA saem de orb — só via contadores ocultos de kills
-          pool = allowedHatch.filter((s) => !String(s).includes("shiny") && s !== "marowak_plus") as Species[];
+          // Shiny, Plus e Snolax NUNCA saem de orb — só via contadores ocultos de kills
+          pool = allowedHatch.filter((s) => !String(s).includes("shiny") && s !== "marowak_plus" && s !== "snolax" && s !== "golem_plus") as Species[];
           if (pool.length === 0) continue;
         }
         pool = pool.filter(hasGif);
@@ -5259,8 +5927,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (!leader) return;
       // Se o meu pokémon está desmaiado: não faz nada (precisa reviver)
       if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); return; }
-      // Líder sem energia (e nenhum reserva usável): não ataca nem farma
-      if (petIsExhausted(leader)) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      // Líder com FOME crítica ou bloqueado por cuidado: não ataca nem farma
+      if (isStarving(leader) || (leader as CaredPet).needFeeding) { setAttackTargetId((c) => c !== null ? null : c); return; }
       if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
 
       if (Date.now() < paralyzedUntilRef.current) return;
@@ -5303,7 +5971,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const isCrit = Math.random() < critChance;
         // Pokémon selvagens têm 50% de resistência ao bônus do Livro de Ataque (balanceamento anti-stack)
         const atkBookEffective = idle.buffs.atk * 0.5;
-        let dmg = Math.floor((5 + leader.level * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + atkBookEffective));
+        // ⚖️ REGION SYNC — dano usa nível efetivo da região (nível real intacto)
+        const syncDmg = regionSyncFor(leader.level, idle.currentMap);
+        const effAtkLv = syncDmg.synced ? syncDmg.effLv : leader.level;
+        let dmg = Math.floor((5 + effAtkLv * 0.8 + base.atk * 0.12 + Math.random() * 5) * (1 + atkBookEffective));
         if (isCrit) dmg = Math.floor(dmg * 1.8);
         // n2 debuff: enquanto ativo, reduz -40% do ataque do jogador
         if (Date.now() < atkDebuffUntilRef.current) dmg = Math.floor(dmg * 0.6);
@@ -5339,6 +6010,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (mapNow === "arena" && Math.random() < 0.20) {
           atkDebuffUntilRef.current = Date.now() + 8000;
           pushChat(`⬇ Ataque reduzido em 40% por 8s!`, "hit");
+        }
+        if (mapNow === "ruinas_de_venus" && Math.random() < 0.30) {
+          // Névoa tóxica das Ruínas de Vênus: DoT por 6s (mesma regra da Peçonha de Terry)
+          const defTotalV = (idle.buffs.def ?? 0) + honeyDef;
+          if (defTotalV < 0.35) {
+            poisonUntilRef.current = Date.now() + 6000;
+            pushChat(`☠ Névoa tóxica das Ruínas de Vênus te ENVENENOU!`, "hit");
+          }
         }
         if (mapNow === "arena") {
           eDmg = Math.floor(eDmg * 1.5);
@@ -5532,6 +6211,77 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 florestIceShinyDueRef.current = true;
               }
             }
+            // Contador OCULTO de shiny do Valley Plume (300-500 kills → próximo spawn shiny, sem aviso)
+            if (idle.currentMap === "valley_plume") {
+              valleyPlumeKillsRef.current += 1;
+              if (valleyPlumeKillsRef.current >= valleyPlumeShinyAtRef.current) {
+                valleyPlumeKillsRef.current = 0;
+                valleyPlumeShinyAtRef.current = 300 + Math.floor(Math.random() * 201);
+                valleyPlumeShinyDueRef.current = true;
+              }
+            }
+            // Contador OCULTO do Verdejante 1 (1000 kills → próximo spawn Butterfree Shiny Plus, sem aviso)
+            if (idle.currentMap === "mapinha13") {
+              verdejante1KillsRef.current += 1;
+              if (verdejante1KillsRef.current >= 1000) {
+                verdejante1KillsRef.current = 0;
+                verdejante1PlusDueRef.current = true;
+              }
+            }
+            // Contador OCULTO da Rota Flower (800 kills → próximo spawn shiny, sem aviso)
+            if (idle.currentMap === "mapinha5") {
+              rotaFlowerKillsRef.current += 1;
+              if (rotaFlowerKillsRef.current >= 800) {
+                rotaFlowerKillsRef.current = 0;
+                rotaFlowerShinyDueRef.current = true;
+              }
+              rotaFlowerSnolaxKillsRef.current += 1;
+              if (rotaFlowerSnolaxKillsRef.current >= 700) {
+                rotaFlowerSnolaxKillsRef.current = 0;
+                rotaFlowerSnolaxDueRef.current = true;
+              }
+            }
+            // Contador OCULTO de Snolax do Valley Plume (700 kills → próximo spawn Snolax, sem aviso)
+            if (idle.currentMap === "valley_plume") {
+              valleyPlumeSnolaxKillsRef.current += 1;
+              if (valleyPlumeSnolaxKillsRef.current >= 700) {
+                valleyPlumeSnolaxKillsRef.current = 0;
+                valleyPlumeSnolaxDueRef.current = true;
+              }
+            }
+            // Contadores OCULTOS das Ruínas: shiny (800-1200) e Plus (1500-2000, mais raro)
+            if (idle.currentMap === "ruinas") {
+              ruinasKillsRef.current += 1;
+              ruinasPlusKillsRef.current += 1;
+              if (ruinasKillsRef.current >= ruinasShinyAtRef.current) {
+                ruinasKillsRef.current = 0;
+                ruinasShinyAtRef.current = 800 + Math.floor(Math.random() * 401);
+                ruinasShinyDueRef.current = true;
+              }
+              if (ruinasPlusKillsRef.current >= ruinasPlusAtRef.current) {
+                ruinasPlusKillsRef.current = 0;
+                ruinasPlusAtRef.current = 1500 + Math.floor(Math.random() * 501);
+                ruinasPlusDueRef.current = true;
+              }
+            }
+            // Contador OCULTO das Ruínas de Vênus (800-1200 kills → próximo spawn shiny, sem aviso)
+            if (idle.currentMap === "ruinas_de_venus") {
+              venusKillsRef.current += 1;
+              if (venusKillsRef.current >= venusShinyAtRef.current) {
+                venusKillsRef.current = 0;
+                venusShinyAtRef.current = 800 + Math.floor(Math.random() * 401);
+                venusShinyDueRef.current = true;
+              }
+            }
+            // Contador OCULTO do Mapa Dos Céus (2000-2400 kills → próximo spawn shiny, sem aviso)
+            if (idle.currentMap === "mapinha8") {
+              ceusKillsRef.current += 1;
+              if (ceusKillsRef.current >= ceusShinyAtRef.current) {
+                ceusKillsRef.current = 0;
+                ceusShinyAtRef.current = 2000 + Math.floor(Math.random() * 401);
+                ceusShinyDueRef.current = true;
+              }
+            }
             // Contadores OCULTOS da Florest Bone: shiny (100-300) e Marowak Plus (400-700, mais raro)
             if (idle.currentMap === "florest_bone") {
               florestBoneShinyKillsRef.current += 1;
@@ -5599,16 +6349,34 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const lvGap = leaderLvKill - (target.level ?? leaderLvKill);
           const isRiderKill = !!target.rider;
           const overLvlPenalty = isRiderKill ? 1 : (lvGap >= 15 ? Math.max(0.02, 1 - (lvGap - 14) * 0.15) : 1);
-          const riderMult = isRiderKill ? 8 : 1; // rider dá MUITO xp
-          const riderGoldMult = isRiderKill ? 4 : 1;
+          // ⚖️ Rider rebalanceado: ×3 (antes ×8) — continua ótimo, mas não pula a curva.
+          const riderMult = isRiderKill ? 3 : 1; // rider dá MUITO xp
+          const riderGoldMult = isRiderKill ? 2 : 1;
           const elemSyn = computeTeamSynergies(team);
+          // ⚖️ Teto anti-stack: Livro+Orb+Incenso+VIP+Guilda+Sinergia combinados limitados a ×2.5.
+          // Eventos de mapa (mítico/oddish/dark/rider) ficam fora do teto por serem situacionais.
+          const rawBoostMult = (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult;
+          const boostMult = Math.min(2.5, rawBoostMult);
+          // ⚖️ Nível do inimigo paga mais: +1.2% por nível (mapas avançados rendem mais XP/hora).
+          const lvlMult = 1 + (target.level ?? 1) * 0.012;
+          // ⚖️ Multiplicador do mapa (tabela MAP_XP_MULT).
+          const mapMult = mapXpMult(idle.currentMap);
+          // ⚖️ REGION SYNC — líder muito acima do teto do mapa: XP/ouro ×0.12 (nível real intacto).
+          const sync = regionSyncFor(leaderLvKill, idle.currentMap);
+          if (sync.synced) {
+            const now = Date.now();
+            if (syncNoticeRef.current.map !== idle.currentMap || now - syncNoticeRef.current.ts > 60000) {
+              syncNoticeRef.current = { map: idle.currentMap, ts: now };
+              queueMicrotask(() => pushChat(`⚖️ REGION SYNC ativo em ${IDLE_MAPS[idle.currentMap]?.name ?? idle.currentMap}: poder limitado ao teto da região (Nv ${sync.effLv}) e ganhos reduzidos. Avance para mapas do seu nível!`, "info"));
+            }
+          }
           const mythEventXpMult = idle.currentMap === "arena" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "arena" ? 3 : 1;
           // 🌿 Odisséia Oddish — no evento o ÚNICO benefício é XP extra.
           const oddishEventXpMult = (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena") ? ODDISH_EVENT_XP_MULT : 1;
           // 🌑 Mapas Bônus Dark — XP MUITO maior (é o único ganho relevante lá).
           const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
-          const xpBase = Math.floor((60 + Math.random() * 100) * (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
+          const xpBase = Math.floor((60 + Math.random() * 100) * boostMult * lvlMult * mapMult * sync.xpMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
           const xp = Math.max(1, xpBase);
           // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
           const baseGold = idle.currentMap === "arena"
@@ -5618,7 +6386,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult));
+          const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult));
           if (isRiderKill) {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
@@ -5638,6 +6406,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.gold += gold;
           xpAccumRef.current.kills += 1;
           xpAccumRef.current.map = idle.currentMap;
+          // 📖 Saga: progresso de abates do objetivo ativo
+          bumpSagaCounter("kill");
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena";
@@ -5696,9 +6466,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const isLeader = idx === 0;
               const gainsXp = isLeader || teamOrbActive;
               if (!gainsXp) return p;
-              const curE = petCurrentEnergy(p, now, { active: isLeader });
-              const drainKill = isLeader ? energyDrainPerKill(p.rarity) : 0;
-              const newE = drainKill === 0 ? (isLeader ? ENERGY_MAX : curE) : Math.max(0, curE - drainKill);
+              // Sem energia temporal: kills NÃO drenam (cuidado = fome + lealdade).
+              const newE = ENERGY_MAX;
               const newXp = (p.xp ?? 0) + xp;
               let lv = p.level;
               let remaining = newXp;
@@ -5707,7 +6476,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               return {
                 ...p, level: lv, xp: remaining,
                 hp: isLeader ? Math.min(leaderHp, calcIdleMaxHp({ ...p, level: lv })) : Math.min(p.hp, calcIdleMaxHp({ ...p, level: lv })),
-                energy: newE, energyRegenAt: isLeader ? now : ((p as PetEnergyExt).energyRegenAt ?? now),
+                energy: newE, energyRegenAt: now,
               } as PetInstance;
             });
           });
@@ -5729,7 +6498,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const pref = abCfg?.preferredBall ?? "auto";
             const isEventLegSel = !!target.eventLegendary;
             let usedBall: ShopBall | null = null;
-            if (useBall) {
+            // 🎯 Arremessos: cada tentativa consome 1; zerado bloqueia a captura.
+            const throwsAvail = s.throwsLeft ?? MAX_THROW_COUNT;
+            if (throwsAvail <= 0) {
+              queueMicrotask(() => pushChat("🎯 Sem arremessos! Aguarde recuperar (+1 a cada 3 min).", "info"));
+            }
+            if (useBall && throwsAvail > 0) {
               if (pref !== "auto") {
                 const b = ALL_BALLS.find((x) => x.id === pref);
                 if (b && (newItems[b.id] ?? 0) > 0) usedBall = b;
@@ -5757,6 +6531,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             }
             let captured = false;
             let capturedPet: PetInstance | null = null;
+            let spentThrow = false; // 🎯 tentativa consumiu 1 arremesso
             const isEventLeg = !!target.eventLegendary;
             // Se for lendário do evento, pokébola comum não é lançada
             if (isEventLeg && usedBall && usedBall.id === "pokeball") {
@@ -5777,6 +6552,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               });
               setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
+              // 🎯 Cada tentativa consome 1 arremesso (sucesso ou falha).
+              spentThrow = true;
               const masteryBonus = (idle.globalStats?.mastery ?? 0) * 0.005;
             const baseChance = 0.020 + masteryBonus; // mais difícil: 2.0% base (com bola comum) + Mastery
               if (target.menace) {
@@ -5877,6 +6654,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
               }
               if (captured) {
+                // 📖 Saga: progresso de capturas do objetivo ativo
+                bumpSagaCounter("capture");
                 const rolled = rollTraits(target.rarity);
                 const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
                 capturedPet = np;
@@ -5974,8 +6753,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const lvDiff = trLv - target.level;
             const lvScale = lvDiff <= 0 ? 1 : Math.max(0.1, 1 - lvDiff * 0.08);
             // Penalidade extra: se o treinador ultrapassou o teto do mapa, XP colapsa
-            // (força migrar de mapa). Vale Verdejante tem teto 30.
-            const mapCap = idle.currentMap === "arena" ? 30 : Infinity;
+            // (força migrar de mapa). Teto = maxLevel do mapa (fonte única: IDLE_MAPS).
+            const mapCap = IDLE_MAPS[idle.currentMap]?.maxLevel ?? Infinity;
             const overCap = Math.max(0, trLv - mapCap);
             const capPenalty = overCap > 0 ? Math.max(0.05, 1 - overCap * 0.2) : 1;
             const finalScale = lvScale * capPenalty;
@@ -6031,6 +6810,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               caughtSpecies: newCaught,
               seenSpecies: newSeen,
               collection: newCollection,
+              // 🎯 Tentativa de captura consumiu 1 arremesso (sucesso ou falha).
+              ...(spentThrow ? { throwsLeft: Math.max(0, (s.throwsLeft ?? MAX_THROW_COUNT) - 1) } : {}),
             };
           });
         }
@@ -6208,7 +6989,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => {
     const trigger = () => {
       // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial) nem nos mapas de pool estrita
-      if (currentMapRef.current === "arena" || currentMapRef.current === "florest_ice" || currentMapRef.current === "florest_bone" || currentMapRef.current === "mapinha13") return;
+      if (currentMapRef.current === "arena" || currentMapRef.current === "florest_ice" || currentMapRef.current === "florest_bone" || currentMapRef.current === "valley_plume" || currentMapRef.current === "mapinha13" || currentMapRef.current === "mapinha5" || currentMapRef.current === "ruinas" || currentMapRef.current === "ruinas_de_venus" || currentMapRef.current === "mapinha8") return;
       const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
       let rw = Math.random() * totalW;
       let pick = LEGEND_ROSTER[0];
@@ -6445,6 +7226,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       pushChat(`Sem Pokébolas — compre na loja.`, "info");
       return;
     }
+    // 🎯 Arremessos: zerado bloqueia a captura; cada tentativa consome 1.
+    if ((idle.throwsLeft ?? MAX_THROW_COUNT) <= 0) {
+      pushFxAt(target.x, target.y - 60, "sem arremessos", "enemyDmg");
+      pushChat(`🎯 Sem arremessos! Aguarde recuperar (+1 a cada 3 min).`, "info");
+      return;
+    }
     const isEventLeg = !!target.eventLegendary;
     if (isEventLeg && usedBall.id === "pokeball") {
       pushFxAt(target.x, target.y - 60, "Pokébola comum não serve!", "enemyDmg");
@@ -6511,9 +7298,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     });
     setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
     const ballName = usedBall.name;
-    setIdle((s) => ({ ...s, items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) } }));
+    // 🎯 Cada tentativa consome 1 arremesso (sucesso ou falha).
+    setIdle((s) => ({
+      ...s,
+      items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) },
+      throwsLeft: Math.max(0, (s.throwsLeft ?? MAX_THROW_COUNT) - 1),
+    }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
     if (success) {
+      // 📖 Saga: progresso de capturas do objetivo ativo
+      bumpSagaCounter("capture");
       const rolled = rollTraits(target.rarity);
       const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
       const rarityLabelMap: Record<string, string> = {
@@ -6594,6 +7388,37 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `HP CHEIO!`, "gold");
       pushChat(`Você usou Berry (HP totalmente restaurado).`, "info");
+    } else if (id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao") {
+      // 🍖 Alimentação do treinador: registra o momento real (atende o ciclo).
+      const fv = TRAINER_FOOD_VALUES[id];
+      if (!fv) { pushChat(`Alimento desconhecido.`, "info"); return; }
+      const { now } = trustedNow();
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: have - 1 },
+        trainerHunger: Math.max(0, Math.min(TRAINER_HUNGER_MAX, (s.trainerHunger ?? TRAINER_HUNGER_MAX) + fv.hunger)),
+        trainerLastFedAt: now,
+      }));
+      setTrainerEnergy((e) => Math.max(0, Math.min(100, e + fv.energy)));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${fv.hunger} 🍖 +${fv.energy} ⚡`, "gold");
+      pushChat(`Você se alimentou (${fv.label}). Ciclo registrado às ${new Date(now).toLocaleTimeString()}.`, "cap");
+      // 📖 Saga: progresso de alimentação do treinador
+      bumpSagaCounter("feed_trainer");
+    } else if (id === "morango" || id === "limao") {
+      // 🍓 Cuidado Pokémon: alimenta o líder (fome + lealdade, ciclo ~3h).
+      const fed = feedPet(team[0] as CaredPet, id as "morango" | "limao", trustedNow().now);
+      setTeam((tm) => tm.length === 0 ? tm : [fed.pet as PetInstance, ...tm.slice(1)]);
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
+      // 📖 Saga: progresso de alimentação do Pokémon
+      bumpSagaCounter("feed_pet");
+      const pv = id === "morango" ? "+30 🍖 +10 ❤️" : "+20 🍖 +5 ❤️";
+      pushFxAt(trainerPos.x, trainerPos.y - 40, pv, "gold");
+      pushChat(
+        fed.unlocked && (team[0] as CaredPet)?.needFeeding
+          ? `🍓 ${team[0].species.toUpperCase()} alimentado e DESBLOQUEADO para batalha!`
+          : `Você alimentou ${team[0]?.species.toUpperCase() ?? "o líder"} (${pv}).`,
+        "cap",
+      );
     } else if (id === "revive") {
       if (leaderHp > 0) { pushChat(`Seu líder está de pé.`, "info"); return; }
       setLeaderHp(maxHp);
@@ -7042,8 +7867,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
-    // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto vaporeon na florest_ice).
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone") {
+    // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -7068,6 +7893,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const y = insetY + Math.random() * spanH;
       const dt = Math.hypot(x - useW / 2, y - useH / 2);
       if (dt < (isSmall ? 80 : 300)) continue;
+      // Verdejante 1 (mapa iniciante): nunca nasce em cima do jogador (150px de folga)
+      // Rota Flower, Ruínas e Mapa Dos Céus: mesma folga (spawn manso)
+      if ((idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8") && Math.hypot(x - trainerPos.x, y - trainerPos.y) < 150) continue;
       let ok = true;
       for (const p of placed) {
         if (Math.hypot(x - p.x, y - p.y) < MIN_DIST) { ok = false; break; }
@@ -7098,9 +7926,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           pool = ["beedrill", "butterfree", "pinsir", "golem", "jolteon", "lapras"] as Species[];
         }
         if (idle.currentMap === "mapinha13") {
-          // MP Plus: bulbasaur_flower (75%) e bulbasaur_orange (25%)
-          pool = ["bulbasaur_flower", "bulbasaur_flower", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
-          mapLvRange = [45, 80];
+          // Verdejante 1: bulbasaurs + butterfree/caterpie comuns; shinys com presença baixa.
+          // Butterfree Shiny Plus SÓ via contador oculto (1000 kills).
+          pool = ["bulbasaur_flower", "bulbasaur_flower", "bulbasaur_flower", "butterfree", "butterfree", "butterfree", "caterpie", "caterpie", "caterpie", "bulbasaur_orange", "butterfree_shiny", "caterpie_shiny"] as Species[];
+          if (verdejante1PlusDueRef.current && !enemies.some((e) => e.hp > 0 && e.sp === "butterfree_shiny_plus")) {
+            pool = ["butterfree_shiny_plus"] as Species[];
+            verdejante1PlusDueRef.current = false;
+            forcedRarity = "epic";
+          }
+          // ⚖️ Escada de progressão: Verdejante 1 = Lv3–8 (mapa de entrada)
+          mapLvRange = [3, 8];
         }
         if (idle.currentMap === "florest_ice") {
           // Florest Ice: vaporeon (comum); sandshrew/sandslash com chance BAIXA (~8% cada).
@@ -7112,7 +7947,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             // Garante raridade boa e pula o gate de valiosos (sandslash_shiny é base mythic)
             forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
           }
-          mapLvRange = [1, 20];
+          // ⚖️ Escada de progressão: Florest Ice = Lv6–12
+          mapLvRange = [6, 12];
         }
         if (idle.currentMap === "florest_bone") {
           // Florest Bone: cubone comum; marowak/rhyhorn menos frequentes.
@@ -7128,7 +7964,91 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             florestBoneShinyDueRef.current = false;
             forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
           }
-          mapLvRange = [1, 20];
+          // ⚖️ Escada de progressão: Florest Bone = Lv12–19
+          mapLvRange = [12, 19];
+        }
+        if (idle.currentMap === "valley_plume") {
+          // Valley Plume: oddish/paras comuns; gloom/parasect médios; vileplume/eevee raros.
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (300-500).
+          pool = ["oddish", "oddish", "oddish", "oddish", "paras", "paras", "paras", "paras", "gloom", "gloom", "parasect", "parasect", "eevee", "vileplume"] as Species[];
+          const plumeShinies = ["oddish_shiny", "gloom_shiny", "paras_shiny", "parasect_shiny", "vileplume_shiny"] as Species[];
+          if (valleyPlumeSnolaxDueRef.current && !enemies.some((e) => e.hp > 0 && e.sp === "snolax")) {
+            pool = ["snolax"] as Species[];
+            valleyPlumeSnolaxDueRef.current = false;
+            forcedRarity = "epic";
+          } else if (valleyPlumeShinyDueRef.current && !enemies.some((e) => plumeShinies.includes(e.sp))) {
+            pool = [plumeShinies[Math.floor(Math.random() * plumeShinies.length)]] as Species[];
+            valleyPlumeShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
+          // ⚖️ Escada de progressão: Valley Plume = Lv9–15
+          mapLvRange = [9, 15];
+        }
+        if (idle.currentMap === "mapinha5") {
+          // Rota Flower: bellsprout/weepinbell/voltorb/exeggcute comuns; victreebel/electrode médios; exeggutor/alola raros.
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (800).
+          pool = ["bellsprout", "bellsprout", "bellsprout", "bellsprout", "weepinbell", "weepinbell", "weepinbell", "voltorb", "voltorb", "voltorb", "exeggcute", "exeggcute", "exeggcute", "victreebel", "victreebel", "electrode", "electrode", "exeggutor", "exeggutor_alola"] as Species[];
+          const flowerShinies = ["bellsprout_shiny", "weepinbell_shiny", "victreebel_shiny", "voltorb_shiny", "electrode_shiny", "exeggcute_shiny", "exeggutor_shiny", "exeggutor_alola_shiny"] as Species[];
+          if (rotaFlowerSnolaxDueRef.current && !enemies.some((e) => e.hp > 0 && e.sp === "snolax")) {
+            pool = ["snolax"] as Species[];
+            rotaFlowerSnolaxDueRef.current = false;
+            forcedRarity = "epic";
+          } else if (rotaFlowerShinyDueRef.current && !enemies.some((e) => e.hp > 0 && flowerShinies.includes(e.sp))) {
+            pool = [flowerShinies[Math.floor(Math.random() * flowerShinies.length)]] as Species[];
+            rotaFlowerShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
+          // ⚖️ Escada de progressão: Rota Flower = Lv30–42
+          mapLvRange = [30, 42];
+        }
+        if (idle.currentMap === "ruinas") {
+          // Ruínas: geodude/graveler/growlithe/sprigatito comuns; arcanine/golem médios-raros; graveler alola raro.
+          // Shiny (800-1200) e Plus (1500-2000) SÓ via contadores ocultos (Plus mais raro que shiny).
+          pool = ["geodude", "geodude", "geodude", "geodude", "graveler", "graveler", "graveler", "growlithe", "growlithe", "growlithe", "sprigatito", "sprigatito", "sprigatito", "arcanine", "arcanine", "golem", "golem", "graveler_alola"] as Species[];
+          const ruinasShinies = ["geodude_shiny", "graveler_shiny", "growlithe_shiny", "arcanine_shiny", "sprigatito_shiny", "golem_shiny"] as Species[];
+          const ruinasPlus = ["golem_plus", "arcanine_shiny_plus"] as Species[];
+          if (ruinasPlusDueRef.current && !enemies.some((e) => e.hp > 0 && ruinasPlus.includes(e.sp))) {
+            pool = [ruinasPlus[Math.floor(Math.random() * ruinasPlus.length)]] as Species[];
+            ruinasPlusDueRef.current = false;
+            forcedRarity = "epic";
+          } else if (ruinasShinyDueRef.current && !enemies.some((e) => e.hp > 0 && ruinasShinies.includes(e.sp))) {
+            pool = [ruinasShinies[Math.floor(Math.random() * ruinasShinies.length)]] as Species[];
+            ruinasShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
+          // ⚖️ Escada de progressão: Ruínas = Lv16–24
+          mapLvRange = [16, 24];
+        }
+        if (idle.currentMap === "mapinha8") {
+          // Mapa Dos Céus: MUITO zubat/pidgey; spearow médio; pidgeotto/golbat menos; pidgeot/fearow raros.
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (2000-2400).
+          pool = ["zubat", "zubat", "zubat", "zubat", "zubat", "pidgey", "pidgey", "pidgey", "pidgey", "pidgey", "spearow", "spearow", "spearow", "pidgeotto", "pidgeotto", "golbat", "golbat", "pidgeot", "fearow"] as Species[];
+          const ceusShinies = ["zubat_shiny", "pidgey_shiny", "pidgeotto_shiny", "pidgeot_shiny", "spearow_shiny", "golbat_shiny", "fearow_shiny"] as Species[];
+          if (ceusShinyDueRef.current && !enemies.some((e) => e.hp > 0 && ceusShinies.includes(e.sp))) {
+            pool = [ceusShinies[Math.floor(Math.random() * ceusShinies.length)]] as Species[];
+            ceusShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
+          // ⚖️ Escada de progressão: Mapa Dos Céus = Lv24–33
+          mapLvRange = [24, 33];
+        }
+        if (idle.currentMap === "ruinas_de_venus") {
+          // Ruínas de Vênus: ekans/grimer/gastly comuns; haunter/muk médios; arbok/swalot raros.
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (800-1200).
+          pool = ["ekans", "ekans", "ekans", "ekans", "grimer", "grimer", "grimer", "gastly", "gastly", "gastly", "haunter", "haunter", "muk", "muk", "arbok", "arbok", "swalot"] as Species[];
+          const venusShinies = ["ekans_shiny", "grimer_shiny", "gastly_shiny", "haunter_shiny", "muk_shiny", "swalot_shiny", "arbok_shiny"] as Species[];
+          if (venusShinyDueRef.current && !enemies.some((e) => e.hp > 0 && venusShinies.includes(e.sp))) {
+            pool = [venusShinies[Math.floor(Math.random() * venusShinies.length)]] as Species[];
+            venusShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          }
+          // ⚖️ Escada de progressão: Ruínas de Vênus = Lv20–28
+          mapLvRange = [20, 28];
         }
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           // Mapinhas iniciais: só Metapod, Pidgey e Rattata, Lv 1-20
@@ -7343,6 +8263,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (idle.currentMap === "florest_ice" && sp === "vaporeon" && !forcedRarity) {
           const vr = Math.random();
           forcedRarity = vr < 0.70 ? "common" : vr < 0.90 ? "uncommon" : "rare";
+        }
+        // Verdejante 1: shinys nascem mansos (incomum/raro) — base mythic do butterfree_shiny travaria tudo
+        if (idle.currentMap === "mapinha13" && !forcedRarity) {
+          if (sp === "butterfree_shiny") {
+            const br = Math.random();
+            forcedRarity = br < 0.60 ? "uncommon" : "rare";
+          } else if (sp === "caterpie_shiny") {
+            const cr = Math.random();
+            forcedRarity = cr < 0.50 ? "uncommon" : "rare";
+          }
+        }
+        // Rota Flower: exeggutor tem base mythic (MTC) — força raro/épico p/ aparecer e ser capturável
+        if (idle.currentMap === "mapinha5" && !forcedRarity && (sp === "exeggutor" || sp === "exeggutor_shiny")) {
+          forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
         }
         // 🔒 FILTRO DE VALIOSOS — se a espécie tem raridade base alta (mítico/lendário)
         // e não foi forçada por evento, aplica um gate probabilístico e re-sorteia
@@ -7572,10 +8506,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }
 
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
-  const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" || idle.currentMap === "mapinha8" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" ? 6 : 7);
+  const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone") return [];
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -7583,7 +8517,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (isFirst) setTimeout(() => { isFirstSpawnRef.current = false; }, 1800);
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "arena";
-    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone") ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5); // Grass Oddish: 28-33, Ice/Bone: 4-6, outros: 16-20
+    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : (idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume") ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5)); // Grass Oddish: 28-33, mansos: 3, Ice/Bone/Plume: 4-6, outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
@@ -7670,6 +8604,136 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         bank: { ...s.bank, crystals: s.bank.crystals + t.reward },
       };
     });
+  };
+
+  // ============================================================
+  // SAGA "AS MEMÓRIAS APAGADAS" — motor (estado por jogador)
+  // ============================================================
+  const sagaPng = (npc: SagaNpcId): string =>
+    npc === "boby" ? bobyPng : npc === "san" ? sanPng : npc === "nanizinha" ? nanizinhaPng : npc === "payka" ? paykaPng : panPng;
+
+  const getSaga = (): SagaProgress => idle.saga ?? freshSaga();
+
+  /** Incrementa o contador do objetivo ativo (kill/capture/feed). */
+  const bumpSagaCounter = (kind: "kill" | "capture" | "feed_pet" | "feed_trainer", n = 1) => {
+    const sg = getSaga();
+    if (sg.finished) return;
+    const st = activeStage(sg);
+    if (!st) return;
+    const ob = st.objective;
+    const match =
+      (kind === "kill" && ob.kind === "kill") ||
+      (kind === "capture" && ob.kind === "capture") ||
+      (kind === "feed_pet" && ob.kind === "feed_pet") ||
+      (kind === "feed_trainer" && ob.kind === "feed_trainer");
+    if (!match) return;
+    setIdle((s) => {
+      const cur = s.saga ?? freshSaga();
+      const cur2 = activeStage(cur);
+      if (!cur2 || cur2.id !== st.id) return s;
+      return { ...s, saga: { ...cur, count: cur.count + n } };
+    });
+  };
+
+  /** Objetivo da etapa cumprido? (talk/choice = ao fim do diálogo) */
+  const sagaObjectiveDone = (stageId: string): boolean => {
+    const sg = getSaga();
+    const st = SAGA_STAGES.find((x) => x.id === stageId);
+    if (!st) return false;
+    const ob = st.objective;
+    if (ob.kind === "talk" || ob.kind === "choice") return true;
+    if (ob.kind === "kill" || ob.kind === "capture" || ob.kind === "feed_pet" || ob.kind === "feed_trainer") {
+      return sg.stage < SAGA_STAGES.length && SAGA_STAGES[sg.stage].id === stageId && sg.count >= ob.count;
+    }
+    if (ob.kind === "item") return (idle.items[ob.itemId] ?? 0) >= ob.qty;
+    if (ob.kind === "visit") return idle.currentMap === ob.map;
+    return false;
+  };
+
+  /** Resgata a recompensa da etapa (anti-dupe via claimed) e avança. */
+  const claimSagaReward = (stageId: string) => {
+    const sg = getSaga();
+    if (sg.claimed[stageId]) return;
+    const st = SAGA_STAGES.find((x) => x.id === stageId);
+    if (!st || !sagaObjectiveDone(stageId)) { pushChat("Objetivo ainda não cumprido.", "info"); return; }
+    const ob = st.objective;
+    setIdle((s) => {
+      const cur = s.saga ?? freshSaga();
+      if (cur.claimed[stageId]) return s;
+      if (ob.kind === "item" && (s.items[ob.itemId] ?? 0) < ob.qty) return s;
+      const items = { ...s.items };
+      if (ob.kind === "item" && ob.consume) items[ob.itemId] = Math.max(0, (items[ob.itemId] ?? 0) - ob.qty);
+      let gold = s.bank.gold;
+      for (const r of st.reward) {
+        if (r.kind === "item") items[r.itemId] = (items[r.itemId] ?? 0) + r.qty;
+        else gold += r.qty;
+      }
+      const nextStage = cur.stage < SAGA_STAGES.length && SAGA_STAGES[cur.stage].id === stageId ? cur.stage + 1 : cur.stage;
+      const rewardTxt = sagaRewardText(st.reward);
+      queueMicrotask(() => {
+        pushChat(`📖 Saga: "${st.title}" concluída! ${rewardTxt}`, "chest");
+        pushToast(`Saga: ${rewardTxt}`, "chest");
+        // Fim das 20 etapas → abre A ESCOLHA final
+        if (st.id === "pan4") {
+          pushChat(`🖤 Cinco começaram. Dois continuarão. Três esquecerão. É hora de ESCOLHER.`, "cap");
+          setSagaTalk("choice");
+          setSagaPage(0);
+          setSagaChoiceSel([]);
+        }
+      });
+      return {
+        ...s,
+        items,
+        bank: { ...s.bank, gold },
+        saga: { ...cur, stage: nextStage, count: 0, claimed: { ...cur.claimed, [stageId]: true } },
+      };
+    });
+  };
+
+  /** Registra escolha de diálogo da etapa. */
+  const chooseSaga = (stageId: string, choiceId: string) => {
+    setIdle((s) => {
+      const cur = s.saga ?? freshSaga();
+      return { ...s, saga: { ...cur, choices: { ...cur.choices, [stageId]: choiceId } } };
+    });
+  };
+
+  /** Presente de NPC preservado (cooldown 20h, itens reais). */
+  const claimSagaGift = (npc: SagaNpcId) => {
+    const g = SAGA_KEPT_GIFTS[npc];
+    setIdle((s) => {
+      const cur = s.saga ?? freshSaga();
+      if (!cur.chosen.includes(npc)) return s;
+      const last = cur.giftAt[npc] ?? 0;
+      if (Date.now() - last < SAGA_GIFT_COOLDOWN_MS) return s;
+      const items = { ...s.items };
+      let gold = s.bank.gold;
+      if (g.kind === "item") items[g.itemId] = (items[g.itemId] ?? 0) + g.qty;
+      else gold += g.qty;
+      const txt = g.kind === "item" ? `+${g.qty} ${g.itemId}` : `+${g.qty} ouro`;
+      queueMicrotask(() => pushChat(`🎁 ${SAGA_NPCS[npc].name} te ajudou: ${txt}`, "chest"));
+      return { ...s, items, bank: { ...s.bank, gold }, saga: { ...cur, giftAt: { ...cur.giftAt, [npc]: Date.now() } } };
+    });
+  };
+
+  /** Confirma a escolha final (2 NPCs continuam, 3 esquecem). */
+  const confirmSagaChoice = (sel: SagaNpcId[]) => {
+    if (sel.length !== 2) return;
+    setIdle((s) => ({ ...s, saga: { ...(s.saga ?? freshSaga()), chosen: [...sel], finished: true } }));
+    queueMicrotask(() => {
+      pushChat(`🖤 Você escolheu ${sel.map((x) => SAGA_NPCS[x].name).join(" e ")}.`, "cap");
+      pushChat(`🖤 "Agora nós lembramos por eles."`, "cap");
+      pushChat(`📼 ARQUIVO DE MEMÓRIA — 5 registros encontrados. 2 preservados. 3 apagados. 1 registro desconhecido.`, "info");
+    });
+    setSagaTalk(null);
+    setSagaChoiceSel([]);
+  };
+
+  /** Texto de progresso do objetivo para exibir (usa helper puro da saga). */
+  const sagaProgressText = (st: (typeof SAGA_STAGES)[number], sg: SagaProgress): string => {
+    const ob = st.objective;
+    const here = ob.kind === "visit" ? idle.currentMap === ob.map : false;
+    return sagaProgressTextPure(st, sg, idle.items, here);
   };
 
   // ===== Loja =====
@@ -8239,18 +9303,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       });
       const oc = openedRef.c;
       if (oc) {
-        // Abrir baú custa ~10s de energia do líder
-        setTeam((tm) => {
-          if (tm.length === 0) return tm;
-          const l = tm[0];
-          const drainSec = energyDrainPerSec(l.rarity);
-          if (drainSec <= 0) return tm; // mítico não cansa
-          const now = Date.now();
-          const curE = petCurrentEnergy(l, now, { active: true });
-          const drain = Math.max(1, Math.round(drainSec * 10));
-          const newE = Math.max(0, curE - drain);
-          return [{ ...l, energy: newE, energyRegenAt: now } as PetInstance, ...tm.slice(1)];
-        });
+        // (removido) custo de energia do líder ao abrir baú — energia temporal removida.
 
         // Tabela de loot balanceada
         //  20% vazio  |  25% chave  |  20% pokébola  |  25% ouro  |  10% cristal
@@ -8409,7 +9462,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}💎).`, "info");
       return;
     }
-    const refreshed = { ...pet, energy: ENERGY_MAX, energyRegenAt: now, azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
+    const refreshed = { ...pet, fome: 100, lealdade: Math.min(100, (pet.lealdade ?? 100) + 10), lastFedAt: now, needFeeding: false, azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
     const newParty = (save.party ?? []).map((x) => x.uid === uid ? refreshed : x);
     saveNow({ ...save, party: newParty });
     setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - AZUL_REST_COST } }));
@@ -8421,8 +9474,37 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
       return next;
     });
-    pushChat(`⚡ ${pet.species.toUpperCase()} descansou instantaneamente (-${AZUL_REST_COST}💎)`, "info");
-    pushEvent("⚡", "ADIANTADO", `${pet.species.toUpperCase()} pronto!`, "#4a9eff");
+    pushChat(`🍓 ${pet.species.toUpperCase()} foi alimentado instantaneamente (-${AZUL_REST_COST}💎)`, "info");
+    pushEvent("🍓", "ADIANTADO", `${pet.species.toUpperCase()} pronto!`, "#4a9eff");
+  };
+
+  // 🍓 Alimenta um pet do banco/time com morango/limão (desbloqueia LOCKED_NEEDS_FEEDING).
+  const feedBenchPet = (uid: string, kind: "morango" | "limao") => {
+    const have = idle.items[kind] ?? 0;
+    if (have <= 0) { pushChat(`Você não tem ${kind === "morango" ? "Morango 🍓" : "Limão 🍋"}.`, "info"); return; }
+    const target = [...teamRef.current, ...benchRef.current].find((p) => p.uid === uid);
+    if (!target) return;
+    const { now } = trustedNow();
+    const fed = feedPet(target as CaredPet, kind, now);
+    const applyFeed = (p: PetInstance) => (p.uid === uid ? (fed.pet as PetInstance) : p);
+    setRestingBench((b) => b.map(applyFeed));
+    setTeam((tm) => tm.map(applyFeed));
+    try {
+      const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+      saveNow({ ...save, party: (save.party ?? []).map(applyFeed) });
+    } catch { /* ignore */ }
+    setIdle((s) => ({ ...s, items: { ...s.items, [kind]: Math.max(0, (s.items[kind] ?? 0) - 1) } }));
+    pushChat(
+      fed.unlocked ? `🍓 ${target.species.replace(/_/g, " ").toUpperCase()} alimentado e DESBLOQUEADO para batalha!` : `🍓 ${target.species.replace(/_/g, " ").toUpperCase()} alimentado.`,
+      "cap",
+    );
+    if (fed.unlocked && !(fed.pet as CaredPet).needFeeding) {
+      setRestingBench((b) => {
+        if (!b.some((x) => x.uid === uid) || teamRef.current.length >= 6) return b;
+        setTeam((tm) => (tm.some((x) => x.uid === uid) ? tm : [...tm, fed.pet as PetInstance]));
+        return b.filter((x) => x.uid !== uid);
+      });
+    }
   };
 
   const restPetInAzul = (uid: string, opts?: { auto?: boolean }) => {
@@ -8443,12 +9525,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (!auto) pushChat(`${pet.species.toUpperCase()} já está descansando.`, "info");
       return;
     }
-    const curE = petCurrentEnergy(pet, now);
-    if (curE >= ENERGY_MAX) {
-      if (!auto) pushChat(`${pet.species.toUpperCase()} já está com energia cheia.`, "info");
+    // Casa Azul = centro de cuidado: alimenta (fome 100) e recupera lealdade.
+    const cared = pet as CaredPet;
+    if ((cared.fome ?? 100) >= 100 && !cared.needFeeding) {
+      if (!auto) pushChat(`${pet.species.toUpperCase()} já está bem alimentado.`, "info");
       return;
     }
-    const restingPet: PetInstance = { ...pet, energy: curE, energyRegenAt: now, azulRestUntil: now + dur, azulRestFromEnergy: curE, azulRestTotalMs: dur } as PetInstance;
+    const restingPet: PetInstance = { ...pet, energy: ENERGY_MAX, energyRegenAt: now, azulRestUntil: now + dur, azulRestFromEnergy: ENERGY_MAX, azulRestTotalMs: dur } as PetInstance;
     const newParty = party.map((x) => x.uid === uid ? restingPet : x);
     saveNow({ ...save, party: newParty });
     setTeam((tm) => {
@@ -8470,7 +9553,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     setAzulPreselectUid(null);
     setTimeout(() => {
       const s2 = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-      const refreshed = { ...restingPet, energy: ENERGY_MAX, energyRegenAt: Date.now(), azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
+      // Cuidado concluído: fome cheia + lealdade recuperada + desbloqueio.
+      const doneAt = Date.now();
+      const refreshed = { ...restingPet, fome: 100, lealdade: Math.min(100, ((restingPet.lealdade ?? 100) + 10)), lastFedAt: doneAt, needFeeding: false, energy: ENERGY_MAX, energyRegenAt: doneAt, azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
       const p2 = (s2.party ?? []).map((x) => x.uid === uid ? refreshed : x);
       saveNow({ ...s2, party: p2 });
       setRestingBench((b) => b.filter((x) => x.uid !== uid));
@@ -8481,8 +9566,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (next.length === 1) setLeaderHp(calcIdleMaxHp(refreshed));
         return next;
       });
-      pushChat(`⚡ ${refreshed.species.toUpperCase()} voltou ao time com energia cheia!`, "cap");
-      pushEvent("⚡", "ENERGIA CHEIA", "Pokémon pronto para a batalha", "#7fc4ff");
+      pushChat(`🍓 ${refreshed.species.toUpperCase()} voltou ao time alimentado!`, "cap");
+      pushEvent("🍓", "CUIDADO CONCLUÍDO", "Pokémon pronto para a batalha", "#7fc4ff");
     }, dur + 250);
   };
 
@@ -8494,11 +9579,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const t = setTimeout(() => {
       const kind = restingKind;
       const fullRecovery = kind !== "lar" || restFullRecovery;
-      // Restaura HP em todo o time; energia só se descanso completo
+      // Restaura HP em todo o time (energia temporal removida — cuidado = fome/lealdade).
       setTeam((tm) => tm.map((p) => ({
         ...p,
-        energy: fullRecovery ? ENERGY_MAX : (p as PetEnergyExt).energy ?? petCurrentEnergy(p),
-        energyRegenAt: fullRecovery ? Date.now() : (p as PetEnergyExt).energyRegenAt ?? Date.now(),
         hp: calcIdleMaxHp(p),
       } as PetInstance)));
       const l = team[0];
@@ -8509,11 +9592,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setRestFullRecovery(false);
       const msg = kind === "lar"
         ? (fullRecovery
-            ? "🏠 Descanso concluído! HP + energia totalmente recuperados."
-            : "🏠 HP restaurado! (energia continua regenerando naturalmente).")
+            ? "🏠 Descanso concluído! HP totalmente recuperado."
+            : "🏠 HP restaurado!")
         : "💤 Descanso concluído! HP totalmente restaurado.";
       pushChat(msg, "cap");
-      pushFxAt(trainerPos.x, trainerPos.y - 60, fullRecovery ? "+HP / +⚡" : "+HP", "gold");
+      pushFxAt(trainerPos.x, trainerPos.y - 60, "+HP", "gold");
     }, Math.max(0, remaining));
     return () => clearTimeout(t);
   }, [restingUntil]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -9150,19 +10233,41 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   {Math.round(Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100)))}%
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                <span style={{ fontSize: 11 }}>🎖️</span>
-                <span style={{ fontSize: 10, color: "#8fa3c8", fontWeight: 600 }}>Poder Total</span>
-                <span style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 900 }}>
-                  {team.reduce((s, p) => s + (p.level ?? 1), 0).toLocaleString("pt-BR")}
-                </span>
-              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
-                <span style={{ fontSize: 9, color: trainerEnergy > 15 ? "#4ade80" : "#f87171", fontWeight: 900, letterSpacing: 0.5 }}>⚡ Energia</span>
-                <div style={{ width: 100, height: 6, borderRadius: 999, background: "rgba(0,0,0,0.55)", border: `1px solid ${trainerEnergy > 15 ? "rgba(74,222,128,0.45)" : "rgba(248,113,113,0.6)"}`, overflow: "hidden" }}>
-                  <div style={{ width: `${Math.round(trainerEnergy)}%`, height: "100%", background: trainerEnergy > 30 ? "linear-gradient(90deg, #4ade80, #22c55e)" : "linear-gradient(90deg, #f87171, #ef4444)", transition: "width 400ms" }} />
+                <span style={{
+                  width: 18, height: 18, borderRadius: "50%", display: "grid", placeItems: "center",
+                  fontSize: 11, background: "linear-gradient(180deg,#d8ffe2,#8fe3a8)",
+                  border: "1px solid #4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.55)",
+                }}>⚡</span>
+                <div title="Energia do treinador" style={{ width: 100, height: 10, borderRadius: 999, background: "#20301f", border: "1px solid #4ade80", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
+                  <div style={{ width: `${Math.round(trainerEnergy)}%`, height: "100%", background: trainerEnergy > 30 ? "linear-gradient(180deg,#d9ffd9,#4ade80 60%,#22c55e)" : "linear-gradient(180deg,#ffd9d9,#f87171 60%,#ef4444)", borderRadius: 999, transition: "width 400ms" }} />
+                  <div style={{ position: "absolute", top: 1, left: 4, right: 4, height: 2, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
                 </div>
                 <span style={{ fontSize: 9, color: trainerEnergy > 15 ? "#4ade80" : "#f87171", fontWeight: 800 }}>{Math.round(trainerEnergy)}%</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                <span style={{
+                  width: 18, height: 18, borderRadius: "50%", display: "grid", placeItems: "center",
+                  fontSize: 11, background: "linear-gradient(180deg,#fff3d9,#ffd98f)",
+                  border: "1px solid #f5cf6b", boxShadow: "0 0 6px rgba(245,207,107,0.55)",
+                }}>🍖</span>
+                <div title="Fome do treinador" style={{ width: 100, height: 10, borderRadius: 999, background: "#33270f", border: "1px solid #f5cf6b", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
+                  <div style={{ width: `${Math.round(idle.trainerHunger ?? 100)}%`, height: "100%", background: (idle.trainerHunger ?? 100) > 30 ? "linear-gradient(180deg,#fff3d9,#f5cf6b 60%,#d9a441)" : "linear-gradient(180deg,#ffd9d9,#f87171 60%,#ef4444)", borderRadius: 999, transition: "width 400ms" }} />
+                  <div style={{ position: "absolute", top: 1, left: 4, right: 4, height: 2, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
+                </div>
+                <span style={{ fontSize: 9, color: (idle.trainerHunger ?? 100) > 30 ? "#f5cf6b" : "#f87171", fontWeight: 800 }}>{Math.round(idle.trainerHunger ?? 100)}%</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                <img src={ballPokeImg} alt="Arremessos" width={18} height={18} style={{
+                  imageRendering: "pixelated",
+                  filter: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "drop-shadow(0 0 4px rgba(255,255,255,0.5))" : "grayscale(0.6) brightness(0.7)",
+                  animation: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "none" : "pulse 1s ease-in-out infinite",
+                }} />
+                <div title="Arremessos restantes" style={{ width: 100, height: 10, borderRadius: 999, background: "#1f2a3a", border: "1px solid #8fd0ff", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
+                  <div style={{ width: `${Math.max(0, Math.min(100, ((idle.throwsLeft ?? MAX_THROW_COUNT) / MAX_THROW_COUNT) * 100))}%`, height: "100%", background: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "linear-gradient(180deg,#d9efff,#8fd0ff 60%,#4a9eff)" : "linear-gradient(180deg,#ffd9d9,#f87171 60%,#ef4444)", borderRadius: 999, transition: "width 400ms" }} />
+                  <div style={{ position: "absolute", top: 1, left: 4, right: 4, height: 2, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
+                </div>
+                <span style={{ fontSize: 9, color: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "#8fd0ff" : "#f87171", fontWeight: 800, animation: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "none" : "pulse 1s ease-in-out infinite" }}>{Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))}/{MAX_THROW_COUNT}</span>
               </div>
             </div>
           </div>
@@ -9208,12 +10313,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
           <div style={{ display: "flex", alignItems: "flex-end", gap: 2, marginLeft: "auto" }}>
             {([
-              { label: "Eventos", icon: "🎁", badge: 0, onClick: () => {
-                const recent = [...chat].reverse().filter((m) => m.kind === "chest" || m.kind === "cap" || m.kind === "lv").slice(0, 3);
-                if (recent.length === 0) pushToast("Nenhum evento recente.", "info");
-                else recent.forEach((m) => pushToast(m.text, m.kind));
-              } },
-              { label: "Correio", icon: "✉️", badge: idle.tasks.filter((t) => t.done).length, onClick: () => {
+              { label: "Cash", img: assetUrlFromJson(iconCashPackage), badge: 0, onClick: () => setCashShopOpen(true) },
+              { label: "Correio", icon: "📦", badge: idle.tasks.filter((t) => t.done).length, onClick: () => {
                 const done = idle.tasks.filter((t) => t.done);
                 if (done.length === 0) pushToast("Nenhuma recompensa para resgatar.", "info");
                 else { done.forEach((t) => claimTask(t.id)); pushChat(`Resgatou ${done.length} recompensa(s)!`, "chest"); }
@@ -9226,7 +10327,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               <button
                 key={b.label}
                 onClick={() => { playClick(); b.onClick(); }}
-                title={b.label === "Amigos" ? "Ver treinadores no mapa" : b.label === "Correio" ? "Resgatar recompensas" : b.label === "Eventos" ? "Rever eventos recentes" : b.label}
+                title={b.label === "Amigos" ? "Ver treinadores no mapa" : b.label === "Correio" ? "Resgatar recompensas" : b.label === "Cash" ? "Lojinha Cash" : b.label}
                 className="bottomnav-btn"
                 style={{
                   position: "relative", background: "transparent", border: "none", cursor: "pointer",
@@ -9234,7 +10335,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   padding: "4px 9px", borderRadius: 10, color: "#dbe6fa", fontSize: 10, fontWeight: 600,
                 }}
               >
-                <span style={{ fontSize: 20, filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}>{b.icon}</span>
+                {"img" in b && (b as { img?: string }).img
+                  ? <img src={(b as { img?: string }).img} alt={b.label} width={22} height={22} style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />
+                  : <span style={{ fontSize: 20, filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}>{(b as { icon?: string }).icon}</span>}
                 {b.label}
                 {b.badge > 0 && (
                   <span style={{
@@ -9721,6 +10824,187 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             </div>
           )}
 
+          {/* Saga "As Memórias Apagadas" — diálogo com retrato do NPC */}
+          {sagaTalk && (() => {
+            const sg = getSaga();
+            const closeBtn = (
+              <button
+                onClick={(e) => { e.stopPropagation(); setSagaTalk(null); }}
+                style={{
+                  position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
+                  background: "#b91c1c", border: "2px solid #fff", color: "#fff", fontWeight: 900, fontSize: 12,
+                  display: "grid", placeItems: "center", cursor: "pointer", zIndex: 1,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                }}
+                title="Fechar"
+              >✕</button>
+            );
+            const portrait = (npc: SagaNpcId) => (
+              <div style={{
+                width: 56, height: 56, border: "2px solid #fff", borderRadius: 6, overflow: "hidden",
+                background: "#0f2a5a", flexShrink: 0,
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
+              }}>
+                <div style={{
+                  width: "100%", height: "100%",
+                  backgroundImage: `url(${sagaPng(npc)})`,
+                  backgroundSize: "400% 400%",
+                  backgroundPosition: "0% 0%",
+                  imageRendering: "pixelated",
+                }} />
+              </div>
+            );
+            const shell = (npcName: string, sub: string, body: React.ReactNode) => (
+              <div
+                style={{
+                  position: "fixed", bottom: 120, left: "50%", transform: "translateX(-50%)",
+                  width: "min(560px, 92vw)",
+                  background: "#241536", border: "3px solid #c084fc", borderRadius: 8,
+                  boxShadow: "0 0 0 2px #1a1a1a, 0 8px 24px rgba(0,0,0,0.5)",
+                  padding: 10, zIndex: 9990, imageRendering: "pixelated",
+                }}
+              >
+                {closeBtn}
+                <div style={{ color: "#e9d5ff", fontSize: 10, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>📖 AS MEMÓRIAS APAGADAS · {sub}</div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  {body}
+                </div>
+              </div>
+            );
+            void 0;
+            // ===== TELA DA ESCOLHA FINAL =====
+            if (sagaTalk === "choice") {
+              const all: SagaNpcId[] = ["boby", "san", "nanizinha", "payka", "pan"];
+              return shell("ESCOLHA", "quais dois continuarão?", (
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap", marginBottom: 8 }}>
+                    {"Cinco começaram.\nDois continuarão.\nTrês esquecerão.\n\nEscolha com o coração. Não há bônus escondido."}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+                    {all.map((n) => {
+                      const sel = sagaChoiceSel.includes(n);
+                      return (
+                        <button
+                          key={n}
+                          onClick={() => setSagaChoiceSel((s) => (s.includes(n) ? s.filter((x) => x !== n) : s.length >= 2 ? s : [...s, n]))}
+                          style={{
+                            border: sel ? "2px solid #f5cf6b" : "2px solid rgba(255,255,255,0.2)",
+                            borderRadius: 8, background: sel ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)",
+                            padding: 4, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                          }}
+                        >
+                          <img src={sagaPng(n)} alt={SAGA_NPCS[n].name} width={40} height={40} style={{ imageRendering: "pixelated", objectFit: "cover", objectPosition: "0 0", borderRadius: 4 }} />
+                          <span style={{ fontSize: 8, fontWeight: 900, color: sel ? "#f5cf6b" : "#c8b8d0" }}>{SAGA_NPCS[n].name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    disabled={sagaChoiceSel.length !== 2}
+                    onClick={() => confirmSagaChoice(sagaChoiceSel)}
+                    style={{
+                      marginTop: 8, width: "100%", padding: "8px", borderRadius: 8, border: "none",
+                      background: sagaChoiceSel.length === 2 ? "#c084fc" : "#3a2a4a",
+                      color: sagaChoiceSel.length === 2 ? "#0b0510" : "#8a7a9c",
+                      fontWeight: 900, cursor: sagaChoiceSel.length === 2 ? "pointer" : "not-allowed",
+                    }}
+                  >{sagaChoiceSel.length === 2 ? `CONFIRMAR: ${sagaChoiceSel.map((x) => SAGA_NPCS[x].name).join(" + ")}` : `Escolha 2 (${sagaChoiceSel.length}/2)`}</button>
+                </div>
+              ));
+            }
+            const npc = sagaTalk as SagaNpcId;
+            const meta = SAGA_NPCS[npc];
+            // ===== PÓS-SAGA: preservados e esquecidos =====
+            if (sg.finished) {
+              const kept = sg.chosen.includes(npc);
+              const lines = kept ? SAGA_KEPT_LINES[npc] : SAGA_FORGOTTEN_LINES[npc];
+              const page = Math.min(sagaPage, lines.length - 1);
+              const giftReady = kept && Date.now() - ((sg.giftAt[npc] ?? 0)) >= SAGA_GIFT_COOLDOWN_MS;
+              return shell(meta.name, kept ? "preservado ✦" : "memória apagada", (
+                <>
+                  {portrait(npc)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap" }}>{lines[page]}</div>
+                    {kept && giftReady && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); claimSagaGift(npc); }}
+                        style={{ marginTop: 8, background: "#5ec26a", color: "#0b0510", border: "none", borderRadius: 6, padding: "6px 12px", fontWeight: 900, cursor: "pointer" }}
+                      >🎁 Receber ajuda</button>
+                    )}
+                    <div
+                      onClick={() => { if (page < lines.length - 1) setSagaPage(page + 1); else setSagaTalk(null); }}
+                      style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
+                    >▼ {page + 1}/{lines.length}</div>
+                  </div>
+                </>
+              ));
+            }
+            // ===== SAGA EM ANDAMENTO =====
+            const st = activeStage(sg);
+            if (!st || st.npc !== npc) {
+              const hint = st ? `${SAGA_NPCS[st.npc].name} em ${IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? SAGA_NPCS[st.npc].map}` : "conclua a saga";
+              const flavor: Record<SagaNpcId, string> = {
+                boby: "BOBY: Opa! Se precisar de bola, é comigo. Mas... você não era da minha parte da história, era?",
+                san: "SAN: Orbs? Falo por horas. Mas sua missão atual é com outro, né?",
+                nanizinha: "NANIZINHA: Comeu hoje? ...Sua missão é com outro colega, mas come mesmo assim!",
+                payka: "PAYKA: Negócio é negócio, mas sua tarefa tá com outro. Depois a gente conversa... de graça, dessa vez.",
+                pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.",
+              };
+              return shell(meta.name, meta.title, (
+                <>
+                  {portrait(npc)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap" }}>{`${flavor[npc]}\n\n📖 Missão atual: "${st ? st.title : "—"}" → ${hint}.`}</div>
+                    <div onClick={() => setSagaTalk(null)} style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>▼ fechar</div>
+                  </div>
+                </>
+              ));
+            }
+            // ===== ETAPA ATIVA DESTE NPC =====
+            const page = Math.min(sagaPage, st.lines.length - 1);
+            const lastPage = page >= st.lines.length - 1;
+            const chosen = sg.choices[st.id];
+            const done = sagaObjectiveDone(st.id);
+            const claimed = !!sg.claimed[st.id];
+            const rewardTxt = st.reward.map((r) => (r.kind === "item" ? `+${r.qty} ${r.itemId}` : `+${r.qty} ouro`)).join(" · ");
+            return shell(meta.name, `${st.title} · etapa ${sg.stage + 1}/${SAGA_TOTAL_STAGES}`, (
+              <>
+                {portrait(npc)}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap" }}>{st.lines[page]}</div>
+                  {lastPage && st.choices && !chosen && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                      {st.choices.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={(e) => { e.stopPropagation(); chooseSaga(st.id, c.id); pushChat(`${meta.name}: ${c.reply}`, "cap"); }}
+                          style={{ textAlign: "left", background: "rgba(192,132,252,0.15)", border: "1px solid rgba(192,132,252,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                        >{c.label}</button>
+                      ))}
+                    </div>
+                  )}
+                  {lastPage && (
+                    <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                      <div style={{ fontSize: 11, color: "#e9d5ff", fontWeight: 800 }}>🎯 {st.objectiveLabel}: <span style={{ color: done ? "#5ec26a" : "#ffcc33" }}>{sagaProgressText(st, sg)}</span></div>
+                      {!claimed && (
+                        <button
+                          disabled={!done}
+                          onClick={(e) => { e.stopPropagation(); claimSagaReward(st.id); }}
+                          style={{ marginTop: 6, width: "100%", background: done ? "#5ec26a" : "#3a2a4a", color: done ? "#0b0510" : "#8a7a9c", border: "none", borderRadius: 6, padding: "7px", fontWeight: 900, cursor: done ? "pointer" : "not-allowed" }}
+                        >{done ? `RESGATAR: ${rewardTxt}` : "Complete o objetivo"}</button>
+                      )}
+                      {claimed && <div style={{ marginTop: 6, fontSize: 11, color: "#5ec26a", fontWeight: 800 }}>✓ Recompensa resgatada — fale com o próximo NPC da saga.</div>}
+                    </div>
+                  )}
+                  <div
+                    onClick={() => { if (!lastPage) setSagaPage(page + 1); else setSagaTalk(null); }}
+                    style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
+                  >▼ {page + 1}/{st.lines.length}</div>
+                </div>
+              </>
+            ));
+          })()}
+
           {pokemarktShopOpen && idle.currentMap === "mapinha10" && (
             <PokemarktNpcShop
               gold={idle.bank.gold}
@@ -9897,20 +11181,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const mins = Math.floor(mi.msUntilChange / 60000);
               const secs = Math.floor((mi.msUntilChange % 60000) / 1000);
               const timeStr = mins > 0 ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-              const inEvent = idle.currentMap === "arena";
+              const inEvent = idle.currentMap === "florest_shiny";
               return (
                 <button
                   onClick={() => {
-                    if (inEvent) { pushChat(`❄ Evento Mítico Shiny — ${timeStr} restante`, "info"); return; }
-                    mythEventReturnMapRef.current = idle.currentMap;
-                    mythEventEnteredAtRef.current = Date.now();
-                    setIdle((s) => ({ ...s, currentMap: "arena" }));
+                    if (inEvent) { pushChat(`✦ Florest Shiny — ${timeStr} de evento restante`, "info"); return; }
+                    setIdle((s) => ({ ...s, currentMap: "florest_shiny" }));
                     setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
                     setEnemies([]);
-                    pushChat(`❄ Entrou no DOMÍNIO MÍTICO SHINY! Somente Ultra Ball captura aqui. 5min de sessão.`, "cap");
+                    pushChat(`✦ Evento MYTH SHINY — indo para a Florest Shiny!`, "cap");
                     playBonus();
                   }}
-                  title={inEvent ? `Evento ativo — ${timeStr} restante` : `Evento Mítico Shiny aberto — ${timeStr}`}
+                  title={inEvent ? `Evento ativo — ${timeStr} restante` : `Evento Mítico Shiny aberto — ir para Florest Shiny (${timeStr})`}
                   style={{
                     marginTop: 6,
                     padding: 3,
@@ -10345,8 +11627,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </>
             )}
             {npcs.map((n) => {
-              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk";
-              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const isSagaNpc = n.kind === "boby" || n.kind === "san" || n.kind === "nanizinha" || n.kind === "payka" || n.kind === "pan";
+              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || isSagaNpc;
+              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "boby" ? bobyPng : n.kind === "san" ? sanPng : n.kind === "nanizinha" ? nanizinhaPng : n.kind === "payka" ? paykaPng : n.kind === "pan" ? panPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
               const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
               return (
                 <div
@@ -10358,6 +11641,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     walkTargetRef.current = null;
                     setWalkingTo(null);
                     if (n.kind === "pokemarktClerk") setPokemarktShopOpen(true);
+                    else if (isSagaNpc) { setSagaTalk(n.kind as SagaNpcId); setSagaPage(0); }
                     else setNpcDialog({ kind: n.kind, page: 0 });
                   }}
                   style={{
@@ -11926,6 +13210,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     fontSize: 13,
                   }}
                 >⚙</button>
+                <button
+                  onClick={() => { playClick(); setAB({ useBall: !ab.useBall }); }}
+                  title={ab.useBall ? "Auto-captura LIGADA (clique para desligar)" : "Auto-captura DESLIGADA (clique para ligar)"}
+                  style={{
+                    background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                    width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <img src={ballPokeImg} alt="Auto-captura" width={24} height={24}
+                    style={{
+                      imageRendering: "pixelated",
+                      filter: ab.useBall ? "drop-shadow(0 0 5px #ff5c5c)" : "grayscale(1) opacity(0.35)",
+                      animation: ab.useBall ? "pulse 1.6s ease-in-out infinite" : "none",
+                    }}
+                  />
+                </button>
               </div>
             </div>
             );
@@ -11987,6 +13287,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               setAudioSettings={setAudioSettings}
               tasks={idle.tasks}
               onClaimTask={claimTask}
+              onSagaClaim={claimSagaReward}
+              onSagaTalk={(n) => { setSagaTalk(n); setSagaPage(0); }}
               onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
               onExchange={exchange}
               onSellItem={sellItem}
@@ -12361,57 +13663,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     </div>
                   </div>
 
-                  {/* Lista bonita de mapas - teleporte rápido (Revoland primeiro) */}
-                  <div style={{ marginTop: 12, background: "rgba(11,5,16,0.6)", border: "1px solid rgba(245,207,107,0.2)", borderRadius: 10, padding: 8 }}>
-                    <div style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 11, letterSpacing: 1, marginBottom: 8, textAlign: "center" }}>✦ TELEPORTE RÁPIDO — 5 ⚡</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                      {(() => {
-                        const order: IdleMapId[] = ["mapinha6","mapinha13","terra","mapinha5","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"];
-                        return order.filter((id) => !!IDLE_MAPS[id]).map((id) => {
-                          const m = IDLE_MAPS[id];
-                          const isCurrent = idle.currentMap === id;
-                          const lvOk = (idle.trainerLevel ?? 1) >= m.minLevel;
-                          const energyOk = trainerEnergy >= 5;
-                          const canTp = lvOk && energyOk && !isCurrent;
-                          return (
-                            <div key={id} style={{ background: isCurrent ? "rgba(245,207,107,0.15)" : "rgba(0,0,0,0.4)", border: `1px solid ${isCurrent ? "#f5cf6b" : "rgba(245,207,107,0.25)"}`, borderRadius: 8, overflow: "hidden", opacity: isCurrent ? 1 : lvOk ? 1 : 0.55 }}>
-                              <div style={{ height: 56, overflow: "hidden", position: "relative", background: "#0b0510" }}>
-                                <img src={m.bg} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "auto" }} draggable={false} />
-                                <div style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.7)", borderRadius: 6, padding: "1px 5px", fontSize: 9, color: "#ffd94d", fontWeight: 900 }}>{m.stars ? "★".repeat(m.stars) : "★"}</div>
-                                {isCurrent && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(245,207,107,0.9)", color: "#1a0f26", fontSize: 8, fontWeight: 900, textAlign: "center", padding: "1px 0" }}>VOCÊ ESTÁ AQUI</div>}
-                              </div>
-                              <div style={{ padding: "5px 6px" }}>
-                                <div style={{ color: "#fff", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name}</div>
-                                <div style={{ color: "#c8b8d0", fontSize: 9, fontWeight: 700 }}>{m.diff} · {m.element} · Lv {m.minLevel}</div>
-                                <button
-                                  disabled={!canTp}
-                                  onClick={() => {
-                                    if (isCurrent) return;
-                                    if (!lvOk) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
-                                    if (!energyOk) { pushChat("⚡ Sem energia (precisa 5).", "info"); return; }
-                                    setTrainerEnergy((e) => Math.max(0, e - 5));
-                                    setIdle((s) => ({ ...s, currentMap: id as IdleMapId }));
-                                    setTrainerPos({ x: Math.round(curWorldW / 2), y: Math.round(curWorldH / 2) });
-                                    walkTargetRef.current = null; setWalkingTo(null);
-                                    setEnemies([]); setChests([]); setMapOrbs([]); clearBattleScene();
-                                    pushChat(`✦ Teleportado para ${m.name} (-5 ⚡)`, "cap");
-                                    playClick();
-                                  }}
-                                  style={{
-                                    marginTop: 4, width: "100%", padding: "5px 0", borderRadius: 6, border: "none",
-                                    background: !canTp ? "#2a1a2e" : "linear-gradient(135deg,#f5cf6b,#d9a441)", color: !canTp ? "#6a5a5a" : "#1a0f26",
-                                    fontWeight: 900, fontSize: 10, cursor: canTp ? "pointer" : "not-allowed",
-                                    opacity: canTp ? 1 : 0.6,
-                                  }}
-                                >{isCurrent ? "ATUAL" : !lvOk ? `Lv ${m.minLevel}` : !energyOk ? "SEM ENERGIA" : "TELEPORTAR"}</button>
-                              </div>
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                    <div style={{ marginTop: 6, textAlign: "center", fontSize: 9, color: "#8a7a9c" }}>Energia atual: {Math.floor(trainerEnergy)}/100 ⚡ · Custo: 5 por teleporte</div>
-                  </div>
+                  {/* (removido) Teleporte rápido — usa o Mapa Mundi ou o HUD de teleporte. */}
 
                   {bigMapOpen && (
                     <div
@@ -12963,16 +14215,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                   };
                                   const scrolls = idle.items?.scroll_teleport ?? 0;
                                   if (scrolls > 0) {
-                                    if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                                    if (trainerEnergy < TELEPORT_ENERGY_COST) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                                     setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
-                                    setTrainerEnergy((e) => Math.max(0, e - 5));
+                                    setTrainerEnergy((e) => Math.max(0, e - TELEPORT_ENERGY_COST));
                                     setWorldMapOpen(false);
                                     setSelectedMapInfo(null);
                                     travelToGate(synthGate);
                                     pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}. (-5 ⚡)`, "cap");
                                     return;
                                   }
-                                  if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                                  if (trainerEnergy < TELEPORT_ENERGY_COST) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                                   setWorldMapOpen(false);
                                   setSelectedMapInfo(null);
                                   setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
@@ -13001,7 +14253,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     const gold = 0; // Taxa de ouro removida
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                     const goldOk = true;
-                    const energyOk = trainerEnergy >= 5;
+                    const energyOk = trainerEnergy >= TELEPORT_ENERGY_COST;
                     const canGo = crystalOk && energyOk && lvOk;
                     const close = () => setPendingGate(null);
                     return (
@@ -13074,7 +14326,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                    ...s,
                                    bank: { ...s.bank, crystals: Math.max(0, s.bank.crystals - cost) }
                                  }));
-                                 setTrainerEnergy((e) => Math.max(0, e - 5));
+                                 setTrainerEnergy((e) => Math.max(0, e - TELEPORT_ENERGY_COST));
                                  travelToGate(g);
                                  if (wasBig) setBigMapOpen(false);
                               }}
@@ -13103,7 +14355,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             <WorldMapTeleportHud
               currentMap={idle.currentMap}
               trainerEnergy={trainerEnergy}
-              destinations={["mapinha6","mapinha13","terra","mapinha5","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"]
+              destinations={["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","florest_shiny","ruinas","ruinas_de_venus","mapinha5","terra","mapinha7","mapinha8","mapinha9","mapinha10","mapinha11","mapinha12","cave01","cristal_cave","revo_rout","cidade_principal"]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
                 .map((id) => ({ id, ...IDLE_MAPS[id] }))}
               onClose={() => setMapTeleportOpen(false)}
@@ -13111,9 +14363,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 const m = IDLE_MAPS[destination.id];
                 if (!m || teleportTransition) return;
                 if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
-                if (trainerEnergy < 5) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                if (trainerEnergy < TELEPORT_ENERGY_COST) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
                 playClick();
-                setTrainerEnergy((energy) => Math.max(0, energy - 5));
+                setTrainerEnergy((energy) => Math.max(0, energy - TELEPORT_ENERGY_COST));
                 setMapTeleportOpen(false);
                 setTeleportTransition(destination);
                 teleportTimerRef.current = setTimeout(() => {
@@ -15983,9 +17235,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const maxHp = calcIdleMaxHp(pet);
         const hp = pet.uid === team[0]?.uid ? leaderHp : (pet.hp ?? maxHp);
         const inTeam = team.some((p) => p.uid === pet.uid);
-        const energy = petCurrentEnergy(pet, now, { active: inTeam });
-        const msFull = inTeam ? 0 : petMsToFull(pet, now);
-        const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
+        const fomePet = Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100));
+        const fomeState = petHungerState(fomePet);
+        const lealdPet = Math.max(0, Math.min(100, (pet as CaredPet).lealdade ?? 100));
+        const needFeed = !!(pet as CaredPet).needFeeding;
         const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
         const src = GIF[pet.species];
         return (
@@ -16009,29 +17262,29 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </div>
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
-                  <span>⚡ Energia {resting ? "(descansando)" : ""}</span>
-                  <span>{infinite ? "∞ MÍTICO" : `${energy}/100`}</span>
+                  <span>🍖 Fome {resting ? "(na Casa Azul)" : ""}{needFeed ? " · 🔒 PRECISA ALIMENTAR" : ""}</span>
+                  <span>{fomePet}/100 · {PET_HUNGER_LABEL[fomeState]}</span>
                 </div>
                 <div style={{ height: 8, background: "#0e2438", borderRadius: 4, marginTop: 3 }}>
-                  <div style={{ width: `${infinite ? 100 : energy}%`, height: "100%", background: resting ? "#7fc4ff" : (energy > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 4 }} />
+                  <div style={{ width: `${fomePet}%`, height: "100%", background: resting ? "#7fc4ff" : (fomePet > 30 ? "#4a9eff" : "#ff7a3d"), borderRadius: 4 }} />
                 </div>
                 <div style={{ fontSize: 10, color: "#c8b8d0", marginTop: 4, textAlign: "right" }}>
-                  {infinite ? "Não cansa" : (msFull > 0 ? `Cheia em ${fmtMS(msFull)}` : "Energia cheia")}
+                  ❤️ Lealdade {lealdPet}/100
                 </div>
               </div>
               <div style={{ marginTop: 12, fontSize: 10, color: "#8a7a9c" }}>
                 XP {pet.xp ?? 0}/{100 + pet.level * 20}
               </div>
-              {!infinite && !resting && energy < ENERGY_MAX && (
+              {!resting && ((fomePet < 100) || needFeed) && (
                 <button
                   onClick={() => {
                     const uid = pet.uid;
                     setPetDetailUid(null);
                     restPetInAzul(uid);
-                    pushChat(`🏡 ${pet.species.toUpperCase()} foi descansar na Casa Azul...`, "info");
+                    pushChat(`🏡 ${pet.species.toUpperCase()} foi para a Casa Azul ser alimentado...`, "info");
                   }}
                   style={{ marginTop: 14, width: "100%", background: "#4a9eff", color: "#0b0510", border: "none", borderRadius: 8, padding: "10px", fontWeight: 900, cursor: "pointer" }}
-                >🏡 Levar à Casa Azul (5💎 · 5 min)</button>
+                >🏡 Casa Azul — alimentar (5💎 · 5 min)</button>
               )}
 
             </div>
@@ -16051,19 +17304,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
                   <div style={{ fontWeight: 900, fontSize: 16, color: "#7fc4ff" }}>🏡 CASA AZUL</div>
-                  <div style={{ fontSize: 11, color: "#c8b8d0" }}>Restaura 100 de energia em 5 min · custa {AZUL_REST_COST}💎</div>
+                  <div style={{ fontSize: 11, color: "#c8b8d0" }}>Alimenta (fome 100 + lealdade) em 5 min · custa {AZUL_REST_COST}💎</div>
                 </div>
                 <button onClick={() => setAzulPickerOpen(false)} style={{ background: "#0a1830", border: "1px solid #4a9eff", color: "#7fc4ff", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}>✕</button>
               </div>
               <div style={{ marginTop: 8, fontSize: 11, color: "#8fd0ff" }}>Seu saldo: 💎 {idle.bank.crystals}</div>
               <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
                 {party.map((p) => {
-                  const infinite = (ENERGY_REGEN_MS[p.rarity] ?? 0) === 0;
+                  const cp = p as CaredPet;
                   const resting = !!(p as PetEnergyExt).azulRestUntil && ((p as PetEnergyExt).azulRestUntil! > now);
-                  const energy = petCurrentEnergy(p, now);
+                  const fomeRow = Math.max(0, Math.min(100, cp.fome ?? 100));
+                  const lockedRow = !!cp.needFeeding;
                   const src = GIF[p.species];
-                  const canPick = !infinite && !resting && energy < ENERGY_MAX && idle.bank.crystals >= AZUL_REST_COST;
-                  const label = infinite ? "MÍTICO (não cansa)" : resting ? `Descansando (${fmtMS(((p as PetEnergyExt).azulRestUntil!) - now)})` : `${energy}/100`;
+                  const canPick = !resting && !lockedRow && (fomeRow < 100) && idle.bank.crystals >= AZUL_REST_COST;
+                  const label = lockedRow ? `🔒 PRECISA ALIMENTAR` : resting ? `Cuidando (${fmtMS(((p as PetEnergyExt).azulRestUntil!) - now)})` : `🍖 ${fomeRow}/100`;
                   return (
                     <div key={p.uid} style={{ display: "flex", gap: 8, alignItems: "center", background: p.uid === azulPreselectUid ? "#12305a" : "#0a1830", border: `1px solid ${p.uid === azulPreselectUid ? "#7fc4ff" : "#4a9eff33"}`, padding: 8, borderRadius: 8, boxShadow: p.uid === azulPreselectUid ? "0 0 12px #4a9eff55" : undefined }}>
                       <div style={{ width: 44, height: 44, background: "#0b0510", borderRadius: 6, display: "grid", placeItems: "center", overflow: "hidden" }}>
@@ -16072,9 +17326,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 12, fontWeight: 700 }}>{p.species.replace(/_/g, " ").toUpperCase()}</div>
                         <div style={{ fontSize: 10, color: "#c8b8d0" }}>Lv.{p.level} · {p.rarity}</div>
-                        <div style={{ fontSize: 10, color: resting ? "#7fc4ff" : (energy < 30 ? "#ff7a3d" : "#8fd0ff") }}>⚡ {label}</div>
+                        <div style={{ fontSize: 10, color: resting ? "#7fc4ff" : (fomeRow < 30 || lockedRow ? "#ff7a3d" : "#8fd0ff") }}>🍖 {label}</div>
                       </div>
-                      {(() => {
+                      {lockedRow ? (
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button
+                            disabled={(idle.items.morango ?? 0) <= 0}
+                            onClick={() => feedBenchPet(p.uid, "morango")}
+                            title="Morango: +30 fome, +10 lealdade"
+                            style={{ background: (idle.items.morango ?? 0) > 0 ? "#4a9eff" : "#2a3a4a", color: (idle.items.morango ?? 0) > 0 ? "#0b0510" : "#5a6a7a", border: "none", borderRadius: 8, padding: "8px 10px", fontWeight: 900, cursor: "pointer", fontSize: 14 }}
+                          >🍓</button>
+                          <button
+                            disabled={(idle.items.limao ?? 0) <= 0}
+                            onClick={() => feedBenchPet(p.uid, "limao")}
+                            title="Limão: +20 fome, +5 lealdade"
+                            style={{ background: (idle.items.limao ?? 0) > 0 ? "#4a9eff" : "#2a3a4a", color: (idle.items.limao ?? 0) > 0 ? "#0b0510" : "#5a6a7a", border: "none", borderRadius: 8, padding: "8px 10px", fontWeight: 900, cursor: "pointer", fontSize: 14 }}
+                          >🍋</button>
+                        </div>
+                      ) : (() => {
                         const canSpeed = resting && idle.bank.crystals >= AZUL_REST_COST;
                         const canPickNow = canPick;
                         const enabled = resting ? canSpeed : canPickNow;
@@ -16089,7 +17358,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                               border: "none", borderRadius: 6, padding: "6px 10px",
                               fontWeight: 900, fontSize: 11, cursor: enabled ? "pointer" : "not-allowed",
                             }}
-                          >{infinite ? "—" : label}</button>
+                          >{label}</button>
                         );
                       })()}
                     </div>
@@ -16601,12 +17870,12 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
 }
 
 function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () => void; energyTick?: number }) {
-  void energyTick; // força re-render por segundo p/ atualizar barra de energia
+  void energyTick; // força re-render por segundo p/ atualizar barras
   const src = GIF[pet.species];
   const now = Date.now();
-  const energy = petCurrentEnergy(pet, now, { active: true });
-  const msFull = petMsToFull(pet, now);
-  const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
+  // Sem energia temporal: barra mostra FOME (cuidado = fome + lealdade).
+  const fomeRow = Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100));
+  const lockedRow = !!(pet as CaredPet).needFeeding;
   const resting = !!(pet as PetEnergyExt).azulRestUntil && ((pet as PetEnergyExt).azulRestUntil! > now);
   if (!src) {
     return (
@@ -16622,8 +17891,8 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
   const maxHp = calcIdleMaxHp(pet);
   const hp = pet.hp ?? maxHp;
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
-  const ePct = Math.max(0, Math.min(100, energy));
-  const exhausted = !infinite && energy <= 0;
+  const ePct = fomeRow;
+  const exhausted = lockedRow || fomeRow <= 0;
   const rarityColorMap: Record<string, string> = {
     common: "#9aa0a6", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
@@ -16634,7 +17903,7 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
     return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
   };
   return (
-    <div onClick={onClick} title={exhausted ? "Sem energia — descanse na Casa Azul" : "Clique para ver detalhes"} style={{
+    <div onClick={onClick} title={exhausted ? "Precisa ser alimentado" : "Clique para ver detalhes"} style={{
       display: "flex", gap: 8, alignItems: "center",
       background: exhausted
         ? "linear-gradient(135deg, #14101a 0%, #1a1420 100%)"
@@ -16727,20 +17996,20 @@ function TeamRow({ pet, onClick, energyTick }: { pet: PetInstance; onClick?: () 
           </div>
           <span style={{ fontSize: 8.5, color: "#f0d0d0", fontWeight: 700, minWidth: 44, textAlign: "right", fontFamily: "monospace" }}>{hp}/{maxHp}</span>
         </div>
-        {/* Energia */}
+        {/* Fome */}
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-          <span style={{ fontSize: 9, color: "#8fd0ff", width: 10 }}>⚡</span>
+          <span style={{ fontSize: 9, color: "#8fd0ff", width: 10 }}>🍖</span>
           <div style={{
             flex: 1, height: 4, background: "#08131f", borderRadius: 2,
             border: "1px solid #0e2438", overflow: "hidden",
           }}>
             <div style={{
-              width: `${infinite ? 100 : ePct}%`, height: "100%",
-              background: resting ? "linear-gradient(180deg, #a7d8ff, #4a9eff)" : (energy > 30 ? "linear-gradient(180deg, #8fd0ff, #2a6ec9)" : "linear-gradient(180deg, #ffb37a, #d95a1e)"),
+              width: `${ePct}%`, height: "100%",
+              background: resting ? "linear-gradient(180deg, #a7d8ff, #4a9eff)" : (fomeRow > 30 ? "linear-gradient(180deg, #8fd0ff, #2a6ec9)" : "linear-gradient(180deg, #ffb37a, #d95a1e)"),
             }} />
           </div>
           <span style={{ fontSize: 8.5, color: "#a5c8ff", minWidth: 30, textAlign: "right", fontWeight: 700 }}>
-            {infinite ? "∞" : `${energy}%`}
+            {lockedRow ? "🔒" : `${fomeRow}%`}
           </span>
         </div>
       </div>
@@ -17059,6 +18328,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, trainerEnergy, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
+  onSagaClaim, onSagaTalk,
   idle, setIdle, pushChat,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
   trainerTheme, toggleTrainerTheme
@@ -17101,6 +18371,8 @@ function TabOverlay({
   setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
   tasks: Task[];
   onClaimTask: (tid: string) => void;
+  onSagaClaim: (stageId: string) => void;
+  onSagaTalk: (npc: SagaNpcId | "choice") => void;
   onOpenColecaoDetail: (uid: string) => void;
   onExchange: (dir: "g2c" | "c2g", amount: number) => void;
   onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
@@ -17164,7 +18436,7 @@ function TabOverlay({
       const entriesNow = Object.entries(items).filter(([id, n]) => (n as number) > 0 && !id.startsWith("_")) as [string, number][];
       const catOfKey = (id: string): string => {
         if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
-        if (id === "potion" || id === "revive" || id === "berry") return "potions";
+        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao") return "potions";
         if (id.startsWith("book_")) return "books";
         if (id.startsWith("egg_")) return "eggs";
         return "other";
@@ -17625,6 +18897,76 @@ function TabOverlay({
           <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
             Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
           </div>
+          {/* ===== SAGA "AS MEMÓRIAS APAGADAS" ===== */}
+          {(() => {
+            const sg: SagaProgress = idle.saga ?? freshSaga();
+            const sagaPngLocal = (npc: SagaNpcId): string =>
+              npc === "boby" ? bobyPng : npc === "san" ? sanPng : npc === "nanizinha" ? nanizinhaPng : npc === "payka" ? paykaPng : panPng;
+            const portraitSm = (npc: SagaNpcId) => (
+              <div style={{ width: 52, height: 52, border: "2px solid #c084fc", borderRadius: 8, overflow: "hidden", background: "#0f2a5a", flexShrink: 0 }}>
+                <div style={{ width: "100%", height: "100%", backgroundImage: `url(${sagaPngLocal(npc)})`, backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated" }} />
+              </div>
+            );
+            if (sg.finished) {
+              return (
+                <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                  <div style={{ color: "#e9d5ff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS — concluída</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    {sg.chosen.map((n) => (
+                      <div key={n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {portraitSm(n)}
+                        <div>
+                          <div style={{ color: "#5ec26a", fontWeight: 800, fontSize: 11 }}>{SAGA_NPCS[n].name} ✦ preservado</div>
+                          <button onClick={() => onSagaTalk(n)} style={{ background: "rgba(192,132,252,0.2)", color: "#e9d5ff", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer", marginTop: 2 }}>Conversar</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            if (sg.stage >= SAGA_STAGES.length) {
+              return (
+                <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "2px solid #c084fc", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                  <div style={{ color: "#e9d5ff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>🖤 A ESCOLHA — quais dois continuarão?</div>
+                  <button onClick={() => onSagaTalk("choice")} style={{ marginTop: 8, background: "#c084fc", color: "#0b0510", border: "none", borderRadius: 6, padding: "8px 14px", fontWeight: 900, cursor: "pointer" }}>ESCOLHER AGORA</button>
+                </div>
+              );
+            }
+            const st = SAGA_STAGES[sg.stage];
+            const ob = st.objective;
+            const here = ob.kind === "visit" ? idle.currentMap === ob.map : false;
+            const prog = sagaProgressTextPure(st, sg, idle.items, here);
+            const isDone = (() => {
+              if (ob.kind === "talk" || ob.kind === "choice") return true;
+              if (ob.kind === "kill" || ob.kind === "capture" || ob.kind === "feed_pet" || ob.kind === "feed_trainer") return sg.count >= ob.count;
+              if (ob.kind === "item") return (idle.items[ob.itemId] ?? 0) >= ob.qty;
+              return here;
+            })();
+            const claimed = !!sg.claimed[st.id];
+            return (
+              <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                <div style={{ color: "#e9d5ff", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS · etapa {sg.stage + 1}/{SAGA_TOTAL_STAGES}</div>
+                <div style={{ display: "flex", gap: 10, marginTop: 8, alignItems: "flex-start" }}>
+                  {portraitSm(st.npc)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontWeight: 800, fontSize: 13 }}>{SAGA_NPCS[st.npc].name} — {st.title}</div>
+                    <div style={{ color: "#c8b8d0", fontSize: 11, marginTop: 2 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#5ec26a" : "#ffcc33" }}>{prog}</b></div>
+                    <div style={{ color: "#8a7a9c", fontSize: 11, marginTop: 2 }}>Recompensa: {sagaRewardText(st.reward)}</div>
+                    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                      <button onClick={() => onSagaTalk(st.npc)} style={{ background: "rgba(192,132,252,0.2)", color: "#e9d5ff", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>💬 Falar</button>
+                      {!claimed && (
+                        <button onClick={() => onSagaClaim(st.id)} disabled={!isDone} style={{ background: isDone ? "#5ec26a" : "#3a2a4a", color: isDone ? "#0b0510" : "#8a7a9c", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 900, cursor: isDone ? "pointer" : "not-allowed" }}>
+                          {isDone ? "RESGATAR" : prog}
+                        </button>
+                      )}
+                      {claimed && <span style={{ fontSize: 11, color: "#5ec26a", fontWeight: 800, alignSelf: "center" }}>✓ resgatada</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           {tasks.length === 0 ? (
             <div style={{ color: "#8a7a9c", fontSize: 13, padding: 20, textAlign: "center" }}>
               Todas as tarefas foram concluídas! Aguarde novas em breve.
@@ -17747,7 +19089,7 @@ function TabOverlay({
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
-          if (id === "potion" || id === "revive" || id === "berry") return "potions";
+        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao") return "potions";
           if (id.startsWith("book_")) return "books";
           if (id.startsWith("egg_")) return "eggs";
           return "other";
@@ -20521,9 +21863,10 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
   const xp = pet.xp ?? 0;
   const xpPct = Math.min(100, (xp / xpNeeded) * 100);
   const now = Date.now();
-  const infinite = (ENERGY_REGEN_MS[pet.rarity] ?? 0) === 0;
-  const energy = petCurrentEnergy(pet, now);
-  const msFull = petMsToFull(pet, now);
+  // Sem energia temporal: mostra FOME + LEALDADE (cuidado = fome + lealdade).
+  const fomeDet = Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100));
+  const lealdDet = Math.max(0, Math.min(100, (pet as CaredPet).lealdade ?? 100));
+  const lockedDet = !!(pet as CaredPet).needFeeding;
   const crit = Math.round(Math.min(60, 5 + pet.level * 0.3 + (((pet.ascensionStats as Record<string, number> | undefined)?.crit) ?? 0) * 0.5) * 10) / 10;
 
   const rarityColor: Record<string, string> = {
@@ -20591,13 +21934,13 @@ function PokemonDetail({ pet, currentHp, src }: { pet: PetInstance; currentHp: n
           <StatBar label="EXP" value={xp} max={xpNeeded} pct={xpPct} color="#6bd4ff" />
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 2 }}>
-              <span style={{ color: "#c8b8d0", fontWeight: 700, letterSpacing: 1 }}>⚡ ENERGIA</span>
-              <span style={{ color: "#8fd0ff", fontWeight: 700 }}>{infinite ? "∞ MÍTICO" : `${energy}/100${msFull > 0 ? " · " + fmtMS(msFull) : ""}`}</span>
+              <span style={{ color: "#c8b8d0", fontWeight: 700, letterSpacing: 1 }}>🍖 FOME{lockedDet ? " · 🔒" : ""}</span>
+              <span style={{ color: "#8fd0ff", fontWeight: 700 }}>{`${fomeDet}/100 · ❤️ ${lealdDet}`}</span>
             </div>
             <div style={{ height: 8, background: "#0e1a2e", borderRadius: 3, border: "1px solid rgba(0,0,0,0.6)" }}>
               <div style={{
-                width: `${infinite ? 100 : energy}%`, height: "100%", borderRadius: 3,
-                background: energy > 30 ? "linear-gradient(90deg,#3b7fd6,#6cb6ff)" : "linear-gradient(90deg,#c74a1a,#ff9a5a)",
+                width: `${fomeDet}%`, height: "100%", borderRadius: 3,
+                background: fomeDet > 30 ? "linear-gradient(90deg,#3b7fd6,#6cb6ff)" : "linear-gradient(90deg,#c74a1a,#ff9a5a)",
               }} />
             </div>
           </div>

@@ -162,7 +162,27 @@ export type Species =
   // Bulbasaurs custom — florido (verde) e laranja (azul), sprites 4x4
   | "bulbasaur_flower" | "bulbasaur_orange"
   // Florest Bone — cubone/marowak/rhyhorn + shinys + Marowak Plus (sprites 4x4)
-  | "cubone_shiny" | "marowak" | "marowak_shiny" | "marowak_plus" | "rhyhorn" | "rhyhorn_shiny";
+  | "cubone_shiny" | "marowak" | "marowak_shiny" | "marowak_plus" | "rhyhorn" | "rhyhorn_shiny"
+  // Valley Plume — oddish/gloom/vileplume/paras/parasect + shinys + eevee (sprites 4x4)
+  | "gloom_shiny" | "paras_shiny" | "parasect_shiny" | "vileplume_shiny" | "eevee"
+  // Verdejante 1 — caterpie shiny + butterfree shiny plus (sprites 4x4)
+  | "caterpie_shiny" | "butterfree_shiny_plus"
+  // Rota Flower — bellsprout/weepinbell/victreebel/voltorb/electrode/exeggcute/exeggutor + shinys + exeggutor alola (sprites 4x4)
+  | "bellsprout_shiny" | "weepinbell" | "weepinbell_shiny" | "victreebel" | "victreebel_shiny"
+  | "voltorb" | "voltorb_shiny" | "electrode" | "electrode_shiny" | "exeggcute" | "exeggcute_shiny"
+  | "exeggutor_alola" | "exeggutor_alola_shiny"
+  // Snolax — especial dos mapas Rota Flower e Valley Plume (sprite 4x4, só via contador de 700 kills)
+  | "snolax"
+  // Ruínas — geodude/graveler/golem/arcanine/growlithe/sprigatito + shinys/plus + graveler alola (sprites 4x4)
+  | "geodude" | "geodude_shiny" | "graveler" | "graveler_shiny" | "graveler_alola"
+  | "golem_shiny" | "golem_plus" | "arcanine_shiny" | "arcanine_shiny_plus" | "growlithe_shiny"
+  | "sprigatito" | "sprigatito_shiny"
+  // Ruínas de Vênus — ekans/arbok/gastly/haunter/grimer/muk/swalot + shinys (sprites 4x4, mapa peçonhento)
+  | "ekans_shiny" | "arbok_shiny" | "gastly" | "gastly_shiny" | "haunter" | "haunter_shiny"
+  | "grimer" | "grimer_shiny" | "muk" | "muk_shiny" | "swalot" | "swalot_shiny"
+  // Mapa Dos Céus — zubat/pidgey/pidgeotto/pidgeot/spearow/golbat/fearow + shinys (sprites 4x4)
+  | "zubat_shiny" | "pidgey_shiny" | "pidgeotto_shiny" | "pidgeot_shiny" | "spearow" | "spearow_shiny"
+  | "golbat" | "golbat_shiny" | "fearow_shiny";
 
 
 
@@ -304,12 +324,14 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   vulpix:     { hp: 38, atk: 41, def: 40, spa: 50, spd: 65, spe: 65, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 3 },
   jigglypuff: { hp: 115, atk: 45, def: 20, spa: 45, spd: 25, spe: 20, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.8, minLv: 1 },
   caterpie:   { hp: 45, atk: 30, def: 35, spa: 20, spd: 20, spe: 45, rarity: "common", goldRange: [1, 4], crystalChance: 0, catchMod: 0.6, minLv: 1 },
+  caterpie_shiny: { hp: 50, atk: 35, def: 40, spa: 25, spd: 25, spe: 50, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 1 },
   charmander: { hp: 39, atk: 52, def: 43, spa: 60, spd: 50, spe: 65, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 1 },
   squirtle:   { hp: 44, atk: 48, def: 65, spa: 50, spd: 64, spe: 43, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 1 },
   charizard:  { hp: 78, atk: 84, def: 78, spa: 109, spd: 85, spe: 100, rarity: "epic", goldRange: [20, 35], crystalChance: 0.125, catchMod: 1.6, minLv: 28 },
   ivysaur:    { hp: 60, atk: 62, def: 63, spa: 80, spd: 80, spe: 60, rarity: "rare", goldRange: [9, 15], crystalChance: 0.04, catchMod: 1.2, minLv: 14 },
   venusaur:   { hp: 80, atk: 82, def: 83, spa: 100, spd: 100, spe: 80, rarity: "epic", goldRange: [20, 35], crystalChance: 0.11, catchMod: 1.55, minLv: 30 },
   butterfree: { hp: 60, atk: 45, def: 50, spa: 90, spd: 80, spe: 70, rarity: "rare", goldRange: [8, 14], crystalChance: 0.04, catchMod: 1.15, minLv: 10 },
+  butterfree_shiny_plus: { hp: 72, atk: 58, def: 62, spa: 112, spd: 100, spe: 82, rarity: "epic", goldRange: [30, 55], crystalChance: 0.12, catchMod: 1.6, minLv: 30 },
   bulbasaur_hat: { hp: 50, atk: 55, def: 55, spa: 70, spd: 70, spe: 50, rarity: "rare", goldRange: [10, 16], crystalChance: 0.06, catchMod: 1.2, minLv: 8 },
   bulbasaur_flower:  { hp: 55, atk: 58, def: 58, spa: 72, spd: 72, spe: 55, rarity: "rare", goldRange: [10, 16], crystalChance: 0.05, catchMod: 1.2, minLv: 6 },
   bulbasaur_orange:  { hp: 60, atk: 64, def: 60, spa: 78, spd: 78, spe: 60, rarity: "rare", goldRange: [11, 18], crystalChance: 0.055, catchMod: 1.25, minLv: 8 },
@@ -321,8 +343,16 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   magmar:     { hp: 65, atk: 95, def: 57, spa: 100, spd: 85, spe: 93, rarity: "rare", goldRange: [11, 19], crystalChance: 0.06, catchMod: 1.35, minLv: 18 },
   hitmonchan: { hp: 50, atk: 105, def: 79, spa: 35, spd: 110, spe: 76, rarity: "rare", goldRange: [10, 17], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
   golem:      { hp: 80, atk: 120, def: 130, spa: 55, spd: 65, spe: 45, rarity: "epic", goldRange: [19, 32], crystalChance: 0.1, catchMod: 1.55, minLv: 25 },
+  golem_shiny: { hp: 88, atk: 128, def: 138, spa: 60, spd: 70, spe: 50, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 25 },
+  golem_plus:  { hp: 95, atk: 140, def: 150, spa: 65, spd: 75, spe: 55, rarity: "epic", goldRange: [32, 55], crystalChance: 0.14, catchMod: 1.6, minLv: 30 },
+  geodude:          { hp: 40, atk: 80, def: 100, spa: 30, spd: 30, spe: 20, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  geodude_shiny:    { hp: 45, atk: 85, def: 105, spa: 35, spd: 35, spe: 25, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
+  graveler:         { hp: 55, atk: 95, def: 115, spa: 45, spd: 45, spe: 35, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 14 },
+  graveler_shiny:   { hp: 60, atk: 100, def: 120, spa: 50, spd: 50, spe: 40, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 14 },
+  graveler_alola:   { hp: 55, atk: 95, def: 115, spa: 45, spd: 45, spe: 35, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 14 },
   aerodactyl: { hp: 80, atk: 105, def: 65, spa: 60, spd: 75, spe: 130, rarity: "epic", goldRange: [21, 35], crystalChance: 0.11, catchMod: 1.6, minLv: 26 },
   arbok:           { hp: 60, atk: 95, def: 69, spa: 65, spd: 79, spe: 80, rarity: "rare", goldRange: [11, 18], crystalChance: 0.05, catchMod: 1.3, minLv: 14 },
+  arbok_shiny:     { hp: 66, atk: 100, def: 75, spa: 70, spd: 84, spe: 85, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 14 },
   charizard_shiny: { hp: 90, atk: 95, def: 85, spa: 120, spd: 95, spe: 110, rarity: "mythic", goldRange: [45, 80], crystalChance: 0.275, catchMod: 2.1, minLv: 90 },
   charizard_alt:   { hp: 88, atk: 92, def: 84, spa: 118, spd: 92, spe: 108, rarity: "mythic", goldRange: [42, 75], crystalChance: 0.25, catchMod: 2.0, minLv: 90 },
   moltres:         { hp: 90, atk: 100, def: 90, spa: 125, spd: 85, spe: 90, rarity: "mythic", goldRange: [50, 85], crystalChance: 0.3, catchMod: 2.2, minLv: 90 },
@@ -340,8 +370,13 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   metapod:    { hp: 50, atk: 20, def: 55, spa: 25, spd: 25, spe: 30, rarity: "common", goldRange: [2, 4], crystalChance: 0, catchMod: 0.7, minLv: 4 },
   beedrill:   { hp: 65, atk: 90, def: 40, spa: 45, spd: 80, spe: 75, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.25, minLv: 12 },
   pidgey:     { hp: 40, atk: 45, def: 40, spa: 35, spd: 35, spe: 56, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.85, minLv: 2 },
+  pidgey_shiny: { hp: 45, atk: 50, def: 45, spa: 40, spd: 40, spe: 60, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 2 },
   pidgeot:    { hp: 83, atk: 80, def: 75, spa: 70, spd: 70, spe: 101, rarity: "epic", goldRange: [19, 32], crystalChance: 0.1, catchMod: 1.55, minLv: 24 },
+  pidgeot_shiny: { hp: 90, atk: 88, def: 82, spa: 78, spd: 78, spe: 108, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 24 },
+  spearow:         { hp: 40, atk: 60, def: 30, spa: 31, spd: 31, spe: 70, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.85, minLv: 2 },
+  spearow_shiny:   { hp: 45, atk: 65, def: 35, spa: 36, spd: 36, spe: 75, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 2 },
   vileplume:  { hp: 75, atk: 80, def: 85, spa: 110, spd: 90, spe: 50, rarity: "epic", goldRange: [18, 30], crystalChance: 0.09, catchMod: 1.5, minLv: 22 },
+  vileplume_shiny: { hp: 82, atk: 88, def: 92, spa: 118, spd: 98, spe: 55, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 22 },
   tangela:    { hp: 65, atk: 55, def: 115, spa: 100, spd: 40, spe: 60, rarity: "rare", goldRange: [10, 16], crystalChance: 0.05, catchMod: 1.3, minLv: 14 },
   kabutops:   { hp: 60, atk: 115, def: 105, spa: 65, spd: 70, spe: 80, rarity: "epic", goldRange: [20, 34], crystalChance: 0.1, catchMod: 1.55, minLv: 26 },
   lapras:     { hp: 130, atk: 85, def: 80, spa: 85, spd: 95, spe: 60, rarity: "epic", goldRange: [25, 42], crystalChance: 0.125, catchMod: 1.6, minLv: 28 },
@@ -369,8 +404,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   sandshrew_shiny: { hp: 55, atk: 80, def: 90, spa: 25, spd: 35, spe: 45, rarity: "rare", goldRange: [14, 27], crystalChance: 0.075, catchMod: 1.25, minLv: 10 },
   sandslash_shiny: { hp: 85, atk: 110, def: 120, spa: 50, spd: 60, spe: 75, rarity: "mythic", goldRange: [47, 82], crystalChance: 0.25, catchMod: 2.0, minLv: 90 },
   ekans:           { hp: 35, atk: 60, def: 44, spa: 40, spd: 54, spe: 55, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 5 },
+  ekans_shiny:     { hp: 40, atk: 65, def: 49, spa: 45, spd: 59, spe: 60, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 5 },
   fearow:          { hp: 65, atk: 90, def: 65, spa: 61, spd: 61, spe: 100, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 14 },
+  fearow_shiny:    { hp: 72, atk: 98, def: 72, spa: 68, spd: 68, spe: 105, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 14 },
   pidgeotto:       { hp: 63, atk: 60, def: 55, spa: 50, spd: 50, spe: 71, rarity: "uncommon", goldRange: [6, 11], crystalChance: 0.025, catchMod: 1.05, minLv: 8 },
+  pidgeotto_shiny: { hp: 68, atk: 65, def: 60, spa: 55, spd: 55, spe: 75, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 8 },
   wartortle:       { hp: 59, atk: 63, def: 80, spa: 65, spd: 80, spe: 58, rarity: "rare", goldRange: [10, 17], crystalChance: 0.05, catchMod: 1.25, minLv: 12 },
   wartortle_shiny: { hp: 65, atk: 68, def: 85, spa: 70, spd: 85, spe: 63, rarity: "epic", goldRange: [20, 35], crystalChance: 0.1, catchMod: 1.5, minLv: 18 },
   blastoise:       { hp: 79, atk: 83, def: 100, spa: 85, spd: 105, spe: 78, rarity: "epic", goldRange: [22, 37], crystalChance: 0.11, catchMod: 1.55, minLv: 28 },
@@ -379,9 +417,25 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   abra:            { hp: 25, atk: 20, def: 15, spa: 105, spd: 55, spe: 90, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.0, minLv: 8 },
   kadabra:         { hp: 40, atk: 35, def: 30, spa: 120, spd: 70, spe: 105, rarity: "rare", goldRange: [11, 18], crystalChance: 0.06, catchMod: 1.3, minLv: 16 },
   arcanine:        { hp: 90, atk: 110, def: 80, spa: 100, spd: 80, spe: 95, rarity: "epic", goldRange: [21, 36], crystalChance: 0.11, catchMod: 1.55, minLv: 26 },
+  arcanine_shiny:      { hp: 98, atk: 118, def: 88, spa: 108, spd: 88, spe: 100, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 26 },
+  arcanine_shiny_plus: { hp: 105, atk: 128, def: 95, spa: 115, spd: 95, spe: 108, rarity: "epic", goldRange: [32, 55], crystalChance: 0.14, catchMod: 1.6, minLv: 30 },
   growlithe:       { hp: 55, atk: 70, def: 45, spa: 70, spd: 50, spe: 60, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.02, catchMod: 1.0, minLv: 5 },
+  growlithe_shiny: { hp: 60, atk: 75, def: 50, spa: 75, spd: 55, spe: 65, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 5 },
   bellsprout:      { hp: 50, atk: 75, def: 35, spa: 70, spd: 30, spe: 40, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  bellsprout_shiny: { hp: 55, atk: 80, def: 40, spa: 75, spd: 35, spe: 45, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
+  weepinbell:        { hp: 65, atk: 90, def: 50, spa: 85, spd: 45, spe: 55, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 14 },
+  weepinbell_shiny:  { hp: 70, atk: 95, def: 55, spa: 90, spd: 50, spe: 60, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 14 },
+  victreebel:        { hp: 80, atk: 105, def: 65, spa: 100, spd: 70, spe: 70, rarity: "epic", goldRange: [18, 30], crystalChance: 0.09, catchMod: 1.5, minLv: 22 },
+  victreebel_shiny:  { hp: 88, atk: 112, def: 72, spa: 108, spd: 78, spe: 75, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 22 },
+  voltorb:           { hp: 40, atk: 30, def: 50, spa: 55, spd: 55, spe: 100, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  voltorb_shiny:     { hp: 45, atk: 35, def: 55, spa: 60, spd: 60, spe: 105, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
+  electrode:         { hp: 60, atk: 50, def: 70, spa: 80, spd: 80, spe: 150, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
+  electrode_shiny:   { hp: 66, atk: 55, def: 78, spa: 88, spd: 88, spe: 155, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 16 },
+  exeggcute:         { hp: 60, atk: 40, def: 80, spa: 60, spd: 45, spe: 40, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  exeggcute_shiny:   { hp: 66, atk: 45, def: 88, spa: 65, spd: 50, spe: 45, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
   gloom:           { hp: 60, atk: 65, def: 70, spa: 85, spd: 75, spe: 40, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 14 },
+  gloom_shiny:     { hp: 66, atk: 70, def: 78, spa: 90, spd: 80, spe: 45, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 14 },
+  eevee:           { hp: 55, atk: 55, def: 50, spa: 45, spd: 65, spe: 55, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.0, minLv: 5 },
   oddish:          { hp: 45, atk: 50, def: 55, spa: 75, spd: 65, spe: 30, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
   clefable:        { hp: 95, atk: 70, def: 73, spa: 95, spd: 90, spe: 60, rarity: "epic", goldRange: [20, 34], crystalChance: 0.1, catchMod: 1.5, minLv: 24 },
   clefairy:        { hp: 70, atk: 45, def: 48, spa: 60, spd: 65, spe: 35, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.05, minLv: 6 },
@@ -406,7 +460,9 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   nidorina:        { hp: 70, atk: 62, def: 67, spa: 55, spd: 55, spe: 56, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.25, minLv: 14 },
   ninetales:       { hp: 73, atk: 76, def: 75, spa: 100, spd: 100, spe: 100, rarity: "epic", goldRange: [20, 34], crystalChance: 0.11, catchMod: 1.55, minLv: 24 },
   paras:           { hp: 35, atk: 70, def: 55, spa: 45, spd: 55, spe: 25, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  paras_shiny:     { hp: 40, atk: 75, def: 60, spa: 50, spd: 60, spe: 30, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
   parasect:        { hp: 60, atk: 95, def: 80, spa: 60, spd: 80, spe: 30, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
+  parasect_shiny:  { hp: 66, atk: 100, def: 88, spa: 65, spd: 85, spe: 35, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 16 },
   poliwag:         { hp: 40, atk: 50, def: 40, spa: 40, spd: 40, spe: 90, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
   poliwhirl:       { hp: 65, atk: 65, def: 65, spa: 50, spd: 50, spe: 90, rarity: "rare", goldRange: [10, 17], crystalChance: 0.05, catchMod: 1.25, minLv: 14 },
   poliwrath:       { hp: 90, atk: 95, def: 95, spa: 70, spd: 90, spe: 70, rarity: "epic", goldRange: [21, 35], crystalChance: 0.11, catchMod: 1.55, minLv: 26 },
@@ -414,6 +470,9 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   venonat:         { hp: 60, atk: 55, def: 50, spa: 40, spd: 55, spe: 45, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 5 },
   venomoth:        { hp: 70, atk: 65, def: 60, spa: 90, spd: 75, spe: 90, rarity: "rare", goldRange: [11, 18], crystalChance: 0.06, catchMod: 1.3, minLv: 16 },
   zubat:           { hp: 40, atk: 45, def: 35, spa: 30, spd: 40, spe: 55, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.85, minLv: 3 },
+  zubat_shiny:     { hp: 45, atk: 50, def: 40, spa: 35, spd: 45, spe: 60, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 3 },
+  golbat:          { hp: 75, atk: 80, def: 70, spa: 65, spd: 75, spe: 90, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
+  golbat_shiny:    { hp: 82, atk: 88, def: 78, spa: 72, spd: 82, spe: 95, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 16 },
   blaziken:        { hp: 80, atk: 120, def: 70, spa: 110, spd: 70, spe: 80, rarity: "epic", goldRange: [40, 75], crystalChance: 0.2, catchMod: 1.9, minLv: 36 },
   deoxys:          { hp: 50, atk: 150, def: 50, spa: 150, spd: 50, spe: 150, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.45, catchMod: 3.0, minLv: 500 },
   groudon:         { hp: 100, atk: 150, def: 140, spa: 100, spd: 90, spe: 90, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.45, catchMod: 3.0, minLv: 500 },
@@ -429,6 +488,16 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   ditto:           { hp: 48, atk: 48, def: 48, spa: 48, spd: 48, spe: 48, rarity: "rare", goldRange: [15, 27], crystalChance: 0.075, catchMod: 1.4, minLv: 15 },
   electabuzz:      { hp: 65, atk: 83, def: 57, spa: 95, spd: 85, spe: 105, rarity: "rare", goldRange: [14, 25], crystalChance: 0.07, catchMod: 1.35, minLv: 20 },
   gengar:          { hp: 60, atk: 65, def: 60, spa: 130, spd: 75, spe: 110, rarity: "epic", goldRange: [27, 47], crystalChance: 0.125, catchMod: 1.7, minLv: 32 },
+  gastly:          { hp: 30, atk: 35, def: 30, spa: 100, spd: 35, spe: 80, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  gastly_shiny:    { hp: 35, atk: 40, def: 35, spa: 108, spd: 40, spe: 85, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
+  haunter:         { hp: 45, atk: 50, def: 45, spa: 115, spd: 55, spe: 95, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
+  haunter_shiny:   { hp: 50, atk: 55, def: 50, spa: 122, spd: 60, spe: 100, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 16 },
+  grimer:          { hp: 80, atk: 80, def: 50, spa: 40, spd: 50, spe: 25, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  grimer_shiny:    { hp: 86, atk: 85, def: 55, spa: 45, spd: 55, spe: 30, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
+  muk:             { hp: 105, atk: 105, def: 75, spa: 65, spd: 100, spe: 50, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
+  muk_shiny:       { hp: 112, atk: 112, def: 82, spa: 70, spd: 108, spe: 55, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 16 },
+  swalot:          { hp: 100, atk: 73, def: 83, spa: 73, spd: 83, spe: 55, rarity: "rare", goldRange: [11, 19], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
+  swalot_shiny:    { hp: 108, atk: 80, def: 90, spa: 80, spd: 90, spe: 60, rarity: "epic", goldRange: [16, 28], crystalChance: 0.08, catchMod: 1.3, minLv: 16 },
   hitmontop:       { hp: 50, atk: 95, def: 95, spa: 35, spd: 110, spe: 70, rarity: "rare", goldRange: [13, 24], crystalChance: 0.065, catchMod: 1.35, minLv: 22 },
   magneton:        { hp: 50, atk: 60, def: 95, spa: 120, spd: 70, spe: 70, rarity: "epic", goldRange: [25, 44], crystalChance: 0.11, catchMod: 1.6, minLv: 28 },
   ditto_shiny:     { hp: 48, atk: 48, def: 48, spa: 48, spd: 48, spe: 48, rarity: "mythic_shiny", goldRange: [210, 360], crystalChance: 0.425, catchMod: 4.2, minLv: 100 },
@@ -450,6 +519,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   cloyster_shiny:  { hp: 50,  atk: 95,  def: 180, spa: 85,  spd: 45,  spe: 70,  rarity: "mythic_shiny", goldRange: [750, 1200], crystalChance: 0.49, catchMod: 6.5, minLv: 550 },
   exeggutor:       { hp: 95,  atk: 95,  def: 85,  spa: 125, spd: 75,  spe: 55,  rarity: "mythic_shiny", goldRange: [600, 1000], crystalChance: 0.475, catchMod: 6.0, minLv: 500 },
   exeggutor_shiny: { hp: 95,  atk: 95,  def: 85,  spa: 125, spd: 75,  spe: 55,  rarity: "mythic_shiny", goldRange: [750, 1200], crystalChance: 0.49, catchMod: 6.5, minLv: 550 },
+  exeggutor_alola:        { hp: 95, atk: 105, def: 85, spa: 125, spd: 75, spe: 45, rarity: "epic", goldRange: [20, 34], crystalChance: 0.1, catchMod: 1.55, minLv: 26 },
+  exeggutor_alola_shiny:  { hp: 102, atk: 112, def: 92, spa: 132, spd: 82, spe: 50, rarity: "epic", goldRange: [26, 42], crystalChance: 0.12, catchMod: 1.45, minLv: 26 },
+  snolax:          { hp: 90, atk: 70, def: 85, spa: 95, spd: 90, spe: 45, rarity: "epic", goldRange: [22, 36], crystalChance: 0.1, catchMod: 1.5, minLv: 20 },
+  sprigatito:        { hp: 40, atk: 61, def: 54, spa: 45, spd: 45, spe: 65, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 4 },
+  sprigatito_shiny:  { hp: 45, atk: 66, def: 59, spa: 50, spd: 50, spe: 70, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 4 },
   feraligatr:      { hp: 85,  atk: 105, def: 100, spa: 79,  spd: 83,  spe: 78,  rarity: "mythic_shiny", goldRange: [700, 1100], crystalChance: 0.48, catchMod: 6.2, minLv: 550 },
   heracross:       { hp: 80,  atk: 125, def: 75,  spa: 40,  spd: 95,  spe: 85,  rarity: "mythic_shiny", goldRange: [650, 1050], crystalChance: 0.475, catchMod: 6.0, minLv: 500 },
   heracross_shiny: { hp: 80,  atk: 125, def: 75,  spa: 40,  spd: 95,  spe: 85,  rarity: "mythic_shiny", goldRange: [800, 1250], crystalChance: 0.49, catchMod: 6.5, minLv: 600 },
@@ -639,6 +713,14 @@ export const SHOP: ShopItem[] = [
   { id: "masterball", name: "Master Ball",     desc: "Captura 100% garantida",  price: 10000, currency: "ruby", icon: "🟣" },
   { id: "potion",    name: "Pocao 20%",       desc: "Cura 20% HP",            price: 80,   currency: "gold",    icon: "🧪" },
   { id: "revive",    name: "Revive",          desc: "Revive pet desmaiado",   price: 400,  currency: "gold",    icon: "💖" },
+  // ===== Recursos do treinador (fome/energia — horário local real) =====
+  { id: "fruta",     name: "Fruta",           desc: "Alimenta: +20 fome, +10 energia", price: 150, currency: "gold", icon: "🍎" },
+  { id: "suco",      name: "Suco",            desc: "Alimenta: +40 fome, +25 energia", price: 400, currency: "gold", icon: "🥤" },
+  { id: "energetico", name: "Energético",     desc: "Alimenta: +10 fome, +50 energia", price: 900, currency: "gold", icon: "🥫" },
+  { id: "refeicao",  name: "Refeição Completa", desc: "Alimenta: +100 fome, +100 energia", price: 2000, currency: "gold", icon: "🍱" },
+  // ===== Cuidado Pokémon (fome/lealdade — ciclo ~3h) =====
+  { id: "morango",   name: "Morango",         desc: "Pet: +30 fome, +10 lealdade", price: 120, currency: "gold", icon: "🍓" },
+  { id: "limao",     name: "Limão",           desc: "Pet: +20 fome, +5 lealdade",  price: 60,  currency: "gold", icon: "🍋" },
   { id: "incenseXp", name: "Incenso de XP",   desc: "+5% XP e +chance raro (10min)", price: 700, currency: "gold", icon: "🍯" },
   { id: "incenseRare", name: "Incenso Raro",   desc: "+15% XP e ++chance raro (15min)", price: 100, currency: "ruby", icon: "🍯" },
   { id: "incenseEpic", name: "Incenso Épico",   desc: "+30% XP e +++chance especial (20min)", price: 40, currency: "crystal", icon: "🍯" },

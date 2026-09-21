@@ -35,8 +35,30 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   // Grama
   bulbasaur: ["planta","veneno"], ivysaur: ["planta","veneno"], venusaur: ["planta","veneno"],
   bulbasaur_hat: ["planta"], oddish: ["planta","veneno"], gloom: ["planta","veneno"],
-  bellsprout: ["planta","veneno"], vileplume: ["planta","veneno"], tangela: ["planta"],
-  paras: ["inseto","planta"], parasect: ["inseto","planta"], virizion: ["planta","lutador"],
+  gloom_shiny: ["planta","veneno"], eevee: ["normal"],
+  bellsprout: ["planta","veneno"], vileplume: ["planta","veneno"], vileplume_shiny: ["planta","veneno"], tangela: ["planta"],
+  paras: ["inseto","planta"], parasect: ["inseto","planta"], paras_shiny: ["inseto","planta"], parasect_shiny: ["inseto","planta"], virizion: ["planta","lutador"],
+  // Rota Flower
+  bellsprout_shiny: ["planta","veneno"], weepinbell: ["planta","veneno"], weepinbell_shiny: ["planta","veneno"],
+  victreebel: ["planta","veneno"], victreebel_shiny: ["planta","veneno"],
+  voltorb: ["eletrico"], voltorb_shiny: ["eletrico"], electrode: ["eletrico"], electrode_shiny: ["eletrico"],
+  exeggcute: ["planta","psiquico"], exeggcute_shiny: ["planta","psiquico"],
+  exeggutor_alola: ["planta","dragao"], exeggutor_alola_shiny: ["planta","dragao"],
+  snolax: ["agua"],
+  // Ruínas de Vênus
+  ekans_shiny: ["veneno"], arbok_shiny: ["veneno"],
+  gastly: ["veneno","fantasma"], gastly_shiny: ["veneno","fantasma"],
+  haunter: ["veneno","fantasma"], haunter_shiny: ["veneno","fantasma"],
+  grimer: ["veneno"], grimer_shiny: ["veneno"], muk: ["veneno"], muk_shiny: ["veneno"],
+  swalot: ["veneno"], swalot_shiny: ["veneno"],
+  // Mapa Dos Céus
+  zubat_shiny: ["veneno","voador"], pidgey_shiny: ["voador","normal"], pidgeotto_shiny: ["voador","normal"],
+  pidgeot_shiny: ["voador","normal"], spearow: ["voador","normal"], spearow_shiny: ["voador","normal"],
+  golbat: ["veneno","voador"], golbat_shiny: ["veneno","voador"], fearow_shiny: ["voador","normal"],
+  // Ruínas
+  geodude: ["pedra"], geodude_shiny: ["pedra"], graveler: ["pedra"], graveler_shiny: ["pedra"], graveler_alola: ["pedra","eletrico"],
+  golem_shiny: ["pedra"], golem_plus: ["pedra"], arcanine_shiny: ["fogo"], arcanine_shiny_plus: ["fogo"], growlithe_shiny: ["fogo"],
+  sprigatito: ["planta"], sprigatito_shiny: ["planta"],
   // Fogo
   charmander: ["fogo"], charmeleon: ["fogo"], charizard: ["fogo","voador"],
   charizard_shiny: ["fogo","voador"], charizard_alt: ["fogo","voador"],
@@ -78,6 +100,7 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   fearow: ["voador","normal"], butterfree: ["inseto","voador"], butterfree_shiny: ["inseto","voador"],
   // Inseto
   caterpie: ["inseto"], metapod: ["inseto"], metapod_shiny: ["inseto"], pinsir: ["inseto"],
+  caterpie_shiny: ["inseto"], butterfree_shiny_plus: ["inseto","voador"],
   // Lutador
   machop: ["lutador"], machoke: ["lutador"], machamp: ["lutador"],
   mankey: ["lutador"], primeape: ["lutador"], hitmonchan: ["lutador"],

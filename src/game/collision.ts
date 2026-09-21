@@ -1,4 +1,4 @@
-// Sistema de colisão por mapa.
+import cold6MaskUrl from "@/assets/colidir/COLD6.png";
 // Carrega cada imagem em um canvas offscreen e gera uma grid por tile.
 // Cada tile amostra vários pixels e decide pela maioria, e no fim aplica
 // uma "abertura" (dilatação) pra que o jogador não trave em sombras ou
@@ -42,7 +42,11 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
   const blueDom = b > r + 25 && b > g + 15; // água
 
   switch (mapId) {
-    // ---- Porto Florido (mockup 4) ----
+    // ---- Revoland (mapinha6) com máscara exata COLD6.png ----
+    case "mapinha6": {
+      // Branco = caminhável (l > 0.5), Preto = bloqueado.
+      return l > 0.5;
+    }
     case "village":
     case "town": {
       // Caminho de tijolo bege/laranja queimado. Bloqueia grama, água, casas escuras.
