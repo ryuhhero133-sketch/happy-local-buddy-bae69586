@@ -265,8 +265,9 @@ import mapinha6Url from "@/assets/mapinha6.png";
 import mapinha7Url from "@/assets/mapinha7.png";
 import mapinha8Url from "@/assets/mapinha8.png";
 import mapinha9Url from "@/assets/mapinha9.png";
+import mapinha11Url from "@/assets/revoland.png";
 import cold6MaskUrl from "@/assets/colidir/COLD6.png";
-import { ensureCollision, isWalkable } from "@/game/collision";
+import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
 import mapinha12Url from "@/assets/bidril e kakuna.png";
 import mapinha13Url from "@/assets/mp plus.png";
 import cave01Url from "@/assets/Cave 01.png";
@@ -3042,16 +3043,24 @@ function IdlePage() {
   };
   useEffect(() => {
     const url = customMapUrls[idle.currentMap];
-    if (idle.currentMap === "mapinha6") {
-      const w = customDims ? customDims.w : WORLD_W;
-      const h = customDims ? customDims.h : WORLD_H;
-      ensureCollision("mapinha6", cold6MaskUrl, w, h);
+    if (!url) {
+      setCustomDims((previous) => previous === null ? previous : null);
+      return;
     }
-    if (!url) { setCustomDims(null); return; }
+    let cancelled = false;
     const img = new Image();
     img.src = url;
-    img.onload = () => setCustomDims({ w: img.naturalWidth, h: img.naturalHeight });
-  }, [idle.currentMap, customDims]);
+    img.onload = () => {
+      if (cancelled) return;
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      setCustomDims((previous) =>
+        previous?.w === width && previous.h === height ? previous : { w: width, h: height }
+      );
+      if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, width, height);
+    };
+    return () => { cancelled = true; };
+  }, [idle.currentMap]);
   useEffect(() => {
     if (customDims && customMapUrls[idle.currentMap]) {
       setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
@@ -3148,11 +3157,37 @@ function IdlePage() {
   const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
   const [teleportTransition, setTeleportTransition] = useState<WorldMapDestination | null>(null);
   const teleportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revolandDoorTriggeredRef = useRef(false);
   const [fishingOpen, setFishingOpen] = useState(false);
 
   useEffect(() => () => {
     if (teleportTimerRef.current) clearTimeout(teleportTimerRef.current);
   }, []);
+  useEffect(() => {
+    if (idle.currentMap !== "mapinha6") {
+      revolandDoorTriggeredRef.current = false;
+      return;
+    }
+    if (revolandDoorTriggeredRef.current || teleportTransition) return;
+    if (!isRevolandOrangeDoor(trainerPos.x, trainerPos.y)) return;
+
+    const destination = IDLE_MAPS.mapinha10;
+    revolandDoorTriggeredRef.current = true;
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setAuto(false);
+    setTeleportTransition({ id: "mapinha10", ...destination });
+    teleportTimerRef.current = setTimeout(() => {
+      setIdle((state) => ({ ...state, currentMap: "mapinha10" }));
+      setEnemies([]);
+      setChests([]);
+      setMapOrbs([]);
+      clearBattleScene();
+      pushChat("Chegou ao Pokemarkt!", "cap");
+      setTeleportTransition(null);
+      teleportTimerRef.current = null;
+    }, 4000);
+  }, [idle.currentMap, teleportTransition, trainerPos.x, trainerPos.y]);
   // Orbs de energia removidos — só existem os orbs de mapa que spawnam pokémon
   // Energia do treinador: 100% em ~5h andando; energia baixa reduz velocidade (nunca trava)
   // Orbs de mapa: comuns (2min) e épicos (2h) — aparecem conforme kills
