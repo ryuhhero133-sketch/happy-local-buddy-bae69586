@@ -87,12 +87,12 @@ export function NpcAdvanceArrow({ visible, color = "#ffcc33" }: { visible: boole
       <span
         aria-hidden
         style={{
-          position: "absolute", right: 10, bottom: 6,
+          position: "absolute", right: 10, bottom: 4,
           width: 0, height: 0,
-          borderLeft: "7px solid transparent",
-          borderRight: "7px solid transparent",
-          borderTop: `9px solid ${color}`,
-          filter: "drop-shadow(1px 1px 0 #000)",
+          borderLeft: "11px solid transparent",
+          borderRight: "11px solid transparent",
+          borderTop: `14px solid ${color}`,
+          filter: "drop-shadow(2px 2px 0 #000) drop-shadow(0 0 6px rgba(255,255,255,0.35))",
           animation: "npcArrowBob 0.9s ease-in-out infinite",
           pointerEvents: "none",
         }}
@@ -131,7 +131,7 @@ export function NpcPagedLine({
   const { shown, done, complete } = useNpcTypewriter(text);
   return (
     <div
-      onClick={() => { if (!done) complete(); else onAdvance(); }}
+      onClick={(e) => { e.stopPropagation(); if (!done) complete(); else onAdvance(); }}
       style={{ cursor: "pointer", position: "relative", paddingBottom: 16 }}
     >
       <div style={{
@@ -254,7 +254,7 @@ export function NpcDialog({
 
   return (
     <div
-      onClick={() => { if (!done) complete(); else onAdvance(); }}
+      onClick={(e) => { e.stopPropagation(); if (!done) complete(); else onAdvance(); }}
       style={{
         position: "fixed", bottom: 110, left: "50%", transform: "translateX(-50%)",
         width: "min(560px, 92vw)",

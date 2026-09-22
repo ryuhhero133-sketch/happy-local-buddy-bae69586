@@ -6,6 +6,16 @@ import cartaIncubadoraAsset from "@/assets/carta-incubadora.png.asset.json";
 import rubyKeyAsset from "@/assets/ruby-key.png.asset.json";
 import cartaPlusAsset from "@/assets/black-mitic-plus-egg-icon.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
+// Doces & bebidas da Nanizinha (sprites em src/assets/comida).
+import macaPng from "@/assets/comida/fruit_apple.png";
+import laranjaPng from "@/assets/comida/fruit_orange.png";
+import picolePng from "@/assets/comida/popsicle_pink.png";
+import refrigerantePng from "@/assets/comida/soda_coke.png";
+import cafePng from "@/assets/comida/coffee_espresso.png";
+import chaVerdePng from "@/assets/comida/coffee_greentea.png";
+import boloMorangoPng from "@/assets/comida/cake_strawberry.png";
+import leiteMangaPng from "@/assets/comida/soymilk_mango.png";
+import limaPng from "@/assets/comida/fruit_lime.png";
 
 // Overrides que renderizam uma imagem bitmap ao invés do glyph SVG.
 const BITMAP_OVERRIDES: Record<string, string> = {
@@ -13,6 +23,15 @@ const BITMAP_OVERRIDES: Record<string, string> = {
   carta_incubadora: assetUrlFromJson(cartaIncubadoraAsset),
   chave_ruby: assetUrlFromJson(rubyKeyAsset),
   carta_plus: assetUrlFromJson(cartaPlusAsset),
+  maca: macaPng,
+  laranja: laranjaPng,
+  picole: picolePng,
+  refrigerante: refrigerantePng,
+  cafe: cafePng,
+  cha_verde: chaVerdePng,
+  bolo_morango: boloMorangoPng,
+  leite_manga: leiteMangaPng,
+  limao: limaPng,
 };
 
 type Cell = [number, number, string]; // x, y, color

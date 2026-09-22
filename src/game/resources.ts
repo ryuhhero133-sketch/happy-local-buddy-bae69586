@@ -210,6 +210,15 @@ export const TRAINER_FOOD_VALUES: Record<string, { hunger: number; energy: numbe
   suco:      { hunger: 40,  energy: 25,  label: "🥤 Suco" },
   energetico:{ hunger: 10,  energy: 50,  label: "⚡ Energético" },
   refeicao:  { hunger: 100, energy: 100, label: "🍱 Refeição Completa" },
+  // ===== Doces & bebidas da Nanizinha (sprites em src/assets/comida) =====
+  maca:        { hunger: 25, energy: 15, label: "🍎 Maçã" },
+  laranja:     { hunger: 25, energy: 15, label: "🍊 Laranja" },
+  picole:      { hunger: 25, energy: 20, label: "🍧 Picolé" },
+  refrigerante:{ hunger: 20, energy: 35, label: "🥤 Refrigerante" },
+  cafe:        { hunger: 15, energy: 45, label: "☕ Café Expresso" },
+  cha_verde:   { hunger: 15, energy: 30, label: "🍵 Chá Verde" },
+  bolo_morango:{ hunger: 60, energy: 40, label: "🍰 Bolo de Morango" },
+  leite_manga: { hunger: 35, energy: 25, label: "🧋 Leite de Manga" },
 };
 
 export type MealCycleResult = {

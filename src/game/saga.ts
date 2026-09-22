@@ -41,7 +41,7 @@ export const SAGA_NPCS: Record<SagaNpcId, { name: string; title: string; map: st
   boby:      { name: "BOBY",      title: "O Companheiro das Pokébolas", map: "mapinha6" },
   san:       { name: "SAN",       title: "O Especialista em Orbs",      map: "mapinha6" },
   nanizinha: { name: "NANIZINHA", title: "A Cozinheira",                map: "mapinha6" },
-  payka:     { name: "PAYKA",     title: "O Negociador (irmão da Pan)", map: "mapinha6" },
+  payka:     { name: "PAYKA",     title: "O Negociador (irmão da Pan)", map: "florest_bone" },
   pan:       { name: "PAN",       title: "A Informante (irmã do Payka)",map: "mapinha6" },
 };
 
@@ -196,6 +196,8 @@ export const SAGA_STAGES: SagaStage[] = [
   {
     id: "payka1", npc: "payka", title: "Você me deve?",
     lines: [
+      "PAYKA: Psiu... larga o CLT de Revoland um minuto e escuta: achei um mapa velho falando de um FÓSSIL raríssimo aqui em Florest Bone. Dizem que ele lembra... o MEW. O lendário!",
+      "PAYKA: E tem boato de passagem secreta nestas bandas. Se eu achar esse fóssil, fico rico e peço demissão da vida de balcão! Se você farejar alguma pista por aí, me conta, tá? Aí a gente conversa de verdade.",
       "PAYKA: Eu tenho uma sensação estranha.",
       "VOCÊ: Qual?",
       "PAYKA: Que você já me deve dinheiro.",

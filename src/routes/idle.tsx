@@ -3389,16 +3389,19 @@ function IdlePage() {
         { id: 4, kind: "gordin", x: customDims ? customDims.w * 0.45 : 700, y: customDims ? customDims.h * 0.35 : 500, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha6") {
-      // Saga "As Memórias Apagadas" — os 5 NPCs em Revoland.
-      // Posições na grama livre (1402x1122), fora das casas/colisões:
-      // Boby no caminho central baixo, San em frente à SHOP, Nanizinha
-      // em frente à casa marrom, Payka ao lado da placa, Pan na praça oeste.
+      // Saga "As Memórias Apagadas" — 4 NPCs em Revoland (Payka foi
+      // caçar o fóssil em Florest Bone). Posições na grama livre
+      // (1402x1122), fora das casas/colisões.
       setNpcs([
         { id: 20, kind: "boby", x: 700, y: 950, dir: "down", frame: 0 },
         { id: 21, kind: "san", x: 1050, y: 430, dir: "down", frame: 0 },
         { id: 22, kind: "nanizinha", x: 1000, y: 960, dir: "down", frame: 0 },
-        { id: 23, kind: "payka", x: 900, y: 620, dir: "down", frame: 0 },
         { id: 24, kind: "pan", x: 400, y: 560, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "florest_bone") {
+      // PAYKA caçando o fóssil raro perto da caveira (1536x1024).
+      setNpcs([
+        { id: 23, kind: "payka", x: 430, y: 235, dir: "down", frame: 0 },
       ]);
     } else {
       setNpcs([]);
@@ -7464,7 +7467,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `HP CHEIO!`, "gold");
       pushChat(`Você usou Berry (HP totalmente restaurado).`, "info");
-    } else if (id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao") {
+    } else if (id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") {
       // 🍖 Alimentação do treinador: registra o momento real (atende o ciclo).
       const fv = TRAINER_FOOD_VALUES[id];
       if (!fv) { pushChat(`Alimento desconhecido.`, "info"); return; }
@@ -10924,7 +10927,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       return (
                         <button
                           key={n}
-                          onClick={() => setSagaChoiceSel((s) => (s.includes(n) ? s.filter((x) => x !== n) : s.length >= 2 ? s : [...s, n]))}
+                          onClick={(e) => { e.stopPropagation(); setSagaChoiceSel((s) => (s.includes(n) ? s.filter((x) => x !== n) : s.length >= 2 ? s : [...s, n])); }}
                           style={{
                             border: sel ? "2px solid #f5cf6b" : "2px solid rgba(255,255,255,0.2)",
                             borderRadius: 8, background: sel ? "rgba(245,207,107,0.15)" : "rgba(255,255,255,0.05)",
@@ -10939,7 +10942,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   </div>
                   <button
                     disabled={sagaChoiceSel.length !== 2}
-                    onClick={() => confirmSagaChoice(sagaChoiceSel)}
+                    onClick={(e) => { e.stopPropagation(); confirmSagaChoice(sagaChoiceSel); }}
                     style={{
                       marginTop: 8, width: "100%", padding: "8px", borderRadius: 8, border: "none",
                       background: sagaChoiceSel.length === 2 ? "#c084fc" : "#3a2a4a",
@@ -10988,11 +10991,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             if (!st || st.npc !== npc) {
               const hint = st ? `${SAGA_NPCS[st.npc].name} em ${IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? SAGA_NPCS[st.npc].map}` : "conclua a saga";
               const flavor: Record<SagaNpcId, string> = {
-                boby: "BOBY: Opa! Se precisar de bola, é comigo. Mas... você não era da minha parte da história, era?",
-                san: "SAN: Orbs? Falo por horas. Mas sua missão atual é com outro, né?",
-                nanizinha: "NANIZINHA: Comeu hoje? ...Sua missão é com outro colega, mas come mesmo assim!",
-                payka: "PAYKA: Negócio é negócio, mas sua tarefa tá com outro. Depois a gente conversa... de graça, dessa vez.",
-                pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.",
+                boby: "BOBY: Opa! Se precisar de bola, é comigo. Mas... você não era da minha parte da história, era?\n\n💡 DICA: deixa o AUTOMÁTICO ligado (botão ⚙️ ou ESPAÇO) que as Pokébolas voam sozinhas ao derrotar selvagens. Aperte 1, 2 ou 3 para trocar a bola favorita!",
+                san: "SAN: Orbs? Falo por horas. Mas sua missão atual é com outro, né?\n\n💡 DICA: Orb de XP dá +EXP por 1h — ative na mochila antes de farmar. E o AUTOMÁTICO só funciona fora da cidade inicial!",
+                nanizinha: "NANIZINHA: Comeu hoje? ...Sua missão é com outro colega, mas come mesmo assim!\n\n💡 DICA: Poção cura 50% do HP do líder, Berry cura tudo e Revive levanta quem caiu. E coma de 8 em 8h (🍖) pra manter a energia cheia!",
+                payka: "PAYKA: Sigo farejando aquele FÓSSIL aqui em Florest Bone... dizem que lembra o MEW! Se achar pista de passagem secreta, me conta — tem recompensa gorda!",
+                pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.\n\n💡 DICA: viajar custa energia — voltar pra Revoland custa 1⚡, outros mapas 5⚡. O custo aparece antes de confirmar, e sem energia não tem viagem!",
               };
               const targetNpc = st ? st.npc : null;
               const targetMapName = targetNpc ? (IDLE_MAPS[SAGA_NPCS[targetNpc].map]?.name ?? "Revoland") : "—";
@@ -13361,7 +13364,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               tasks={idle.tasks}
               onClaimTask={claimTask}
               onSagaClaim={claimSagaReward}
-              onSagaTalk={(n) => { setSagaTalk(n); setSagaPage(0); }}
+              onSagaTalk={(n) => {
+                // Longe do NPC? Abre o teleporte em vez da caixa de diálogo.
+                if (n !== "choice") {
+                  const npcMap = SAGA_NPCS[n].map;
+                  if (idle.currentMap !== npcMap) {
+                    pushChat(`📍 ${SAGA_NPCS[n].name} está em ${IDLE_MAPS[npcMap]?.name ?? npcMap} — abrindo o teleporte...`, "info");
+                    setMapTeleportOpen(true);
+                    return;
+                  }
+                }
+                setSagaTalk(n); setSagaPage(0);
+              }}
               onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
               onExchange={exchange}
               onSellItem={sellItem}
@@ -18513,7 +18527,7 @@ function TabOverlay({
       const entriesNow = Object.entries(items).filter(([id, n]) => (n as number) > 0 && !id.startsWith("_")) as [string, number][];
       const catOfKey = (id: string): string => {
         if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
-        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao") return "potions";
+        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
         if (id.startsWith("book_")) return "books";
         if (id.startsWith("egg_")) return "eggs";
         return "other";
@@ -18605,7 +18619,9 @@ function TabOverlay({
     setFragConfirm(null);
   };
   return (
-    <div style={{
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
       position: "absolute", inset: (tab === "mochila" || tab === "loja") ? 6 : 12,
       background: (tab === "mochila" || tab === "loja") ? "rgba(4,8,16,0.55)" : "rgba(11,5,16,0.96)",
       border: (tab === "mochila" || tab === "loja") ? "none" : "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
@@ -18979,11 +18995,17 @@ function TabOverlay({
             const sg: SagaProgress = idle.saga ?? freshSaga();
             const sagaPngLocal = (npc: SagaNpcId): string =>
               npc === "boby" ? bobyPng : npc === "san" ? sanPng : npc === "nanizinha" ? nanizinhaPng : npc === "payka" ? paykaPng : panPng;
-            const portraitSm = (npc: SagaNpcId) => (
-              <div style={{ width: 52, height: 52, border: "2px solid #c084fc", borderRadius: 8, overflow: "hidden", background: "#0f2a5a", flexShrink: 0 }}>
-                <div style={{ width: "100%", height: "100%", backgroundImage: `url(${sagaPngLocal(npc)})`, backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated" }} />
-              </div>
-            );
+            const portraitSm = (npc: SagaNpcId, size = 72) => {
+              const t = npcThemeFor(npc);
+              return (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
+                  <div style={{ width: size, height: size, border: `3px solid ${t.frame}`, borderRadius: 10, overflow: "hidden", background: "#0b0510", boxShadow: `0 0 12px ${t.glow}` }}>
+                    <div style={{ width: "100%", height: "100%", backgroundImage: `url(${sagaPngLocal(npc)})`, backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated" }} />
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: t.accent }}>{SAGA_NPCS[npc].name}</span>
+                </div>
+              );
+            };
             if (sg.finished) {
               return (
                 <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
@@ -19021,19 +19043,30 @@ function TabOverlay({
               return here;
             })();
             const claimed = !!sg.claimed[st.id];
+            const accent = npcThemeFor(st.npc).accent;
+            const npcHere = idle.currentMap === SAGA_NPCS[st.npc].map;
+            const countMax = (st.objective.kind === "kill" || st.objective.kind === "capture" || st.objective.kind === "feed_pet" || st.objective.kind === "feed_trainer") ? st.objective.count : null;
             return (
-              <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                <div style={{ color: "#e9d5ff", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS · etapa {sg.stage + 1}/{SAGA_TOTAL_STAGES}</div>
-                <div style={{ display: "flex", gap: 10, marginTop: 8, alignItems: "flex-start" }}>
+              <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: `2px solid ${accent}`, borderRadius: 12, padding: 12, marginBottom: 12, boxShadow: `0 0 18px ${npcThemeFor(st.npc).glow}` }}>
+                <div style={{ color: accent, fontWeight: 900, fontSize: 11, letterSpacing: 2 }}>📖 AS MEMÓRIAS APAGADAS · ETAPA {sg.stage + 1}/{SAGA_TOTAL_STAGES}</div>
+                <div style={{ display: "flex", gap: 12, marginTop: 10, alignItems: "flex-start" }}>
                   {portraitSm(st.npc)}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontWeight: 800, fontSize: 13 }}>{SAGA_NPCS[st.npc].name} — {st.title}</div>
-                    <div style={{ color: "#c8b8d0", fontSize: 11, marginTop: 2 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#5ec26a" : "#ffcc33" }}>{prog}</b></div>
-                    <div style={{ color: "#8a7a9c", fontSize: 11, marginTop: 2 }}>Recompensa: {sagaRewardText(st.reward)}</div>
-                    <div style={{ color: "#7fd8ff", fontSize: 11, marginTop: 2 }}>📍 {SAGA_NPCS[st.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland"}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""} — fale com ele para receber a recompensa no fim da conversa.</div>
-                    <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
-                      <button onClick={() => onSagaTalk(st.npc)} style={{ background: "rgba(192,132,252,0.2)", color: "#e9d5ff", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>💬 Falar</button>
-                      {claimed ? <span style={{ fontSize: 11, color: "#5ec26a", fontWeight: 800, alignSelf: "center" }}>✓ resgatada</span> : <span style={{ fontSize: 10, color: "#8a7a9c" }}>{isDone ? "pronta no diálogo" : prog}</span>}
+                    <div style={{ color: "#fff", fontWeight: 900, fontSize: 14 }}>{st.title}</div>
+                    <div style={{ color: "#c8b8d0", fontSize: 11, marginTop: 3 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#5ec26a" : "#ffcc33" }}>{prog}</b></div>
+                    {countMax != null && (
+                      <div style={{ width: "100%", height: 6, background: "#0b0510", borderRadius: 3, overflow: "hidden", marginTop: 4, border: "1px solid rgba(255,255,255,0.12)" }}>
+                        <div style={{ width: `${Math.min(100, (sg.count / countMax) * 100)}%`, height: "100%", background: accent, transition: "width 0.3s" }} />
+                      </div>
+                    )}
+                    <div style={{ color: "#8a7a9c", fontSize: 11, marginTop: 4 }}>🎁 Recompensa: <b style={{ color: "#fff" }}>{sagaRewardText(st.reward)}</b></div>
+                    <div style={{ color: "#7fd8ff", fontSize: 11, marginTop: 3 }}>📍 {SAGA_NPCS[st.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland"}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""}</div>
+                    <button
+                      onClick={() => onSagaTalk(st.npc)}
+                      style={{ marginTop: 8, width: "100%", background: npcHere ? accent : "rgba(255,255,255,0.08)", color: npcHere ? "#0b0510" : "#fff", border: npcHere ? "none" : `1px solid ${accent}`, borderRadius: 8, padding: "8px", fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: "pointer", boxShadow: npcHere ? `0 0 12px ${npcThemeFor(st.npc).glow}` : "none" }}
+                    >{npcHere ? "💬 FALAR" : "🗺️ FALAR — ABRIR TELEPORTE"}</button>
+                    <div style={{ fontSize: 10, color: claimed ? "#5ec26a" : "#8a7a9c", fontWeight: 800, textAlign: "center", marginTop: 4 }}>
+                      {claimed ? "✓ recompensa resgatada" : isDone ? "recompensa pronta no fim da conversa" : "complete o objetivo acima"}
                     </div>
                   </div>
                 </div>
@@ -19107,6 +19140,10 @@ function TabOverlay({
           black_mitic_egg: "Black Mitic Egg ✦",
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
+          maca: "Maçã 🍎", laranja: "Laranja 🍊", picole: "Picolé 🍧",
+          refrigerante: "Refrigerante 🥤", cafe: "Café Expresso ☕",
+          cha_verde: "Chá Verde 🍵", bolo_morango: "Bolo de Morango 🍰",
+          leite_manga: "Leite de Manga 🧋",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -19162,7 +19199,7 @@ function TabOverlay({
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
-        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao") return "potions";
+        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
           if (id.startsWith("book_")) return "books";
           if (id.startsWith("egg_")) return "eggs";
           return "other";
