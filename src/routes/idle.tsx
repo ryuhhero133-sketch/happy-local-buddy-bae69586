@@ -9099,6 +9099,30 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     refrigerante: { name: "Refrigerante", price: 600 },
     cafe: { name: "Café Expresso", price: 500 },
     bolo_morango: { name: "Bolo de Morango", price: 1200 },
+    maca: { name: "Maçã", price: 200 },
+    laranja: { name: "Laranja", price: 200 },
+    picole: { name: "Picolé", price: 300 },
+    cha_verde: { name: "Chá Verde", price: 350 },
+    leite_manga: { name: "Leite de Manga", price: 700 },
+    antidoto: { name: "Antídoto", price: 150 },
+  };
+  const REVIVE_PRICE = 400;
+  const buyRevive = (qty = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
+    setIdle((s) => {
+      const totalCost = REVIVE_PRICE * n;
+      if (s.bank.gold < totalCost) {
+        pushChat(`Ouro insuficiente para ${n}× Revive (precisa ${totalCost}).`, "info");
+        return s;
+      }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Revive`, "capture");
+      pushChat(`Comprou ${n}× Revive por ${totalCost} ouro.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, gold: s.bank.gold - totalCost },
+        items: { ...s.items, revive: (s.items.revive ?? 0) + n },
+      };
+    });
   };
   const buyFood = (id: string, qty = 1) => {
     const entry = FOOD_SHOP_PRICE[id];
@@ -11137,10 +11161,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               inventory={idle.items}
               onClose={() => setPokemarktShopOpen(false)}
               onBuyBall={(id, quantity) => {
-                const ball = SHOP_BALLS.find((entry) => entry.id === id);
+                const ball = ALL_BALLS.find((entry) => entry.id === id);
                 if (ball) buyBall(ball, quantity);
               }}
               onBuyPotion={buyPotion}
+              onBuyRevive={buyRevive}
               onBuyFood={buyFood}
               onBuyBook={(id, quantity) => {
                 const book = SHOP_BOOKS.find((entry) => entry.id === id);
