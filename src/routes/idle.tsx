@@ -701,7 +701,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha5: { name: "Rota Flower",       diff: "Difícil",  bg: mapinha5Url,  rate: 1.8, minLevel: 30, maxLevel: 42, element: "Planta",  stars: 3 },
   mapinha7: { name: "Mapinha 7",        diff: "Fácil",  bg: mapinha7Url,  rate: 1.0, minLevel: 1,  maxLevel: 20, element: "Normal", stars: 1 },
   mapinha8: { name: "Mapa Dos Céus",   diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 24, maxLevel: 33, element: "Água",   stars: 1 },
-  mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 30, maxLevel: 120, element: "Normal", stars: 3 },
+  mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 1, maxLevel: 120, element: "Normal", stars: 3 },
   mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
   mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
   mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 180, element: "Inseto", stars: 3 },
@@ -782,6 +782,15 @@ function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: n
 function mythEventInfo(now: number = Date.now()): { open: boolean; msUntilChange: number } {
   const CYCLE = 60 * 60 * 1000;
   const OPEN = 5 * 60 * 1000;
+  const t = now % CYCLE;
+  if (t < OPEN) return { open: true, msUntilChange: OPEN - t };
+  return { open: false, msUntilChange: CYCLE - t };
+}
+
+// Mapas eventuais (Cristal Cave, Florest Shiny) — abrem 12h a cada 72h.
+function eventualMapWindow(now: number = Date.now()): { open: boolean; msUntilChange: number } {
+  const CYCLE = 72 * 60 * 60 * 1000;
+  const OPEN = 12 * 60 * 60 * 1000;
   const t = now % CYCLE;
   if (t < OPEN) return { open: true, msUntilChange: OPEN - t };
   return { open: false, msUntilChange: CYCLE - t };
@@ -14521,7 +14530,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                             dur="2s" 
                                             repeatCount="indefinite" 
                                           />
-                                        )}
+)}
+            )})}
                                       </line>
                                       {/* Efeito de pulso verde para caminhos liberados */}
                                       {isPathUnlocked && (
@@ -15011,15 +15021,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
           {mapTeleportOpen && (
-            <WorldMapTeleportHud
-              currentMap={idle.currentMap}
-              trainerEnergy={trainerEnergy}
-              destinations={["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","florest_shiny","ruinas","ruinas_de_venus","mapinha5","mapinha12","cristal_cave","mapinha8","mapinha10"]
-                .filter((id) => Boolean(IDLE_MAPS[id]))
-                .map((id) => ({ id, ...IDLE_MAPS[id] }))}
-              onClose={() => setMapTeleportOpen(false)}
-              energyCostFor={teleportEnergyCostFor}
-              onTeleport={(destination) => {
+            (() => {
+              const ev = eventualMapWindow();
+              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10"];
+              const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
+              return (
+                <WorldMapTeleportHud
+                  currentMap={idle.currentMap}
+                  trainerEnergy={trainerEnergy}
+                  destinations={[...base, ...eventual]
+                    .filter((id) => Boolean(IDLE_MAPS[id]))
+                    .map((id) => ({ id, ...IDLE_MAPS[id] }))}
+                  onClose={() => setMapTeleportOpen(false)}
+                  energyCostFor={teleportEnergyCostFor}
+                  onTeleport={(destination) => {
                 const m = IDLE_MAPS[destination.id];
                 if (!m || teleportTransition) return;
                 if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
@@ -15346,7 +15361,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             />
             {([
               { id: "melhorias",label: "Melhorias",img: navMelhorias },
-              { id: "loja",     label: "Loja",     img: navLoja },
               { id: "market",   label: "Marketplace", img: navMarket, disabled: true },
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
             ] as const).map((t) => {
