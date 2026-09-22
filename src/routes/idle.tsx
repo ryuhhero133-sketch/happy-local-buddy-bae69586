@@ -116,7 +116,7 @@ import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
 import {
   detectTimezone, trustedNow, processMealCycles,
-  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor,
+  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_ENERGY_MARKT_COST,
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
   processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
@@ -3172,11 +3172,21 @@ function IdlePage() {
     if (revolandDoorTriggeredRef.current || teleportTransition) return;
     if (!isRevolandOrangeDoor(trainerPos.x, trainerPos.y)) return;
 
+    // Entrar no Pokémarkt custa 2 de energia.
+    if ((trainerEnergyRef.current ?? 0) < TELEPORT_ENERGY_MARKT_COST) {
+      const now = Date.now();
+      if (now - overCapMsgRef.current > 4000) {
+        overCapMsgRef.current = now;
+        pushChat("⚡ Entrar no Pokémarkt custa 2 de energia — coma algo antes!", "info");
+      }
+      return;
+    }
     const destination = IDLE_MAPS.mapinha10;
     revolandDoorTriggeredRef.current = true;
     walkTargetRef.current = null;
     setWalkingTo(null);
     setAuto(false);
+    setTrainerEnergy((e) => Math.max(0, e - TELEPORT_ENERGY_MARKT_COST));
     setTeleportTransition({ id: "mapinha10", ...destination });
     teleportTimerRef.current = setTimeout(() => {
       setIdle((state) => ({ ...state, currentMap: "mapinha10" }));
@@ -3184,7 +3194,7 @@ function IdlePage() {
       setChests([]);
       setMapOrbs([]);
       clearBattleScene();
-      pushChat("Chegou ao Pokemarkt!", "cap");
+      pushChat("Chegou ao Pokemarkt! (-2 ⚡)", "cap");
       setTeleportTransition(null);
       teleportTimerRef.current = null;
     }, 4000);
@@ -3378,12 +3388,14 @@ function IdlePage() {
   useEffect(() => {
     if (idle.currentMap === "arena") {
       setNpcs([
-        { id: 1, kind: "luluzinha", x: 430, y: 385, dir: "down", frame: 0 },
         { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha10") {
+      // Pokémarkt: atendente na entrada + Luluzinha no salão (coords fixas
+      // do mundo 861x772 — sem customDims, que é global e instável).
       setNpcs([
-        { id: 3, kind: "pokemarktClerk", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.48 : 800, dir: "down", frame: 0 },
+        { id: 3, kind: "pokemarktClerk", x: 430, y: 640, dir: "down", frame: 0 },
+        { id: 1, kind: "luluzinha", x: 430, y: 385, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha13") {
       setNpcs([
@@ -7073,8 +7085,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => { currentMapRef.current = idle.currentMap; }, [idle.currentMap]);
   useEffect(() => {
     const trigger = () => {
-      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial) nem nos mapas de pool estrita
-      if (currentMapRef.current === "arena" || currentMapRef.current === "florest_ice" || currentMapRef.current === "florest_bone" || currentMapRef.current === "valley_plume" || currentMapRef.current === "mapinha13" || currentMapRef.current === "mapinha5" || currentMapRef.current === "ruinas" || currentMapRef.current === "ruinas_de_venus" || currentMapRef.current === "mapinha8") return;
+      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial), no Pokémarkt (loja) nem nos mapas de pool estrita
+      if (currentMapRef.current === "arena" || currentMapRef.current === "mapinha10" || currentMapRef.current === "florest_ice" || currentMapRef.current === "florest_bone" || currentMapRef.current === "valley_plume" || currentMapRef.current === "mapinha13" || currentMapRef.current === "mapinha5" || currentMapRef.current === "ruinas" || currentMapRef.current === "ruinas_de_venus" || currentMapRef.current === "mapinha8") return;
       const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
       let rw = Math.random() * totalW;
       let pick = LEGEND_ROSTER[0];
@@ -7217,7 +7229,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const BIRD_WARN_MS = 5 * 60 * 1000; // aviso 5min antes
   useEffect(() => {
     const spawnBird = () => {
-      if (currentMapRef.current === "arena") return;
+      if (currentMapRef.current === "arena" || currentMapRef.current === "mapinha10") return;
       const pick = BIRD_ROSTER[Math.floor(Math.random() * BIRD_ROSTER.length)];
       setEnemies((prev) => {
         if (prev.some((e) => e.sp === pick.sp)) return prev;

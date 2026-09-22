@@ -172,9 +172,14 @@ export const TELEPORT_ENERGY_COST = 5;
 /** Retornar para Revoland (mapinha6, cidade inicial) custa 1 energia. */
 export const TELEPORT_ENERGY_HOME_COST = 1;
 export const TELEPORT_HOME_MAP_ID = "mapinha6";
-/** Custo de energia por destino: Revoland = 1, demais mapas = 5. */
+/** Entrar no Pokémarkt custa 2 energia. */
+export const TELEPORT_ENERGY_MARKT_COST = 2;
+export const TELEPORT_MARKT_MAP_ID = "mapinha10";
+/** Custo de energia por destino: Revoland = 1, Pokémarkt = 2, demais = 5. */
 export function teleportEnergyCostFor(mapId: string): number {
-  return mapId === TELEPORT_HOME_MAP_ID ? TELEPORT_ENERGY_HOME_COST : TELEPORT_ENERGY_COST;
+  if (mapId === TELEPORT_HOME_MAP_ID) return TELEPORT_ENERGY_HOME_COST;
+  if (mapId === TELEPORT_MARKT_MAP_ID) return TELEPORT_ENERGY_MARKT_COST;
+  return TELEPORT_ENERGY_COST;
 }
 
 /** Velocidade de movimento por faixa de energia (0 NÃO trava — fica a 10%). */

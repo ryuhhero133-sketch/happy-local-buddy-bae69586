@@ -116,7 +116,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <footer className="world-atlas__footer">
           <Sparkles aria-hidden="true" />
           <span>Escolha um destino ilustrado</span>
-          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland: 1 ⚡ · outros mapas: 5 ⚡</span>
+          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland: 1 ⚡ · Pokémarkt: 2 ⚡ · outros: 5 ⚡</span>
         </footer>
       </section>
     </div>
