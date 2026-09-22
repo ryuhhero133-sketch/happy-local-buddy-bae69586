@@ -322,7 +322,6 @@ import bulbasaurOrangePng from "@/assets/bulbasaur-orange.png";
 import gordinPng from "@/assets/gordin.png";
 import luluzinhaPng from "@/assets/luluzinha.png";
 import luluzinhaFrontPng from "@/assets/luluzinha-front.png";
-import trainerFrontPng from "@/assets/trainer-front.png";
 // Saga "As Memórias Apagadas" — retratos dos 5 NPCs
 import bobyPng from "@/assets/Boby.png";
 import sanPng from "@/assets/San.png";
@@ -10696,7 +10695,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 if (done.length === 0) pushToast("Nenhuma recompensa para resgatar.", "info");
                 else { done.forEach((t) => claimTask(t.id)); pushChat(`Resgatou ${done.length} recompensa(s)!`, "chest"); }
               } },
-              { label: "Missões", icon: "📋", badge: 0, onClick: () => setTab("tarefas") },
+              { label: "Missões", icon: "📋", badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
               { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
               { label: "Amigos", icon: "👥", badge: 0, onClick: () => setBigMapOpen(true) },
               { label: "Config.", icon: "⚙️", badge: 0, onClick: () => setShowAutoSettings(true) },
@@ -15331,8 +15330,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { id: "pokemon",  label: "Pokémon",  img: navPokemon },
               { id: "mochila",  label: "Mochila",  img: bagIconImg },
-              { id: "colecao",  label: "Coleção",  img: navColecao },
-              { id: "pokedex",  label: "Pokédex",  img: navColecao },
+              { id: "tarefas",  label: "Missões", img: navColecao },
             ] as const).map((t) => (
               <BottomNavBtn
                 key={t.id}
