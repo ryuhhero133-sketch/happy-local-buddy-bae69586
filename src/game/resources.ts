@@ -169,6 +169,13 @@ export const TRAINER_ENERGY_MAX = 100;
 export const TRAINER_ENERGY_DRAIN_PER_HOUR = 20;
 export const TRAINER_ENERGY_DRAIN_PER_SEC = TRAINER_ENERGY_DRAIN_PER_HOUR / 3600;
 export const TELEPORT_ENERGY_COST = 5;
+/** Retornar para Revoland (mapinha6, cidade inicial) custa 1 energia. */
+export const TELEPORT_ENERGY_HOME_COST = 1;
+export const TELEPORT_HOME_MAP_ID = "mapinha6";
+/** Custo de energia por destino: Revoland = 1, demais mapas = 5. */
+export function teleportEnergyCostFor(mapId: string): number {
+  return mapId === TELEPORT_HOME_MAP_ID ? TELEPORT_ENERGY_HOME_COST : TELEPORT_ENERGY_COST;
+}
 
 /** Velocidade de movimento por faixa de energia (0 NÃO trava — fica a 10%). */
 export function energySpeedMult(energy: number): number {

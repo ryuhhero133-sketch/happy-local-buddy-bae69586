@@ -27,6 +27,7 @@ type Props = {
   trainerEnergy: number;
   onClose: () => void;
   onTeleport: (destination: WorldMapDestination) => void;
+  energyCostFor?: (destinationId: string) => number;
 };
 
 const imageForDestination = (destination: WorldMapDestination) => {
@@ -53,7 +54,8 @@ const elementIcon = (element?: string) => {
   return "✨";
 };
 
-export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport }: Props) {
+export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
+  const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
   return (
     <div className="world-atlas-backdrop" onClick={onClose}>
       <section className="world-atlas" onClick={(event) => event.stopPropagation()} aria-label="Mapa Mundi">
@@ -102,7 +104,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                     disabled={isLocked}
                     onClick={() => onTeleport({ ...destination, previewImage })}
                   >
-                    {isCurrent ? "Atual" : "Teleportar"}
+                    {isCurrent ? "Atual" : `Teleportar · ${costFor(destination.id)}⚡`}
                     {!isCurrent && <span aria-hidden="true">→</span>}
                   </Button>
                 </div>
@@ -114,7 +116,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <footer className="world-atlas__footer">
           <Sparkles aria-hidden="true" />
           <span>Escolha um destino ilustrado</span>
-          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> 5 de energia por viagem</span>
+          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland: 1 ⚡ · outros mapas: 5 ⚡</span>
         </footer>
       </section>
     </div>

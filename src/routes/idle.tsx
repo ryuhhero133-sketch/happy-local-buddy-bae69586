@@ -116,7 +116,7 @@ import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
 import {
   detectTimezone, trustedNow, processMealCycles,
-  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, TELEPORT_ENERGY_COST,
+  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor,
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
   processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
@@ -129,6 +129,7 @@ import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
+import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -3402,19 +3403,32 @@ function IdlePage() {
       setPokemarktShopOpen(false);
     }
   }, [idle.currentMap, customDims]);
-  // Anima e move NPCs (spritesheet 4x4)
+  // Anima e move NPCs (spritesheet 4x4) — respeita colisão do mapa.
+  // Boby fica FIXO em Revoland (só anima o sprite). Demais NPCs andam
+  // poucos passos ao redor do ponto de origem e nunca entram em colisão.
   useEffect(() => {
     if (npcDialog || pokemarktShopOpen) return;
     if (npcs.length === 0) return;
+    const NPC_HOME_RADIUS: Partial<Record<string, number>> = {
+      boby: 0, pokemarktClerk: 0, san: 42, nanizinha: 42, payka: 42, pan: 42,
+      gordin: 84, luluzinha: 84,
+    };
+    const npcHomeRef = new Map<number, { x: number; y: number }>();
     const iv = setInterval(() => {
+      const mapId = idle.currentMap;
       setNpcs((prev) => prev.map((n) => {
         if (n.kind.startsWith("bulba")) {
           return { ...n, frame: (n.frame + 1) % 4 };
         }
+        if (!npcHomeRef.has(n.id)) npcHomeRef.set(n.id, { x: n.x, y: n.y });
+        const home = npcHomeRef.get(n.id)!;
+        const radius = NPC_HOME_RADIUS[n.kind] ?? 60;
+        // Boby e atendente: parados (só respiram o sprite, sem andar).
+        if (radius <= 0) return { ...n, frame: (n.frame + 1) % 4 };
         const dirs: Dir[] = ["down", "left", "right", "up"];
         const shouldTurn = Math.random() < 0.14;
         const dir = shouldTurn ? dirs[Math.floor(Math.random() * 4)] : n.dir;
-        const speed = 2.8;
+        const speed = 2.2;
         let nx = n.x, ny = n.y;
         if (dir === "left") nx -= speed;
         if (dir === "right") nx += speed;
@@ -3425,10 +3439,18 @@ function IdlePage() {
         const maxH = customDims ? customDims.h : WORLD_H;
         nx = Math.max(margin, Math.min(maxW - margin, nx));
         ny = Math.max(margin, Math.min(maxH - margin, ny));
-        if (nx <= margin || nx >= maxW - margin || ny <= margin || ny >= maxH - margin) {
+        // Fora da área permitida → volta na direção oposta, sem sair do lugar.
+        if (Math.abs(nx - home.x) > radius || Math.abs(ny - home.y) > radius) {
           const opposite: Record<Dir, Dir> = { down: "up", up: "down", left: "right", right: "left" };
-          return { ...n, dir: opposite[dir], frame: (n.frame + 1) % 4, x: nx, y: ny };
+          return { ...n, dir: opposite[dir], frame: (n.frame + 1) % 4 };
         }
+        // Tile bloqueado → não anda (vira de lado, respeita casas/paredes).
+        try {
+          if (!isWalkable(mapId, nx, ny)) {
+            const opposite: Record<Dir, Dir> = { down: "up", up: "down", left: "right", right: "left" };
+            return { ...n, dir: opposite[dir], frame: (n.frame + 1) % 4 };
+          }
+        } catch { /* sem grid carregado: libera */ }
         return { ...n, dir, frame: (n.frame + 1) % 4, x: nx, y: ny };
       }));
     }, 140);
@@ -10748,90 +10770,44 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             })}
           </div>
 
-          {/* Diálogo clássico NPC — Mapinha 1/2 */}
-          {npcDialog && (
-            <div
-              onClick={() => {
-                if (npcDialog.kind === "luluzinha") {
-                  if (npcDialog.page === 0) return;
-                  setNpcDialog({ kind: "luluzinha", page: 0 });
-                  return;
-                }
-                const dialogs: Record<string, string[]> = {
-                  gordin: [
-                    "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
-                    ([...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange"))
-                      ? "ESSE É ELE!! O Bulbasaur azulado! Quando quiser vender, me procura... pago uma fortuna em esmeraldas! 💎💎"
-                      : "Dizem que ele nasce dos orbs roxos... Se você capturar um e me mostrar, pago MUITO bem em esmeraldas! 💎"
-                  ],
-                  bulbaOrange: ["Bulbasaur laranja te observa com curiosidade...", "Ele parece feliz!"],
-                  bulbaFlower: ["Bulbasaur florido balança suas pétalas...", "Que fofo!"],
-                };
-                const pages = dialogs[npcDialog.kind] ?? ["..."];
-                if (npcDialog.page < pages.length - 1) {
-                  setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
-                } else {
-                  setNpcDialog(null);
-                }
-              }}
-              style={{
-                position: "fixed", bottom: 120, left: "50%", transform: "translateX(-50%)",
-                width: "min(560px, 92vw)",
-                background: "#1a3a6b", border: "3px solid #fff", borderRadius: 8,
-                boxShadow: "0 0 0 2px #1a1a1a, 0 8px 24px rgba(0,0,0,0.5)",
-                padding: 10, display: "flex", gap: 10, alignItems: "flex-start",
-                zIndex: 9990, cursor: "pointer",
-                imageRendering: "pixelated",
-              }}
-            >
-              <button
-                onClick={(e) => { e.stopPropagation(); setNpcDialog(null); }}
-                style={{
-                  position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
-                  background: "#b91c1c", border: "2px solid #fff", color: "#fff", fontWeight: 900, fontSize: 12,
-                  display: "grid", placeItems: "center", cursor: "pointer", zIndex: 1,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-                }}
-                title="Fechar"
-              >✕</button>
-              <div style={{
-                width: 56, height: 56, border: "2px solid #fff", borderRadius: 6, overflow: "hidden",
-                background: "#0f2a5a", flexShrink: 0,
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
-              }}>
-                <div style={{
-                  width: "100%", height: "100%",
-                  backgroundImage: `url(${npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "luluzinha" ? luluzinhaPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl})`,
-                  backgroundSize: "400% 400%",
-                  backgroundPosition: "0% 0%",
-                  imageRendering: "pixelated",
-                }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", textShadow: "1px 1px 0 #1a2e6b", whiteSpace: "pre-wrap" }}>
-                  {(() => {
-                    if (npcDialog.kind === "luluzinha") {
-                      if (npcDialog.page === 0) return "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?";
-                      if (npcDialog.page === 1) return "A Flor de Cristal Violeta tem pétalas que brilham como ametista ao luar! Dizem que ela nasce onde o Bulbasaur Florido cantou... Se você vir um brilho violeta no chão do Mapinha 1, me avise! ✨";
-                      if (npcDialog.page === 2) return "Ela é especial porque guarda pólen dourado que faz qualquer Pokémon florescer! Um colecionador em Johto paga 50 esmeraldas por uma pétala... mas eu quero plantar de volta na floresta! 🌱💎";
-                      if (npcDialog.page === 3) return "Procure perto dos arbustos floridos do Mapinha 1 ao amanhecer... e se capturar um Bulbasaur Florido, traga até mim! Posso te dar uma pista ou uma recompensa surpresa... 🔍";
-                      return "...";
-                    }
-                    const dialogs: Record<string, string[]> = {
-                      gordin: [
-                        "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
-                        ([...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange"))
-                          ? "ESSE É ELE!! O Bulbasaur azulado! Quando quiser vender, me procura... pago uma fortuna em esmeraldas! 💎💎"
-                          : "Dizem que ele nasce dos orbs roxos... Se você capturar um e me mostrar, pago MUITO bem em esmeraldas! 💎"
-                      ],
-                      bulbaOrange: ["Bulbasaur laranja te observa com curiosidade...", "Ele parece feliz!"],
-                      bulbaFlower: ["Bulbasaur florido balança suas pétalas...", "Que fofo!"],
-                    };
-                    const pages = dialogs[npcDialog.kind] ?? ["..."];
-                    return pages[npcDialog.page] ?? pages[0];
-                  })()}
-                </div>
-                {npcDialog.kind === "luluzinha" && npcDialog.page === 0 ? (
+          {/* Diálogo clássico NPC — estilo RPG pixel (typewriter + seta) */}
+          {npcDialog && (() => {
+            const hasOrange = [...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange");
+            const simple: Record<string, string[]> = {
+              gordin: [
+                "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
+                hasOrange
+                  ? "ESSE É ELE!! O Bulbasaur azulado! Quando quiser vender, me procura... pago uma fortuna em esmeraldas! 💎💎"
+                  : "Dizem que ele nasce dos orbs roxos... Se você capturar um e me mostrar, pago MUITO bem em esmeraldas! 💎"
+              ],
+              bulbaOrange: ["Bulbasaur laranja te observa com curiosidade...", "Ele parece feliz!"],
+              bulbaFlower: ["Bulbasaur florido balança suas pétalas...", "Que fofo!"],
+            };
+            const luluLines = [
+              "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?",
+              "A Flor de Cristal Violeta tem pétalas que brilham como ametista ao luar! Dizem que ela nasce onde o Bulbasaur Florido cantou... Se você vir um brilho violeta no chão do Mapinha 1, me avise! ✨",
+              "Ela é especial porque guarda pólen dourado que faz qualquer Pokémon florescer! Um colecionador em Johto paga 50 esmeraldas por uma pétala... mas eu quero plantar de volta na floresta! 🌱💎",
+              "Procure perto dos arbustos floridos do Mapinha 1 ao amanhecer... e se capturar um Bulbasaur Florido, traga até mim! Posso te dar uma pista ou uma recompensa surpresa... 🔍",
+            ];
+            const isMenu = npcDialog.kind === "luluzinha" && npcDialog.page === 0;
+            const pages = npcDialog.kind === "luluzinha" ? luluLines : (simple[npcDialog.kind] ?? ["..."]);
+            const page = Math.min(npcDialog.page, pages.length - 1);
+            const portraitUrl = npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "luluzinha" ? luluzinhaPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+            const advance = () => {
+              if (isMenu) return;
+              if (page < pages.length - 1) setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
+              else setNpcDialog(null);
+            };
+            return (
+              <NpcDialog
+                kind={npcDialog.kind}
+                portraitUrl={portraitUrl}
+                text={pages[page] ?? pages[0]}
+                pageLabel={isMenu ? undefined : (npcDialog.kind === "luluzinha" ? `${page}/3` : `${page + 1}/${pages.length}`)}
+                canAdvance={!isMenu}
+                onAdvance={advance}
+                onClose={() => setNpcDialog(null)}
+                footer={isMenu ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
                     {[
                       "🌸 Que flor você procura?",
@@ -10847,16 +10823,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         }}
                       >{label}</button>
                     ))}
-                    <div style={{ textAlign: "right", marginTop: 4, color: "#ffcc33", fontSize: 10, fontWeight: 900 }}>Escolha uma pergunta ◆</div>
+                    <div style={{ textAlign: "right", marginTop: 4, color: "#ff8bd0", fontSize: 10, fontWeight: 900 }}>Escolha uma pergunta ◆</div>
                   </div>
-                ) : (
-                  <div style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900 }}>
-                    ▼ {npcDialog.kind === "luluzinha" ? `${npcDialog.page}/3 — clique para voltar` : `${npcDialog.page + 1}/2`}
+                ) : (npcDialog.kind === "luluzinha" ? (
+                  <div style={{ marginTop: 6 }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setNpcDialog({ kind: "luluzinha", page: 0 }); }}
+                      style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.25)", color: "#ffb0dd", padding: "4px 10px", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 800 }}
+                    >← voltar às perguntas</button>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
+                ) : null)}
+              />
+            );
+          })()}
 
           {/* Saga "As Memórias Apagadas" — diálogo com retrato do NPC */}
           {sagaTalk && (() => {
@@ -10875,8 +10854,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             );
             const portrait = (npc: SagaNpcId) => (
               <div style={{
-                width: 56, height: 56, border: "2px solid #fff", borderRadius: 6, overflow: "hidden",
-                background: "#0f2a5a", flexShrink: 0,
+                width: 56, height: 56, border: `2px solid ${npcThemeFor(npc).frame}`, borderRadius: 6, overflow: "hidden",
+                background: "#0b0510", flexShrink: 0,
                 boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
               }}>
                 <div style={{
@@ -10888,28 +10867,33 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 }} />
               </div>
             );
-            const shell = (npcName: string, sub: string, body: React.ReactNode) => (
+            // Caixa da saga com identidade visual própria de cada NPC.
+            const shell = (themeKind: string, sub: string, body: React.ReactNode) => {
+              const t = npcThemeFor(themeKind);
+              return (
               <div
                 style={{
                   position: "fixed", bottom: 120, left: "50%", transform: "translateX(-50%)",
                   width: "min(560px, 92vw)",
-                  background: "#241536", border: "3px solid #c084fc", borderRadius: 8,
-                  boxShadow: "0 0 0 2px #1a1a1a, 0 8px 24px rgba(0,0,0,0.5)",
+                  background: t.bg, border: `3px solid ${t.frame}`,
+                  outline: `2px solid ${t.inner}`, borderRadius: 8,
+                  boxShadow: `0 0 0 2px #0b0510, 0 0 26px ${t.glow}, 0 8px 24px rgba(0,0,0,0.55)`,
                   padding: 10, zIndex: 9990, imageRendering: "pixelated",
                 }}
               >
                 {closeBtn}
-                <div style={{ color: "#e9d5ff", fontSize: 10, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>📖 AS MEMÓRIAS APAGADAS · {sub}</div>
+                <div style={{ color: t.accent, fontSize: 10, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>📖 AS MEMÓRIAS APAGADAS · {sub}</div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                   {body}
                 </div>
               </div>
-            );
+              );
+            };
             void 0;
             // ===== TELA DA ESCOLHA FINAL =====
             if (sagaTalk === "choice") {
               const all: SagaNpcId[] = ["boby", "san", "nanizinha", "payka", "pan"];
-              return shell("ESCOLHA", "quais dois continuarão?", (
+              return shell("pan", "ESCOLHA · quais dois continuarão?", (
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap", marginBottom: 8 }}>
                     {"Cinco começaram.\nDois continuarão.\nTrês esquecerão.\n\nEscolha com o coração. Não há bônus escondido."}
@@ -10954,21 +10938,27 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const lines = kept ? SAGA_KEPT_LINES[npc] : SAGA_FORGOTTEN_LINES[npc];
               const page = Math.min(sagaPage, lines.length - 1);
               const giftReady = kept && Date.now() - ((sg.giftAt[npc] ?? 0)) >= SAGA_GIFT_COOLDOWN_MS;
-              return shell(meta.name, kept ? "preservado ✦" : "memória apagada", (
+              return shell(npc, kept ? "preservado ✦" : "memória apagada", (
                 <>
                   {portrait(npc)}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap" }}>{lines[page]}</div>
-                    {kept && giftReady && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); claimSagaGift(npc); }}
-                        style={{ marginTop: 8, background: "#5ec26a", color: "#0b0510", border: "none", borderRadius: 6, padding: "6px 12px", fontWeight: 900, cursor: "pointer" }}
-                      >🎁 Receber ajuda</button>
-                    )}
-                    <div
-                      onClick={() => { if (page < lines.length - 1) setSagaPage(page + 1); else setSagaTalk(null); }}
-                      style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
-                    >▼ {page + 1}/{lines.length}</div>
+                    <NpcPagedLine
+                      text={lines[page]}
+                      pageLabel={`${page + 1}/${lines.length}`}
+                      accent={npcThemeFor(npc).accent}
+                      onAdvance={() => { if (page < lines.length - 1) setSagaPage(page + 1); else setSagaTalk(null); }}
+                    />
+                    {kept && giftReady && (() => {
+                      const g = SAGA_KEPT_GIFTS[npc];
+                      return (
+                        <NpcRewardPanel
+                          rewards={[g.kind === "item" ? { itemId: g.itemId, qty: g.qty } : { gold: g.qty }]}
+                          claimed={false}
+                          onClaim={() => claimSagaGift(npc)}
+                          accent={npcThemeFor(npc).accent}
+                        />
+                      );
+                    })()}
                   </div>
                 </>
               ));
@@ -10984,12 +10974,29 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 payka: "PAYKA: Negócio é negócio, mas sua tarefa tá com outro. Depois a gente conversa... de graça, dessa vez.",
                 pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.",
               };
-              return shell(meta.name, meta.title, (
+              const targetNpc = st ? st.npc : null;
+              const targetMapName = targetNpc ? (IDLE_MAPS[SAGA_NPCS[targetNpc].map]?.name ?? "Revoland") : "—";
+              return shell(npc, meta.title, (
                 <>
                   {portrait(npc)}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap" }}>{`${flavor[npc]}\n\n📖 Missão atual: "${st ? st.title : "—"}" → ${hint}.`}</div>
-                    <div onClick={() => setSagaTalk(null)} style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>▼ fechar</div>
+                    <NpcPagedLine
+                      text={`${flavor[npc]}\n\n📖 Missão atual: "${st ? st.title : "—"}" → ${hint}.`}
+                      pageLabel="fechar"
+                      accent={npcThemeFor(npc).accent}
+                      onAdvance={() => setSagaTalk(null)}
+                    />
+                    {targetNpc && (
+                      <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                        <div style={{ fontSize: 11, color: "#fff", fontWeight: 800 }}>
+                          📍 {SAGA_NPCS[targetNpc].name} está em <b>{targetMapName}</b>{targetNpc === "boby" ? " · Cidade Inicial" : ""}
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSagaTalk(null); setMapTeleportOpen(true); }}
+                          style={{ marginTop: 6, width: "100%", background: "#f5cf6b", color: "#0b0510", border: "none", borderRadius: 6, padding: "7px", fontWeight: 900, cursor: "pointer", fontSize: 11 }}
+                        >🗺️ VIAJAR — ver custos de energia</button>
+                      </div>
+                    )}
                   </div>
                 </>
               ));
@@ -11000,12 +11007,17 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const chosen = sg.choices[st.id];
             const done = sagaObjectiveDone(st.id);
             const claimed = !!sg.claimed[st.id];
-            const rewardTxt = st.reward.map((r) => (r.kind === "item" ? `+${r.qty} ${r.itemId}` : `+${r.qty} ouro`)).join(" · ");
-            return shell(meta.name, `${st.title} · etapa ${sg.stage + 1}/${SAGA_TOTAL_STAGES}`, (
+            const stageMapName = IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland";
+            return shell(npc, `${st.title} · etapa ${sg.stage + 1}/${SAGA_TOTAL_STAGES}`, (
               <>
                 {portrait(npc)}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.4, fontFamily: "'Courier New', monospace", whiteSpace: "pre-wrap" }}>{st.lines[page]}</div>
+                  <NpcPagedLine
+                    text={st.lines[page]}
+                    pageLabel={`${page + 1}/${st.lines.length}`}
+                    accent={npcThemeFor(npc).accent}
+                    onAdvance={() => { if (!lastPage) setSagaPage(page + 1); else setSagaTalk(null); }}
+                  />
                   {lastPage && st.choices && !chosen && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
                       {st.choices.map((c) => (
@@ -11018,22 +11030,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     </div>
                   )}
                   {lastPage && (
-                    <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                    <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.12)" }}>
                       <div style={{ fontSize: 11, color: "#e9d5ff", fontWeight: 800 }}>🎯 {st.objectiveLabel}: <span style={{ color: done ? "#5ec26a" : "#ffcc33" }}>{sagaProgressText(st, sg)}</span></div>
-                      {!claimed && (
-                        <button
-                          disabled={!done}
-                          onClick={(e) => { e.stopPropagation(); claimSagaReward(st.id); }}
-                          style={{ marginTop: 6, width: "100%", background: done ? "#5ec26a" : "#3a2a4a", color: done ? "#0b0510" : "#8a7a9c", border: "none", borderRadius: 6, padding: "7px", fontWeight: 900, cursor: done ? "pointer" : "not-allowed" }}
-                        >{done ? `RESGATAR: ${rewardTxt}` : "Complete o objetivo"}</button>
+                      <div style={{ fontSize: 10, color: "#8a7a9c", marginTop: 2 }}>📍 {meta.name} está em <b style={{ color: "#fff" }}>{stageMapName}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""}</div>
+                      {!claimed && done && (
+                        <NpcRewardPanel
+                          rewards={st.reward.map((r) => (r.kind === "item" ? { itemId: r.itemId, qty: r.qty } : { gold: r.qty }))}
+                          claimed={false}
+                          onClaim={() => claimSagaReward(st.id)}
+                          accent={npcThemeFor(npc).accent}
+                        />
                       )}
-                      {claimed && <div style={{ marginTop: 6, fontSize: 11, color: "#5ec26a", fontWeight: 800 }}>✓ Recompensa resgatada — fale com o próximo NPC da saga.</div>}
+                      {!claimed && !done && (
+                        <div style={{ marginTop: 6, fontSize: 11, color: "#ffcc33", fontWeight: 800, textAlign: "center" }}>Complete o objetivo para liberar a recompensa</div>
+                      )}
+                      {claimed && <div style={{ marginTop: 6, fontSize: 11, color: "#5ec26a", fontWeight: 800 }}>✓ Recompensa recebida — fale com o próximo NPC da saga.</div>}
                     </div>
                   )}
-                  <div
-                    onClick={() => { if (!lastPage) setSagaPage(page + 1); else setSagaTalk(null); }}
-                    style={{ textAlign: "right", marginTop: 6, color: "#ffcc33", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
-                  >▼ {page + 1}/{st.lines.length}</div>
                 </div>
               </>
             ));
@@ -14248,17 +14261,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                     color: "#f5cf6b",
                                   };
                                   const scrolls = idle.items?.scroll_teleport ?? 0;
+                                  const tpCost = teleportEnergyCostFor(pinId);
                                   if (scrolls > 0) {
-                                    if (trainerEnergy < TELEPORT_ENERGY_COST) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                                    if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
                                     setIdle((s) => ({ ...s, items: { ...s.items, scroll_teleport: (s.items.scroll_teleport ?? 0) - 1 } }));
-                                    setTrainerEnergy((e) => Math.max(0, e - TELEPORT_ENERGY_COST));
+                                    setTrainerEnergy((e) => Math.max(0, e - tpCost));
                                     setWorldMapOpen(false);
                                     setSelectedMapInfo(null);
                                     travelToGate(synthGate);
-                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}. (-5 ⚡)`, "cap");
+                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}. (-${tpCost} ⚡)`, "cap");
                                     return;
                                   }
-                                  if (trainerEnergy < TELEPORT_ENERGY_COST) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                                  if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
                                   setWorldMapOpen(false);
                                   setSelectedMapInfo(null);
                                   setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
@@ -14269,7 +14283,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                   cursor: "pointer", boxShadow: "0 4px 0 #7a5d15"
                                 }}
                               >
-                                VIAJAR AGORA
+                                VIAJAR AGORA · {teleportEnergyCostFor(pinId)} ⚡
                               </button>
                             </div>
                           )}
@@ -14287,7 +14301,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     const gold = 0; // Taxa de ouro removida
                     const crystalOk = cost === 0 || idle.bank.crystals >= cost;
                     const goldOk = true;
-                    const energyOk = trainerEnergy >= TELEPORT_ENERGY_COST;
+                    const tpCost = teleportEnergyCostFor(pendingGate.target);
+                    const energyOk = trainerEnergy >= tpCost;
                     const canGo = crystalOk && energyOk && lvOk;
                     const close = () => setPendingGate(null);
                     return (
@@ -14328,9 +14343,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                               </div>
                             )}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${energyOk ? "#7ef27a" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
-                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>⚡ Energia</span>
+                              <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>⚡ Energia {pendingGate.target === "mapinha6" ? "(Revoland)" : ""}</span>
                               <span style={{ color: energyOk ? "#7ef27a" : "#ff8888", fontWeight: 900 }}>
-                                5 {energyOk ? "✓" : `(você: ${Math.floor(trainerEnergy)})`}
+                                {tpCost} {energyOk ? "✓" : `(você: ${Math.floor(trainerEnergy)})`}
                               </span>
                             </div>
                             {tm.raid ? (
@@ -14352,7 +14367,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                             <button
                               disabled={!canGo}
                               onClick={() => {
-                                if (!energyOk) { pushChat("⚡ Sem energia (precisa 5).", "info"); return; }
+                                if (!energyOk) { pushChat(`⚡ Sem energia (precisa ${tpCost}).`, "info"); return; }
                                 const g = pendingGate.gate;
                                 const wasBig = pendingGate.fromBig;
                                 setPendingGate(null);
@@ -14360,7 +14375,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                    ...s,
                                    bank: { ...s.bank, crystals: Math.max(0, s.bank.crystals - cost) }
                                  }));
-                                 setTrainerEnergy((e) => Math.max(0, e - TELEPORT_ENERGY_COST));
+                                 setTrainerEnergy((e) => Math.max(0, e - tpCost));
                                  travelToGate(g);
                                  if (wasBig) setBigMapOpen(false);
                               }}
@@ -14373,7 +14388,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                 fontSize: 13, letterSpacing: 1,
                                 boxShadow: canGo ? "0 0 20px rgba(245,207,107,0.5)" : "none",
                               }}
-                            >{!energyOk ? "⚡ SEM ENERGIA (5)" : !lvOk ? "🔒 NÍVEL INSUFICIENTE" : !crystalOk ? "💎 CRISTAIS INSUFICIENTES" : "✓ VIAJAR"}</button>
+                            >{!energyOk ? `⚡ SEM ENERGIA (${tpCost})` : !lvOk ? "🔒 NÍVEL INSUFICIENTE" : !crystalOk ? "💎 CRISTAIS INSUFICIENTES" : "✓ VIAJAR"}</button>
                           </div>
                         </div>
                       </div>
@@ -14393,13 +14408,15 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 .filter((id) => Boolean(IDLE_MAPS[id]))
                 .map((id) => ({ id, ...IDLE_MAPS[id] }))}
               onClose={() => setMapTeleportOpen(false)}
+              energyCostFor={teleportEnergyCostFor}
               onTeleport={(destination) => {
                 const m = IDLE_MAPS[destination.id];
                 if (!m || teleportTransition) return;
                 if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
-                if (trainerEnergy < TELEPORT_ENERGY_COST) { pushChat("⚡ Sem energia (precisa 5) para teleportar.", "info"); return; }
+                const tpCost = teleportEnergyCostFor(destination.id);
+                if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
                 playClick();
-                setTrainerEnergy((energy) => Math.max(0, energy - TELEPORT_ENERGY_COST));
+                setTrainerEnergy((energy) => Math.max(0, energy - tpCost));
                 setMapTeleportOpen(false);
                 setTeleportTransition(destination);
                 teleportTimerRef.current = setTimeout(() => {
@@ -14411,7 +14428,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   setChests([]);
                   setMapOrbs([]);
                   clearBattleScene();
-                  pushChat(`Teleportado para ${m.name}! (-5 ⚡)`, "info");
+                  pushChat(`Teleportado para ${m.name}! (-${tpCost} ⚡)`, "info");
                   setTeleportTransition(null);
                   teleportTimerRef.current = null;
                 }, 4000);
@@ -18987,14 +19004,10 @@ function TabOverlay({
                     <div style={{ color: "#fff", fontWeight: 800, fontSize: 13 }}>{SAGA_NPCS[st.npc].name} — {st.title}</div>
                     <div style={{ color: "#c8b8d0", fontSize: 11, marginTop: 2 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#5ec26a" : "#ffcc33" }}>{prog}</b></div>
                     <div style={{ color: "#8a7a9c", fontSize: 11, marginTop: 2 }}>Recompensa: {sagaRewardText(st.reward)}</div>
-                    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    <div style={{ color: "#7fd8ff", fontSize: 11, marginTop: 2 }}>📍 {SAGA_NPCS[st.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland"}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""} — fale com ele para receber a recompensa no fim da conversa.</div>
+                    <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
                       <button onClick={() => onSagaTalk(st.npc)} style={{ background: "rgba(192,132,252,0.2)", color: "#e9d5ff", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>💬 Falar</button>
-                      {!claimed && (
-                        <button onClick={() => onSagaClaim(st.id)} disabled={!isDone} style={{ background: isDone ? "#5ec26a" : "#3a2a4a", color: isDone ? "#0b0510" : "#8a7a9c", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 900, cursor: isDone ? "pointer" : "not-allowed" }}>
-                          {isDone ? "RESGATAR" : prog}
-                        </button>
-                      )}
-                      {claimed && <span style={{ fontSize: 11, color: "#5ec26a", fontWeight: 800, alignSelf: "center" }}>✓ resgatada</span>}
+                      {claimed ? <span style={{ fontSize: 11, color: "#5ec26a", fontWeight: 800, alignSelf: "center" }}>✓ resgatada</span> : <span style={{ fontSize: 10, color: "#8a7a9c" }}>{isDone ? "pronta no diálogo" : prog}</span>}
                     </div>
                   </div>
                 </div>
