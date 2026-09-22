@@ -3389,13 +3389,16 @@ function IdlePage() {
         { id: 4, kind: "gordin", x: customDims ? customDims.w * 0.45 : 700, y: customDims ? customDims.h * 0.35 : 500, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha6") {
-      // Saga "As Memórias Apagadas" — os 5 NPCs em Revoland
+      // Saga "As Memórias Apagadas" — os 5 NPCs em Revoland.
+      // Posições na grama livre (1402x1122), fora das casas/colisões:
+      // Boby no caminho central baixo, San em frente à SHOP, Nanizinha
+      // em frente à casa marrom, Payka ao lado da placa, Pan na praça oeste.
       setNpcs([
-        { id: 20, kind: "boby", x: 420, y: 720, dir: "down", frame: 0 },
-        { id: 21, kind: "san", x: 760, y: 640, dir: "down", frame: 0 },
-        { id: 22, kind: "nanizinha", x: 1100, y: 700, dir: "down", frame: 0 },
-        { id: 23, kind: "payka", x: 1400, y: 640, dir: "down", frame: 0 },
-        { id: 24, kind: "pan", x: 1640, y: 720, dir: "down", frame: 0 },
+        { id: 20, kind: "boby", x: 700, y: 950, dir: "down", frame: 0 },
+        { id: 21, kind: "san", x: 1050, y: 430, dir: "down", frame: 0 },
+        { id: 22, kind: "nanizinha", x: 1000, y: 960, dir: "down", frame: 0 },
+        { id: 23, kind: "payka", x: 900, y: 620, dir: "down", frame: 0 },
+        { id: 24, kind: "pan", x: 400, y: 560, dir: "down", frame: 0 },
       ]);
     } else {
       setNpcs([]);
@@ -3456,6 +3459,19 @@ function IdlePage() {
     }, 140);
     return () => clearInterval(iv);
   }, [npcs.length, npcDialog, pokemarktShopOpen, customDims]);
+  // Cidade inicial (mapa de 1 energia = área segura): automático sempre
+  // desligado. Cobre TODAS as formas de chegada (teleporte, portal, evento).
+  useEffect(() => {
+    if (teleportEnergyCostFor(idle.currentMap) !== 1) return;
+    if (autoRef.current) {
+      setAuto(false);
+      walkTargetRef.current = null;
+      setWalkingTo(null);
+      setWalkMarker(null);
+      pushChat("😴 Cidade inicial é área segura — automático desligado.", "info");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap]);
   const [coletaCollapsed, setColetaCollapsed] = useState(false);
   const [pacotesCollapsed, setPacotesCollapsed] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
@@ -3509,6 +3525,10 @@ function IdlePage() {
         setIdle((s) => {
           const ab = s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
           const next = !ab.enabled;
+          if (next && teleportEnergyCostFor(s.currentMap) === 1) {
+            queueMicrotask(() => pushChat("😴 Cidade inicial é área segura — viaje para um mapa de caça para ligar o automático.", "info"));
+            return s;
+          }
           setAuto(next);
           if (!next) { walkTargetRef.current = null; setWalkingTo(null); }
           return { ...s, autoBattle: { ...ab, enabled: next } };
@@ -5050,7 +5070,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           walkTargetRef.current = null;
           setWalkingTo(null);
           setWalkMarker(null);
-          if (wt.resumeAuto && (autoBattleRef.current?.enabled ?? true)) setAuto(true);
+          if (wt.resumeAuto && (autoBattleRef.current?.enabled ?? true) && teleportEnergyCostFor(idleRef.current.currentMap) !== 1) setAuto(true);
           return;
         }
         setTrainerPos((tp) => {
@@ -5063,7 +5083,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             setWalkingTo(null);
             setWalkMarker(null);
             wt.onArrive?.();
-            if (resume && (autoBattleRef.current?.enabled ?? true)) setAuto(true);
+            if (resume && (autoBattleRef.current?.enabled ?? true) && teleportEnergyCostFor(idleRef.current.currentMap) !== 1) setAuto(true);
             if (moving) setMoving(false);
             return tp;
           }
@@ -13230,7 +13250,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 borderRadius: 10, padding: "4px 8px", display: "flex", alignItems: "center", gap: 6,
               }}>
                 <button
-                  onClick={() => { setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); } }}
+                  onClick={() => {
+                    if (!on && teleportEnergyCostFor(idle.currentMap) === 1) {
+                      pushChat("😴 Cidade inicial é área segura — viaje para um mapa de caça para ligar o automático.", "info");
+                      return;
+                    }
+                    setAB({ enabled: !on }); setAuto(!on); if (!on) { walkTargetRef.current = null; setWalkingTo(null); }
+                  }}
                   title={on ? "Auto-batalha ATIVA" : "Auto-batalha desativada"}
                   style={{
                     background: "transparent", border: "none", padding: 0, cursor: "pointer",
