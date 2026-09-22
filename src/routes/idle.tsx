@@ -1640,7 +1640,7 @@ function freshIdle(): IdleState {
     caughtSpecies: [],
     seenSpecies: [],
     collection: [],
-    items: { premium_box: 1 },
+    items: { },
     bank: { gold: 0, crystals: 30 },
     buffs: { atk: 0, def: 0, expMult: 0, expMultUntil: 0, goldMult: 0, goldMultUntil: 0, honeyUntil: 0, honeyRareUntil: 0, orbMult: 0, orbUntil: 0, orbId: "", teamOrbUntil: 0 },
     globalStats: { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 },
@@ -1670,6 +1670,7 @@ function freshIdle(): IdleState {
     // Saga "As Memórias Apagadas" começa zerada.
     saga: freshSaga(),
     sideQuests: freshSideQuests(),
+    welcomeBonusUntil: 0, // timestamp até quando o bônus de boas-vindas (+100% ATK/DEF) está ativo
   };
 }
 function saveIdle(s: IdleState) {
@@ -2298,7 +2299,7 @@ function IdlePage() {
   const [setupSkinId, setSetupSkinId] = useState<string>("char01");
   const [setupName, setSetupName] = useState<string>("");
 
-  const confirmName = () => {
+const confirmName = () => {
     const name = setupName.trim();
     if (!name) return;
     try {
@@ -2309,11 +2310,12 @@ function IdlePage() {
     setSetupDone(true);
     setSetupStep("skin");
     setSetupName("");
+    // Ativa bônus de boas-vindas: +100% ATK/DEF por 1h
+    setIdle((s) => ({ ...s, welcomeBonusUntil: Date.now() + 60 * 60 * 1000 }));
     // Atualiza identity com o nome escolhido
     if (identity) {
       const newIdentity = { ...identity, name };
       try { localStorage.setItem("rubym.identity.v1", JSON.stringify(newIdentity)); } catch { /* ignore */ }
-      // Força re-render via setIdle (ou recarrega)
       window.location.reload();
     }
   };
@@ -6625,15 +6627,31 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
           const xpBase = Math.floor((60 + Math.random() * 100) * boostMult * lvlMult * mapMult * sync.xpMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
           const xp = Math.max(1, xpBase);
-          // Vale Verdejante de Neve: drop reduzido; outros mapas com ganhos maiores
-          const baseGold = idle.currentMap === "arena"
-            ? (2 + Math.floor(Math.random() * 4))
-            : Math.floor(35 + Math.random() * 55);
-          // Se o treinador passou do cap do mapa, ouro colapsa junto com o XP.
+          // Ouro NERFADO — teto ~40k/2h. Mapas altos dão +15% só.
+          const mapGoldMult: Record<string, number> = {
+            mapinha6: 1.0,      // Revoland (Lv1–30)
+            mapinha13: 1.0,     // Verdejante 1 (Lv3–8)
+            valley_plume: 1.0,  // Valley Plume (Lv9–15)
+            florest_bone: 1.05, // Florest Bone (Lv12–19)
+            florest_ice: 1.0,   // Florest Ice (Lv6–12)
+            ruinas: 1.1,        // Ruínas (Lv16–24)
+            ruinas_de_venus: 1.12, // Ruínas de Vênus (Lv20–28)
+            mapinha5: 1.15,     // Rota Flower (Lv30–42)
+            mapinha12: 1.15,    // Bidril e Kakuna (Lv40–180)
+            cristal_cave: 1.1,  // Cristal Cave
+            mapinha8: 1.15,     // Mapa Dos Céus (Lv24–33)
+            mapinha10: 1.2,     // Pokemarkt
+          };
+          const mapBase = mapGoldMult[idle.currentMap] ?? 1.0;
+          const baseGold = Math.floor((8 + Math.random() * 12) * mapBase); // 8–20 base
+          // Hard cap por kill para evitar farm absurdo mesmo com buffs
+          const KILL_GOLD_CAP = 35;
+          // Se passou do cap do mapa, ouro cai pra 5% (anti-farm off-level)
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
-          const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? Math.max(0.05, 1 - overCapGold * 0.2) : 1);
-          const gold = Math.max(1, Math.floor(baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult));
+          const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? 0.05 : 1);
+          const rawGold = baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult;
+          const gold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)));
           if (isRiderKill) {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
@@ -21498,6 +21516,8 @@ function TabOverlay({
 
       {tab === "melhorias" && (() => {
         const nowMs = Date.now();
+        const welcomeActive = idle.welcomeBonusUntil && nowMs < idle.welcomeBonusUntil;
+        const welcomeRemaining = welcomeActive ? Math.ceil((idle.welcomeBonusUntil - nowMs) / 60000) : 0;
         const bookActive = !!(idle.buffs?.expMultUntil && nowMs < idle.buffs.expMultUntil);
         const orbActive = !!(idle.buffs?.orbUntil && nowMs < idle.buffs.orbUntil);
         const honeyActive = !!(idle.buffs?.honeyUntil && nowMs < idle.buffs.honeyUntil);
@@ -21640,11 +21660,47 @@ function TabOverlay({
             </div>
 
 
+            {(() => {
+          const welcomeActive = idle.welcomeBonusUntil && Date.now() < idle.welcomeBonusUntil;
+          const welcomeAtk = welcomeActive ? 1.0 : 0; // +100% = +1.0
+          const welcomeDef = welcomeActive ? 1.0 : 0; // +100% = +1.0
+          return (
+            <>
+              {welcomeActive && (
+                <div style={{ 
+                  marginBottom: 16, padding: "12px 16px", 
+                  background: "linear-gradient(135deg, #ff5252, #4a7bff)", 
+                  border: "2px solid #fff3", borderRadius: 12,
+                  boxShadow: "0 0 20px rgba(255,82,82,0.4), 0 0 30px rgba(74,123,255,0.3)",
+                  color: "#fff", textAlign: "center",
+                  animation: "pulse 2s ease-in-out infinite",
+                }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1, marginBottom: 4 }}>
+                    🎁 BÔNUS DE BOAS-VINDAS ATIVO
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.95 }}>
+                    +100% ATAQUE &nbsp;|&nbsp; +100% DEFESA &nbsp;|&nbsp; ⏳ {Math.ceil((idle.welcomeBonusUntil - Date.now()) / 60000)} min
+                  </div>
+                  <div style={{ fontSize: 9, marginTop: 4, opacity: 0.8 }}>
+                    Expira automaticamente &nbsp;|&nbsp; Ajuda você a sobreviver nos primeiros mapas
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
+            {(() => {
+          const welcomeActive = idle.welcomeBonusUntil && Date.now() < idle.welcomeBonusUntil;
+          const welcomeAtk = welcomeActive ? 1.0 : 0; // +100% = +1.0
+          const welcomeDef = welcomeActive ? 1.0 : 0; // +100% = +1.0
+          return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              <BuffCell img={bookAtkImg} label="Ataque" value={`+${Math.round((((idle.buffs?.atk ?? 0)) + ((stats.attack ?? 0) * 0.05)) * 100)}%`} color="#ff5252" />
-              <BuffCell img={bookDefImg} label="Defesa" value={`-${Math.round((((idle.buffs?.def ?? 0)) + ((stats.resistance ?? 0) * 0.03)) * 100)}%`} color="#4a7bff" />
+              <BuffCell img={bookAtkImg} label={welcomeActive ? "Ataque 🎁" : "Ataque"} value={`+${Math.round((((idle.buffs?.atk ?? 0)) + ((stats.attack ?? 0) * 0.05) + welcomeAtk) * 100)}%`} color="#ff5252" />
+              <BuffCell img={bookDefImg} label={welcomeActive ? "Defesa 🎁" : "Defesa"} value={`-${Math.round((((idle.buffs?.def ?? 0)) + ((stats.resistance ?? 0) * 0.03) + welcomeDef) * 100)}%`} color="#4a7bff" />
               <BuffCell img={bookExpImg} label="EXP TOTAL" value={`+${totalExpPct}%`} color="#5ec26a" />
             </div>
+          );
+        })()}
 
             <div style={{ position: "relative", width: "100%", height: "180px", background: "rgba(0,0,0,0.5)", borderRadius: 16, border: "2px solid #b9a7ff44", overflow: "hidden", display: "flex", justifyContent: "center", alignItems: "center", boxShadow: "0 0 20px rgba(185, 167, 255, 0.15)" }}>
               <img 
