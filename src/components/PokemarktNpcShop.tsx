@@ -127,33 +127,27 @@ export function PokemarktNpcShop({
     });
   };
 
-  // Estante completa — fileira 1: bolas/cura/livros básicos;
-  // fileira 2: livros arcanos/orbs/comidas; fileira 3: comidas.
+  // Estante — fileira 1: bolas/cura/livros básicos;
+  // fileira 2: orbs no lugar dos arcanos + comidas; fileira 3: comidas.
+  // (fruta/suco/refeição e livros arcanos/reais saíram da vitrine.)
   const products = useMemo<StoreItem[]>(() => [
     { id: "pokeball", name: "Pokébola", price: 500, currency: "gold", image: ballPokeImg, description: "A bola clássica para capturas.", buy: (q) => onBuyBall("pokeball", q) },
     { id: "greatball", name: "Great Ball", price: 5000, currency: "gold", image: ballGreatImg, description: "Chance de captura duas vezes maior.", buy: (q) => onBuyBall("greatball", q) },
-    { id: "ultraball", name: "Ultra Ball", price: 15000, currency: "gold", image: ballUltraImg, description: "Captura altíssima — essencial contra míticos.", buy: (q) => onBuyBall("ultraball", q) },
+    { id: "ultraball", name: "Ultra Ball", price: 100, currency: "crystals", image: ballUltraImg, description: "Captura altíssima — 100 cristais cada.", buy: (q) => onBuyBall("ultraball", q) },
     { id: "book_atk", name: "Livro de Ataque", price: 100, currency: "crystals", image: bookAtkImg, description: "Use em 'Melhorias' (+3% dano).", buy: (q) => onBuyBook("book_atk", q) },
     { id: "book_def", name: "Livro de Defesa", price: 100, currency: "crystals", image: bookDefImg, description: "Use em 'Melhorias' (-3% dano).", buy: (q) => onBuyBook("book_def", q) },
     { id: "book_exp", name: "Livro de EXP", price: 30, currency: "crystals", image: bookExpImg, description: "+30% de EXP durante uma hora.", buy: (q) => onBuyBook("book_exp", q) },
-    { id: "fruta", name: "Fruta", price: 150, currency: "gold", image: appleImg, description: "Alimenta: +20 fome, +10 energia.", buy: (q) => onBuyFood("fruta", q) },
-    { id: "suco", name: "Suco", price: 400, currency: "gold", image: orangeImg, description: "Alimenta: +40 fome, +25 energia.", buy: (q) => onBuyFood("suco", q) },
+    { id: "maca", name: "Maçã", price: 200, currency: "gold", image: appleImg, description: "Alimenta: +25 fome, +15 energia.", buy: (q) => onBuyFood("maca", q) },
+    { id: "laranja", name: "Laranja", price: 200, currency: "gold", image: orangeImg, description: "Alimenta: +25 fome, +15 energia.", buy: (q) => onBuyFood("laranja", q) },
     { id: "energetico", name: "Energético", price: 900, currency: "gold", image: cokeImg, description: "Alimenta: +10 fome, +50 energia.", buy: (q) => onBuyFood("energetico", q) },
     { id: "potion", name: "Poção", price: 250, currency: "gold", image: potionImg, description: "Recupera 35% do HP do Pokémon.", buy: onBuyPotion },
     { id: "revive", name: "Revive", price: 400, currency: "gold", image: reviveImg, description: "Levanta o Pokémon desmaiado com HP cheio.", buy: onBuyRevive },
     { id: "antidoto", name: "Antídoto", price: 150, currency: "gold", image: potionImg, imgFilter: "hue-rotate(95deg) saturate(1.4)", description: "Limpa status negativos.", buy: (q) => onBuyFood("antidoto", q) },
-    { id: "book_atk_purple", name: "Ataque Arcano", price: 350, currency: "crystals", image: bookAtkImg, description: "+8% de dano em Melhorias.", buy: (q) => onBuyBook("book_atk_purple", q) },
-    { id: "book_def_purple", name: "Defesa Arcana", price: 350, currency: "crystals", image: bookDefImg, description: "-8% de dano recebido em Melhorias.", buy: (q) => onBuyBook("book_def_purple", q) },
-    { id: "book_atk_gold", name: "Tratado Real", price: 1200, currency: "crystals", image: bookAtkImg, description: "+15% de dano em Melhorias.", buy: (q) => onBuyBook("book_atk_gold", q) },
-    { id: "refrigerante", name: "Refrigerante", price: 600, currency: "gold", image: spriteImg, description: "Alimenta: +20 fome, +35 energia.", buy: (q) => onBuyFood("refrigerante", q) },
-    { id: "cafe", name: "Café Expresso", price: 500, currency: "gold", image: espressoImg, description: "Alimenta: +15 fome, +45 energia.", buy: (q) => onBuyFood("cafe", q) },
-    { id: "bolo_morango", name: "Bolo de Morango", price: 1200, currency: "gold", image: cakeImg, description: "Alimenta: +60 fome, +40 energia.", buy: (q) => onBuyFood("bolo_morango", q) },
-    { id: "book_def_gold", name: "Defesa Real", price: 1200, currency: "crystals", image: bookDefImg, description: "-15% de dano recebido em Melhorias.", buy: (q) => onBuyBook("book_def_gold", q) },
     { id: "orb_xp_minor", name: "Orb de XP ✦", price: 100, currency: "crystals", image: assetUrlFromJson(orbMinorAsset), description: "+10% EXP por 1 hora.", buy: (q) => onBuyBook("orb_xp_minor", q) },
     { id: "orb_team", name: "Orb de Time ✦✦✦", price: 2000, currency: "crystals", image: assetUrlFromJson(orbTeamAsset), description: "Time todo ganha EXP por 3 horas.", buy: (q) => onBuyBook("orb_team", q) },
-    { id: "refeicao", name: "Refeição", price: 2000, currency: "gold", image: mangoImg, description: "Alimenta: +100 fome, +100 energia.", buy: (q) => onBuyFood("refeicao", q) },
-    { id: "maca", name: "Maçã", price: 200, currency: "gold", image: appleImg, description: "Alimenta: +25 fome, +15 energia.", buy: (q) => onBuyFood("maca", q) },
-    { id: "laranja", name: "Laranja", price: 200, currency: "gold", image: orangeImg, description: "Alimenta: +25 fome, +15 energia.", buy: (q) => onBuyFood("laranja", q) },
+    { id: "bolo_morango", name: "Bolo de Morango", price: 1200, currency: "gold", image: cakeImg, description: "Alimenta: +60 fome, +40 energia.", buy: (q) => onBuyFood("bolo_morango", q) },
+    { id: "refrigerante", name: "Refrigerante", price: 600, currency: "gold", image: spriteImg, description: "Alimenta: +20 fome, +35 energia.", buy: (q) => onBuyFood("refrigerante", q) },
+    { id: "cafe", name: "Café Expresso", price: 500, currency: "gold", image: espressoImg, description: "Alimenta: +15 fome, +45 energia.", buy: (q) => onBuyFood("cafe", q) },
     { id: "picole", name: "Picolé", price: 300, currency: "gold", image: popsicleImg, description: "Alimenta: +25 fome, +20 energia.", buy: (q) => onBuyFood("picole", q) },
     { id: "cha_verde", name: "Chá Verde", price: 350, currency: "gold", image: greenteaImg, description: "Alimenta: +15 fome, +30 energia.", buy: (q) => onBuyFood("cha_verde", q) },
     { id: "leite_manga", name: "Leite de Manga", price: 700, currency: "gold", image: mangoImg, description: "Alimenta: +35 fome, +25 energia.", buy: (q) => onBuyFood("leite_manga", q) },
@@ -211,10 +205,20 @@ export function PokemarktNpcShop({
           </Button>
 
           <div className="absolute inset-0">
-            {products.map((item, i) => {
+            {SLOT_POS.map((pos, i) => {
+              const item = products[i];
+              if (!item) {
+                return (
+                  <div
+                    key={`soon-${i}`}
+                    className="absolute grid place-items-center"
+                    style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: `${pos.w}%`, height: `${pos.h}%` }}
+                  >
+                    <span className="rounded bg-slate-950/70 px-1 text-[8px] font-black text-slate-400">EM BREVE</span>
+                  </div>
+                );
+              }
               const active = item.id === selected.id;
-              const pos = SLOT_POS[i];
-              if (!pos) return null;
               const leftQty = stockOf(item.id);
               const empty = leftQty <= 0;
               return (

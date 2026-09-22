@@ -321,6 +321,7 @@ import bulbasaurFlowerPng from "@/assets/bulbasaur-flower.png";
 import bulbasaurOrangePng from "@/assets/bulbasaur-orange.png";
 import gordinPng from "@/assets/gordin.png";
 import luluzinhaPng from "@/assets/luluzinha.png";
+import luluzinhaFrontPng from "@/assets/luluzinha-front.png";
 // Saga "As Memórias Apagadas" — retratos dos 5 NPCs
 import bobyPng from "@/assets/Boby.png";
 import sanPng from "@/assets/San.png";
@@ -3377,7 +3378,7 @@ function IdlePage() {
   useEffect(() => {
     if (idle.currentMap === "arena") {
       setNpcs([
-        { id: 1, kind: "luluzinha", x: customDims ? customDims.w * 0.5 : 960, y: customDims ? customDims.h * 0.45 : 800, dir: "down", frame: 0 },
+        { id: 1, kind: "luluzinha", x: 430, y: 385, dir: "down", frame: 0 },
         { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha10") {
@@ -3422,7 +3423,7 @@ function IdlePage() {
     if (npcs.length === 0) return;
     const NPC_HOME_RADIUS: Partial<Record<string, number>> = {
       boby: 42, pokemarktClerk: 0, san: 42, nanizinha: 42, payka: 42, pan: 42,
-      gordin: 84, luluzinha: 84,
+      gordin: 84, luluzinha: 42,
     };
     const npcHomeRef = new Map<number, { x: number; y: number }>();
     const iv = setInterval(() => {
@@ -10873,7 +10874,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const isMenu = npcDialog.kind === "luluzinha" && npcDialog.page === 0;
             const pages = npcDialog.kind === "luluzinha" ? luluLines : (simple[npcDialog.kind] ?? ["..."]);
             const page = Math.min(npcDialog.page, pages.length - 1);
-            const portraitUrl = npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "luluzinha" ? luluzinhaPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+            const portraitUrl = npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "luluzinha" ? luluzinhaFrontPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
             const advance = () => {
               if (isMenu) return;
               if (page < pages.length - 1) setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
@@ -10883,6 +10884,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               <NpcDialog
                 kind={npcDialog.kind}
                 portraitUrl={portraitUrl}
+                portraitMode={npcDialog.kind === "luluzinha" ? "full" : "sheet"}
                 text={pages[page] ?? pages[0]}
                 pageLabel={isMenu ? undefined : (npcDialog.kind === "luluzinha" ? `${page}/3` : `${page + 1}/${pages.length}`)}
                 canAdvance={!isMenu}
@@ -11161,6 +11163,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               inventory={idle.items}
               onClose={() => setPokemarktShopOpen(false)}
               onBuyBall={(id, quantity) => {
+                // Ultra Ball na vitrine: 100 cristais cada (não usa ouro).
+                if (id === "ultraball") {
+                  const n = Math.max(1, Math.floor(quantity || 1));
+                  setIdle((s) => {
+                    const totalCost = 100 * n;
+                    if (s.bank.crystals < totalCost) {
+                      pushChat(`Cristais insuficientes para ${n}× Ultra Ball (precisa ${totalCost} 💎).`, "info");
+                      return s;
+                    }
+                    pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Ultra Ball`, "capture");
+                    pushChat(`Comprou ${n}× Ultra Ball por ${totalCost} 💎.`, "cap");
+                    return {
+                      ...s,
+                      bank: { ...s.bank, crystals: s.bank.crystals - totalCost },
+                      items: { ...s.items, ultraball: (s.items.ultraball ?? 0) + n },
+                    };
+                  });
+                  return;
+                }
                 const ball = ALL_BALLS.find((entry) => entry.id === id);
                 if (ball) buyBall(ball, quantity);
               }}
@@ -11780,7 +11801,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {npcs.map((n) => {
               const isSagaNpc = n.kind === "boby" || n.kind === "san" || n.kind === "nanizinha" || n.kind === "payka" || n.kind === "pan";
               const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || isSagaNpc;
-              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "boby" ? bobyPng : n.kind === "san" ? sanPng : n.kind === "nanizinha" ? nanizinhaPng : n.kind === "payka" ? paykaPng : n.kind === "pan" ? panPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaFrontPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "boby" ? bobyPng : n.kind === "san" ? sanPng : n.kind === "nanizinha" ? nanizinhaPng : n.kind === "payka" ? paykaPng : n.kind === "pan" ? panPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const singlePortrait = n.kind === "luluzinha";
               const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
               return (
                 <div
@@ -11801,14 +11823,27 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     zIndex: Math.round(n.y), cursor: isInteractive ? "pointer" : "default",
                   }}
                 >
-                  <div style={{
-                    width: "100%", height: "100%",
-                    backgroundImage: `url(${url})`,
-                    backgroundSize: "400% 400%",
-                    backgroundPosition: `${n.frame * 33.333}% ${dirRow * 33.333}%`,
-                    imageRendering: "pixelated",
-                    filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
-                  }} />
+                  {singlePortrait ? (
+                    <img
+                      src={url}
+                      alt=""
+                      draggable={false}
+                      style={{
+                        width: "100%", height: "100%", objectFit: "contain",
+                        imageRendering: "pixelated",
+                        filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: "100%", height: "100%",
+                      backgroundImage: `url(${url})`,
+                      backgroundSize: "400% 400%",
+                      backgroundPosition: `${n.frame * 33.333}% ${dirRow * 33.333}%`,
+                      imageRendering: "pixelated",
+                      filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
+                    }} />
+                  )}
                   {isInteractive && (
                     <div style={{
                       position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)",

@@ -232,6 +232,7 @@ export function NpcDialog({
   kind,
   name,
   portraitUrl,
+  portraitMode = "sheet",
   text,
   pageLabel,
   canAdvance,
@@ -242,6 +243,7 @@ export function NpcDialog({
   kind: string;
   name?: string;
   portraitUrl?: string;
+  portraitMode?: "sheet" | "full";
   text: string;
   pageLabel?: string;
   canAdvance: boolean;
@@ -285,12 +287,21 @@ export function NpcDialog({
           overflow: "hidden", background: "#0b0510", flexShrink: 0,
           boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
         }}>
-          <div style={{
-            width: "100%", height: "100%",
-            backgroundImage: `url(${portraitUrl})`,
-            backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
-            imageRendering: "pixelated",
-          }} />
+          {portraitMode === "full" ? (
+            <img
+              src={portraitUrl}
+              alt=""
+              draggable={false}
+              style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated" }}
+            />
+          ) : (
+            <div style={{
+              width: "100%", height: "100%",
+              backgroundImage: `url(${portraitUrl})`,
+              backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
+              imageRendering: "pixelated",
+            }} />
+          )}
         </div>
       )}
 
