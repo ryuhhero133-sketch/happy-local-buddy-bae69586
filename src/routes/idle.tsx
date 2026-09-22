@@ -336,6 +336,11 @@ import {
   sagaProgressText as sagaProgressTextPure,
   type SagaNpcId, type SagaProgress,
 } from "@/game/saga";
+import {
+  SIDE_QUESTS, starsFor, freshSideQuests, sideQuestsFor,
+  sideProgressText, sideObjectiveDone, sideOnCooldown,
+  type SideQuest, type SideQuestProgress,
+} from "@/game/sidequests";
 import charmanderGif from "@/assets/charmander.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import rattataFAsset from "@/assets/rattata-f.gif.asset.json";
@@ -1400,6 +1405,8 @@ type IdleState = {
   bmpSwapUsedUids?: string[];
   // ===== Saga "As Memórias Apagadas" (por jogador, persistido) =====
   saga?: SagaProgress;
+  // ===== Pedidos secundários dos NPCs (estrelas + missões) =====
+  sideQuests?: SideQuestProgress;
   // ===== Sistema de Recursos (fome/energia/arremessos — horário local real) =====
   /** Fome do treinador (0–100). Ciclos 05/12/18 no horário local. */
   trainerHunger?: number;
@@ -1600,6 +1607,7 @@ function loadIdle(): IdleState {
       if (s.lastSeenTs == null) s.lastSeenTs = nowBk;
       // Backfill da saga (saves antigos começam do zero, sem retroativo).
       if (!s.saga) s.saga = freshSaga();
+      if (!s.sideQuests) s.sideQuests = freshSideQuests();
       return s;
     }
   } catch { /* ignore */ }
@@ -1646,6 +1654,7 @@ function freshIdle(): IdleState {
     lastSeenTs: Date.now(),
     // Saga "As Memórias Apagadas" começa zerada.
     saga: freshSaga(),
+    sideQuests: freshSideQuests(),
   };
 }
 function saveIdle(s: IdleState) {
@@ -2150,6 +2159,8 @@ function IdlePage() {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
             if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
             if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
+            if (!merged.saga) merged.saga = freshSaga();
+            if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
             if (!uskins.includes("default")) uskins.unshift("default");
             merged.unlockedSkins = uskins;
@@ -3274,12 +3285,23 @@ function IdlePage() {
   const [luluTalk, setLuluTalk] = useState(false);
   const bootTimeRef = useRef(Date.now());
   const LULU_MAPS: IdleMapId[] = ["terra", "mapinha5", "mapinha7", "mapinha8", "mapinha11", "mapinha12", "mapinha13", "florest_bone", "florest_ice", "valley_plume", "ruinas", "ruinas_de_venus", "cave01", "cristal_cave"];
+  // A stone que ela pede é a DO MAPA onde aparece (mistério: o aviso
+  // nunca diz o mapa — o jogador precisa procurar).
+  const LULU_MAP_STONE: Record<string, string> = {
+    terra: "stone_grass", mapinha5: "stone_fire", mapinha7: "stone_water",
+    mapinha8: "stone_electric", mapinha11: "stone_dark", mapinha12: "stone_grass",
+    mapinha13: "stone_grass", florest_bone: "stone_dark", florest_ice: "stone_water",
+    valley_plume: "stone_grass", ruinas: "stone_fire", ruinas_de_venus: "stone_dark",
+    cave01: "stone_electric", cristal_cave: "stone_electric",
+  };
   const LULU_STONES = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
   const LULU_STONE_NAME: Record<string, string> = { stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉" };
   const LULU_DURATION_MS = 20 * 60 * 1000;
   // Saga "As Memórias Apagadas" — diálogo do NPC da saga + página atual
   const [sagaTalk, setSagaTalk] = useState<SagaNpcId | "choice" | null>(null);
   const [sagaPage, setSagaPage] = useState(0);
+  /** Aba do diálogo: fala normal ou PEDIDOS (quests secundárias). */
+  const [sagaTab, setSagaTab] = useState<"fala" | "pedidos">("fala");
   const [sagaChoiceSel, setSagaChoiceSel] = useState<SagaNpcId[]>([]);
   const [pokemarktShopOpen, setPokemarktShopOpen] = useState(false);
   // Energia do treinador: drena 100% em ~5h andando (20/hora). Energia 0 NÃO trava —
@@ -3527,16 +3549,15 @@ function IdlePage() {
         if (now - bootTimeRef.current < 5 * 60 * 1000) return ev;
         if (Math.random() >= 0.06) return ev;
         const map = LULU_MAPS[Math.floor(Math.random() * LULU_MAPS.length)];
-        const stoneId = LULU_STONES[Math.floor(Math.random() * LULU_STONES.length)];
-        const qty = 3 + Math.floor(Math.random() * 3);
+        const stoneId = LULU_MAP_STONE[map] ?? LULU_STONES[Math.floor(Math.random() * LULU_STONES.length)];
         const nev: LuluEvent = {
           map, fx: 0.38 + Math.random() * 0.24, fy: 0.38 + Math.random() * 0.24,
-          expiresAt: now + LULU_DURATION_MS, stoneId, qty, delivered: 0,
+          expiresAt: now + LULU_DURATION_MS, stoneId, qty: 1, delivered: 0,
           dx: 0, dy: 0, dir: "down", frame: 0,
         };
         queueMicrotask(() => {
-          pushChat(`🌸 Luluzinha foi vista em ${IDLE_MAPS[map]?.name ?? map}! Ela estuda stones e some em 20min — ache ela!`, "cap");
-          pushToast(`🌸 Luluzinha em ${IDLE_MAPS[map]?.name ?? map}!`, "cap");
+          pushChat(`🌸 Rumores: Luluzinha foi vista em algum lugar... Ela some em 20min — procure por ela! 🌸`, "cap");
+          pushToast(`🌸 Luluzinha apareceu em algum mapa!`, "cap");
         });
         return nev;
       });
@@ -8813,9 +8834,119 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const cur = s.saga ?? freshSaga();
       const cur2 = activeStage(cur);
       if (!cur2 || cur2.id !== st.id) return s;
-      return { ...s, saga: { ...cur, count: cur.count + n } };
+      // Progresso também conta nos PEDIDOS aceitos do NPC.
+      const sq0 = s.sideQuests ?? freshSideQuests();
+      let count = sq0.count;
+      if (sq0.accepted.length > 0) {
+        const nextCount = { ...sq0.count };
+        let changed = false;
+        for (const qid of sq0.accepted) {
+          const sq = SIDE_QUESTS.find((x) => x.id === qid);
+          if (!sq || sq.objective.kind !== kind) continue;
+          const ob = sq.objective;
+          if (ob.kind !== "kill" && ob.kind !== "capture" && ob.kind !== "feed_pet" && ob.kind !== "feed_trainer") continue;
+          nextCount[qid] = Math.min(ob.count, (nextCount[qid] ?? 0) + n);
+          changed = true;
+        }
+        if (changed) count = nextCount;
+      }
+      return {
+        ...s,
+        saga: { ...cur, count: cur.count + n },
+        sideQuests: count === sq0.count ? sq0 : { ...sq0, count },
+      };
     });
   };
+
+  // ============================================================
+  // PEDIDOS SECUNDÁRIOS — aceitar / resgatar / visitas
+  // ============================================================
+  const getSQ = (): SideQuestProgress => idle.sideQuests ?? freshSideQuests();
+
+  const acceptSideQuest = (qid: string) => {
+    const q = SIDE_QUESTS.find((x) => x.id === qid);
+    if (!q) return;
+    const sq = getSQ();
+    const done = sq.completed[q.npc] ?? 0;
+    if (q.minStars > starsFor(done)) { pushChat("🔒 Pedido bloqueado — suba de estrela com o NPC!", "info"); return; }
+    if (sq.accepted.includes(qid)) { pushChat("Pedido já está na sua lista.", "info"); return; }
+    if (sideOnCooldown(qid, sq)) { pushChat("⏳ Este pedido está em recuperação (20h).", "info"); return; }
+    setIdle((s) => {
+      const cur = s.sideQuests ?? freshSideQuests();
+      if (cur.accepted.includes(qid) || sideOnCooldown(qid, cur)) return s;
+      const count = { ...cur.count, [qid]: 0 };
+      let visited = cur.visited;
+      if (q.objective.kind === "visit") {
+        if (s.currentMap === q.objective.map) visited = { ...visited, [q.objective.map]: true };
+      }
+      queueMicrotask(() => {
+        pushChat(`📜 Pedido aceito: "${q.title}" — vá até o NPC quando concluir.`, "cap");
+        pushToast("Pedido na aba MISSÕES!", "cap");
+      });
+      return { ...s, sideQuests: { ...cur, accepted: [...cur.accepted, qid], count, visited } };
+    });
+  };
+
+  const claimSideQuest = (qid: string) => {
+    const q = SIDE_QUESTS.find((x) => x.id === qid);
+    if (!q) return;
+    const sq = getSQ();
+    if (!sq.accepted.includes(qid)) return;
+    if (!sideObjectiveDone(q, sq, idle.items, idle.currentMap)) { pushChat("Objetivo ainda não cumprido.", "info"); return; }
+    setIdle((s) => {
+      const cur = s.sideQuests ?? freshSideQuests();
+      if (!cur.accepted.includes(qid) || sideOnCooldown(qid, cur)) return s;
+      if (!sideObjectiveDone(q, cur, s.items, s.currentMap)) return s;
+      const items = { ...s.items };
+      let bank = { ...s.bank };
+      if (q.objective.kind === "item" && q.objective.consume) {
+        if ((items[q.objective.itemId] ?? 0) < q.objective.qty) return s;
+        items[q.objective.itemId] = Math.max(0, items[q.objective.itemId] - q.objective.qty);
+      }
+      bank.crystals += q.crystals;
+      for (const b of q.bonus ?? []) items[b.itemId] = (items[b.itemId] ?? 0) + b.qty;
+      const before = cur.completed[q.npc] ?? 0;
+      const after = before + 1;
+      const completed = { ...cur.completed, [q.npc]: after };
+      const count = { ...cur.count };
+      delete count[qid];
+      const claimedAt = { ...cur.claimedAt, [qid]: Date.now() };
+      const accepted = cur.accepted.filter((x) => x !== qid);
+      const starsNow = starsFor(after);
+      const bonusTxt = (q.bonus ?? []).map((b) => `+${b.qty} ${b.itemId}`).join(" · ");
+      queueMicrotask(() => {
+        pushChat(`📜 Pedido concluído: "${q.title}"! +${q.crystals} 💎${bonusTxt ? " · " + bonusTxt : ""}`, "chest");
+        pushToast(`+${q.crystals} 💎`, "chest");
+        if (starsNow > starsFor(before)) {
+          pushChat(`⭐ ${SAGA_NPCS[q.npc].name} subiu para ${starsNow} estrela${starsNow > 1 ? "s" : ""}! Novos pedidos liberados.`, "cap");
+          pushToast(`⭐ ${starsNow} estrela${starsNow > 1 ? "s" : ""}!`, "cap");
+        }
+        playBonus();
+      });
+      return {
+        ...s, items, bank,
+        sideQuests: { ...cur, accepted, count, claimedAt, completed },
+      };
+    });
+  };
+
+  /** Visitas: marca quando o jogador chega no mapa do pedido. */
+  useEffect(() => {
+    const sq = idle.sideQuests;
+    if (!sq || sq.accepted.length === 0) return;
+    const map = idle.currentMap;
+    if (sq.visited[map]) return;
+    const need = sq.accepted.some((id) => {
+      const q = SIDE_QUESTS.find((x) => x.id === id);
+      return q && q.objective.kind === "visit" && q.objective.map === map;
+    });
+    if (!need) return;
+    setIdle((s) => {
+      const cur = s.sideQuests ?? freshSideQuests();
+      if (cur.visited[s.currentMap]) return s;
+      return { ...s, sideQuests: { ...cur, visited: { ...cur.visited, [s.currentMap]: true } } };
+    });
+  }, [idle.currentMap, idle.sideQuests?.accepted.join(",")]);
 
   /** Objetivo da etapa cumprido? (talk/choice = ao fim do diálogo) */
   const sagaObjectiveDone = (stageId: string): boolean => {
@@ -10449,7 +10580,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               border: "2px solid rgba(245,207,107,0.7)", background: "#0a1322",
               boxShadow: "0 0 0 3px rgba(245,207,107,0.18), 0 4px 12px rgba(0,0,0,0.5)",
             }}>
-              <img src={skinUrl ?? trainerFrontPng} alt="" width={54} height={54} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
+                  <div style={{
+                    width: 54, height: 54, borderRadius: 10, overflow: "hidden", flexShrink: 0,
+                    border: "2px solid rgba(245,207,107,0.7)", background: "#0a1322",
+                    boxShadow: "0 0 0 3px rgba(245,207,107,0.18), 0 4px 12px rgba(0,0,0,0.5)",
+                  }}>
+                    <div style={{
+                      width: "100%", height: "100%",
+                      backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                      backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
+                      imageRendering: "pixelated",
+                    }} />
+                  </div>
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8fb8ef", fontWeight: 800 }}>TREINADOR</div>
@@ -11055,17 +11197,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               });
               setLuluEvent((e) => (e ? { ...e, delivered: e.delivered + 1 } : e));
             };
+            const thanked = luluEvent.delivered > 0;
             return (
               <NpcDialog
                 kind="luluzinha"
                 portraitUrl={luluzinhaFrontPng}
                 portraitMode="full"
-                text={`🌸 Oi! Tô em estudo de campo das Stones Elementais! Me traz ${luluEvent.qty} ${stoneName} — pra CADA uma te dou +2 Ultra Ball ou um presente surpresa! Ela some em ${minsLeft}min, corre!`}
-                pageLabel={`entregues ${luluEvent.delivered} · some em ${minsLeft}min`}
+                text={thanked
+                  ? `🌸 Obrigada pela ${stoneName}! Vai ajudar muito meu estudo! Se me ver de novo por aí, traz mais uma! 💖`
+                  : `🌸 Oi! Tô em estudo de campo das Stones Elementais! Me traz 1 ${stoneName} e te dou +2 Ultra Ball ou um presente surpresa! Sumo em ${minsLeft}min, corre!`}
+                pageLabel={thanked ? "obrigada! 💖" : `some em ${minsLeft}min`}
                 canAdvance={false}
                 onAdvance={() => setLuluTalk(false)}
                 onClose={() => setLuluTalk(false)}
-                footer={(
+                footer={thanked ? undefined : (
                   <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,139,208,0.4)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 6 }}>
                       <ItemPixelIcon id={luluEvent.stoneId} size={30} />
@@ -11097,7 +11242,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const sg = getSaga();
             const closeBtn = (
               <button
-                onClick={(e) => { e.stopPropagation(); setSagaTalk(null); }}
+                onClick={(e) => { e.stopPropagation(); setSagaTalk(null); setSagaTab("fala"); }}
                 style={{
                   position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%",
                   background: "#b91c1c", border: "2px solid #fff", color: "#fff", fontWeight: 900, fontSize: 12,
@@ -11116,11 +11261,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       width: 56, height: 56, border: "2px solid #7fd8ff", borderRadius: 6, overflow: "hidden",
                       background: "#0b0510", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
                     }}>
-                      <img
-                        src={skinUrl ?? trainerFrontPng}
-                        alt="Você"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }}
-                      />
+                      <div style={{
+                        width: "100%", height: "100%",
+                        backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                        backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
+                        imageRendering: "pixelated",
+                      }} />
                     </div>
                     <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: "#7fd8ff" }}>VOCÊ</span>
                   </div>
@@ -11158,7 +11304,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 }}
               >
                 {closeBtn}
-                <div style={{ color: t.accent, fontSize: 10, fontWeight: 900, letterSpacing: 1, marginBottom: 6 }}>📖 AS MEMÓRIAS APAGADAS · {sub}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                  <span style={{ color: t.accent, fontSize: 10, fontWeight: 900, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS · {sub}</span>
+                  {themeKind !== "default" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSagaTab((v) => (v === "pedidos" ? "fala" : "pedidos"));
+                      }}
+                      style={{
+                        marginLeft: "auto", padding: "2px 8px", borderRadius: 6, cursor: "pointer",
+                        border: `1px solid ${sagaTab === "pedidos" ? t.accent : "rgba(255,255,255,0.25)"}`,
+                        background: sagaTab === "pedidos" ? t.accent : "rgba(255,255,255,0.08)",
+                        color: sagaTab === "pedidos" ? "#0b0510" : "#fff",
+                        fontSize: 10, fontWeight: 900, letterSpacing: 1,
+                      }}
+                      title="Pedidos secundárias"
+                    >📜 PEDIDOS</button>
+                  )}
+                </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                   {body}
                 </div>
@@ -11166,6 +11330,85 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               );
             };
             void 0;
+            // ===== ABA PEDIDOS (quests secundárias + estrelas) =====
+            if (sagaTab === "pedidos" && sagaTalk !== "choice") {
+              const npcP = sagaTalk as SagaNpcId;
+              const sqP = getSQ();
+              const doneP = sqP.completed[npcP] ?? 0;
+              const starsP = starsFor(doneP);
+              const listP = sideQuestsFor(npcP, doneP);
+              const portraitP = portrait(npcP);
+              return shell(npcP, "pedidos", (
+                <>
+                  {portraitP}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                      <span style={{ color: "#ffcc33", fontSize: 14, letterSpacing: 2 }}>
+                        {"★".repeat(starsP)}<span style={{ color: "rgba(255,255,255,0.25)" }}>{"★".repeat(3 - starsP)}</span>
+                      </span>
+                      <span style={{ color: "#c8b8d0", fontSize: 10, fontWeight: 800 }}>
+                        {doneP}/15 pedidos · ★ a cada 5
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 260, overflowY: "auto", paddingRight: 2 }}>
+                      {listP.map((q) => {
+                        const accepted = sqP.accepted.includes(q.id);
+                        const ready = accepted && sideObjectiveDone(q, sqP, idle.items, idle.currentMap);
+                        const cooling = sideOnCooldown(q.id, sqP);
+                        const progTxt = accepted ? sideProgressText(q, sqP, idle.items, idle.currentMap) : (cooling ? "⏳ 20h" : `${q.crystals} 💎`);
+                        return (
+                          <div key={q.id} style={{
+                            background: "rgba(0,0,0,0.35)",
+                            border: `1px solid ${ready ? "#22c55e" : accepted ? "rgba(255,255,255,0.25)" : q.minStars > 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.2)"}`,
+                            borderRadius: 6, padding: "6px 8px", opacity: cooling ? 0.5 : q.minStars > starsP ? 0.45 : 1,
+                          }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 6, alignItems: "baseline" }}>
+                              <span style={{ color: "#fff", fontSize: 11, fontWeight: 900 }}>
+                                {q.minStars > 0 && <span style={{ color: "#ffcc33", marginRight: 4 }}>★{q.minStars}</span>}
+                                {q.title}
+                              </span>
+                              <span style={{ color: "#7fd8ff", fontSize: 10, fontWeight: 800, whiteSpace: "nowrap" }}>{progTxt}</span>
+                            </div>
+                            <div style={{ color: "#c8b8d0", fontSize: 10, marginTop: 2 }}>🎯 {q.objectiveLabel}</div>
+                            {!accepted && !cooling && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); acceptSideQuest(q.id); }}
+                                disabled={q.minStars > starsP}
+                                style={{
+                                  marginTop: 5, width: "100%", padding: "5px", borderRadius: 6, border: "none",
+                                  background: q.minStars > starsP ? "#3a2a4a" : "linear-gradient(180deg, #f5cf6b, #c9a227)",
+                                  color: q.minStars > starsP ? "#8a7a9c" : "#0b0510",
+                                  fontWeight: 900, fontSize: 10, cursor: q.minStars > starsP ? "not-allowed" : "pointer",
+                                }}
+                              >{q.minStars > starsP ? `🔒 precisa ★${q.minStars}` : "✓ ACEITAR"}</button>
+                            )}
+                            {accepted && ready && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); claimSideQuest(q.id); }}
+                                style={{
+                                  marginTop: 5, width: "100%", padding: "6px", borderRadius: 6, border: "2px solid #fff3",
+                                  background: "linear-gradient(180deg, #22c55e, #15803d)", color: "#052e16",
+                                  fontWeight: 900, fontSize: 10, cursor: "pointer",
+                                  boxShadow: "0 0 12px rgba(34,197,94,0.5)",
+                                }}
+                              >🎁 ENTREGAR NO NPC</button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {listP.length === 0 && (
+                        <div style={{ color: "#8a7a9c", fontSize: 11, textAlign: "center", padding: 10 }}>
+                          Nenhum pedido liberado ainda.
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ color: "#8a7a9c", fontSize: 10, marginTop: 6, textAlign: "center" }}>
+                      Entregue pessoalmente · recompensa ao concluir · cooldown 20h
+                    </div>
+                  </div>
+                </>
+              ));
+            }
             // ===== TELA DA ESCOLHA FINAL =====
             if (sagaTalk === "choice") {
               const all: SagaNpcId[] = ["boby", "san", "nanizinha", "payka", "pan"];
@@ -11986,7 +12229,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     walkTargetRef.current = null;
                     setWalkingTo(null);
                     if (n.kind === "pokemarktClerk") setPokemarktShopOpen(true);
-                    else if (isSagaNpc) { setSagaTalk(n.kind as SagaNpcId); setSagaPage(0); }
+                    else if (isSagaNpc) { setSagaTalk(n.kind as SagaNpcId); setSagaPage(0); setSagaTab("fala"); }
                     else setNpcDialog({ kind: n.kind, page: 0 });
                   }}
                   style={{
@@ -13688,8 +13931,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               setAudioSettings={setAudioSettings}
               tasks={idle.tasks}
               onClaimTask={claimTask}
+              onAcceptSideQuest={acceptSideQuest}
+              onClaimSideQuest={claimSideQuest}
               onSagaClaim={claimSagaReward}
-              onSagaTalk={(n) => { setSagaTalk(n); setSagaPage(0); }}
+              onSagaTalk={(n) => { setSagaTalk(n); setSagaPage(0); setSagaTab("fala"); }}
               onSagaLocate={(n) => {
                 // FALAR na quest NÃO abre diálogo: mostra onde o NPC está e
                 // abre o teleporte — o jogador precisa ir até ele e clicar.
@@ -18745,7 +18990,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, trainerEnergy, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  onSagaClaim, onSagaTalk, onSagaLocate,
+  onSagaClaim, onSagaTalk, onSagaLocate, onAcceptSideQuest, onClaimSideQuest,
   idle, setIdle, pushChat,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
   trainerTheme, toggleTrainerTheme
@@ -18788,6 +19033,8 @@ function TabOverlay({
   setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
   tasks: Task[];
   onClaimTask: (tid: string) => void;
+  onAcceptSideQuest: (qid: string) => void;
+  onClaimSideQuest: (qid: string) => void;
   onSagaClaim: (stageId: string) => void;
   onSagaTalk: (npc: SagaNpcId | "choice") => void;
   onSagaLocate: (npc: SagaNpcId) => void;
@@ -18841,7 +19088,7 @@ function TabOverlay({
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
-    tab === "tarefas"   ? "TAREFAS" :
+    tab === "tarefas"   ? "MISSÕES" :
     tab === "inicio"    ? "INÍCIO" : "";
   const [mochilaCat, setMochilaCat] = useState<"all" | "balls" | "potions" | "books" | "eggs" | "other" | "equips">("all");
   const [bagSel, setBagSel] = useState<string | null>(null);
@@ -19317,6 +19564,115 @@ function TabOverlay({
           <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
             Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
           </div>
+          {/* ===== PEDIDOS SECUNDÁRIOS (novo pedido + em andamento) ===== */}
+          {(() => {
+            const sq = idle.sideQuests ?? freshSideQuests();
+            const rows = sq.accepted
+              .map((id) => SIDE_QUESTS.find((q) => q.id === id))
+              .filter(Boolean) as SideQuest[];
+            const nextRows = (["boby", "san", "nanizinha", "payka", "pan"] as const)
+              .flatMap((npc) => {
+                const done = sq.completed[npc] ?? 0;
+                const cooling = SIDE_QUESTS.filter((q) => q.npc === npc && sq.claimedAt[q.id] && Date.now() - sq.claimedAt[q.id] < 20 * 3600 * 1000);
+                const free = SIDE_QUESTS.filter((q) => q.npc === npc && !sq.claimedAt[q.id] && q.minStars <= starsFor(done) && !sq.accepted.includes(q.id));
+                if (free.length === 0 || cooling.length >= free.length) return [];
+                return [free[0]];
+              })
+              .slice(0, 3);
+            return (
+              <div style={{
+                background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)",
+                border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 14,
+                boxShadow: "0 4px 14px rgba(255,139,208,0.35)",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ color: "#d63384", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>📜 PEDIDOS</span>
+                  <span style={{ fontSize: 10, color: "#a08a96", fontWeight: 800 }}>aceite nos NPCs · entregue lá · cooldown 20h</span>
+                </div>
+                {rows.length === 0 && nextRows.length === 0 ? (
+                  <div style={{ color: "#a08a96", fontSize: 12, padding: 8 }}>
+                    Nenhum pedido ativo. Fale com os NPCs da saga e aceite em 📜 PEDIDOS.
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {rows.map((q) => {
+                      const ready = sideObjectiveDone(q, sq, idle.items, idle.currentMap);
+                      const here = idle.currentMap === SAGA_NPCS[q.npc].map;
+                      const accent = npcThemeFor(q.npc).accent;
+                      const prog = sideProgressText(q, sq, idle.items, idle.currentMap);
+                      return (
+                        <div key={q.id} style={{
+                          background: "#fff", borderRadius: 10, padding: "8px 10px",
+                          border: `3px solid ${ready ? "#22c55e" : "#ef4444"}`,
+                          boxShadow: ready
+                            ? "0 0 10px rgba(34,197,94,0.55), 0 0 18px rgba(34,197,94,0.35)"
+                            : "0 0 10px rgba(239,68,68,0.5), 0 0 16px rgba(239,68,68,0.3)",
+                          display: "flex", gap: 10, alignItems: "flex-start",
+                        }}>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                            <div style={{
+                              width: 44, height: 44, border: `2px solid ${accent}`, borderRadius: 8,
+                              overflow: "hidden", background: "#0b0510",
+                            }}>
+                              <div style={{
+                                width: "100%", height: "100%",
+                                backgroundImage: `url(${npc === q.npc ? bobyPng : q.npc === "san" ? sanPng : q.npc === "nanizinha" ? nanizinhaPng : q.npc === "payka" ? paykaPng : panPng})`,
+                                backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated",
+                              }} />
+                            </div>
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ color: "#5b2333", fontWeight: 900, fontSize: 13 }}>{q.title}</div>
+                            <div style={{ color: "#8a5a6c", fontSize: 11, marginTop: 2 }}>
+                              🎯 {q.objectiveLabel}: <b style={{ color: ready ? "#059669" : "#d97706" }}>{prog}</b>
+                            </div>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4, flexWrap: "wrap" }}>
+                              <span style={{ color: "#5b2333", fontSize: 11, fontWeight: 800 }}>💎 {q.crystals}</span>
+                              {(q.bonus ?? []).map((b, i) => (
+                                <span key={i} style={{ color: "#8a5a6c", fontSize: 11 }}>+{b.qty} {b.itemId}</span>
+                              ))}
+                            </div>
+                            <div style={{ color: "#2563eb", fontSize: 11, marginTop: 3 }}>
+                              📍 {SAGA_NPCS[q.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[q.npc].map]?.name ?? "Revoland"}</b>
+                            </div>
+                            <button
+                              onClick={() => onSagaLocate(q.npc)}
+                              style={{
+                                marginTop: 6, width: "100%",
+                                background: ready
+                                  ? "linear-gradient(180deg, #22c55e, #15803d)"
+                                  : "linear-gradient(180deg, #ff8bd0, #ec4899)",
+                                color: ready ? "#052e16" : "#fff",
+                                border: "none", borderRadius: 10, padding: "8px",
+                                fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: "pointer",
+                                boxShadow: ready ? "0 3px 0 #14532d" : "0 3px 0 #be185d",
+                              }}
+                            >{here ? (ready ? "🎁 ENTREGAR — FALAR" : "💬 FALAR") : "🗺️ FALAR — IR ATÉ ELE"}</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {nextRows.length > 0 && (
+                      <div style={{
+                        background: "#fff", borderRadius: 10, padding: "8px 10px",
+                        border: "3px solid #9ca3af", opacity: 0.85,
+                      }}>
+                        <div style={{ color: "#6b7280", fontWeight: 900, fontSize: 11, marginBottom: 4 }}>🔒 NOVOS PEDIDOS</div>
+                        {nextRows.map((q) => (
+                          <div key={q.id} style={{ display: "flex", justifyContent: "space-between", gap: 6, alignItems: "center", padding: "3px 0" }}>
+                            <span style={{ color: "#374151", fontSize: 11, fontWeight: 700 }}>{q.title}</span>
+                            <span style={{ color: "#9ca3af", fontSize: 10, fontWeight: 800, whiteSpace: "nowrap" }}>
+                              ★{q.minStars} · 💎{q.crystals}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {/* ===== SAGA "AS MEMÓRIAS APAGADAS" ===== */}
           {(() => {
             const sg: SagaProgress = idle.saga ?? freshSaga();
@@ -19408,29 +19764,36 @@ function TabOverlay({
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {tasks.map((t) => (
                 <div key={t.id} style={{
-                  background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
-                  border: `1px solid ${t.done ? "#5ec26a55" : "rgba(245,207,107,0.2)"}`,
-                  borderRadius: 8, padding: 12,
+                  background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)",
+                  border: `3px solid ${t.done ? "#22c55e" : "#ef4444"}`,
+                  borderRadius: 12, padding: 12,
+                  boxShadow: t.done
+                    ? "0 0 10px rgba(34,197,94,0.5), 0 0 18px rgba(34,197,94,0.3)"
+                    : "0 0 10px rgba(239,68,68,0.45), 0 0 16px rgba(239,68,68,0.28)",
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <span style={{ color: "#eadfe8", fontWeight: 700, fontSize: 13 }}>{t.title}</span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f5cf6b", fontWeight: 800 }}>
+                    <span style={{ color: "#5b2333", fontWeight: 900, fontSize: 13 }}>{t.title}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#d63384", fontWeight: 900 }}>
                       <img src={crystalGreenImg} alt="" style={{ width: 14, imageRendering: "pixelated" }} />
                       {t.reward}
                     </span>
                   </div>
-                  <div style={{ height: 6, background: "#3a1010", borderRadius: 3 }}>
+                  <div style={{ height: 6, background: "#ffe0ec", borderRadius: 3, border: "1px solid #ffc4da" }}>
                     <div style={{
                       width: `${Math.min(100, (t.progress / t.target) * 100)}%`,
-                      height: "100%", background: t.done ? "#5ec26a" : "#c92a2a",
+                      height: "100%", background: t.done ? "#22c55e" : "#ec4899",
                       borderRadius: 3, transition: "width 200ms",
                     }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-                    <span style={{ color: "#b8a8c8", fontSize: 11 }}>{t.progress}/{t.target}</span>
+                    <span style={{ color: "#8a5a6c", fontSize: 11, fontWeight: 700 }}>{t.progress}/{t.target}</span>
                     {t.done && (
                       <button onClick={() => onClaimTask(t.id)}
-                        style={{ background: "#5ec26a", color: "#0b0510", border: "none", borderRadius: 6, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>
+                        style={{
+                          background: "linear-gradient(180deg, #22c55e, #15803d)", color: "#052e16",
+                          border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer",
+                          boxShadow: "0 2px 0 #14532d",
+                        }}>
                         COLETAR
                       </button>
                     )}
@@ -19617,7 +19980,12 @@ function TabOverlay({
                       boxShadow: "0 0 10px rgba(125,196,255,0.6)",
                       background: "radial-gradient(circle at 35% 30%, #1e3a5e, #0a1830)",
                     }}>
-                      <img src={skinUrl ?? trainerFrontPng} alt="" width={42} height={42} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
+                      <div style={{
+                        width: "100%", height: "100%",
+                        backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                        backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
+                        imageRendering: "pixelated",
+                      }} />
                     </div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
