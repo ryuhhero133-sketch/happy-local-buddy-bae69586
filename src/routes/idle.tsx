@@ -149,11 +149,18 @@ const levelUpGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6OXFwNnp
 
 
 
-const SKINS: { id: string; label: string; url: string | null }[] = [
-  { id: "default", label: "Treinador Clássico", url: null },
-  { id: "pedro", label: "Pedro Dancer", url: assetUrlFromJson(skinPedroAsset) },
-  { id: "phone", label: "Phone 036", url: assetUrlFromJson(skinPhoneAsset) },
-  { id: "goku", label: "Goku", url: assetUrlFromJson(skinGokuAsset) },
+import char01Png from "@/assets/char-inicial/char 01.png";
+import char02Png from "@/assets/char-inicial/char 02.png";
+import charAshPng from "@/assets/char-inicial/Char Ash.png";
+import charF1Png from "@/assets/char-inicial/Char f1.png";
+import charF2Png from "@/assets/char-inicial/Char f2.png";
+
+const SKINS: { id: string; label: string; url: string; gender: "male" | "female"; locked?: boolean }[] = [
+  { id: "char01", label: "Char 01", url: char01Png, gender: "male" },
+  { id: "char02", label: "Char 02", url: char02Png, gender: "male" },
+  { id: "charf1", label: "Char F1", url: charF1Png, gender: "female" },
+  { id: "charf2", label: "Char F2", url: charF2Png, gender: "female" },
+  { id: "charash", label: "Char Ash", url: charAshPng, gender: "male", locked: true },
 ];
 const SKIN_KEY = "rubym.skin.v1";
 const EQUIPMENT_KEY = "rubym.trainer.equipment.v1";
@@ -2282,6 +2289,35 @@ function IdlePage() {
     const t = setInterval(() => forceHiveTick((n) => (n + 1) % 1_000_000), 1000);
     return () => clearInterval(t);
   }, []);
+  // ===== Configuração inicial: Skin + Nome ANTES do inicial =====
+  const [setupDone, setSetupDone] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    try { return !!localStorage.getItem("rubym.setup.done"); } catch { return true; }
+  });
+  const [setupStep, setSetupStep] = useState<"skin" | "name">("skin");
+  const [setupSkinId, setSetupSkinId] = useState<string>("char01");
+  const [setupName, setSetupName] = useState<string>("");
+
+  const confirmName = () => {
+    const name = setupName.trim();
+    if (!name) return;
+    try {
+      localStorage.setItem("rubym.setup.done", "1");
+      localStorage.setItem("rubym.setup.skin", setupSkinId);
+      localStorage.setItem("rubym.setup.name", name);
+    } catch { /* ignore */ }
+    setSetupDone(true);
+    setSetupStep("skin");
+    setSetupName("");
+    // Atualiza identity com o nome escolhido
+    if (identity) {
+      const newIdentity = { ...identity, name };
+      try { localStorage.setItem("rubym.identity.v1", JSON.stringify(newIdentity)); } catch { /* ignore */ }
+      // Força re-render via setIdle (ou recarrega)
+      window.location.reload();
+    }
+  };
+
   // ===== Escolha do inicial (declarada cedo p/ gatear loops do jogo) =====
   const [starterChosen, setStarterChosen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
@@ -2425,10 +2461,10 @@ function IdlePage() {
   const isFirstSpawnRef = useRef(true);
   const lastSpawnAtRef = useRef(0);
   const orbIdRef = useRef(1);
-  const [tab, setTab] = useState<"inicio" | "pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento">("inicio");
+  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento">("pokemon");
   const [skinId, setSkinId] = useState<string>(() => {
-    if (typeof window === "undefined") return "default";
-    try { return localStorage.getItem(SKIN_KEY) || "default"; } catch { return "default"; }
+    if (typeof window === "undefined") return "char01";
+    try { return localStorage.getItem("rubym.setup.skin") || localStorage.getItem(SKIN_KEY) || "char01"; } catch { return "char01"; }
   });
   const [equippedItems, setEquippedItems] = useState<Record<EquipmentSlot, string | null>>(() => {
     if (typeof window === "undefined") return { head: null, body: null, weapon: null, feet: null, necklace: null, ring: null };
@@ -15355,9 +15391,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 onClick={() => { playClick(); setTab(t.id as typeof tab); }}
               />
             ))}
-            <CompassBtn
-              active={tab === "inicio"}
-              onClick={() => { playClick(); setTab("inicio"); }}
+            <BottomNavBtn
+              label="Mapa"
+              img={navMap}
+              active={mapTeleportOpen}
+              onClick={() => { playClick(); setMapTeleportOpen(true); }}
             />
             {([
               { id: "melhorias",label: "Melhorias",img: navMelhorias },
@@ -17845,10 +17883,170 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         );
       })()}
 
+      {/* ===== Modal de configuração inicial: Skin + Nome ===== */}
+      {!setupDone && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 1002,
+          background: "rgba(11,5,16,0.95)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 20,
+        }}>
+          <div style={{
+            background: "linear-gradient(160deg, #1a0f26 0%, #2a1638 100%)",
+            border: "2px solid #f5cf6b", borderRadius: 16,
+            padding: 32, maxWidth: 760, width: "100%",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.8)",
+          }}>
+            {/* Step indicator */}
+            <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 24 }}>
+              <div style={{
+                width: 12, height: 12, borderRadius: 6,
+                background: setupStep === "skin" ? "#f5cf6b" : "#6b5b95",
+                boxShadow: setupStep === "skin" ? "0 0 10px #f5cf6b" : "none",
+                transition: "all 0.3s"
+              }}/>
+              <div style={{
+                width: 12, height: 12, borderRadius: 6,
+                background: setupStep === "name" ? "#f5cf6b" : "#6b5b95",
+                boxShadow: setupStep === "name" ? "0 0 10px #f5cf6b" : "none",
+                transition: "all 0.3s"
+              }}/>
+            </div>
+
+            {setupStep === "skin" && (
+              <>
+                <h2 style={{ color: "#f5cf6b", fontSize: 24, marginBottom: 6, textAlign: "center", fontWeight: 900 }}>
+                  Escolha seu visual de Treinador
+                </h2>
+                <div style={{ color: "#b8a8c8", fontSize: 14, textAlign: "center", marginBottom: 28 }}>
+                  Masculino: Char 01, Char 02 &nbsp;|&nbsp; Feminino: Char F1, Char F2
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14 }}>
+                  {SKINS.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        if (s.locked) {
+                          pushChat("🔒 Char Ash é exclusivo para pré-registro!", "info");
+                          return;
+                        }
+                        setSetupSkinId(s.id);
+                        setSetupStep("name");
+                      }}
+                      disabled={s.locked}
+                      style={{
+                        background: setupSkinId === s.id
+                          ? "linear-gradient(160deg, #3a1f5c 0%, #6b3fb0 100%)"
+                          : "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                        border: `2px solid ${setupSkinId === s.id ? "#f5cf6b" : s.locked ? "#5a4a6a" : "rgba(245,207,107,0.3)"}`,
+                        borderRadius: 14, padding: 18,
+                        cursor: s.locked ? "not-allowed" : "pointer",
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+                        opacity: s.locked ? 0.55 : 1,
+                        transition: "all 0.2s",
+                        position: "relative",
+                      }}
+                      onMouseEnter={(e) => { if (!s.locked) e.currentTarget.style.transform = "translateY(-4px)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                    >
+                      <div style={{
+                        width: 80, height: 80, display: "grid", placeItems: "center",
+                        background: "rgba(0,0,0,0.35)", borderRadius: 10,
+                        imageRendering: "pixelated",
+                      }}>
+                        <img src={s.url} alt={s.label} style={{ maxWidth: "90%", maxHeight: "90%", imageRendering: "pixelated" }} />
+                      </div>
+                      <div style={{
+                        color: setupSkinId === s.id ? "#f5cf6b" : s.locked ? "#7a6a8a" : "#eadfe8",
+                        fontWeight: 900, fontSize: 14, textAlign: "center"
+                      }}>{s.label}</div>
+                      {s.locked && (
+                        <div style={{
+                          position: "absolute", top: 6, right: 6,
+                          background: "rgba(255,100,100,0.2)", border: "1px solid #ff6b6b",
+                          borderRadius: 6, padding: "2px 6px", fontSize: 9, color: "#ff8888", fontWeight: 800
+                        }}>🔒 PRÉ-REGISTRO</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ color: "#7a6a8a", fontSize: 11, textAlign: "center", marginTop: 16 }}>
+                  Char Ash desbloqueado apenas para jogadores com pré-registro.
+                </div>
+              </>
+            )}
+
+            {setupStep === "name" && (
+              <>
+                <h2 style={{ color: "#f5cf6b", fontSize: 24, marginBottom: 6, textAlign: "center", fontWeight: 900 }}>
+                  Qual será o seu nome, Treinador?
+                </h2>
+                <div style={{ color: "#b8a8c8", fontSize: 13, textAlign: "center", marginBottom: 24 }}>
+                  Seu nome aparecerá no perfil, rankings e batalhas.
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+                  <div style={{
+                    width: 100, height: 100, display: "grid", placeItems: "center",
+                    background: "rgba(0,0,0,0.35)", borderRadius: 12,
+                    border: "2px solid #f5cf6b", imageRendering: "pixelated",
+                    boxShadow: "0 0 20px rgba(245,207,107,0.3)"
+                  }}>
+                    <img src={SKINS.find(s => s.id === setupSkinId)?.url ?? char01Png} 
+                         alt={SKINS.find(s => s.id === setupSkinId)?.label ?? "Char 01"} 
+                         style={{ maxWidth: "90%", maxHeight: "90%", imageRendering: "pixelated" }} />
+                  </div>
+                  <input
+                    type="text"
+                    value={setupName}
+                    onChange={(e) => setSetupName(e.target.value.slice(0, 16))}
+                    maxLength={16}
+                    placeholder="Digite seu nome (máx. 16 caracteres)"
+                    style={{
+                      width: "100%", maxWidth: 320, padding: "14px 18px",
+                      background: "rgba(0,0,0,0.5)", border: "2px solid rgba(245,207,107,0.5)",
+                      borderRadius: 10, color: "#fff", fontSize: 16, fontWeight: 700,
+                      textAlign: "center", outline: "none",
+                      fontFamily: "'Courier New', monospace",
+                    }}
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter" && setupName.trim()) confirmName(); }}
+                  />
+                  <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                    <button
+                      onClick={() => setSetupStep("skin")}
+                      style={{
+                        padding: "12px 28px", background: "transparent", border: "2px solid #6b5b95",
+                        borderRadius: 8, color: "#b8a8c8", fontWeight: 800, fontSize: 13,
+                        cursor: "pointer", transition: "all 0.2s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = "#8a7ab5"}
+                      onMouseLeave={(e) => e.currentTarget.style.borderColor = "#6b5b95"}
+                    >
+                      ◀ VOLTAR
+                    </button>
+                    <button
+                      onClick={confirmName}
+                      disabled={!setupName.trim()}
+                      style={{
+                        padding: "12px 28px", background: "linear-gradient(180deg, #f5cf6b, #d4a373)",
+                        border: "none", borderRadius: 8, color: "#0b0510", fontWeight: 900, fontSize: 14,
+                        cursor: setupName.trim() ? "pointer" : "not-allowed",
+                        opacity: setupName.trim() ? 1 : 0.5,
+                        boxShadow: setupName.trim() ? "0 4px 16px rgba(245,207,107,0.4)" : "none",
+                      }}
+                    >
+                      COMEÇAR JORNADA ▶
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ===== Modal de escolha do inicial ===== */}
-
-
-      {!starterChosen && (
+      {!starterChosen && setupDone && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 1000,
           background: "rgba(11,5,16,0.92)",
@@ -21495,349 +21693,7 @@ function TabOverlay({
       })()}
 
 
-      {tab === "inicio" && (
-        <div style={{ color: "#c8b8d0", fontSize: 13, lineHeight: 1.6, display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Welcome and Tips */}
-          <div style={{ background: "rgba(0,0,0,0.3)", padding: 16, borderRadius: 12, border: "1px solid rgba(245,207,107,0.2)" }}>
-            <p style={{ marginTop: 0, color: "#f5cf6b", fontWeight: 900 }}>Bem-vindo ao Modo Idle!</p>
-            <ul style={{ paddingLeft: 20, fontSize: 12 }}>
-              <li>Seus Pokémon batalham automaticamente. Ache baús pelo mapa.</li>
-              <li>Novos Pokémon aparecem conforme seu nível sobe.</li>
-            </ul>
-          </div>
-
-          {/* TRAINER EQUIPMENT PANEL */}
-          <div style={{
-            background: trainerTheme === "dark" 
-              ? "linear-gradient(160deg, #1e1b2e 0%, #0f0d1a 100%)" 
-              : "linear-gradient(160deg, #fdfbf7 0%, #f5f0e6 100%)",
-            border: trainerTheme === "dark" ? "2px solid #f5cf6b" : "2px solid #d4a373",
-            borderRadius: 24,
-            padding: "24px 16px",
-            position: "relative",
-            boxShadow: trainerTheme === "dark"
-              ? "0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(245, 207, 107, 0.05)"
-              : "0 10px 30px rgba(0,0,0,0.1), inset 0 0 20px rgba(255, 255, 255, 0.5)",
-            display: "grid",
-            gridTemplateColumns: "1fr 160px 1fr",
-            alignItems: "center",
-            gap: 20,
-            imageRendering: "pixelated",
-            transition: "all 0.3s ease"
-          }}>
-            {/* Header */}
-            <div style={{
-              position: "absolute",
-              top: -14,
-              left: 30,
-              background: "linear-gradient(180deg, #f5cf6b, #d4a373)",
-              padding: "2px 16px",
-              borderRadius: 8,
-              color: "#3e2723",
-              fontSize: 11,
-              fontWeight: 900,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
-            }}>STATUS DO TREINADOR</div>
-
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTrainerTheme}
-              style={{
-                position: "absolute",
-                top: -14,
-                right: 30,
-                background: trainerTheme === "dark" 
-                  ? "linear-gradient(180deg, #1e1b2e, #0f0d1a)" 
-                  : "linear-gradient(180deg, #fdfbf7, #f5f0e6)",
-                border: "1px solid #f5cf6b",
-                padding: "2px 8px",
-                borderRadius: 8,
-                color: trainerTheme === "dark" ? "#f5cf6b" : "#d4a373",
-                fontSize: 10,
-                fontWeight: 900,
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                transition: "all 0.2s ease",
-                zIndex: 10
-              }}
-            >
-              {trainerTheme === "dark" ? "🌙 DARK" : "☀️ LIGHT"}
-            </button>
-
-            {/* Left Slots */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-end" }}>
-              {(["head", "body", "weapon"] as const).map(slot => {
-                const itemKey = equippedItems[slot];
-                const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
-                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "rgba(245,207,107,0.1)";
-                return (
-                  <div key={slot} 
-                    onClick={() => setEquipmentSlotPicker(slot)}
-                    style={{
-                      width: 54, height: 54,
-                      background: item ? "rgba(0,0,0,0.6)" : "rgba(245,207,107,0.05)",
-                      border: `2px solid ${item ? rColor : "rgba(245,207,107,0.2)"}`,
-                      borderRadius: 14,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer",
-                      position: "relative",
-                      boxShadow: item ? `0 0 15px ${rColor}44` : "none",
-                      transition: "all 0.2s ease"
-                    }}>
-                    {!item && (
-                      <div style={{ width: 28, height: 28, opacity: 0.3, display: "flex", alignItems: "center", justifyContent: "center", filter: "grayscale(1)" }}>
-                        {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : slot === "weapon" ? <img src={assetUrlFromJson(trainerGloveAsset)} style={{ width: 28, height: 28, imageRendering: "pixelated", filter: "grayscale(1)" }} /> : "⚔️"}
-                      </div>
-                    )}
-                    {item && (
-                      <div style={{ fontSize: 28, filter: "grayscale(1)" }}>
-                        {slot === "head" ? "🧢" : slot === "body" ? "🛡️" : slot === "weapon" ? <img src={assetUrlFromJson(trainerGloveAsset)} style={{ width: 28, height: 28, imageRendering: "pixelated" }} /> : "⚔️"}
-                      </div>
-                    )}
-                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Center: Trainer Preview & Stats Dashboard */}
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 16
-            }}>
-              <div style={{
-                width: 150, height: 150,
-                background: trainerTheme === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.6)",
-                borderRadius: "50%",
-                border: "4px solid #f5cf6b",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: "0 0 25px rgba(245,207,107,0.4), inset 0 0 20px rgba(0,0,0,0.7)"
-              }}>
-                {skinUrl ? (
-                  <img src={skinUrl} alt="Trainer" style={{ width: "100%", height: "100%", imageRendering: "pixelated", objectFit: "cover", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
-                ) : (
-                  <img src={assetUrlFromJson(trainerCapAsset)} alt="Trainer Profile" style={{ width: "100%", height: "100%", imageRendering: "pixelated", objectFit: "cover", filter: "drop-shadow(0 5px 15px rgba(0,0,0,0.5))" }} />
-                )}
-                
-                {/* XP Bar Overlay */}
-                <div style={{
-                  position: "absolute",
-                  bottom: 0,
-                  width: "100%",
-                  height: 12,
-                  background: "rgba(0,0,0,0.7)",
-                  display: "flex",
-                  alignItems: "center"
-                }}>
-                  <div style={{
-                    width: `${Math.min(100, (idle.xp / (idle.level * 100)) * 100)}%`,
-                    height: "100%",
-                    background: "linear-gradient(90deg, #4ade80, #22c55e)",
-                    boxShadow: "0 0 8px #4ade80"
-                  }} />
-                </div>
-
-                {/* Level Badge */}
-                <div style={{
-                  position: "absolute", top: 12, right: 12,
-                  background: "linear-gradient(135deg, #f5cf6b, #d97706)", color: "#1a0f2e",
-                  padding: "3px 8px", borderRadius: 8,
-                  fontSize: 11, fontWeight: 900,
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.5)",
-                  border: "1px solid #fff",
-                  zIndex: 2
-                }}>LV. {trainerLevel}</div>
-              </div>
-
-              {/* Account Stats Panel */}
-              <div style={{
-                width: "100%",
-                background: trainerTheme === "dark" ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.5)",
-                borderRadius: 12,
-                padding: "10px 14px",
-                border: trainerTheme === "dark" ? "1px solid rgba(245,207,107,0.2)" : "1px solid rgba(212,163,115,0.3)",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 8
-              }}>
-                {[
-                  { icon: "🔘", label: "Pokébolas", value: idle.items.pokeball || 0, color: "#ff8080" },
-                  { icon: "🏆", label: "Vitórias", value: idle.totalKills || 0, color: "#f5cf6b" },
-                  { icon: "🪙", label: "Ouro Total", value: fmtK(idle.bank.gold), color: "#ffd66b" },
-                  { icon: "⚔️", label: "Poder Total", value: team.reduce((acc, p) => acc + computePower(p), 0).toLocaleString(), color: "#4ea8ff" }
-                ].map((stat, i) => (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <div style={{ fontSize: 9, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase" }}>{stat.label}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ fontSize: 12 }}>{stat.icon}</span>
-                      <span style={{ fontSize: 13, fontWeight: 900, color: stat.color }}>{stat.value}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* RPG Stats Dashboard */}
-              <div style={{
-                width: "100%",
-                background: trainerTheme === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.6)",
-                padding: "8px 12px",
-                borderRadius: 16,
-                border: trainerTheme === "dark" ? "1px solid rgba(245,207,107,0.2)" : "1px solid rgba(212,163,115,0.3)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6
-              }}>
-                {(() => {
-                  const ts = getTrainerStats();
-                  const statsData = [
-                    { label: "EXPERIÊNCIA", val: ts.xpBonus, color: "#4ade80", icon: "✦" },
-                    { label: "OURO EXTRA", val: ts.goldBonus, color: "#fbbf24", icon: "💰" },
-                    { label: "DROP RATE", val: ts.dropRate, color: "#6bd4ff", icon: "📦" },
-                    { label: "AGILIDADE", val: ts.speed, color: "#c084fc", icon: "⚡" },
-                  ];
-                  return statsData.map(s => (
-                    <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 900, color: "#8a7a9c" }}>
-                        <span>{s.icon} {s.label}</span>
-                        <span style={{ color: s.color }}>+{Math.round(s.val * 100)}%</span>
-                      </div>
-                      <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
-                        <div style={{ 
-                          height: "100%", 
-                          width: `${Math.min(100, s.val * 100)}%`, 
-                          background: s.color,
-                          boxShadow: `0 0 8px ${s.color}66`
-                        }} />
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            </div>
-
-            {/* Right Slots */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-start" }}>
-              {(["necklace", "ring", "feet"] as const).map(slot => {
-                const itemKey = equippedItems[slot];
-                const item = itemKey ? (TRAINER_EQUIPMENT_DATA as any)[itemKey] : null;
-                const rColor = item ? (RARITY_COLOR as any)[item.rarity] : "rgba(245,207,107,0.1)";
-                return (
-                  <div key={slot} 
-                    onClick={() => setEquipmentSlotPicker(slot)}
-                    style={{
-                      width: 54, height: 54,
-                      background: item ? "rgba(0,0,0,0.6)" : "rgba(245,207,107,0.05)",
-                      border: `2px solid ${item ? rColor : "rgba(245,207,107,0.2)"}`,
-                      borderRadius: 14,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer",
-                      position: "relative",
-                      boxShadow: item ? `0 0 15px ${rColor}44` : "none",
-                      transition: "all 0.2s ease"
-                    }}>
-                    {!item && <div style={{ fontSize: 24, opacity: 0.3, filter: "grayscale(1)" }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                    {item && <div style={{ fontSize: 28, filter: "grayscale(1)" }}>{slot === "necklace" ? "📿" : slot === "ring" ? "💍" : "🥾"}</div>}
-                    <div style={{ position: "absolute", bottom: -14, fontSize: 8, color: "#8a7a9c", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{slot}</div>
-                  </div>
-                );
-              })}
-            </div>
-              </div>
-              
-              {/* Painel de Energia de Baú (Nova Localização no Perfil) */}
-              <div style={{
-                width: "100%",
-                background: trainerTheme === "dark" ? "rgba(245,207,107,0.05)" : "rgba(245,207,107,0.15)",
-                padding: "10px 14px",
-                borderRadius: 16,
-                border: "1px solid rgba(245,207,107,0.3)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 16 }}>⚡</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: "#f5cf6b", letterSpacing: 0.5 }}>ENERGIA DE BAÚ</span>
-                   </div>
-                   <span style={{ fontSize: 11, fontWeight: 900, color: "#fff" }}>{(idle.chestEnergy ?? 200)} / 200</span>
-                </div>
-                <div style={{ height: 8, background: "rgba(0,0,0,0.4)", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ 
-                    width: `${Math.min(100, ((idle.chestEnergy ?? 200) / 200) * 100)}%`, 
-                    height: "100%", 
-                    background: "linear-gradient(90deg, #f5cf6b, #ff9d3d)",
-                    boxShadow: "0 0 10px rgba(245,207,107,0.4)"
-                  }} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                   <span style={{ fontSize: 9, color: "#8a7a9c", fontWeight: 700 }}>LIMITE DIÁRIO</span>
-                   <span style={{ fontSize: 11, fontWeight: 900, color: (idle.dailyChestsOpened ?? 0) >= 1000 ? "#ff5252" : "#f5cf6b" }}>
-                      {(idle.dailyChestsOpened ?? 0)} / 1000
-                   </span>
-                </div>
-              </div>
-
-
-          {/* SKINS SECTION */}
-          <div>
-            <h3 style={{ color: "#f5cf6b", fontSize: 14, margin: "0 0 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              Guarda-Roupa <span>🎟️ Tickets: {skinTickets}</span>
-            </h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10 }}>
-              {SKINS.map((s) => {
-                const active = s.id === skinId;
-                const unlocked = unlockedSkins.includes(s.id);
-                const canUnlock = !unlocked && skinTickets > 0;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      if (unlocked) { setSkinId(s.id); return; }
-                      if (canUnlock) {
-                        if (window.confirm(`Desbloquear a skin "${s.label}" usando 1 Ticket de Skin ✦?`)) {
-                          onUnlockSkin(s.id);
-                        }
-                      }
-                    }}
-                    disabled={!unlocked && !canUnlock}
-                    style={{
-                      position: "relative",
-                      background: active ? "linear-gradient(160deg,#3a1f5c,#6b3fb0)" : unlocked ? "#1a0f26" : "#120a1c",
-                      border: `2px solid ${active ? "#f5cf6b" : unlocked ? "rgba(107,212,255,0.35)" : "rgba(255,255,255,0.08)"}`,
-                      borderRadius: 10, padding: 8,
-                      cursor: unlocked ? "pointer" : canUnlock ? "pointer" : "not-allowed",
-                      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                      color: unlocked ? "#eadfe8" : "#7a6f8a", fontFamily: "inherit",
-                      boxShadow: active ? "0 0 15px rgba(245,207,107,0.3)" : "none",
-                      opacity: unlocked ? 1 : 0.85,
-                      transition: "all 0.2s ease"
-                    }}
-                  >
-                    <div style={{
-                      width: 60, height: 60, display: "grid", placeItems: "center",
-                      background: "rgba(0,0,0,0.35)", borderRadius: 8,
-                      imageRendering: "pixelated",
-                      filter: unlocked ? "none" : "grayscale(1) brightness(0.55)",
-                    }}>
-                      {s.url ? (
-                        <img src={s.url} alt={s.label} style={{ maxWidth: "100%", maxHeight: "100%", imageRendering: "pixelated" }} />
-                      ) : (
-                        <div style={{ fontSize: 24 }}></div>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 10, fontWeight: 700, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{s.label}</div>
-                    {!unlocked && <div style={{ position: "absolute", top: 4, right: 4, fontSize: 12 }}>🔒</div>}
-                  </button>
-                );
-              })}
+      
             </div>
           </div>
         </div>
