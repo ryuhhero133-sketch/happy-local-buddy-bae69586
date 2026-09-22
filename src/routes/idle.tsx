@@ -19594,8 +19594,9 @@ function TabOverlay({
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {rows.map((q) => {
+                      const npcMeta = SAGA_NPCS[q.npc];
                       const ready = sideObjectiveDone(q, sq, idle.items, idle.currentMap);
-                      const here = idle.currentMap === SAGA_NPCS[q.npc].map;
+                      const here = npcMeta ? idle.currentMap === npcMeta.map : false;
                       const accent = npcThemeFor(q.npc).accent;
                       const prog = sideProgressText(q, sq, idle.items, idle.currentMap);
                       return (
@@ -19614,7 +19615,7 @@ function TabOverlay({
                             }}>
                               <div style={{
                                 width: "100%", height: "100%",
-                                backgroundImage: `url(${npc === q.npc ? bobyPng : q.npc === "san" ? sanPng : q.npc === "nanizinha" ? nanizinhaPng : q.npc === "payka" ? paykaPng : panPng})`,
+                                backgroundImage: `url(${q.npc === "boby" ? bobyPng : q.npc === "san" ? sanPng : q.npc === "nanizinha" ? nanizinhaPng : q.npc === "payka" ? paykaPng : panPng})`,
                                 backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated",
                               }} />
                             </div>
@@ -19631,7 +19632,7 @@ function TabOverlay({
                               ))}
                             </div>
                             <div style={{ color: "#2563eb", fontSize: 11, marginTop: 3 }}>
-                              📍 {SAGA_NPCS[q.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[q.npc].map]?.name ?? "Revoland"}</b>
+                              📍 {npcMeta?.name ?? q.npc} está em <b>{npcMeta?.map ? (IDLE_MAPS[npcMeta.map]?.name ?? npcMeta.map) : "Revoland"}</b>
                             </div>
                             <button
                               onClick={() => onSagaLocate(q.npc)}
