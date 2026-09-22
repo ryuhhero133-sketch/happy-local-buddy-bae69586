@@ -42,7 +42,7 @@ export const SAGA_NPCS: Record<SagaNpcId, { name: string; title: string; map: st
   san:       { name: "SAN",       title: "O Especialista em Orbs",      map: "mapinha6" },
   nanizinha: { name: "NANIZINHA", title: "A Cozinheira",                map: "mapinha6" },
   payka:     { name: "PAYKA",     title: "O Negociador (irmão da Pan)", map: "florest_bone" },
-  pan:       { name: "PAN",       title: "A Informante (irmã do Payka)",map: "mapinha6" },
+  pan:       { name: "PAN",       title: "A Informante (irmã do Payka)",map: "valley_plume" },
 };
 
 export const SAGA_STAGES: SagaStage[] = [
@@ -268,11 +268,11 @@ export const SAGA_STAGES: SagaStage[] = [
   {
     id: "pan3", npc: "pan", title: "Os cinco",
     lines: [
-      "PAN: Volta pra Revoland e fala comigo lá. É importante. E traz a cabeça aberta.",
+      "PAN: Vem pra Valley Plume e fala comigo aqui. É importante. E traz a cabeça aberta.",
       "PAN: Não são só eu e o Payka. São CINCO. Boby. San. Nanizinha. Payka. Pan.",
       "PAN: Todos lembrando de coisas que nunca aconteceram. Isso não é coincidência. Isso é... um padrão. E padrão é pista.",
     ],
-    objective: { kind: "visit", map: "mapinha6" }, objectiveLabel: "Volte a Revoland e fale com Pan",
+    objective: { kind: "visit", map: "valley_plume" }, objectiveLabel: "Vá a Valley Plume e fale com Pan",
     reward: [{ kind: "gold", qty: 500 }],
   },
   {

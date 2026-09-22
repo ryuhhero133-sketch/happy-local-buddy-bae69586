@@ -3389,19 +3389,24 @@ function IdlePage() {
         { id: 4, kind: "gordin", x: customDims ? customDims.w * 0.45 : 700, y: customDims ? customDims.h * 0.35 : 500, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha6") {
-      // Saga "As Memórias Apagadas" — 4 NPCs em Revoland (Payka foi
-      // caçar o fóssil em Florest Bone). Posições na grama livre
-      // (1402x1122), fora das casas/colisões.
+      // Saga "As Memórias Apagadas" — 3 NPCs em Revoland (Payka foi
+      // caçar o fóssil em Florest Bone, Pan foi para Valley Plume).
+      // Posições na grama livre (1402x1122), fora das casas/colisões.
+      // Boby na praça oeste com passeio curto, igual o da Pan.
       setNpcs([
-        { id: 20, kind: "boby", x: 700, y: 950, dir: "down", frame: 0 },
+        { id: 20, kind: "boby", x: 400, y: 560, dir: "down", frame: 0 },
         { id: 21, kind: "san", x: 1050, y: 430, dir: "down", frame: 0 },
         { id: 22, kind: "nanizinha", x: 1000, y: 960, dir: "down", frame: 0 },
-        { id: 24, kind: "pan", x: 400, y: 560, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "florest_bone") {
       // PAYKA caçando o fóssil raro perto da caveira (1536x1024).
       setNpcs([
         { id: 23, kind: "payka", x: 430, y: 235, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "valley_plume") {
+      // PAN informante na encruzilhada central (1536x1024).
+      setNpcs([
+        { id: 24, kind: "pan", x: 770, y: 500, dir: "down", frame: 0 },
       ]);
     } else {
       setNpcs([]);
@@ -3410,13 +3415,13 @@ function IdlePage() {
     }
   }, [idle.currentMap, customDims]);
   // Anima e move NPCs (spritesheet 4x4) — respeita colisão do mapa.
-  // Boby fica FIXO em Revoland (só anima o sprite). Demais NPCs andam
-  // poucos passos ao redor do ponto de origem e nunca entram em colisão.
+  // Atendente fica fixo; demais NPCs (incl. Boby) dão poucos passos ao
+  // redor do ponto de origem e nunca entram em colisão.
   useEffect(() => {
     if (npcDialog || pokemarktShopOpen) return;
     if (npcs.length === 0) return;
     const NPC_HOME_RADIUS: Partial<Record<string, number>> = {
-      boby: 0, pokemarktClerk: 0, san: 42, nanizinha: 42, payka: 42, pan: 42,
+      boby: 42, pokemarktClerk: 0, san: 42, nanizinha: 42, payka: 42, pan: 42,
       gordin: 84, luluzinha: 84,
     };
     const npcHomeRef = new Map<number, { x: number; y: number }>();
@@ -3429,7 +3434,7 @@ function IdlePage() {
         if (!npcHomeRef.has(n.id)) npcHomeRef.set(n.id, { x: n.x, y: n.y });
         const home = npcHomeRef.get(n.id)!;
         const radius = NPC_HOME_RADIUS[n.kind] ?? 60;
-        // Boby e atendente: parados (só respiram o sprite, sem andar).
+        // Raio 0 (atendente): parado, só anima o sprite.
         if (radius <= 0) return { ...n, frame: (n.frame + 1) % 4 };
         const dirs: Dir[] = ["down", "left", "right", "up"];
         const shouldTurn = Math.random() < 0.14;
