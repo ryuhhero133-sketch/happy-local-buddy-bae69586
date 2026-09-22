@@ -9090,6 +9090,35 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       };
     });
   };
+  // ===== Lojinha (vitrine do Pokémarkt): comidas e doces por ouro =====
+  const FOOD_SHOP_PRICE: Record<string, { name: string; price: number }> = {
+    fruta: { name: "Fruta", price: 150 },
+    suco: { name: "Suco", price: 400 },
+    energetico: { name: "Energético", price: 900 },
+    refeicao: { name: "Refeição Completa", price: 2000 },
+    refrigerante: { name: "Refrigerante", price: 600 },
+    cafe: { name: "Café Expresso", price: 500 },
+    bolo_morango: { name: "Bolo de Morango", price: 1200 },
+  };
+  const buyFood = (id: string, qty = 1) => {
+    const entry = FOOD_SHOP_PRICE[id];
+    if (!entry) return;
+    const n = Math.max(1, Math.floor(qty || 1));
+    setIdle((s) => {
+      const totalCost = entry.price * n;
+      if (s.bank.gold < totalCost) {
+        pushChat(`Ouro insuficiente para ${n}× ${entry.name} (precisa ${totalCost}).`, "info");
+        return s;
+      }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} ${entry.name}`, "capture");
+      pushChat(`Comprou ${n}× ${entry.name} por ${totalCost} ouro.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, gold: s.bank.gold - totalCost },
+        items: { ...s.items, [id]: (s.items[id] ?? 0) + n },
+      };
+    });
+  };
   const buyBook = (bk: ShopBook, qty: number = 1) => {
     const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
@@ -11112,6 +11141,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 if (ball) buyBall(ball, quantity);
               }}
               onBuyPotion={buyPotion}
+              onBuyFood={buyFood}
               onBuyBook={(id, quantity) => {
                 const book = SHOP_BOOKS.find((entry) => entry.id === id);
                 if (book) buyBook(book, quantity);

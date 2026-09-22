@@ -1,13 +1,16 @@
 import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import shopAsset from "@/assets/pokemarkt-shop.png.asset.json";
+import lojinhaImg from "@/assets/lojinha.png";
 import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
 import potionImg from "@/assets/items/icon-potion.png";
-import bookAtkImg from "@/assets/icons/book-atk.png";
-import bookDefImg from "@/assets/icons/book-def.png";
-import bookExpImg from "@/assets/icons/book-exp.png";
+import frutaImg from "@/assets/comida/fruit_apple.png";
+import sucoImg from "@/assets/comida/fruit_orange.png";
+import energeticoImg from "@/assets/comida/soda_coke.png";
+import refrigeranteImg from "@/assets/comida/soda_sprite.png";
+import cafeImg from "@/assets/comida/coffee_espresso.png";
+import boloMorangoImg from "@/assets/comida/cake_strawberry.png";
 
 type StoreItem = {
   id: string;
@@ -26,6 +29,7 @@ type Props = {
   onClose: () => void;
   onBuyBall: (id: "pokeball" | "greatball", quantity: number) => void;
   onBuyPotion: (quantity: number) => void;
+  onBuyFood: (id: string, quantity: number) => void;
   onBuyBook: (
     id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp",
     quantity: number,
@@ -39,22 +43,23 @@ export function PokemarktNpcShop({
   onClose,
   onBuyBall,
   onBuyPotion,
-  onBuyBook,
+  onBuyFood,
 }: Props) {
   const [selectedId, setSelectedId] = useState("pokeball");
   const [quantity, setQuantity] = useState(1);
 
+  // 9 slots da prateleira — tudo por ouro: essenciais + comidas.
   const products = useMemo<StoreItem[]>(() => [
     { id: "pokeball", name: "Pokébola", price: 500, currency: "gold", image: ballPokeImg, description: "A bola clássica para capturas.", buy: (q) => onBuyBall("pokeball", q) },
     { id: "greatball", name: "Great Ball", price: 5000, currency: "gold", image: ballGreatImg, description: "Chance de captura duas vezes maior.", buy: (q) => onBuyBall("greatball", q) },
     { id: "potion", name: "Poção", price: 250, currency: "gold", image: potionImg, description: "Recupera 35% do HP do Pokémon.", buy: onBuyPotion },
-    { id: "book_atk", name: "Livro de Ataque", price: 100, currency: "crystals", image: bookAtkImg, description: "+3% de dano em Melhorias.", buy: (q) => onBuyBook("book_atk", q) },
-    { id: "book_def", name: "Livro de Defesa", price: 100, currency: "crystals", image: bookDefImg, description: "-3% de dano recebido em Melhorias.", buy: (q) => onBuyBook("book_def", q) },
-    { id: "book_exp", name: "Livro de EXP", price: 30, currency: "crystals", image: bookExpImg, description: "+30% de EXP durante uma hora.", buy: (q) => onBuyBook("book_exp", q) },
-    { id: "book_atk_purple", name: "Ataque Arcano", price: 350, currency: "crystals", image: bookAtkImg, description: "+8% de dano em Melhorias.", buy: (q) => onBuyBook("book_atk_purple", q) },
-    { id: "book_def_purple", name: "Defesa Arcana", price: 350, currency: "crystals", image: bookDefImg, description: "-8% de dano recebido em Melhorias.", buy: (q) => onBuyBook("book_def_purple", q) },
-    { id: "book_atk_gold", name: "Tratado Real", price: 1200, currency: "crystals", image: bookAtkImg, description: "+15% de dano em Melhorias.", buy: (q) => onBuyBook("book_atk_gold", q) },
-  ], [onBuyBall, onBuyBook, onBuyPotion]);
+    { id: "fruta", name: "Fruta", price: 150, currency: "gold", image: frutaImg, description: "Alimenta: +20 fome, +10 energia.", buy: (q) => onBuyFood("fruta", q) },
+    { id: "suco", name: "Suco", price: 400, currency: "gold", image: sucoImg, description: "Alimenta: +40 fome, +25 energia.", buy: (q) => onBuyFood("suco", q) },
+    { id: "energetico", name: "Energético", price: 900, currency: "gold", image: energeticoImg, description: "Alimenta: +10 fome, +50 energia.", buy: (q) => onBuyFood("energetico", q) },
+    { id: "refrigerante", name: "Refrigerante", price: 600, currency: "gold", image: refrigeranteImg, description: "Alimenta: +20 fome, +35 energia.", buy: (q) => onBuyFood("refrigerante", q) },
+    { id: "cafe", name: "Café Expresso", price: 500, currency: "gold", image: cafeImg, description: "Alimenta: +15 fome, +45 energia.", buy: (q) => onBuyFood("cafe", q) },
+    { id: "bolo_morango", name: "Bolo de Morango", price: 1200, currency: "gold", image: boloMorangoImg, description: "Alimenta: +60 fome, +40 energia.", buy: (q) => onBuyFood("bolo_morango", q) },
+  ], [onBuyBall, onBuyFood, onBuyPotion]);
 
   const selected = products.find((item) => item.id === selectedId) ?? products[0];
   if (!selected) return null;
@@ -69,7 +74,7 @@ export function PokemarktNpcShop({
         className="relative w-full max-w-[980px] overflow-hidden rounded-md border-2 border-sky-200 bg-slate-950 shadow-2xl animate-scale-in"
         onClick={(event) => event.stopPropagation()}
       >
-        <img src={shopAsset.url} alt="Vitrine do Pokémarkt" className="block h-auto w-full select-none" draggable={false} />
+        <img src={lojinhaImg} alt="Vitrine do Pokémarkt" className="block h-auto w-full select-none" draggable={false} />
 
         <div className="absolute left-[21%] right-[20%] top-[18%] flex h-[9%] items-center justify-center overflow-hidden px-2 text-center font-mono text-[clamp(10px,1.7vw,18px)] font-black text-white [text-shadow:2px_2px_0_#064e3b]">
           {selected.name} · {selected.currency === "gold" ? "OURO" : "CRISTAIS"}
