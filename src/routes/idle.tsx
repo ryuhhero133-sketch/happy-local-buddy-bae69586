@@ -14567,7 +14567,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                             repeatCount="indefinite" 
                                           />
 )}
-            )})}
                                       </line>
                                       {/* Efeito de pulso verde para caminhos liberados */}
                                       {isPathUnlocked && (
@@ -14939,7 +14938,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                   cursor: "pointer", boxShadow: "0 4px 0 #7a5d15"
                                 }}
                               >
-                                VIAJAR AGORA · {teleportEnergyCostFor(pinId)} ⚡
+                                VIAJAR AGORA · {teleportEnergyCostFor(selectedMapInfo!)} ⚡
                               </button>
                             </div>
                           )}
@@ -15056,60 +15055,47 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           </Panel>
 
 
-          {mapTeleportOpen && (
-            (() => {
+{mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
               const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
+              const destinations = [...base, ...eventual]
+                .filter((id) => Boolean(IDLE_MAPS[id]))
+                .map((id) => ({ id, ...IDLE_MAPS[id] }));
               return (
                 <WorldMapTeleportHud
                   currentMap={idle.currentMap}
                   trainerEnergy={trainerEnergy}
-                  destinations={[...base, ...eventual]
-                    .filter((id) => Boolean(IDLE_MAPS[id]))
-                    .map((id) => ({ id, ...IDLE_MAPS[id] }))}
+                  destinations={destinations}
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
                   onTeleport={(destination) => {
-                const m = IDLE_MAPS[destination.id];
-                if (!m || teleportTransition) return;
-                if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
-                const tpCost = teleportEnergyCostFor(destination.id);
-                if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
-                playClick();
-                setTrainerEnergy((energy) => Math.max(0, energy - tpCost));
-                setMapTeleportOpen(false);
-                setTeleportTransition(destination);
-                teleportTimerRef.current = setTimeout(() => {
-                  setIdle((state) => ({ ...state, currentMap: destination.id as IdleMapId }));
-                  setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
-                  walkTargetRef.current = null;
-                  setWalkingTo(null);
-                  setEnemies([]);
-                  setChests([]);
-                  setMapOrbs([]);
-                  clearBattleScene();
-                  pushChat(`Teleportado para ${m.name}! (-${tpCost} ⚡)`, "info");
-                  setTeleportTransition(null);
-                  teleportTimerRef.current = null;
-                }, 4000);
-              }}
-            />
-          )}
-
-          {teleportTransition && (
-            <div className="map-teleport-loading" role="status" aria-live="polite" aria-label={`Teleportando para ${teleportTransition.name}`}>
-              <img src={teleportTransition.previewImage ?? teleportTransition.bg} alt="" className="map-teleport-loading__scene pixelated" />
-              <div className="map-teleport-loading__veil" />
-              <div className="map-teleport-loading__portal" aria-hidden="true"><span /><span /><span /></div>
-              <div className="map-teleport-loading__content">
-                <span className="map-teleport-loading__eyebrow">Abrindo portal</span>
-                <strong>{teleportTransition.name}</strong>
-                <div className="map-teleport-loading__track"><span /></div>
-                <small>Preparando a aventura...</small>
-              </div>
-            </div>
-          )}
+                    const m = IDLE_MAPS[destination.id];
+                    if (!m || teleportTransition) return;
+                    if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
+                    const tpCost = teleportEnergyCostFor(destination.id);
+                    if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
+                    playClick();
+                    setTrainerEnergy((energy) => Math.max(0, energy - tpCost));
+                    setMapTeleportOpen(false);
+                    setTeleportTransition(destination);
+                    teleportTimerRef.current = setTimeout(() => {
+                      setIdle((state) => ({ ...state, currentMap: destination.id as IdleMapId }));
+                      setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                      walkTargetRef.current = null;
+                      setWalkingTo(null);
+                      setEnemies([]);
+                      setChests([]);
+                      setMapOrbs([]);
+                      clearBattleScene();
+                      pushChat(`Teleportado para ${m.name}! (-${tpCost} ⚡)`, "info");
+                      setTeleportTransition(null);
+                      teleportTimerRef.current = null;
+                    }, 4000);
+                  }}
+                />
+              );
+            })()}
 
           {/* QUESTS — luzes neon, 9 bolas */}
           <div style={{
@@ -15393,7 +15379,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             ))}
             <BottomNavBtn
               label="Mapa"
-              img={navMap}
+              img={navInicio}
               active={mapTeleportOpen}
               onClick={() => { playClick(); setMapTeleportOpen(true); }}
             />
@@ -15508,10 +15494,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }}>
             <div style={{ position: "absolute", inset: 0, background: "rgba(10,5,20,0.65)", backdropFilter: "blur(2px)", zIndex: 0 }} />
             <button 
-              onClick={(e) => {
+onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setTab("inicio");
+                setTab("pokemon");
               }}
               style={{ position: "absolute", top: 15, right: 20, background: "rgba(0,0,0,0.3)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 32, height: 32, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 20, cursor: "pointer", fontWeight: 900, zIndex: 10, boxShadow: "0 0 10px rgba(245,207,107,0.3)" }}
             >
@@ -15799,7 +15785,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setTab("inicio");
+                setTab("pokemon");
               }} 
               style={{ 
                 marginTop: 20, width: "100%", padding: "14px", 
@@ -17418,7 +17404,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 </div>
               )}
               {/* orb resultante */}
-              {orbAnim.phase === "success" && orbAnim.img && (
+{orbAnim.phase === "success" && orbAnim.img && (
                 <img
                   src={orbAnim.img}
                   alt=""
@@ -17429,8 +17415,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     filter: `drop-shadow(0 0 20px ${orbAnim.color})`,
                     animation: "orb-drop .6s ease-out both, orb-pulse 2s ease-in-out infinite .6s",
                   }}
-                />
-              )}
+            />
+          )}
               {/* rachadura fail */}
               {orbAnim.phase === "fail" && (
                 <div>
@@ -19778,7 +19764,7 @@ function TabOverlay({
           {(() => {
             const sq = idle.sideQuests ?? freshSideQuests();
             const rows = sq.accepted
-              .map((id) => SIDE_QUESTS.find((q) => q.id === id))
+              .map((id: string) => SIDE_QUESTS.find((q) => q.id === id))
               .filter(Boolean) as SideQuest[];
             const nextRows = (["boby", "san", "nanizinha", "payka", "pan"] as const)
               .flatMap((npc) => {
@@ -21693,11 +21679,6 @@ function TabOverlay({
       })()}
 
 
-      
-            </div>
-          </div>
-        </div>
-      )}
 
 
 
