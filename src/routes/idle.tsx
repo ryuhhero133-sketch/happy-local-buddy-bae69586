@@ -15014,7 +15014,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             <WorldMapTeleportHud
               currentMap={idle.currentMap}
               trainerEnergy={trainerEnergy}
-              destinations={["mapinha6","mapinha5","mapinha12","cristal_cave","mapinha8","mapinha10"]
+              destinations={["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","florest_shiny","ruinas","ruinas_de_venus","mapinha5","mapinha12","cristal_cave","mapinha8","mapinha10"]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
                 .map((id) => ({ id, ...IDLE_MAPS[id] }))}
               onClose={() => setMapTeleportOpen(false)}
