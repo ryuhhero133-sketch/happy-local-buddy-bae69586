@@ -10880,6 +10880,27 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 title="Fechar"
               >✕</button>
             );
+            // Retrato de quem está falando: NPC ou VOCÊ (foto do treinador).
+            const speakerPortrait = (npc: SagaNpcId, line: string) => {
+              if (line.trimStart().startsWith("VOCÊ:")) {
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                    <div style={{
+                      width: 56, height: 56, border: "2px solid #7fd8ff", borderRadius: 6, overflow: "hidden",
+                      background: "#0b0510", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
+                    }}>
+                      {skinUrl ? (
+                        <img src={skinUrl} alt="Você" style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", backgroundImage: `url(${trainerSheet})`, backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated" }} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: "#7fd8ff" }}>VOCÊ</span>
+                  </div>
+                );
+              }
+              return portrait(npc);
+            };
             const portrait = (npc: SagaNpcId) => (
               <div style={{
                 width: 56, height: 56, border: `2px solid ${npcThemeFor(npc).frame}`, borderRadius: 6, overflow: "hidden",
@@ -10968,7 +10989,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const giftReady = kept && Date.now() - ((sg.giftAt[npc] ?? 0)) >= SAGA_GIFT_COOLDOWN_MS;
               return shell(npc, kept ? "preservado ✦" : "memória apagada", (
                 <>
-                  {portrait(npc)}
+                  {speakerPortrait(npc, lines[page])}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <NpcPagedLine
                       text={lines[page]}
@@ -11038,7 +11059,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const stageMapName = IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland";
             return shell(npc, `${st.title} · etapa ${sg.stage + 1}/${SAGA_TOTAL_STAGES}`, (
               <>
-                {portrait(npc)}
+                {speakerPortrait(npc, st.lines[page])}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <NpcPagedLine
                     text={st.lines[page]}
@@ -13369,17 +13390,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               tasks={idle.tasks}
               onClaimTask={claimTask}
               onSagaClaim={claimSagaReward}
-              onSagaTalk={(n) => {
-                // Longe do NPC? Abre o teleporte em vez da caixa de diálogo.
-                if (n !== "choice") {
-                  const npcMap = SAGA_NPCS[n].map;
-                  if (idle.currentMap !== npcMap) {
-                    pushChat(`📍 ${SAGA_NPCS[n].name} está em ${IDLE_MAPS[npcMap]?.name ?? npcMap} — abrindo o teleporte...`, "info");
-                    setMapTeleportOpen(true);
-                    return;
-                  }
+              onSagaTalk={(n) => { setSagaTalk(n); setSagaPage(0); }}
+              onSagaLocate={(n) => {
+                // FALAR na quest NÃO abre diálogo: mostra onde o NPC está e
+                // abre o teleporte — o jogador precisa ir até ele e clicar.
+                const npcMap = SAGA_NPCS[n].map;
+                const mapName = IDLE_MAPS[npcMap]?.name ?? npcMap;
+                if (idle.currentMap === npcMap) {
+                  pushChat(`📍 ${SAGA_NPCS[n].name} está aqui em ${mapName}! Procure por ele no mapa e clique para conversar.`, "info");
+                } else {
+                  pushChat(`📍 ${SAGA_NPCS[n].name} está em ${mapName} — viaje até lá e fale com ele pessoalmente!`, "info");
+                  setMapTeleportOpen(true);
                 }
-                setSagaTalk(n); setSagaPage(0);
               }}
               onOpenColecaoDetail={(uid) => setColecaoDetailUid(uid)}
               onExchange={exchange}
@@ -18424,7 +18446,7 @@ function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, trainerEnergy, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
-  onSagaClaim, onSagaTalk,
+  onSagaClaim, onSagaTalk, onSagaLocate,
   idle, setIdle, pushChat,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
   trainerTheme, toggleTrainerTheme
@@ -18469,6 +18491,7 @@ function TabOverlay({
   onClaimTask: (tid: string) => void;
   onSagaClaim: (stageId: string) => void;
   onSagaTalk: (npc: SagaNpcId | "choice") => void;
+  onSagaLocate: (npc: SagaNpcId) => void;
   onOpenColecaoDetail: (uid: string) => void;
   onExchange: (dir: "g2c" | "c2g", amount: number) => void;
   onSellItem: (id: string, qty?: number, currency?: "gold" | "crystal" | "safira") => void;
@@ -19013,15 +19036,15 @@ function TabOverlay({
             };
             if (sg.finished) {
               return (
-                <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                  <div style={{ color: "#e9d5ff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS — concluída</div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <div style={{ background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)", border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 12, boxShadow: "0 4px 14px rgba(255,139,208,0.35)" }}>
+                  <div style={{ color: "#d63384", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS — concluída 💖</div>
+                  <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
                     {sg.chosen.map((n) => (
-                      <div key={n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {portraitSm(n)}
+                      <div key={n} style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid #ffc4da", borderRadius: 10, padding: 6 }}>
+                        {portraitSm(n, 56)}
                         <div>
-                          <div style={{ color: "#5ec26a", fontWeight: 800, fontSize: 11 }}>{SAGA_NPCS[n].name} ✦ preservado</div>
-                          <button onClick={() => onSagaTalk(n)} style={{ background: "rgba(192,132,252,0.2)", color: "#e9d5ff", border: "1px solid rgba(192,132,252,0.4)", borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 800, cursor: "pointer", marginTop: 2 }}>Conversar</button>
+                          <div style={{ color: "#059669", fontWeight: 800, fontSize: 11 }}>{SAGA_NPCS[n].name} ✦ preservado</div>
+                          <button onClick={() => onSagaTalk(n)} style={{ background: "linear-gradient(180deg, #ff8bd0, #ec4899)", color: "#fff", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 10, fontWeight: 900, cursor: "pointer", marginTop: 2, boxShadow: "0 2px 0 #be185d" }}>Conversar</button>
                         </div>
                       </div>
                     ))}
@@ -19031,9 +19054,9 @@ function TabOverlay({
             }
             if (sg.stage >= SAGA_STAGES.length) {
               return (
-                <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: "2px solid #c084fc", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                  <div style={{ color: "#e9d5ff", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>🖤 A ESCOLHA — quais dois continuarão?</div>
-                  <button onClick={() => onSagaTalk("choice")} style={{ marginTop: 8, background: "#c084fc", color: "#0b0510", border: "none", borderRadius: 6, padding: "8px 14px", fontWeight: 900, cursor: "pointer" }}>ESCOLHER AGORA</button>
+                <div style={{ background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)", border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 12, boxShadow: "0 4px 14px rgba(255,139,208,0.35)" }}>
+                  <div style={{ color: "#d63384", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>🖤 A ESCOLHA — quais dois continuarão?</div>
+                  <button onClick={() => onSagaTalk("choice")} style={{ marginTop: 8, background: "linear-gradient(180deg, #ff8bd0, #ec4899)", color: "#fff", border: "none", borderRadius: 10, padding: "9px 14px", fontWeight: 900, cursor: "pointer", boxShadow: "0 3px 0 #be185d" }}>ESCOLHER AGORA 💖</button>
                 </div>
               );
             }
@@ -19052,26 +19075,26 @@ function TabOverlay({
             const npcHere = idle.currentMap === SAGA_NPCS[st.npc].map;
             const countMax = (st.objective.kind === "kill" || st.objective.kind === "capture" || st.objective.kind === "feed_pet" || st.objective.kind === "feed_trainer") ? st.objective.count : null;
             return (
-              <div style={{ background: "linear-gradient(160deg, #241536 0%, #1a0f26 100%)", border: `2px solid ${accent}`, borderRadius: 12, padding: 12, marginBottom: 12, boxShadow: `0 0 18px ${npcThemeFor(st.npc).glow}` }}>
-                <div style={{ color: accent, fontWeight: 900, fontSize: 11, letterSpacing: 2 }}>📖 AS MEMÓRIAS APAGADAS · ETAPA {sg.stage + 1}/{SAGA_TOTAL_STAGES}</div>
+              <div style={{ background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)", border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 12, boxShadow: "0 4px 14px rgba(255,139,208,0.35)" }}>
+                <div style={{ color: "#d63384", fontWeight: 900, fontSize: 11, letterSpacing: 2 }}>📖 AS MEMÓRIAS APAGADAS · ETAPA {sg.stage + 1}/{SAGA_TOTAL_STAGES}</div>
                 <div style={{ display: "flex", gap: 12, marginTop: 10, alignItems: "flex-start" }}>
                   {portraitSm(st.npc)}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontWeight: 900, fontSize: 14 }}>{st.title}</div>
-                    <div style={{ color: "#c8b8d0", fontSize: 11, marginTop: 3 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#5ec26a" : "#ffcc33" }}>{prog}</b></div>
+                    <div style={{ color: "#5b2333", fontWeight: 900, fontSize: 14 }}>{st.title}</div>
+                    <div style={{ color: "#8a5a6c", fontSize: 11, marginTop: 3 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#059669" : "#d97706" }}>{prog}</b></div>
                     {countMax != null && (
-                      <div style={{ width: "100%", height: 6, background: "#0b0510", borderRadius: 3, overflow: "hidden", marginTop: 4, border: "1px solid rgba(255,255,255,0.12)" }}>
-                        <div style={{ width: `${Math.min(100, (sg.count / countMax) * 100)}%`, height: "100%", background: accent, transition: "width 0.3s" }} />
+                      <div style={{ width: "100%", height: 8, background: "#ffe0ec", borderRadius: 4, overflow: "hidden", marginTop: 4, border: "1px solid #ffc4da" }}>
+                        <div style={{ width: `${Math.min(100, (sg.count / countMax) * 100)}%`, height: "100%", background: "linear-gradient(90deg, #ff8bd0, #ec4899)", transition: "width 0.3s" }} />
                       </div>
                     )}
-                    <div style={{ color: "#8a7a9c", fontSize: 11, marginTop: 4 }}>🎁 Recompensa: <b style={{ color: "#fff" }}>{sagaRewardText(st.reward)}</b></div>
-                    <div style={{ color: "#7fd8ff", fontSize: 11, marginTop: 3 }}>📍 {SAGA_NPCS[st.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland"}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""}</div>
+                    <div style={{ color: "#8a5a6c", fontSize: 11, marginTop: 4 }}>🎁 Recompensa: <b style={{ color: "#5b2333" }}>{sagaRewardText(st.reward)}</b></div>
+                    <div style={{ color: "#2563eb", fontSize: 11, marginTop: 3 }}>📍 {SAGA_NPCS[st.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland"}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""}</div>
                     <button
-                      onClick={() => onSagaTalk(st.npc)}
-                      style={{ marginTop: 8, width: "100%", background: npcHere ? accent : "rgba(255,255,255,0.08)", color: npcHere ? "#0b0510" : "#fff", border: npcHere ? "none" : `1px solid ${accent}`, borderRadius: 8, padding: "8px", fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: "pointer", boxShadow: npcHere ? `0 0 12px ${npcThemeFor(st.npc).glow}` : "none" }}
-                    >{npcHere ? "💬 FALAR" : "🗺️ FALAR — ABRIR TELEPORTE"}</button>
-                    <div style={{ fontSize: 10, color: claimed ? "#5ec26a" : "#8a7a9c", fontWeight: 800, textAlign: "center", marginTop: 4 }}>
-                      {claimed ? "✓ recompensa resgatada" : isDone ? "recompensa pronta no fim da conversa" : "complete o objetivo acima"}
+                      onClick={() => onSagaLocate(st.npc)}
+                      style={{ marginTop: 8, width: "100%", background: "linear-gradient(180deg, #ff8bd0, #ec4899)", color: "#fff", border: "none", borderRadius: 10, padding: "9px", fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: "pointer", boxShadow: "0 3px 0 #be185d, 0 4px 12px rgba(236,72,153,0.45)", textShadow: "1px 1px 0 rgba(0,0,0,0.2)" }}
+                    >{npcHere ? "💬 FALAR" : "🗺️ FALAR — IR ATÉ ELE"}</button>
+                    <div style={{ fontSize: 10, color: claimed ? "#059669" : "#a08a96", fontWeight: 800, textAlign: "center", marginTop: 4 }}>
+                      {claimed ? "✓ recompensa resgatada" : "vá até o NPC e clique nele para conversar"}
                     </div>
                   </div>
                 </div>
