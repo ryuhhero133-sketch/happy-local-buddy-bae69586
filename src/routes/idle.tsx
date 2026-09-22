@@ -322,6 +322,7 @@ import bulbasaurOrangePng from "@/assets/bulbasaur-orange.png";
 import gordinPng from "@/assets/gordin.png";
 import luluzinhaPng from "@/assets/luluzinha.png";
 import luluzinhaFrontPng from "@/assets/luluzinha-front.png";
+import trainerFrontPng from "@/assets/trainer-front.png";
 // Saga "As Memórias Apagadas" — retratos dos 5 NPCs
 import bobyPng from "@/assets/Boby.png";
 import sanPng from "@/assets/San.png";
@@ -3261,6 +3262,21 @@ function IdlePage() {
   type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan";
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
+  // ===== LULUZINHA EVENTO — aparece por sorte nos mapas, some em 20min =====
+  // Posição em fração do mundo (0-1) + deslocamento local. Quest: entregar
+  // stones elementais, 1 por vez; cada stone = +2 ultraball ou presente.
+  type LuluEvent = {
+    map: IdleMapId; fx: number; fy: number; expiresAt: number;
+    stoneId: string; qty: number; delivered: number;
+    dx: number; dy: number; dir: Dir; frame: number;
+  };
+  const [luluEvent, setLuluEvent] = useState<LuluEvent | null>(null);
+  const [luluTalk, setLuluTalk] = useState(false);
+  const bootTimeRef = useRef(Date.now());
+  const LULU_MAPS: IdleMapId[] = ["terra", "mapinha5", "mapinha7", "mapinha8", "mapinha11", "mapinha12", "mapinha13", "florest_bone", "florest_ice", "valley_plume", "ruinas", "ruinas_de_venus", "cave01", "cristal_cave"];
+  const LULU_STONES = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+  const LULU_STONE_NAME: Record<string, string> = { stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉" };
+  const LULU_DURATION_MS = 20 * 60 * 1000;
   // Saga "As Memórias Apagadas" — diálogo do NPC da saga + página atual
   const [sagaTalk, setSagaTalk] = useState<SagaNpcId | "choice" | null>(null);
   const [sagaPage, setSagaPage] = useState(0);
@@ -3391,11 +3407,10 @@ function IdlePage() {
         { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha10") {
-      // Pokémarkt: atendente na entrada + Luluzinha no salão (coords fixas
-      // do mundo 861x772 — sem customDims, que é global e instável).
+      // Pokémarkt: atendente no salão (coords fixas do mundo 861x772).
+      // Luluzinha virou evento aleatório (some em 20min).
       setNpcs([
-        { id: 3, kind: "pokemarktClerk", x: 430, y: 640, dir: "down", frame: 0 },
-        { id: 1, kind: "luluzinha", x: 430, y: 385, dir: "down", frame: 0 },
+        { id: 3, kind: "pokemarktClerk", x: 430, y: 385, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "mapinha13") {
       setNpcs([
@@ -3434,7 +3449,7 @@ function IdlePage() {
     if (npcDialog || pokemarktShopOpen) return;
     if (npcs.length === 0) return;
     const NPC_HOME_RADIUS: Partial<Record<string, number>> = {
-      boby: 42, pokemarktClerk: 0, san: 42, nanizinha: 42, payka: 42, pan: 42,
+      boby: 42, pokemarktClerk: 42, san: 42, nanizinha: 42, payka: 42, pan: 42,
       gordin: 84, luluzinha: 42,
     };
     const npcHomeRef = new Map<number, { x: number; y: number }>();
@@ -3447,7 +3462,7 @@ function IdlePage() {
         if (!npcHomeRef.has(n.id)) npcHomeRef.set(n.id, { x: n.x, y: n.y });
         const home = npcHomeRef.get(n.id)!;
         const radius = NPC_HOME_RADIUS[n.kind] ?? 60;
-        // Raio 0 (atendente): parado, só anima o sprite.
+        // Raio 0: parado, só anima o sprite.
         if (radius <= 0) return { ...n, frame: (n.frame + 1) % 4 };
         const dirs: Dir[] = ["down", "left", "right", "up"];
         const shouldTurn = Math.random() < 0.14;
@@ -3493,6 +3508,76 @@ function IdlePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idle.currentMap]);
+  // LULUZINHA EVENTO — sorteio 1x/min (após 5min online, ~6%/min sem evento
+  // ativo). Some sozinha após 20min. Anuncia o mapa no chat.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setLuluEvent((ev) => {
+        const now = Date.now();
+        if (ev) {
+          if (now >= ev.expiresAt) {
+            queueMicrotask(() => {
+              pushChat("🌸 Luluzinha partiu para outra expedição...", "info");
+              setLuluTalk(false);
+            });
+            return null;
+          }
+          return ev;
+        }
+        if (now - bootTimeRef.current < 5 * 60 * 1000) return ev;
+        if (Math.random() >= 0.06) return ev;
+        const map = LULU_MAPS[Math.floor(Math.random() * LULU_MAPS.length)];
+        const stoneId = LULU_STONES[Math.floor(Math.random() * LULU_STONES.length)];
+        const qty = 3 + Math.floor(Math.random() * 3);
+        const nev: LuluEvent = {
+          map, fx: 0.38 + Math.random() * 0.24, fy: 0.38 + Math.random() * 0.24,
+          expiresAt: now + LULU_DURATION_MS, stoneId, qty, delivered: 0,
+          dx: 0, dy: 0, dir: "down", frame: 0,
+        };
+        queueMicrotask(() => {
+          pushChat(`🌸 Luluzinha foi vista em ${IDLE_MAPS[map]?.name ?? map}! Ela estuda stones e some em 20min — ache ela!`, "cap");
+          pushToast(`🌸 Luluzinha em ${IDLE_MAPS[map]?.name ?? map}!`, "cap");
+        });
+        return nev;
+      });
+    }, 60000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Passeio curto da Luluzinha evento (respeita colisão).
+  useEffect(() => {
+    if (!luluEvent || luluTalk) return;
+    if (idle.currentMap !== luluEvent.map) return;
+    const iv = setInterval(() => {
+      const mapId = idle.currentMap;
+      const bw = curWorldW, bh = curWorldH;
+      setLuluEvent((ev) => {
+        if (!ev) return ev;
+        const dirs: Dir[] = ["down", "left", "right", "up"];
+        const dir = Math.random() < 0.2 ? dirs[Math.floor(Math.random() * 4)] : ev.dir;
+        const speed = 2.2;
+        let ndx = ev.dx, ndy = ev.dy;
+        if (dir === "left") ndx -= speed;
+        if (dir === "right") ndx += speed;
+        if (dir === "up") ndy -= speed;
+        if (dir === "down") ndy += speed;
+        const R = 50;
+        if (Math.abs(ndx) > R || Math.abs(ndy) > R) {
+          const opposite: Record<Dir, Dir> = { down: "up", up: "down", left: "right", right: "left" };
+          return { ...ev, dir: opposite[dir], frame: (ev.frame + 1) % 4 };
+        }
+        try {
+          if (!isWalkable(mapId, ev.fx * bw + ndx, ev.fy * bh + ndy)) {
+            const opposite: Record<Dir, Dir> = { down: "up", up: "down", left: "right", right: "left" };
+            return { ...ev, dir: opposite[dir], frame: (ev.frame + 1) % 4 };
+          }
+        } catch { /* sem grid: libera */ }
+        return { ...ev, dx: ndx, dy: ndy, dir, frame: (ev.frame + 1) % 4 };
+      });
+    }, 160);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [luluEvent?.map, luluTalk, idle.currentMap, curWorldW, curWorldH]);
   const [coletaCollapsed, setColetaCollapsed] = useState(false);
   const [pacotesCollapsed, setPacotesCollapsed] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
@@ -10364,7 +10449,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               border: "2px solid rgba(245,207,107,0.7)", background: "#0a1322",
               boxShadow: "0 0 0 3px rgba(245,207,107,0.18), 0 4px 12px rgba(0,0,0,0.5)",
             }}>
-              <img src={assetUrlFromJson(trainerAvatarAsset)} alt="" width={54} height={54} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={skinUrl ?? trainerFrontPng} alt="" width={54} height={54} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8fb8ef", fontWeight: 800 }}>TREINADOR</div>
@@ -10932,6 +11017,81 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             );
           })()}
 
+          {/* 🌸 LULUZINHA EVENTO — estudo de campo: 1 stone = +2 ultraball ou presente */}
+          {luluTalk && luluEvent && (() => {
+            const have = idle.items[luluEvent.stoneId] ?? 0;
+            const minsLeft = Math.max(1, Math.ceil((luluEvent.expiresAt - Date.now()) / 60000));
+            const stoneName = LULU_STONE_NAME[luluEvent.stoneId] ?? luluEvent.stoneId;
+            const deliver = () => {
+              const ev = luluEvent;
+              if (!ev) return;
+              if ((idle.items[ev.stoneId] ?? 0) <= 0) { pushChat("Você não tem essa stone na mochila!", "info"); return; }
+              const roll = Math.random();
+              setIdle((s) => {
+                if ((s.items[ev.stoneId] ?? 0) <= 0) return s;
+                const items = { ...s.items, [ev.stoneId]: s.items[ev.stoneId] - 1 };
+                let bank = s.bank;
+                let msg: string;
+                if (roll < 0.7) {
+                  items.ultraball = (items.ultraball ?? 0) + 2;
+                  msg = "+2 Ultra Ball";
+                } else {
+                  const gifts = [
+                    { label: "+5 Great Ball", apply: () => { items.greatball = (items.greatball ?? 0) + 5; } },
+                    { label: "+3 Poção", apply: () => { items.potion = (items.potion ?? 0) + 3; } },
+                    { label: "+2 Revive", apply: () => { items.revive = (items.revive ?? 0) + 2; } },
+                    { label: "+2 Energético", apply: () => { items.energetico = (items.energetico ?? 0) + 2; } },
+                    { label: "+500 ouro", apply: () => { bank = { ...bank, gold: bank.gold + 500 }; } },
+                  ];
+                  const g = gifts[Math.floor(Math.random() * gifts.length)];
+                  g.apply();
+                  msg = g.label;
+                }
+                queueMicrotask(() => {
+                  pushChat(`🌸 Luluzinha agradece o estudo! Ganhou ${msg}!`, "chest");
+                  playBonus();
+                });
+                return { ...s, items, bank };
+              });
+              setLuluEvent((e) => (e ? { ...e, delivered: e.delivered + 1 } : e));
+            };
+            return (
+              <NpcDialog
+                kind="luluzinha"
+                portraitUrl={luluzinhaFrontPng}
+                portraitMode="full"
+                text={`🌸 Oi! Tô em estudo de campo das Stones Elementais! Me traz ${luluEvent.qty} ${stoneName} — pra CADA uma te dou +2 Ultra Ball ou um presente surpresa! Ela some em ${minsLeft}min, corre!`}
+                pageLabel={`entregues ${luluEvent.delivered} · some em ${minsLeft}min`}
+                canAdvance={false}
+                onAdvance={() => setLuluTalk(false)}
+                onClose={() => setLuluTalk(false)}
+                footer={(
+                  <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,139,208,0.4)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 6 }}>
+                      <ItemPixelIcon id={luluEvent.stoneId} size={30} />
+                      <span style={{ color: "#fff", fontSize: 11, fontWeight: 800 }}>
+                        {stoneName}: você tem <b style={{ color: "#ff8bd0" }}>{have}</b>
+                      </span>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deliver(); }}
+                      disabled={have <= 0}
+                      style={{
+                        width: "100%", padding: "9px",
+                        background: have > 0 ? "linear-gradient(180deg, #ff8bd0, #ec4899)" : "#3a2a4a",
+                        color: have > 0 ? "#fff" : "#8a7a9c", border: "none",
+                        borderRadius: 8, fontWeight: 900, fontSize: 12, letterSpacing: 1,
+                        cursor: have > 0 ? "pointer" : "not-allowed",
+                        boxShadow: have > 0 ? "0 3px 0 #be185d" : "none",
+                        textShadow: "1px 1px 0 rgba(0,0,0,0.2)",
+                      }}
+                    >{have > 0 ? "🎁 ENTREGAR 1 STONE" : "SEM STONES NA MOCHILA"}</button>
+                  </div>
+                )}
+              />
+            );
+          })()}
+
           {/* Saga "As Memórias Apagadas" — diálogo com retrato do NPC */}
           {sagaTalk && (() => {
             const sg = getSaga();
@@ -10956,11 +11116,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       width: 56, height: 56, border: "2px solid #7fd8ff", borderRadius: 6, overflow: "hidden",
                       background: "#0b0510", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
                     }}>
-                      {skinUrl ? (
-                        <img src={skinUrl} alt="Você" style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
-                      ) : (
-                        <div style={{ width: "100%", height: "100%", backgroundImage: `url(${trainerSheet})`, backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated" }} />
-                      )}
+                      <img
+                        src={skinUrl ?? trainerFrontPng}
+                        alt="Você"
+                        style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }}
+                      />
                     </div>
                     <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: "#7fd8ff" }}>VOCÊ</span>
                   </div>
@@ -11866,6 +12026,43 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 </div>
               );
             })}
+            {/* 🌸 LULUZINHA EVENTO — aparece por sorte, some em 20min */}
+            {luluEvent && idle.currentMap === luluEvent.map && (
+              <div
+                key="npc-lulu-event"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAuto(false);
+                  walkTargetRef.current = null;
+                  setWalkingTo(null);
+                  setLuluTalk(true);
+                }}
+                style={{
+                  position: "absolute",
+                  left: luluEvent.fx * curWorldW + luluEvent.dx,
+                  top: luluEvent.fy * curWorldH + luluEvent.dy,
+                  width: 48, height: 48,
+                  transform: "translate(-50%, -50%)",
+                  zIndex: Math.round(luluEvent.fy * curWorldH + luluEvent.dy),
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{
+                  width: "100%", height: "100%",
+                  backgroundImage: `url(${luluzinhaPng})`,
+                  backgroundSize: "400% 400%",
+                  backgroundPosition: `${luluEvent.frame * 33.333}% ${(({ down: 0, left: 1, right: 2, up: 3 } as Record<Dir, number>)[luluEvent.dir] ?? 0) * 33.333}%`,
+                  imageRendering: "pixelated",
+                  filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
+                }} />
+                <div style={{
+                  position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)",
+                  background: "#ff8bd0", border: "1px solid #fff", borderRadius: 4, padding: "1px 5px",
+                  fontSize: 10, fontWeight: 900, whiteSpace: "nowrap", boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
+                  animation: "npcArrowBob 1s ease-in-out infinite",
+                }}>🌸 !</div>
+              </div>
+            )}
             {/* Marca GPS — pirâmide roxinha girando tipo pião */}
             {walkMarker && (
               <div style={{
@@ -19420,7 +19617,7 @@ function TabOverlay({
                       boxShadow: "0 0 10px rgba(125,196,255,0.6)",
                       background: "radial-gradient(circle at 35% 30%, #1e3a5e, #0a1830)",
                     }}>
-                      <img src={assetUrlFromJson(trainerAvatarAsset)} alt="" width={42} height={42} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
+                      <img src={skinUrl ?? trainerFrontPng} alt="" width={42} height={42} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated" }} />
                     </div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

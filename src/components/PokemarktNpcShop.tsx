@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import lojinhaImg from "@/assets/lojinha.png";
-import luluzinhaFrontImg from "@/assets/luluzinha-front.png";
+import clerkAsset from "@/assets/pokemarkt-clerk.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
@@ -185,17 +185,17 @@ export function PokemarktNpcShop({
             {selected.name} · {selected.currency === "gold" ? "OURO" : "CRISTAIS"}
           </div>
 
-          {/* Luluzinha dando boas-vindas */}
+          {/* Atendente dando boas-vindas */}
           <div className="absolute left-[1%] top-[5%] z-20 flex items-center gap-1">
             <img
-              src={luluzinhaFrontImg}
-              alt="Luluzinha"
+              src={assetUrlFromJson(clerkAsset)}
+              alt="Atendente"
               className="h-12 w-12 rounded-full border-2 border-yellow-200 object-cover shadow-lg sm:h-14 sm:w-14"
               style={{ imageRendering: "pixelated" }}
               draggable={false}
             />
             <div className="relative rounded-lg border border-yellow-200 bg-white px-2 py-1 text-[10px] font-black text-slate-900 shadow-lg sm:text-[11px]">
-              Luluzinha: Bem-vindo ao Pokémarkt! 💰
+              Bem-vindo ao Pokémarkt! 💰
               <span className="absolute -left-1 top-1/2 h-2 w-2 -translate-y-1/2 rotate-45 border-b border-l border-yellow-200 bg-white" />
             </div>
           </div>
