@@ -67,6 +67,21 @@ export function PokemarktNpcShop({
   const balance = selected.currency === "gold" ? gold : crystals;
   const canBuy = balance >= total;
 
+  // Posição de cada produto DENTRO do quadradinho da prateleira
+  // (% da imagem 1536x1024 — medido na arte: slot central de cada
+  // fileira por bloco). Fixo em % = independe do zoom/tela.
+  const SLOT_POS = [
+    { x: 18.2, y: 35 }, { x: 18.2, y: 55 }, { x: 18.2, y: 75 },
+    { x: 45.7, y: 35 }, { x: 45.7, y: 55 }, { x: 45.7, y: 75 },
+    { x: 73.1, y: 35 }, { x: 73.1, y: 55 }, { x: 73.1, y: 75 },
+  ];
+  // Ordem dos produtos por bloco: [bolas/poção] [frutas] [energia/doces].
+  const ordered = [
+    products[0], products[1], products[2],
+    products[3], products[4], products[7],
+    products[5], products[8], products[6],
+  ].filter(Boolean);
+
   return (
     <div className="fixed inset-0 z-[10020] grid place-items-center bg-black/80 p-2 sm:p-4" onClick={onClose}>
       <section
@@ -74,33 +89,43 @@ export function PokemarktNpcShop({
         className="relative w-full max-w-[980px] overflow-hidden rounded-md border-2 border-sky-200 bg-slate-950 shadow-2xl animate-scale-in"
         onClick={(event) => event.stopPropagation()}
       >
-        <img src={lojinhaImg} alt="Vitrine do Pokémarkt" className="block h-auto w-full select-none" draggable={false} />
+        <div className="relative">
+          <img src={lojinhaImg} alt="Vitrine do Pokémarkt" className="block h-auto w-full select-none" draggable={false} />
 
-        <div className="absolute left-[21%] right-[20%] top-[18%] flex h-[9%] items-center justify-center overflow-hidden px-2 text-center font-mono text-[clamp(10px,1.7vw,18px)] font-black text-white [text-shadow:2px_2px_0_#064e3b]">
-          {selected.name} · {selected.currency === "gold" ? "OURO" : "CRISTAIS"}
-        </div>
+          <div className="absolute left-[21%] right-[20%] top-[18%] flex h-[9%] items-center justify-center overflow-hidden px-2 text-center font-mono text-[clamp(10px,1.7vw,18px)] font-black text-white [text-shadow:2px_2px_0_#064e3b]">
+            {selected.name} · {selected.currency === "gold" ? "OURO" : "CRISTAIS"}
+          </div>
 
-        <Button variant="destructive" size="icon" className="absolute right-[5%] top-[16%] z-20 h-8 w-8 border-2 border-white" onClick={onClose} title="Fechar loja">
-          <X />
-        </Button>
+          <Button variant="destructive" size="icon" className="absolute right-[5%] top-[16%] z-20 h-8 w-8 border-2 border-white" onClick={onClose} title="Fechar loja">
+            <X />
+          </Button>
 
-        <div className="absolute left-[10.5%] right-[9.5%] top-[35%] bottom-[10%] grid grid-cols-3 grid-rows-3 gap-x-[7%] gap-y-[10%]">
-          {products.map((item) => {
-            const active = item.id === selected.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                aria-label={`Selecionar ${item.name}`}
-                onClick={() => setSelectedId(item.id)}
-                className={`group relative grid min-h-0 place-items-center rounded-md border-2 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 ${active ? "border-yellow-300 bg-yellow-300/20" : "border-transparent bg-slate-950/10"}`}
-              >
-                <img src={item.image} alt="" className="h-[70%] max-h-16 w-[70%] max-w-16 object-contain [image-rendering:pixelated] drop-shadow-lg" />
-                <span className="absolute -bottom-2 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-950 px-1.5 py-0.5 text-[9px] font-bold text-white shadow group-hover:block sm:text-[10px]">{item.name}</span>
-                {(inventory[item.id] ?? 0) > 0 && <span className="absolute right-0 top-0 rounded bg-emerald-500 px-1 text-[8px] font-black text-slate-950">{inventory[item.id]}</span>}
-              </button>
-            );
-          })}
+          <div className="absolute inset-0">
+            {ordered.map((item, i) => {
+              const active = item.id === selected.id;
+              const pos = SLOT_POS[i];
+              if (!pos) return null;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label={`Selecionar ${item.name}`}
+                  onClick={() => setSelectedId(item.id)}
+                  className="group absolute grid place-items-center rounded-md border-2 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
+                  style={{
+                    left: `${pos.x}%`, top: `${pos.y}%`, width: "6.6%", height: "10%",
+                    borderColor: active ? "#fde047" : "transparent",
+                    background: active ? "rgba(253,224,71,0.22)" : "transparent",
+                    boxShadow: active ? "0 0 10px rgba(253,224,71,0.7)" : "none",
+                  }}
+                >
+                  <img src={item.image} alt="" className="h-[85%] w-[85%] object-contain [image-rendering:pixelated] drop-shadow-lg" />
+                  <span className="absolute -bottom-2 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-950 px-1.5 py-0.5 text-[9px] font-bold text-white shadow group-hover:block sm:text-[10px]">{item.name}</span>
+                  {(inventory[item.id] ?? 0) > 0 && <span className="absolute right-0 top-0 rounded bg-emerald-500 px-1 text-[8px] font-black text-slate-950">{inventory[item.id]}</span>}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="relative -mt-1 grid gap-2 border-t-2 border-sky-300 bg-slate-950/95 p-3 text-white sm:grid-cols-[1fr_auto_auto] sm:items-center sm:px-5">
