@@ -111,6 +111,7 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
@@ -3737,10 +3738,20 @@ const confirmName = () => {
     .replace(/[^A-Z0-9]/g, "");
   const scopedCodeKey = (raw: string) => `rubym.code.${identity?.id ?? "local"}.${raw}.used`;
   const persistCodeReward = (next: IdleState) => {
+    const prevBank = idleRef.current?.bank;
     idleRef.current = next;
     saveIdle(next);
     if (!identity?.id?.startsWith("guest-")) {
       void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+      // FASE 2 — sincronização mínima server-side para recursos autoritativos
+      if (next.bank?.gold !== undefined || next.bank?.crystals !== undefined || next.bank?.ruby !== undefined) {
+        const deltaGold = (next.bank?.gold ?? 0) - (prevBank?.gold ?? 0);
+        const deltaCryst = (next.bank?.crystals ?? 0) - (prevBank?.crystals ?? 0);
+        const deltaRuby = (next.bank?.ruby ?? 0) - (prevBank?.ruby ?? 0);
+        if (deltaGold !== 0 || deltaCryst !== 0 || deltaRuby !== 0) {
+          void applyServerBalances(identity.id, { gold: deltaGold, crystals: deltaCryst, ruby: deltaRuby });
+        }
+      }
     }
   };
   const redeemCrystalCode = () => {
@@ -13928,7 +13939,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   <button
                     onClick={() => {
                       if (confirm("Sair e voltar para a tela de login?")) {
-                        signOutRubyM().finally(() => { window.location.reload(); });
+                        signOutRubyM().finally(() => { window.location.href = "/?login=1"; });
                       }
                     }}
                     style={{

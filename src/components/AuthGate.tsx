@@ -4,6 +4,7 @@ import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
+import MetaMaskLoginButton from "@/components/MetaMaskLoginButton";
 
 
 const loginBgAsset = { url: "/login-bg.png" };
@@ -466,6 +467,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   if (isGuest && identity) return <>{children}</>;
+  if (typeof window !== "undefined" && window.location.search.includes("login")) return <PanelShell title="ENTRAR"><form className="space-y-3"><MetaMaskLoginButton /><button type="button" onClick={() => window.location.href="/?login=1"} className="w-full py-2 bg-amber-600 text-black font-black">RECARREGAR LOGIN</button></form></PanelShell>;
   if (!session) return <GuestNameScreen />;
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
@@ -1019,6 +1021,8 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         <PrimaryButton disabled={busy}>
           {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
+
+        <MetaMaskLoginButton />
 
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#9adcff" }}>
           {mode !== "login" ? (
