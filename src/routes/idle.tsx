@@ -3650,7 +3650,6 @@ const confirmName = () => {
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [luluEvent?.map, luluTalk, idle.currentMap, curWorldW, curWorldH]);
-  const [coletaCollapsed, setColetaCollapsed] = useState(false);
   const [pacotesCollapsed, setPacotesCollapsed] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
   const [worldTab, setWorldTab] = useState<1 | 2 | 3 | 4>(1);
@@ -8900,29 +8899,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const visibleBuildings = BUILDINGS;
   const viewportBg = idle.currentMap === "arena" ? "#1f2028" : "#000";
 
-  const collect = () => {
-    setIdle((s) => {
-      const gold = Math.floor(s.pending.gold);
-      const rubies = Math.floor(s.pending.rubies);
-      const crystals = Math.floor(s.pending.crystals);
-      try {
-        const raw = localStorage.getItem("rubym.save.v2");
-        if (raw) {
-          const save = JSON.parse(raw);
-          save.gold = (save.gold ?? 0) + gold;
-          save.rubies = (save.rubies ?? 0) + rubies;
-          save.crystals = (save.crystals ?? 0) + crystals;
-          localStorage.setItem("rubym.save.v2", JSON.stringify(save));
-        }
-      } catch { /* ignore */ }
-      pushFxAt(trainerPos.x, trainerPos.y - 60, `+${gold} ouro` + (crystals > 0 ? ` · +${crystals} 💎` : ""), "gold");
-      return {
-        ...s,
-        pending: { gold: 0, rubies: 0, crystals: 0 },
-        bank: { gold: s.bank.gold + gold, crystals: s.bank.crystals + crystals },
-      };
-    });
-  };
+  // (removido) collect() manual — coleta agora é automática no tick (ouro/cristais vão direto ao banco).
 
   const claimTask = (tid: string) => {
     setIdle((s) => {
@@ -15263,85 +15240,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             </div>
           </div>
 
-          {/* COLETA — fino, limpo e minimizável */}
-          <div style={{
-            background: "rgba(15,28,64,0.92)",
-            border: "1px solid rgba(230,200,110,0.30)",
-            borderRadius: 8, overflow: "hidden", flexShrink: 0,
-            boxShadow: "0 4px 14px rgba(0,0,0,0.40)",
-          }}>
-            <div
-              onClick={() => { playClick(); setColetaCollapsed((v) => !v); }}
-              style={{
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "7px 8px", cursor: "pointer", userSelect: "none",
-                borderBottom: coletaCollapsed ? "none" : "1px solid rgba(230,200,110,0.18)",
-                background: "rgba(255,255,255,0.03)",
-              }}
-              title={coletaCollapsed ? "Expandir" : "Minimizar"}
-            >
-              <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#f5d76e", fontWeight: 900, fontSize: 10, letterSpacing: 1.3 }}>◆ COLETA</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ color: "#c8d6f0", fontWeight: 700, fontSize: 9, background: "rgba(0,0,0,0.28)", border: "1px solid rgba(230,200,110,0.18)", padding: "2px 6px", borderRadius: 999 }}>⏱ {fmtHMS(Math.min(OFFLINE_CAP_MS, activeTime))}</span>
-                <span style={{ color: "#f5d76e", fontSize: 10, width: 18, height: 18, display: "grid", placeItems: "center", background: "rgba(245,215,110,0.12)", border: "1px solid rgba(245,215,110,0.25)", borderRadius: 4 }}>{coletaCollapsed ? "▸" : "▾"}</span>
-              </span>
-            </div>
-            {!coletaCollapsed && (
-              <div style={{ padding: 8 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 7 }}>
-                  <div style={{ background: "rgba(0,0,0,0.20)", border: "1px solid rgba(230,200,110,0.18)", borderRadius: 6, padding: "6px 7px", display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ width: 18, height: 18, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, #ffeaa0 0%, #f4c430 55%, #b8930a 100%)", border: "1px solid #7a5a00", display: "grid", placeItems: "center", fontSize: 10, flexShrink: 0 }}>●</span>
-                    <div style={{ lineHeight: 1 }}>
-                      <div style={{ fontSize: 7.5, color: "#b8a898", letterSpacing: 0.6, fontWeight: 800 }}>OURO</div>
-                      <div style={{ fontSize: 11, color: "#ffeaa0", fontWeight: 900 }}>{fmtK(Math.floor(idle.bank.gold))}</div>
-                    </div>
-                  </div>
-                  <div style={{ background: "rgba(0,0,0,0.20)", border: "1px solid rgba(230,200,110,0.18)", borderRadius: 6, padding: "6px 7px", display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ width: 18, height: 18, borderRadius: 3, background: "linear-gradient(180deg, #7dd8ff, #2aa8ff)", border: "1px solid #0a3a5a", display: "grid", placeItems: "center", fontSize: 9, transform: "rotate(45deg)", flexShrink: 0 }}><span style={{ transform: "rotate(-45deg)", fontSize: 8 }}>◆</span></span>
-                    <div style={{ lineHeight: 1 }}>
-                      <div style={{ fontSize: 7.5, color: "#8ab8d0", letterSpacing: 0.6, fontWeight: 800 }}>CRISTAIS</div>
-                      <div style={{ fontSize: 11, color: "#c8ecff", fontWeight: 900 }}>{Math.floor(idle.bank.crystals)}</div>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 8, color: "#8a7a9c", textAlign: "center", padding: "2px 0", fontWeight: 700 }}>⚡ coleta automática ativa</div>
-                <button
-                  onClick={() => {
-                    playClick();
-                    setIdle((s) => {
-                      if (s.currentMap === "arena") {
-                        pushChat("Você já está na Cidade!", "info");
-                        return s;
-                      }
-                      pushChat("Teleportando para o Vale Verdejante...", "info");
-                      return { ...s, currentMap: "arena" as IdleMapId };
-                    });
-                    setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "rgba(255,255,255,0.04)",
-                    color: "#c8d6f0",
-                    border: "1px solid rgba(230,200,110,0.22)",
-                    borderRadius: 6,
-                    padding: "6px 10px",
-                    marginTop: 6,
-                    fontWeight: 700,
-                    fontSize: 10,
-                    letterSpacing: 0.6,
-                    cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                  }}
-                >
-                  <span style={{ fontSize: 11 }}>⌂</span> VOLTAR AO VALE
-                </button>
-              </div>
-            )}
-          </div>
-
-
-
-
           {/* PACOTES ESPECIAIS — fino, limpo e minimizável */}
           <div
             style={{
@@ -15430,7 +15328,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { id: "pokemon",  label: "Pokémon",  img: navPokemon },
               { id: "mochila",  label: "Mochila",  img: bagIconImg },
-              { id: "tarefas",  label: "Missões", img: navColecao },
+              { id: "colecao",  label: "Coleção",  img: navColecao },
+              { id: "pokedex",  label: "Pokédex",  img: navColecao },
+              { id: "tarefas",  label: "Missões", img: navBatalha },
             ] as const).map((t) => (
               <BottomNavBtn
                 key={t.id}
