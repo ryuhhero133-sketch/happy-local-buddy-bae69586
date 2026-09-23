@@ -38,7 +38,6 @@ import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
 import navMochila from "@/assets/icons/nav-mochila.png";
-import navBatalha from "@/assets/icons/nav-batalha.png";
 import navMelhorias from "@/assets/icons/nav-melhorias.png";
 import navColecao from "@/assets/icons/nav-colecao.png";
 import navLoja from "@/assets/icons/nav-loja.png";
@@ -15330,7 +15329,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               { id: "mochila",  label: "Mochila",  img: bagIconImg },
               { id: "colecao",  label: "Coleção",  img: navColecao },
               { id: "pokedex",  label: "Pokédex",  img: navColecao },
-              { id: "tarefas",  label: "Missões", img: navBatalha },
             ] as const).map((t) => (
               <BottomNavBtn
                 key={t.id}
