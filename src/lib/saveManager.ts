@@ -12,6 +12,7 @@
 // - Zero polling, zero realtime, zero heartbeat de rede.
 // ============================================================
 import { supabase } from "@/integrations/supabase/client";
+import { flushMintQueue } from "@/lib/pokemonMint";
 
 export type CheckpointStatus =
   | "idle"
@@ -497,6 +498,12 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
   pushing = true;
   setStatus("pushing");
   try {
+    // Registra criações novas antes do checkpoint (best-effort; nunca bloqueia).
+    try {
+      await flushMintQueue(memSnapshot);
+    } catch {
+      /* ignore */
+    }
     const snap = sanitizeSnapshot(memSnapshot);
     const expected = loadVersion(uid);
     const hash = snapshotHash(snap);

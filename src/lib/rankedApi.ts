@@ -240,55 +240,8 @@ export async function recordRankedScore(level: number, craftPoints: number, guil
   const trainerLevel = Math.max(1, Math.min(10000, Math.floor(level || 1)));
   const craft = Math.max(0, Math.floor(craftPoints || 0));
 
-  const upsertDirectBackup = async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth?.user;
-    if (!user) return;
-    const username = (user.user_metadata?.username || user.user_metadata?.name || user.email?.split("@")[0] || "Treinador") as string;
-
-    // Tabela legacy/publica usada pelo ranking global. Mantém nível REAL atual.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const legacy = await (supabase as any).from("ranked_scores").upsert({
-      user_id: user.id,
-      username,
-      trainer_level: trainerLevel,
-      pokedex_count: craft,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-    if (legacy.error) {
-      // Compatibilidade com setup antigo que só tinha score/season.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fallback = await (supabase as any).from("ranked_scores").upsert({
-        user_id: user.id,
-        username,
-        score: trainerLevel * 100 + craft,
-        season: 1,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id,season" });
-      if (fallback.error) console.warn("[ranked] score upsert:", fallback.error.message);
-    }
-
-    // Backup direto também na tabela de temporada, para não depender só da RPC.
-    try {
-      const season = await fetchCurrentSeason();
-      if (!season) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("ranked_leaderboard").upsert({
-        season_id: season.id,
-        user_id: user.id,
-        username,
-        trainer_level: trainerLevel,
-        craft_points: craft,
-        guild_name: guildName ?? null,
-        score: trainerLevel * 100 + craft,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "season_id,user_id" });
-      if (error) console.warn("[ranked] leaderboard backup:", error.message);
-    } catch (e) {
-      console.warn("[ranked] leaderboard backup exc:", e);
-    }
-  };
-
+  // Somente via RPC server-side. Sem escrita direta: o servidor valida e calcula.
+  // Sem fallback direto — se a RPC falhar, o score simplesmente não é enviado.
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any).rpc("record_ranked_score", {
@@ -296,19 +249,9 @@ export async function recordRankedScore(level: number, craftPoints: number, guil
       _craft_points: craft,
       _guild_name: guildName ?? null,
     });
-    if (!error) {
-      await upsertDirectBackup();
-      return;
-    }
-    console.warn("[ranked] record:", error.message);
+    if (error) console.warn("[ranked] record:", error.message);
   } catch (e) {
     console.warn("[ranked] record exc:", e);
-  }
-
-  try {
-    await upsertDirectBackup();
-  } catch (e) {
-    console.warn("[ranked] legacy record exc:", e);
   }
 }
 
@@ -378,48 +321,18 @@ export type OddishRankRow = {
 /** Envia/atualiza a contagem de Oddish capturados no evento. */
 export async function submitOddishCaptures(captures: number, username?: string | null): Promise<void> {
   const safe = Math.max(0, Math.floor(captures || 0));
-  const { userId, name: nameArg } = await resolveTrainerName(username);
-  let submittedByRpc = false;
+  const { name: nameArg } = await resolveTrainerName(username);
   try {
+    // Somente via RPC server-side. Sem escrita direta: o servidor valida e calcula.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any).rpc("record_oddish_captures", { _captures: safe, _username: nameArg });
-    if (!error) submittedByRpc = true;
-    else {
-      // Fallback: RPC antiga sem parâmetro _username.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const legacy = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
-      if (legacy.error) console.warn("[oddish rank] submit:", legacy.error.message);
-      else submittedByRpc = true;
-    }
+    if (!error) return;
+    // Fallback: RPC antiga sem parâmetro _username.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacy = await (supabase as any).rpc("record_oddish_captures", { _captures: safe });
+    if (legacy.error) console.warn("[oddish rank] submit:", legacy.error.message);
   } catch (e) {
     console.warn("[oddish rank] submit exc:", e);
-  }
-  // Backup direto sempre roda quando há nome real: corrige linhas antigas presas como "Treinador".
-  if (!nameArg || !userId) return;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existing = await (supabase as any)
-      .from("oddish_event_leaderboard")
-      .select("captures")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (existing.data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any)
-        .from("oddish_event_leaderboard")
-        .update({ username: nameArg, updated_at: new Date().toISOString() })
-        .eq("user_id", userId);
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from("oddish_event_leaderboard").insert({
-        user_id: userId,
-        username: nameArg,
-        captures: safe,
-        updated_at: new Date().toISOString(),
-      });
-    }
-  } catch (e) {
-    if (!submittedByRpc) console.warn("[oddish rank] backup exc:", e);
   }
 }
 
