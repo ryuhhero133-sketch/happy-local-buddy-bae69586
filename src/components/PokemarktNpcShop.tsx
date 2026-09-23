@@ -154,7 +154,7 @@ export function PokemarktNpcShop({
     { id: "picole", name: "Picolé", price: 300, currency: "gold", image: popsicleImg, description: "Alimenta: +25 fome, +20 energia.", buy: (q) => onBuyFood("picole", q) },
     { id: "cha_verde", name: "Chá Verde", price: 350, currency: "gold", image: greenteaImg, description: "Alimenta: +15 fome, +30 energia.", buy: (q) => onBuyFood("cha_verde", q) },
     { id: "leite_manga", name: "Leite de Manga", price: 700, currency: "gold", image: mangoImg, description: "Alimenta: +35 fome, +25 energia.", buy: (q) => onBuyFood("leite_manga", q) },
-    { id: "emerald_egg", name: "EGG Emerald 💚", price: 12000, currency: "gold", image: emeraldEggImg, imgFilter: "hue-rotate(70deg) saturate(1.3)", description: "5 stones do mesmo tipo desbloqueiam · choca em 1h (Comum 65% / Raro 25% / Épico 10%, 3 traits).", buy: (q) => onBuyEmeraldEgg(q) },
+    { id: "emerald_egg", name: "EGG Emerald 💚", price: 500, currency: "crystals", image: emeraldEggImg, imgFilter: "hue-rotate(70deg) saturate(1.3)", description: "5 stones do mesmo tipo desbloqueiam · choca em 1h (Comum 65% / Raro 25% / Épico 10%, 3 traits).", buy: (q) => onBuyEmeraldEgg(q) },
   ], [onBuyBall, onBuyFood, onBuyPotion, onBuyRevive, onBuyBook, onBuyEmeraldEgg]);
 
   const selected = products.find((item) => item.id === selectedId) ?? products[0];

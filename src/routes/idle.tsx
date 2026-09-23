@@ -293,7 +293,6 @@ import portalImg from "@/assets/Portal.png";
 import pokemarktUrl from "@/assets/POKEMARKT.png";
 import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
 import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
-import collectIconImg from "@/assets/icons/collect-icon.png";
 import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
 import crystalRedAsset from "@/assets/items/icon-crystal-red.png.asset.json";
 const crystalRedImg = assetUrlFromJson(crystalRedAsset);
@@ -786,8 +785,10 @@ function caveWindow(now: number = Date.now()): { open: boolean; msUntilChange: n
   return { open: false, msUntilChange: c.cycleMs - t };
 }
 
-// Evento Mítico Shiny — abre 5 minutos a cada 1 hora.
+// Evento Mítico Shiny — DESABILITADO a pedido do usuário (sempre fechado).
+const MYTH_EVENT_DISABLED = true;
 function mythEventInfo(now: number = Date.now()): { open: boolean; msUntilChange: number } {
+  if (MYTH_EVENT_DISABLED) return { open: false, msUntilChange: 60 * 60 * 1000 };
   const CYCLE = 60 * 60 * 1000;
   const OPEN = 5 * 60 * 1000;
   const t = now % CYCLE;
@@ -3868,6 +3869,58 @@ const confirmName = () => {
       return;
     }
 
+    // ===== Códigos PRÉ-REGISTRO (IDLM-XXXX-XXXX — traços opcionais, 1 uso por conta) =====
+    // 01 → 1× EGG Emerald 💚 · 02 → 50× cada Stone · 03 → 300 💎 · 04 → 3× Livro EXP + 3× Orb XP · 05 → 30.000 🪙
+    const PREREG_CODES: Record<string, { items?: Record<string, number>; gold?: number; crystals?: number; msg: string; chat: string }> = {
+      IDLM4L4USAFH: {
+        items: { emerald_egg: 1 },
+        msg: "💚 1× EGG Emerald entregue! Alimente com 5 stones do mesmo tipo.",
+        chat: "🎉 Código pré-registro 01: +1× EGG Emerald 💚!",
+      },
+      IDLMWZNHZFJT: {
+        items: { stone_grass: 50, stone_fire: 50, stone_water: 50, stone_electric: 50, stone_dark: 50, stone_dragon: 50 },
+        msg: "💠 +50 de cada Stone Elemental entregues!",
+        chat: "🎉 Código pré-registro 02: +50× cada Stone Elemental!",
+      },
+      IDLMZMMGAMDV: {
+        crystals: 300,
+        msg: "💎 +300 Cristais entregues!",
+        chat: "🎉 Código pré-registro 03: +300 💎 Cristais!",
+      },
+      IDLMGKPAHVTZ: {
+        items: { book_exp: 3, orb_xp_minor: 3 },
+        msg: "📚 +3 Livros de EXP e +3 Orbs de XP entregues!",
+        chat: "🎉 Código pré-registro 04: +3× Livro EXP e +3× Orb XP!",
+      },
+      IDLMZKPX2HW4: {
+        gold: 30000,
+        msg: "🪙 +30.000 Ouro entregue!",
+        chat: "🎉 Código pré-registro 05: +30.000 🪙 Ouro!",
+      },
+    };
+    const prereg = PREREG_CODES[raw];
+    if (prereg) {
+      const base = idleRef.current;
+      const items = { ...(base.items ?? {}) };
+      for (const [id, qty] of Object.entries(prereg.items ?? {})) items[id] = (items[id] ?? 0) + qty;
+      const next: IdleState = {
+        ...base,
+        items,
+        bank: {
+          gold: base.bank.gold + (prereg.gold ?? 0),
+          crystals: base.bank.crystals + (prereg.crystals ?? 0),
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: prereg.msg });
+      setCodeInput("");
+      pushChat(prereg.chat, "cap");
+      return;
+    }
+
     // ===== Códigos únicos de Cristal: 10× 10k e 10× 50k =====
     const CRYSTAL_10K_CODES = [
       "CRYSTAL10K01", "CRYSTAL10K02", "CRYSTAL10K03", "CRYSTAL10K04", "CRYSTAL10K05",
@@ -4878,7 +4931,7 @@ const confirmName = () => {
       }
 
       const k = e.key.toLowerCase();
-      if (k === "m") { e.preventDefault(); setWorldMapOpen((v) => !v); return; }
+      if (k === "m") { e.preventDefault(); setMapTeleportOpen((v) => !v); return; }
       if (k === "r") { e.preventDefault(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
@@ -7102,10 +7155,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             crystals: s.pending.crystals + inc.c,
           },
         };
-        const nt = ns.tasks.map((t) => t.id === "t2" && !t.done
-          ? { ...t, progress: Math.min(t.target, Math.floor(ns.pending.gold + ns.totals.gold)), done: (ns.pending.gold + ns.totals.gold) >= t.target }
+        // Coleta automática: ouro/cristais pendentes vão direto ao banco (sem botão COLETAR).
+        const sweepG = Math.floor(ns.pending.gold);
+        const sweepC = Math.floor(ns.pending.crystals);
+        const swept: IdleState = {
+          ...ns,
+          pending: { ...ns.pending, gold: ns.pending.gold - sweepG, crystals: ns.pending.crystals - sweepC },
+          bank: { gold: ns.bank.gold + sweepG, crystals: ns.bank.crystals + sweepC },
+        };
+        const nt = swept.tasks.map((t) => t.id === "t2" && !t.done
+          ? { ...t, progress: Math.min(t.target, Math.floor(swept.pending.gold + swept.totals.gold)), done: (swept.pending.gold + swept.totals.gold) >= t.target }
           : t);
-        return { ...ns, tasks: nt };
+        return { ...swept, tasks: nt };
       });
     }, 900);
     return () => clearInterval(iv);
@@ -7245,7 +7306,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const LEGEND_INTERVAL_MS = 30 * 60 * 1000;
   const LEGEND_DURATION_MS = 3 * 60 * 1000;
   const LEGEND_ROSTER: { sp: Species; label: string; rarity: Rarity; level: number; icon: string; color: string; weather?: "snow" | "rain"; w: number }[] = [
-    { sp: "virizion",      label: "VIRIZION",      rarity: "epic",         level: 80, icon: "🌿", color: "#7ef2a2", w: 10 },
+    // VIRIZION removido a pedido do usuário.
     { sp: "luxray_f",      label: "LUXRAY ♀",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff", w: 10 },
     { sp: "raikou",        label: "RAIKOU",        rarity: "epic",         level: 82, icon: "⚡", color: "#f5cf6b", w: 2 },
     { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "❄", color: "#8ec5ff", weather: "rain", w: 2 },
@@ -11676,16 +11737,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onBuyEmeraldEgg={(quantity) => {
                 const n = Math.max(1, Math.floor(quantity || 1));
                 setIdle((s) => {
-                  const totalCost = 12000 * n;
-                  if (s.bank.gold < totalCost) {
-                    pushChat(`Ouro insuficiente para ${n}× EGG Emerald (precisa ${totalCost.toLocaleString()} 🪙).`, "info");
+                  const totalCost = 500 * n;
+                  if (s.bank.crystals < totalCost) {
+                    pushChat(`Cristais insuficientes para ${n}× EGG Emerald (precisa ${totalCost} 💎).`, "info");
                     return s;
                   }
                   pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} EGG Emerald`, "capture");
-                  pushChat(`Comprou ${n}× EGG Emerald por ${totalCost.toLocaleString()} 🪙.`, "cap");
+                  pushChat(`Comprou ${n}× EGG Emerald por ${totalCost} 💎.`, "cap");
                   return {
                     ...s,
-                    bank: { ...s.bank, gold: s.bank.gold - totalCost },
+                    bank: { ...s.bank, crystals: s.bank.crystals - totalCost },
                     items: { ...s.items, emerald_egg: (s.items.emerald_egg ?? 0) + n },
                   };
                 });
@@ -14382,34 +14443,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         X: {Math.round(trainerPos.x)} Y: {Math.round(trainerPos.y)}
                       </span>
                     </div>
-                    <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
-                      <button
-                        onClick={() => { playClick(); setWorldMapOpen(true); }}
-                        className="world-globe-btn"
-                        title="Abrir Mapa Mundi"
-                        style={{
-                          background: "linear-gradient(135deg, #1a1230 0%, #3a2560 55%, #1a1230 100%)",
-                          border: "1px solid #f5cf6b",
-                          color: "#f5cf6b",
-                          borderRadius: 10, padding: "6px 14px 6px 8px",
-                          fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
-                          cursor: "pointer",
-                          boxShadow: "0 0 14px rgba(245,207,107,0.4), inset 0 1px 0 rgba(255,240,180,0.25)",
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          textShadow: "0 1px 0 rgba(0,0,0,0.5)",
-                        }}
-                      >
-                        <img
-                          src={assetUrlFromJson(iconWorldGlobe)}
-                          alt=""
-                          width={28}
-                          height={28}
-                          className="world-globe-spin"
-                          style={{ imageRendering: "auto", filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
-                        />
-                        MAPA MUNDI
-                      </button>
-                    </div>
+                    {/* Botão MAPA MUNDI removido — teleporte usa só o Mapa central. */}
                   </div>
 
                   {/* (removido) Teleporte rápido — usa o Mapa Mundi ou o HUD de teleporte. */}
@@ -14456,7 +14490,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     </div>
                   )}
 
-                  {worldMapOpen && (() => {
+                  {/* Mapa Mundi (continentes) DESABILITADO — teleporte usa só o Mapa central. */}
+                  {false && worldMapOpen && (() => {
                     const hasGovCard = (idle.items?.carta_governante ?? 0) > 0;
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
                       { id: "mapinha6", x: 44, y: 17, type: "castle", order: 1 },
@@ -14488,7 +14523,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     const WORLD_PINS = activeTab === 1 ? WORLD_PINS_C1 : activeTab === 2 ? WORLD_PINS_C2 : activeTab === 3 ? WORLD_PINS_C3 : WORLD_PINS_C4;
                     const c4Sel = activeTab === 4 ? (WORLD_PINS_C4.find((p) => String(p.id) === c4Pin) ?? null) : null;
                     const selPin = selectedMapInfo ? WORLD_PINS.find(p => p.id === selectedMapInfo) : null;
-                    const selMap = selectedMapInfo ? IDLE_MAPS[selectedMapInfo] : null;
+                    // (modal desabilitado — nunca executa)
+                    const selMap = IDLE_MAPS[selectedMapInfo as IdleMapId];
 
 
                     // const bgUrl = activeTab === 1 ? assetUrlFromJson(overworldPixelAsset) : activeTab === 2 ? worldMapContinent2Url : activeTab === 3 ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1536&h=1024&auto=format&fit=crop" : continent4Bg;
@@ -15257,38 +15293,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     <span style={{ width: 18, height: 18, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, #ffeaa0 0%, #f4c430 55%, #b8930a 100%)", border: "1px solid #7a5a00", display: "grid", placeItems: "center", fontSize: 10, flexShrink: 0 }}>●</span>
                     <div style={{ lineHeight: 1 }}>
                       <div style={{ fontSize: 7.5, color: "#b8a898", letterSpacing: 0.6, fontWeight: 800 }}>OURO</div>
-                      <div style={{ fontSize: 11, color: "#ffeaa0", fontWeight: 900 }}>{fmtK(idle.pending.gold)}</div>
+                      <div style={{ fontSize: 11, color: "#ffeaa0", fontWeight: 900 }}>{fmtK(Math.floor(idle.bank.gold))}</div>
                     </div>
                   </div>
                   <div style={{ background: "rgba(0,0,0,0.20)", border: "1px solid rgba(230,200,110,0.18)", borderRadius: 6, padding: "6px 7px", display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ width: 18, height: 18, borderRadius: 3, background: "linear-gradient(180deg, #7dd8ff, #2aa8ff)", border: "1px solid #0a3a5a", display: "grid", placeItems: "center", fontSize: 9, transform: "rotate(45deg)", flexShrink: 0 }}><span style={{ transform: "rotate(-45deg)", fontSize: 8 }}>◆</span></span>
                     <div style={{ lineHeight: 1 }}>
                       <div style={{ fontSize: 7.5, color: "#8ab8d0", letterSpacing: 0.6, fontWeight: 800 }}>CRISTAIS</div>
-                      <div style={{ fontSize: 11, color: "#c8ecff", fontWeight: 900 }}>{Math.floor(idle.pending.crystals)}</div>
+                      <div style={{ fontSize: 11, color: "#c8ecff", fontWeight: 900 }}>{Math.floor(idle.bank.crystals)}</div>
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={collect}
-                  style={{
-                    width: "100%",
-                    background: "linear-gradient(180deg, #2e5fa0 0%, #1e3f75 100%)",
-                    color: "#ffeaa0",
-                    border: "1px solid rgba(230,200,110,0.55)",
-                    borderRadius: 6,
-                    padding: "7px 10px",
-                    fontWeight: 900,
-                    fontSize: 11,
-                    letterSpacing: 1.1,
-                    cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                  }}
-                >
-                  <img src={collectIconImg} alt="" width={16} height={16} style={{ imageRendering: "pixelated" }} />
-                  COLETAR
-                  <span style={{ marginLeft: "auto", fontSize: 9, opacity: 0.7 }}>◈</span>
-                </button>
+                <div style={{ fontSize: 8, color: "#8a7a9c", textAlign: "center", padding: "2px 0", fontWeight: 700 }}>⚡ coleta automática ativa</div>
                 <button
                   onClick={() => {
                     playClick();
@@ -15424,12 +15440,42 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 onClick={() => { playClick(); setTab(t.id as typeof tab); }}
               />
             ))}
-            <BottomNavBtn
-              label="Mapa"
-              img={navInicio}
-              active={mapTeleportOpen}
+            <button
               onClick={() => { playClick(); setMapTeleportOpen(true); }}
-            />
+              title="Mapa — teleporte"
+              className="bottomnav-btn world-globe-btn"
+              style={{
+                width: 84, flexShrink: 0, background: "transparent", border: "none",
+                padding: 0, cursor: "pointer", display: "flex", flexDirection: "column",
+                alignItems: "center", gap: 3,
+              }}
+            >
+              <span style={{
+                display: "grid", placeItems: "center",
+                width: 46, height: 46, borderRadius: "50%", marginTop: -20,
+                background: "radial-gradient(circle at 50% 35%, #1b2f4d 0%, #0a1322 75%)",
+                border: `3px solid ${mapTeleportOpen ? "#cfe6ff" : "#8fb8ef"}`,
+                boxShadow: mapTeleportOpen
+                  ? "0 0 22px 4px rgba(120,185,255,0.75), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 12px rgba(120,185,255,0.35)"
+                  : "0 0 14px 2px rgba(120,185,255,0.45), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 10px rgba(120,185,255,0.2)",
+              }}>
+                <img
+                  src={assetUrlFromJson(iconWorldGlobe)}
+                  alt=""
+                  width={30}
+                  height={30}
+                  draggable={false}
+                  className="world-globe-spin"
+                  style={{ filter: "drop-shadow(0 0 6px rgba(107,212,255,0.7))" }}
+                />
+              </span>
+              <span style={{
+                fontSize: 9, letterSpacing: 0.3, fontWeight: mapTeleportOpen ? 700 : 500,
+                color: mapTeleportOpen ? "#ffffff" : "#8fa3c8", textShadow: "0 1px 2px #000",
+              }}>
+                Mapa
+              </span>
+            </button>
             {([
               { id: "melhorias",label: "Melhorias",img: navMelhorias },
               { id: "market",   label: "Marketplace", img: navMarket, disabled: true },

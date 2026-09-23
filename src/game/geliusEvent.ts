@@ -13,7 +13,13 @@ const EPOCH = 0; // ms — usa 0 (Unix epoch) — todos veem o mesmo horário.
 
 export type GeliusPhase = "closed" | "phase1" | "phase2";
 
+// Evento Gelius (Onda 1/2) — DESABILITADO a pedido do usuário (sempre fechado).
+const GELIUS_DISABLED = true;
+
 export function currentGeliusInfo(now: number = Date.now()) {
+  if (GELIUS_DISABLED) {
+    return { phase: "closed" as GeliusPhase, msUntilChange: CYCLE_MS, msSinceStart: 0, msUntilNextStart: CYCLE_MS };
+  }
   const t = ((now - EPOCH) % CYCLE_MS + CYCLE_MS) % CYCLE_MS;
   let phase: GeliusPhase = "closed";
   let msUntilChange = 0;
