@@ -60,6 +60,7 @@ import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs } from "@/components/BlackMiticEggPet";
+import { EmeraldEggSprite, EmeraldEggHud, EMERALD_EGG_ITEM_ID } from "@/components/EmeraldEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
 import chestClosedImg from "@/assets/icons/chest-closed.png";
@@ -2542,6 +2543,7 @@ const confirmName = () => {
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
+  const [emeraldEggHudOpen, setEmeraldEggHudOpen] = useState(false);
 
   // --- RPG MODULAR WINDOWS ---
   const [forgeWindowOpen, setForgeWindowOpen] = useState(() => {
@@ -11671,6 +11673,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 const book = SHOP_BOOKS.find((entry) => entry.id === id);
                 if (book) buyBook(book, quantity);
               }}
+              onBuyEmeraldEgg={(quantity) => {
+                const n = Math.max(1, Math.floor(quantity || 1));
+                setIdle((s) => {
+                  const totalCost = 12000 * n;
+                  if (s.bank.gold < totalCost) {
+                    pushChat(`Ouro insuficiente para ${n}× EGG Emerald (precisa ${totalCost.toLocaleString()} 🪙).`, "info");
+                    return s;
+                  }
+                  pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} EGG Emerald`, "capture");
+                  pushChat(`Comprou ${n}× EGG Emerald por ${totalCost.toLocaleString()} 🪙.`, "cap");
+                  return {
+                    ...s,
+                    bank: { ...s.bank, gold: s.bank.gold - totalCost },
+                    items: { ...s.items, emerald_egg: (s.items.emerald_egg ?? 0) + n },
+                  };
+                });
+              }}
             />
           )}
 
@@ -13348,6 +13367,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               trainerY={renderTrainerY}
               visible={(idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0}
               onClick={openBlackEggHud}
+            />
+
+            {/* EGG Emerald — pet flutuante (lado direito) */}
+            <EmeraldEggSprite
+              trainerX={renderTrainerX}
+              trainerY={renderTrainerY}
+              visible={(idle.items?.[EMERALD_EGG_ITEM_ID] ?? 0) > 0}
+              onClick={() => { playClick(); setEmeraldEggHudOpen(true); }}
             />
 
 
@@ -18592,6 +18619,65 @@ onClick={(e) => {
         }}
       />
 
+      <EmeraldEggHud
+        open={emeraldEggHudOpen}
+        onClose={() => setEmeraldEggHudOpen(false)}
+        uid={identity?.id ?? "guest"}
+        itemCount={idle.items?.[EMERALD_EGG_ITEM_ID] ?? 0}
+        stones={{
+          stone_grass: idle.items?.stone_grass ?? 0,
+          stone_fire: idle.items?.stone_fire ?? 0,
+          stone_water: idle.items?.stone_water ?? 0,
+          stone_electric: idle.items?.stone_electric ?? 0,
+          stone_dark: idle.items?.stone_dark ?? 0,
+          stone_dragon: idle.items?.stone_dragon ?? 0,
+        }}
+        onConsumeStone={(stoneId, qty) => {
+          const have = idleRef.current.items?.[stoneId] ?? 0;
+          if (have < qty) return false;
+          setIdle((s) => ({
+            ...s,
+            items: { ...(s.items ?? {}), [stoneId]: (s.items?.[stoneId] ?? 0) - qty },
+          }));
+          return true;
+        }}
+        onHatched={(species, element, traits) => {
+          const hatchSpecies = (species in SPECIES_BASE ? species : "caterpie") as Species;
+          const uid = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+            ? crypto.randomUUID()
+            : `em_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+          const base = idleRef.current;
+          const curCount = base.items?.[EMERALD_EGG_ITEM_ID] ?? 0;
+          const nextItems = { ...(base.items ?? {}) };
+          if (curCount <= 1) delete nextItems[EMERALD_EGG_ITEM_ID];
+          else nextItems[EMERALD_EGG_ITEM_ID] = curCount - 1;
+          const entry: CollectionEntry = {
+            uid,
+            species: hatchSpecies,
+            level: 5,
+            xp: 0,
+            rarity: SPECIES_BASE[hatchSpecies]?.rarity ?? "common",
+            capturedAt: Date.now(),
+            traits,
+            event: `emerald_egg:${element}`,
+          };
+          const nextIdle: IdleState = {
+            ...base,
+            items: nextItems,
+            seenSpecies: base.seenSpecies.includes(hatchSpecies) ? base.seenSpecies : [...base.seenSpecies, hatchSpecies],
+            caughtSpecies: base.caughtSpecies.includes(hatchSpecies) ? base.caughtSpecies : [...base.caughtSpecies, hatchSpecies],
+            collection: [...(base.collection ?? []), entry],
+            totals: { ...base.totals, captured: (base.totals?.captured ?? 0) + 1 },
+          };
+          idleRef.current = nextIdle;
+          saveIdle(nextIdle);
+          setIdle(nextIdle);
+          void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
+          pushChat(`💚 EGG Emerald chocou: ${hatchSpecies.toUpperCase()} (${element}) com 3 traits! Já está na Coleção.`, "cap");
+        }}
+        onNotify={(msg) => pushChat(`💚 EGG Emerald: ${msg}`, "cap")}
+      />
+
       <GovernanteDialog
         open={governanteOpen}
         cards={idle.items?.carta_incubadora ?? 0}
@@ -20045,6 +20131,7 @@ function TabOverlay({
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
           black_mitic_egg: "Black Mitic Egg ✦",
+          emerald_egg: "EGG Emerald 💚",
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
           maca: "Maçã 🍎", laranja: "Laranja 🍊", picole: "Picolé 🍧",
@@ -20100,6 +20187,7 @@ function TabOverlay({
           stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
           stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
           black_mitic_egg: "Black Mitic Egg ✦ · 1 Elemental Stone desbloqueia o elemento e choca em 1 hora (sempre 7 traits). Fogo/Elétrico/Água têm 35% de chance de nascer Moltres/Zapdos/Articuno!",
+          emerald_egg: "EGG Emerald 💚 · 5 Elemental Stones DO MESMO TIPO desbloqueiam e choca em 1 hora. Nasce pokémon Comum (65%), Raro (25%) ou Épico (10%) do elemento, sempre com 3 traits.",
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
         };

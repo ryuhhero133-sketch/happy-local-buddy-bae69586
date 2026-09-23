@@ -207,6 +207,7 @@ const ICONS: Record<string, () => Cell[]> = {
   egg_aura: () => drawEgg("#c4ffe8", "#1f8060"),
   egg_charizard: () => drawEgg("#ffbd7a", "#8f3f0f"),
   egg_lugia: () => drawEgg("#e8f4ff", "#5a7fa8"),
+  emerald_egg: () => drawEgg("#7dffbe", "#1f8060"),
 
   // OUTROS
   premium_box: () => {
@@ -490,7 +491,7 @@ export function ItemPixelIcon({ id, size = 48, color = "#c9a24b" }: ItemPixelIco
   const cells = drawer ? drawer() : drawGeneric(color);
   // classe de animação por categoria
   const animClass =
-    id.startsWith("egg_") ? "pxi-egg" :
+    id.startsWith("egg_") || id === "emerald_egg" ? "pxi-egg" :
     id.endsWith("ball") ? "pxi-ball" :
     id.startsWith("book_") ? "pxi-book" :
     id === "premium_box" ? "pxi-box" :

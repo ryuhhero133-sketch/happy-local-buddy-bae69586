@@ -24,6 +24,7 @@ import cakeImg from "@/assets/comida/cake_strawberry.png";
 import mangoImg from "@/assets/comida/soymilk_mango.png";
 import greenteaImg from "@/assets/comida/coffee_greentea.png";
 import popsicleImg from "@/assets/comida/popsicle_pink.png";
+import emeraldEggImg from "@/assets/black-mitic-egg.png";
 
 type StoreItem = {
   id: string;
@@ -49,6 +50,7 @@ type Props = {
     id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "orb_xp_minor" | "orb_team",
     quantity: number,
   ) => void;
+  onBuyEmeraldEgg: (quantity: number) => void;
 };
 
 // ============================================================
@@ -97,6 +99,7 @@ export function PokemarktNpcShop({
   onBuyRevive,
   onBuyFood,
   onBuyBook,
+  onBuyEmeraldEgg,
 }: Props) {
   const [selectedId, setSelectedId] = useState("pokeball");
   const [quantity, setQuantity] = useState(1);
@@ -151,7 +154,8 @@ export function PokemarktNpcShop({
     { id: "picole", name: "Picolé", price: 300, currency: "gold", image: popsicleImg, description: "Alimenta: +25 fome, +20 energia.", buy: (q) => onBuyFood("picole", q) },
     { id: "cha_verde", name: "Chá Verde", price: 350, currency: "gold", image: greenteaImg, description: "Alimenta: +15 fome, +30 energia.", buy: (q) => onBuyFood("cha_verde", q) },
     { id: "leite_manga", name: "Leite de Manga", price: 700, currency: "gold", image: mangoImg, description: "Alimenta: +35 fome, +25 energia.", buy: (q) => onBuyFood("leite_manga", q) },
-  ], [onBuyBall, onBuyFood, onBuyPotion, onBuyRevive, onBuyBook]);
+    { id: "emerald_egg", name: "EGG Emerald 💚", price: 12000, currency: "gold", image: emeraldEggImg, imgFilter: "hue-rotate(70deg) saturate(1.3)", description: "5 stones do mesmo tipo desbloqueiam · choca em 1h (Comum 65% / Raro 25% / Épico 10%, 3 traits).", buy: (q) => onBuyEmeraldEgg(q) },
+  ], [onBuyBall, onBuyFood, onBuyPotion, onBuyRevive, onBuyBook, onBuyEmeraldEgg]);
 
   const selected = products.find((item) => item.id === selectedId) ?? products[0];
   if (!selected) return null;
