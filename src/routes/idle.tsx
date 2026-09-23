@@ -1422,6 +1422,8 @@ type IdleState = {
   saga?: SagaProgress;
   // ===== Pedidos secundários dos NPCs (estrelas + missões) =====
   sideQuests?: SideQuestProgress;
+  /** Timestamp até quando o bônus de boas-vindas (+100% ATK/DEF) está ativo. */
+  welcomeBonusUntil?: number;
   // ===== Sistema de Recursos (fome/energia/arremessos — horário local real) =====
   /** Fome do treinador (0–100). Ciclos 05/12/18 no horário local. */
   trainerHunger?: number;
@@ -20097,7 +20099,7 @@ function TabOverlay({
           stone_electric: "Stone Elétrica ⚡ · alimenta ovos Black Míticos e vale ouro.",
           stone_dark: "Stone Sombria 🌑 · alimenta ovos Black Míticos, valor alto.",
           stone_dragon: "Stone Dragão 🐉 · alimenta ovos Black Míticos, valor muito alto.",
-          black_mitic_egg: "Black Mitic Egg ✦ · ovo lendário que flutua ao seu lado. Clique nele no mapa para abrir a HUD e alimentar com Elemental Stones (50 por vez). Cooldown de 7h por alimentação. A afinidade elemental dominante decidirá o elemento do futuro Pokémon.",
+          black_mitic_egg: "Black Mitic Egg ✦ · 1 Elemental Stone desbloqueia o elemento e choca em 1 hora (sempre 7 traits). Fogo/Elétrico/Água têm 35% de chance de nascer Moltres/Zapdos/Articuno!",
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
         };

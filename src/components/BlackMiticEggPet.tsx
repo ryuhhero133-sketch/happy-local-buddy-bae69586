@@ -15,11 +15,11 @@ import { getMusicState, setMusicSuspended, subscribeMusic } from "@/lib/musicCon
 // - Incubação: 1h (conta apenas depois de "ATIVAR INICIAÇÃO").
 export const BLACK_EGG_ITEM_ID = "black_mitic_egg";
 export const BLACK_MITIC_EGG_DESCRIPTION =
-  "Black Mitic Plus Egg — coloque na incubadora, escolha o ELEMENTO desejado e ative para chocar em 1 hora. Não precisa de Elemental Stones. O elemento escolhido define o tipo do Pokémon que nascerá com 5 traits.";
+  "Black Mitic Egg — coloque na incubadora, alimente com 1 Elemental Stone e ative para chocar em 1 hora. A stone define o tipo do Pokémon (sempre 7 traits). Fogo/Elétrico/Água têm 35% de chance de nascer Moltres/Zapdos/Articuno!";
 
 const FEED_COOLDOWN_MS = 0;                      // sem cooldown — alimentação ilimitada
 const HATCH_MS = 60 * 60 * 1000;                 // 1h incubação
-const FEED_COST = 50;
+const FEED_COST = 1;                             // 1 stone por alimentação — 1 stone desbloqueia o elemento
 // --- Sistema BONUS (rompimento dos elementais) ---
 const BONUS_UNLOCK_PCT = 0.70;                    // libera aos 70% de incubação
 const BONUS_COOLDOWN_MS = 0;                      // sem cooldown de bônus
@@ -38,6 +38,15 @@ export const ELEMENTS = [
 
 type ElementId = typeof ELEMENTS[number]["id"];
 type StoneId = typeof ELEMENTS[number]["stone"];
+
+// Pássaros lendários por elemento — 35% de chance ao chocar com esse
+// elemento dominante/escolhido. Só Fogo/Elétrico/Água têm pássaro.
+export const BIRD_BY_ELEMENT: Partial<Record<ElementId, string>> = {
+  fire: "moltres",
+  electric: "zapdos",
+  water: "articuno",
+};
+export const BIRD_CHANCE = 0.35;
 
 type FeedHistoryItem = { ts: number; element: ElementId; amount: number };
 
@@ -1400,25 +1409,11 @@ export function BlackMiticEggHud(props: {
     onNotify?.(`+${FEED_COST} ${el.label} → afinidade aumentada.`);
   };
 
-  // Pool aleatório usado quando o ovo atinge "Versátil" (5+ elementos alimentados).
-  // Nesse caso o Pokémon nasce sorteado dentre lendários/míticos fortes.
-  const VERSATILE_POOL: string[] = [
-    "mewtwo", "mew", "groudon", "lugia", "ho_oh",
-    "moltres", "zapdos", "articuno", "raikou", "suicune",
-    "dialga", "darkrai",
-    "snorlax", "snorlax_mythic", "tyranitar",
-    "lucario", "scizor", "machamp",
-    "dragonite_shiny", "charizard_shiny", "blastoise_shiny",
-    "venusaur", "charizard", "blastoise",
-  ];
-
   const hatch = () => {
     if (!selected) return;
     if (!selected.activated) return;
     const remain = Math.max(0, (selected.activatedAt + HATCH_MS) - Date.now());
     if (remain > 0) { onNotify?.(`Ainda faltam ${fmt(remain)} para chocar.`); return; }
-    const chosen = selected.chosenElement ?? null;
-    const el = ELEMENTS.find(e => e.id === (chosen ?? dominantElement(selected.affinity)))!;
     // Fallback robusto: se o flag `forcePlus` não foi gravado no ovo por
     // qualquer motivo, ainda consumimos da fila `plusPending` do parent.
     // Isso garante que TODO ovo entregue pelo Governante nasça como
@@ -1426,22 +1421,24 @@ export function BlackMiticEggHud(props: {
     const isPlusFromEgg = !!selected.forcePlus;
     const isPlusFromQueue = !isPlusFromEgg && plusPending > 0;
     const isPlus = isPlusFromEgg || isPlusFromQueue;
+    // Elemento: escolhido > dominante > aleatório (ovos PLUS prontos sem afinidade).
+    let elId: ElementId | null = selected.chosenElement ?? null;
+    if (!elId) {
+      const totalAff = ELEMENTS.reduce((a, e) => a + (selected.affinity[e.id] ?? 0), 0);
+      elId = totalAff > 0
+        ? dominantElement(selected.affinity)
+        : ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)].id;
+    }
+    const el = ELEMENTS.find(e => e.id === elId)!;
     const arch = isPlus ? "versatile" : computeArchetype(selected.affinity);
     const care = computeCareScore(selected);
-    const slots = isPlus ? 7 : (selected.ruptured ? 6 : 5);
-    const traits = rollBlackMiticTraits(selected, arch, slots);
-    // Anti-duplicata para pool versátil.
-    const recent = new Set(state.hatchedHistory ?? []);
-    let species: string;
-    if (chosen) {
-      species = el.species;
-    } else if (arch === "versatile") {
-      const unused = VERSATILE_POOL.filter(s => !recent.has(s));
-      const pool = unused.length > 0 ? unused : VERSATILE_POOL;
-      species = pool[Math.floor(Math.random() * pool.length)];
-    } else {
-      species = el.species;
-    }
+    // SEMPRE 7 traits.
+    const traits = rollBlackMiticTraits(selected, arch, 7);
+    // 35% de chance do pássaro lendário do elemento (só Fogo/Elétrico/Água têm).
+    // Sem lendários fora desses 3 — nasce o Pokémon do elemento.
+    let species: string = el.species;
+    const bird = BIRD_BY_ELEMENT[el.id];
+    if (bird && Math.random() < BIRD_CHANCE) species = bird;
     onHatched(species, el.id, traits, isPlus);
     if (isPlusFromQueue) onConsumePlus?.(1);
     persist((s) => {
@@ -1449,8 +1446,9 @@ export function BlackMiticEggHud(props: {
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
       return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
-    const rupTag = isPlus ? " ✦ PLUS (7 traits)" : (selected.ruptured ? " ✦ ROMPIDO (6 traits)" : "");
-    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${rupTag}!`);
+    const birdTag = species !== el.species ? " 🦅 LENDÁRIO (35%)!" : "";
+    const rupTag = isPlus ? " ✦ PLUS (7 traits)" : (selected.ruptured ? " ✦ ROMPIDO (7 traits)" : " (7 traits)");
+    onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${birdTag}${rupTag}!`);
   };
 
   // ------------------------------------------------------------------
@@ -1700,7 +1698,14 @@ export function BlackMiticEggHud(props: {
                       })}
                     </div>
                     <div style={{ fontSize: 7, color: "#8a6ab0", textAlign: "center", marginTop: 6, lineHeight: 1.5 }}>
-                      Incuba em <b style={{ color: "#ffd88a" }}>1 hora</b> · stones não são necessárias
+                      <b style={{ color: "#ffd88a" }}>1 stone</b> desbloqueia · incuba em <b style={{ color: "#ffd88a" }}>1 hora</b> · sempre <b style={{ color: "#ffd88a" }}>7 traits</b>
+                    </div>
+                    <div style={{
+                      fontSize: 7, color: "#ffd88a", textAlign: "center", marginTop: 4, lineHeight: 1.5,
+                      padding: "4px 6px", background: "rgba(255,216,138,0.08)",
+                      border: "1px dashed rgba(255,216,138,0.4)", borderRadius: 6,
+                    }}>
+                      🔥 35% Moltres &nbsp;·&nbsp; ⚡ 35% Zapdos &nbsp;·&nbsp; 💧 35% Articuno
                     </div>
                   </div>
 
@@ -2025,6 +2030,14 @@ export function BlackMiticEggHud(props: {
                       }}>
                         {!selected.activated ? (hasIncubatorCard ? "Ative primeiro" : "Aguarda carta") : feedReady ? `Pronto · ${FEED_COST}/feed` : `⏱ ${fmt(feedCdRemain)}`}
                       </span>
+                    </div>
+                    <div style={{
+                      fontSize: 8, color: "#ffd88a", textAlign: "center", marginBottom: 8, lineHeight: 1.6,
+                      padding: "6px 8px", background: "rgba(255,216,138,0.07)",
+                      border: "1px dashed rgba(255,216,138,0.45)", borderRadius: 8,
+                    }}>
+                      🦅 A stone define o tipo: 🌿 Venusaur · 🔥 Charizard · 💧 Blastoise · ⚡ Raichu · 🌑 Gengar · 🐉 Dragonite<br />
+                      🔥/⚡/💧 têm <b>35% de chance</b> de nascer <b>Moltres / Zapdos / Articuno</b>!
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {ELEMENTS.map((el) => {
