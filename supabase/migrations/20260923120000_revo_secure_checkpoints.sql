@@ -65,11 +65,15 @@ alter table public.game_saves enable row level security;
 drop policy if exists game_saves_public_game_access on public.game_saves;
 drop policy if exists saves_public_read   on public.game_saves;
 drop policy if exists saves_public_insert on public.game_saves;
-drop policy if exists saves_public_update on public.game_saves;
 drop policy if exists saves_public_delete on public.game_saves;
+drop policy if exists saves_public_update on public.game_saves;
+drop policy if exists game_saves_own_select on public.game_saves;
+drop policy if exists game_saves_own_insert on public.game_saves;
+drop policy if exists game_saves_own_update on public.game_saves;
 drop policy if exists game_saves_owner_insert on public.game_saves;
 drop policy if exists game_saves_owner_update on public.game_saves;
 drop policy if exists game_saves_owner_select on public.game_saves;
+drop policy if exists profiles_public_game_access on public.profiles;
 
 -- Leitura: só o dono. Escrita direta: NENHUMA (só via RPC checkpoint_save).
 create policy game_saves_owner_select on public.game_saves
