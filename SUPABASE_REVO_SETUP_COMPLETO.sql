@@ -437,42 +437,122 @@ GRANT EXECUTE ON FUNCTION public.record_ranked_score(int, int, text) TO anon, au
 -- =========================================================
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.players;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'players') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.players;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.parties;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'parties') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.parties;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.party_members;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'party_members') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.party_members;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.party_invites;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'party_invites') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.party_invites;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.market_listings;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'market_listings') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.market_listings;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.challenges;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'challenges') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.challenges;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.guild_invites;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'guild_invites') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.guild_invites;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.group_legendary_state;
+  DO $$
+
+  BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'group_legendary_state') THEN
+
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.group_legendary_state;
+
+    END IF;
+
+  END $$;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -593,10 +673,50 @@ CREATE POLICY "gls_public_delete" ON public.group_legendary_state FOR DELETE USI
 -- =========================================================
 -- REALTIME
 -- =========================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.parties;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.party_members;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.party_invites;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.group_legendary_state;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'parties') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.parties;
+
+  END IF;
+
+END $$;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'party_members') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.party_members;
+
+  END IF;
+
+END $$;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'party_invites') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.party_invites;
+
+  END IF;
+
+END $$;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'group_legendary_state') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.group_legendary_state;
+
+  END IF;
+
+END $$;
 
 -- ===================== [4/26] supabase/migrations/20260531134952_8a985bb4-acd2-47c4-b8ca-40ad3caf4c89.sql =====================
 
@@ -722,9 +842,39 @@ CREATE POLICY "saves_public_delete" ON public.game_saves FOR DELETE USING (true)
 -- =========================================================
 -- REALTIME
 -- =========================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.players;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.market_listings;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.challenges;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'players') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.players;
+
+  END IF;
+
+END $$;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'market_listings') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.market_listings;
+
+  END IF;
+
+END $$;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'challenges') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.challenges;
+
+  END IF;
+
+END $$;
 
 -- ===================== [5/26] supabase/migrations/20260822232854_add_active_sessions_table.sql =====================
 CREATE TABLE IF NOT EXISTS public.active_sessions (
@@ -1033,7 +1183,17 @@ create index if not exists ct_user_created_idx on public.cashshop_tickets (user_
 create index if not exists ct_created_idx      on public.cashshop_tickets (created_at desc);
 
 -- Realtime
-alter publication supabase_realtime add table public.cashshop_tickets;
+DO $$
+
+BEGIN
+
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'cashshop_tickets') THEN
+
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.cashshop_tickets;
+
+  END IF;
+
+END $$;
 
 -- ===================== [10/26] SUPABASE_PENDING_PURCHASES.sql =====================
 -- ============================================================
@@ -1263,12 +1423,32 @@ CREATE POLICY pp_update_admin ON public.pending_purchases
 do $$
 begin
   begin
-    alter publication supabase_realtime add table public.cashshop_tickets;
+    DO $$
+
+    BEGIN
+
+      IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'cashshop_tickets') THEN
+
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.cashshop_tickets;
+
+      END IF;
+
+    END $$;
   exception when duplicate_object then null;
   end;
 
   begin
-    alter publication supabase_realtime add table public.pending_purchases;
+    DO $$
+
+    BEGIN
+
+      IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'pending_purchases') THEN
+
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_purchases;
+
+      END IF;
+
+    END $$;
   exception when duplicate_object then null;
   end;
 end $$;
@@ -1411,7 +1591,17 @@ on conflict (user_id, role) do nothing;
 do $$
 begin
   begin
-    alter publication supabase_realtime add table public.pending_purchases;
+    DO $$
+
+    BEGIN
+
+      IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'pending_purchases') THEN
+
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_purchases;
+
+      END IF;
+
+    END $$;
   exception when duplicate_object then null;
   end;
 end $$;
