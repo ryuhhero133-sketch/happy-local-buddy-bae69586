@@ -633,7 +633,11 @@ CREATE POLICY "gls_public_delete" ON public.group_legendary_state FOR DELETE USI
 -- =========================================================
 -- REALTIME
 -- =========================================================
+DO $$
+BEGIN
 ALTER PUBLICATION supabase_realtime ADD TABLE public.parties;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
 
@@ -779,7 +783,11 @@ CREATE POLICY "saves_public_delete" ON public.game_saves FOR DELETE USING (true)
 -- =========================================================
 -- REALTIME
 -- =========================================================
+DO $$
+BEGIN
 ALTER PUBLICATION supabase_realtime ADD TABLE public.players;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
 
@@ -1103,7 +1111,11 @@ create index if not exists ct_user_created_idx on public.cashshop_tickets (user_
 create index if not exists ct_created_idx      on public.cashshop_tickets (created_at desc);
 
 -- Realtime
+DO $$
+BEGIN
 ALTER PUBLICATION supabase_realtime ADD TABLE public.cashshop_tickets;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
 
@@ -1338,7 +1350,7 @@ CREATE POLICY pp_update_admin ON public.pending_purchases
 do $$
 begin
   begin
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.cashshop_tickets;
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.cashshop_tickets;
 
 
 
@@ -1348,7 +1360,7 @@ begin
   end;
 
   begin
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_purchases;
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_purchases;
 
 
 
@@ -1496,7 +1508,7 @@ on conflict (user_id, role) do nothing;
 do $$
 begin
   begin
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_purchases;
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_purchases;
 
 
 
