@@ -37,13 +37,21 @@ DROP POLICY IF EXISTS game_saves_own_insert ON public.game_saves;
 DROP POLICY IF EXISTS game_saves_own_update ON public.game_saves;
 
 -- Cada conta só consegue ver/gravar o próprio save.
+DROP POLICY IF EXISTS game_saves_own_select ON public.game_saves;
+
 CREATE POLICY game_saves_own_select ON public.game_saves
   FOR SELECT TO authenticated
   USING (auth.uid()::text = user_id);
 
+DROP POLICY IF EXISTS game_saves_own_insert ON public.game_saves;
+
+
 CREATE POLICY game_saves_own_insert ON public.game_saves
   FOR INSERT TO authenticated
   WITH CHECK (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS game_saves_own_update ON public.game_saves;
+
 
 CREATE POLICY game_saves_own_update ON public.game_saves
   FOR UPDATE TO authenticated
@@ -70,6 +78,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO anon, authenticated;
 GRANT ALL ON public.profiles TO service_role;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS profiles_public_game_access ON public.profiles;
+DROP POLICY IF EXISTS profiles_public_game_access ON public.profiles;
+
 CREATE POLICY profiles_public_game_access ON public.profiles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.game_saves (
@@ -81,6 +91,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.game_saves TO anon, authenticated
 GRANT ALL ON public.game_saves TO service_role;
 ALTER TABLE public.game_saves ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS game_saves_public_game_access ON public.game_saves;
+DROP POLICY IF EXISTS game_saves_public_game_access ON public.game_saves;
+
 CREATE POLICY game_saves_public_game_access ON public.game_saves FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -107,6 +119,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.players TO anon, authenticated;
 GRANT ALL ON public.players TO service_role;
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS players_public_game_access ON public.players;
+DROP POLICY IF EXISTS players_public_game_access ON public.players;
+
 CREATE POLICY players_public_game_access ON public.players FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -124,6 +138,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.parties TO anon, authenticated;
 GRANT ALL ON public.parties TO service_role;
 ALTER TABLE public.parties ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS parties_public_game_access ON public.parties;
+DROP POLICY IF EXISTS parties_public_game_access ON public.parties;
+
 CREATE POLICY parties_public_game_access ON public.parties FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.party_members (
@@ -141,6 +157,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.party_members TO anon, authentica
 GRANT ALL ON public.party_members TO service_role;
 ALTER TABLE public.party_members ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS party_members_public_game_access ON public.party_members;
+DROP POLICY IF EXISTS party_members_public_game_access ON public.party_members;
+
 CREATE POLICY party_members_public_game_access ON public.party_members FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.party_invites (
@@ -159,6 +177,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.party_invites TO anon, authentica
 GRANT ALL ON public.party_invites TO service_role;
 ALTER TABLE public.party_invites ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS party_invites_public_game_access ON public.party_invites;
+DROP POLICY IF EXISTS party_invites_public_game_access ON public.party_invites;
+
 CREATE POLICY party_invites_public_game_access ON public.party_invites FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -177,6 +197,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.group_legendary_state TO anon, au
 GRANT ALL ON public.group_legendary_state TO service_role;
 ALTER TABLE public.group_legendary_state ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS gls_public_game_access ON public.group_legendary_state;
+DROP POLICY IF EXISTS gls_public_game_access ON public.group_legendary_state;
+
 CREATE POLICY gls_public_game_access ON public.group_legendary_state FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -199,6 +221,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.market_listings TO anon, authenti
 GRANT ALL ON public.market_listings TO service_role;
 ALTER TABLE public.market_listings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS market_public_game_access ON public.market_listings;
+DROP POLICY IF EXISTS market_public_game_access ON public.market_listings;
+
 CREATE POLICY market_public_game_access ON public.market_listings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.challenges (
@@ -219,6 +243,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.challenges TO anon, authenticated
 GRANT ALL ON public.challenges TO service_role;
 ALTER TABLE public.challenges ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS challenges_public_game_access ON public.challenges;
+DROP POLICY IF EXISTS challenges_public_game_access ON public.challenges;
+
 CREATE POLICY challenges_public_game_access ON public.challenges FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -242,6 +268,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.admin_gifts TO anon, authenticate
 GRANT ALL ON public.admin_gifts TO service_role;
 ALTER TABLE public.admin_gifts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS admin_gifts_public_game_access ON public.admin_gifts;
+DROP POLICY IF EXISTS admin_gifts_public_game_access ON public.admin_gifts;
+
 CREATE POLICY admin_gifts_public_game_access ON public.admin_gifts FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -265,6 +293,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.guilds TO anon, authenticated;
 GRANT ALL ON public.guilds TO service_role;
 ALTER TABLE public.guilds ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS guilds_public_game_access ON public.guilds;
+DROP POLICY IF EXISTS guilds_public_game_access ON public.guilds;
+
 CREATE POLICY guilds_public_game_access ON public.guilds FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.guild_members (
@@ -282,6 +312,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.guild_members TO anon, authentica
 GRANT ALL ON public.guild_members TO service_role;
 ALTER TABLE public.guild_members ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS guild_members_public_game_access ON public.guild_members;
+DROP POLICY IF EXISTS guild_members_public_game_access ON public.guild_members;
+
 CREATE POLICY guild_members_public_game_access ON public.guild_members FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.guild_invites (
@@ -301,6 +333,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.guild_invites TO anon, authentica
 GRANT ALL ON public.guild_invites TO service_role;
 ALTER TABLE public.guild_invites ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS guild_invites_public_game_access ON public.guild_invites;
+DROP POLICY IF EXISTS guild_invites_public_game_access ON public.guild_invites;
+
 CREATE POLICY guild_invites_public_game_access ON public.guild_invites FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- =========================================================
@@ -318,6 +352,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.ranked_seasons TO anon, authentic
 GRANT ALL ON public.ranked_seasons TO service_role;
 ALTER TABLE public.ranked_seasons ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ranked_seasons_public_game_access ON public.ranked_seasons;
+DROP POLICY IF EXISTS ranked_seasons_public_game_access ON public.ranked_seasons;
+
 CREATE POLICY ranked_seasons_public_game_access ON public.ranked_seasons FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.ranked_leaderboard (
@@ -336,6 +372,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.ranked_leaderboard TO anon, authe
 GRANT ALL ON public.ranked_leaderboard TO service_role;
 ALTER TABLE public.ranked_leaderboard ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ranked_leaderboard_public_game_access ON public.ranked_leaderboard;
+DROP POLICY IF EXISTS ranked_leaderboard_public_game_access ON public.ranked_leaderboard;
+
 CREATE POLICY ranked_leaderboard_public_game_access ON public.ranked_leaderboard FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.ranked_history (
@@ -355,6 +393,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.ranked_history TO anon, authentic
 GRANT ALL ON public.ranked_history TO service_role;
 ALTER TABLE public.ranked_history ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ranked_history_public_game_access ON public.ranked_history;
+DROP POLICY IF EXISTS ranked_history_public_game_access ON public.ranked_history;
+
 CREATE POLICY ranked_history_public_game_access ON public.ranked_history FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 INSERT INTO public.ranked_seasons (started_at, ends_at, is_current)
@@ -441,7 +481,7 @@ END $$;
 -- =========================================================
 -- PARTIES
 -- =========================================================
-CREATE TABLE public.parties (
+CREATE TABLE IF NOT EXISTS public.parties (
   id          UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name        TEXT NOT NULL,
   leader_id   TEXT NOT NULL,
@@ -452,15 +492,22 @@ CREATE TABLE public.parties (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.parties TO anon, authenticated;
 GRANT ALL ON public.parties TO service_role;
 ALTER TABLE public.parties ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "parties_public_read" ON public.parties;
 CREATE POLICY "parties_public_read"   ON public.parties FOR SELECT USING (true);
+DROP POLICY IF EXISTS "parties_public_insert" ON public.parties;
+
 CREATE POLICY "parties_public_insert" ON public.parties FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "parties_public_update" ON public.parties;
+
 CREATE POLICY "parties_public_update" ON public.parties FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "parties_public_delete" ON public.parties;
+
 CREATE POLICY "parties_public_delete" ON public.parties FOR DELETE USING (true);
 
 -- =========================================================
 -- PARTY MEMBERS
 -- =========================================================
-CREATE TABLE public.party_members (
+CREATE TABLE IF NOT EXISTS public.party_members (
   party_id    UUID NOT NULL REFERENCES public.parties(id) ON DELETE CASCADE,
   player_id   TEXT NOT NULL,
   player_name TEXT NOT NULL,
@@ -470,19 +517,26 @@ CREATE TABLE public.party_members (
   last_seen   TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (party_id, player_id)
 );
-CREATE UNIQUE INDEX party_members_player_unique ON public.party_members(player_id);
+CREATE UNIQUE INDEX IF NOT EXISTS party_members_player_unique ON public.party_members(player_id);
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.party_members TO anon, authenticated;
 GRANT ALL ON public.party_members TO service_role;
 ALTER TABLE public.party_members ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "party_members_public_read" ON public.party_members;
 CREATE POLICY "party_members_public_read"   ON public.party_members FOR SELECT USING (true);
+DROP POLICY IF EXISTS "party_members_public_insert" ON public.party_members;
+
 CREATE POLICY "party_members_public_insert" ON public.party_members FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "party_members_public_update" ON public.party_members;
+
 CREATE POLICY "party_members_public_update" ON public.party_members FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "party_members_public_delete" ON public.party_members;
+
 CREATE POLICY "party_members_public_delete" ON public.party_members FOR DELETE USING (true);
 
 -- =========================================================
 -- PARTY INVITES
 -- =========================================================
-CREATE TABLE public.party_invites (
+CREATE TABLE IF NOT EXISTS public.party_invites (
   id          UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   party_id    UUID NOT NULL REFERENCES public.parties(id) ON DELETE CASCADE,
   party_name  TEXT NOT NULL,
@@ -493,19 +547,26 @@ CREATE TABLE public.party_invites (
   status      TEXT NOT NULL DEFAULT 'pending',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX party_invites_target_idx ON public.party_invites(target_id, status);
+CREATE INDEX IF NOT EXISTS party_invites_target_idx ON public.party_invites(target_id, status);
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.party_invites TO anon, authenticated;
 GRANT ALL ON public.party_invites TO service_role;
 ALTER TABLE public.party_invites ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "party_invites_public_read" ON public.party_invites;
 CREATE POLICY "party_invites_public_read"   ON public.party_invites FOR SELECT USING (true);
+DROP POLICY IF EXISTS "party_invites_public_insert" ON public.party_invites;
+
 CREATE POLICY "party_invites_public_insert" ON public.party_invites FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "party_invites_public_update" ON public.party_invites;
+
 CREATE POLICY "party_invites_public_update" ON public.party_invites FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "party_invites_public_delete" ON public.party_invites;
+
 CREATE POLICY "party_invites_public_delete" ON public.party_invites FOR DELETE USING (true);
 
 -- =========================================================
 -- GROUP LEGENDARY STATE (captura competitiva)
 -- =========================================================
-CREATE TABLE public.group_legendary_state (
+CREATE TABLE IF NOT EXISTS public.group_legendary_state (
   spawn_id      TEXT NOT NULL PRIMARY KEY,
   map_id        TEXT NOT NULL,
   species       TEXT NOT NULL,
@@ -517,9 +578,16 @@ CREATE TABLE public.group_legendary_state (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.group_legendary_state TO anon, authenticated;
 GRANT ALL ON public.group_legendary_state TO service_role;
 ALTER TABLE public.group_legendary_state ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "gls_public_read" ON public.group_legendary_state;
 CREATE POLICY "gls_public_read"   ON public.group_legendary_state FOR SELECT USING (true);
+DROP POLICY IF EXISTS "gls_public_insert" ON public.group_legendary_state;
+
 CREATE POLICY "gls_public_insert" ON public.group_legendary_state FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "gls_public_update" ON public.group_legendary_state;
+
 CREATE POLICY "gls_public_update" ON public.group_legendary_state FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "gls_public_delete" ON public.group_legendary_state;
+
 CREATE POLICY "gls_public_delete" ON public.group_legendary_state FOR DELETE USING (true);
 
 -- =========================================================
@@ -535,7 +603,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.group_legendary_state;
 -- =========================================================
 -- PLAYERS (presença em tempo real)
 -- =========================================================
-CREATE TABLE public.players (
+CREATE TABLE IF NOT EXISTS public.players (
   id              TEXT NOT NULL PRIMARY KEY,
   name            TEXT NOT NULL,
   map             TEXT NOT NULL,
@@ -549,19 +617,26 @@ CREATE TABLE public.players (
   craft_points    INTEGER NOT NULL DEFAULT 0,
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX players_updated_at_idx ON public.players(updated_at);
+CREATE INDEX IF NOT EXISTS players_updated_at_idx ON public.players(updated_at);
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.players TO anon, authenticated;
 GRANT ALL ON public.players TO service_role;
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "players_public_read" ON public.players;
 CREATE POLICY "players_public_read"   ON public.players FOR SELECT USING (true);
+DROP POLICY IF EXISTS "players_public_insert" ON public.players;
+
 CREATE POLICY "players_public_insert" ON public.players FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "players_public_update" ON public.players;
+
 CREATE POLICY "players_public_update" ON public.players FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "players_public_delete" ON public.players;
+
 CREATE POLICY "players_public_delete" ON public.players FOR DELETE USING (true);
 
 -- =========================================================
 -- MARKET LISTINGS
 -- =========================================================
-CREATE TABLE public.market_listings (
+CREATE TABLE IF NOT EXISTS public.market_listings (
   id           UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   seller_id    TEXT NOT NULL,
   seller_name  TEXT NOT NULL,
@@ -573,19 +648,26 @@ CREATE TABLE public.market_listings (
   currency     TEXT NOT NULL DEFAULT 'gold',
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX market_listings_created_idx ON public.market_listings(created_at DESC);
+CREATE INDEX IF NOT EXISTS market_listings_created_idx ON public.market_listings(created_at DESC);
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.market_listings TO anon, authenticated;
 GRANT ALL ON public.market_listings TO service_role;
 ALTER TABLE public.market_listings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "market_public_read" ON public.market_listings;
 CREATE POLICY "market_public_read"   ON public.market_listings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "market_public_insert" ON public.market_listings;
+
 CREATE POLICY "market_public_insert" ON public.market_listings FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "market_public_update" ON public.market_listings;
+
 CREATE POLICY "market_public_update" ON public.market_listings FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "market_public_delete" ON public.market_listings;
+
 CREATE POLICY "market_public_delete" ON public.market_listings FOR DELETE USING (true);
 
 -- =========================================================
 -- CHALLENGES (PvP)
 -- =========================================================
-CREATE TABLE public.challenges (
+CREATE TABLE IF NOT EXISTS public.challenges (
   id               UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   challenger_id    TEXT NOT NULL,
   challenger_name  TEXT NOT NULL,
@@ -598,19 +680,26 @@ CREATE TABLE public.challenges (
   winner_id        TEXT,
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX challenges_participants_idx ON public.challenges(challenger_id, opponent_id);
+CREATE INDEX IF NOT EXISTS challenges_participants_idx ON public.challenges(challenger_id, opponent_id);
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.challenges TO anon, authenticated;
 GRANT ALL ON public.challenges TO service_role;
 ALTER TABLE public.challenges ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "challenges_public_read" ON public.challenges;
 CREATE POLICY "challenges_public_read"   ON public.challenges FOR SELECT USING (true);
+DROP POLICY IF EXISTS "challenges_public_insert" ON public.challenges;
+
 CREATE POLICY "challenges_public_insert" ON public.challenges FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "challenges_public_update" ON public.challenges;
+
 CREATE POLICY "challenges_public_update" ON public.challenges FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "challenges_public_delete" ON public.challenges;
+
 CREATE POLICY "challenges_public_delete" ON public.challenges FOR DELETE USING (true);
 
 -- =========================================================
 -- GAME SAVES (backup opcional na nuvem)
 -- =========================================================
-CREATE TABLE public.game_saves (
+CREATE TABLE IF NOT EXISTS public.game_saves (
   user_id     TEXT NOT NULL PRIMARY KEY,
   data        JSONB NOT NULL,
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -618,9 +707,16 @@ CREATE TABLE public.game_saves (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.game_saves TO anon, authenticated;
 GRANT ALL ON public.game_saves TO service_role;
 ALTER TABLE public.game_saves ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "saves_public_read" ON public.game_saves;
 CREATE POLICY "saves_public_read"   ON public.game_saves FOR SELECT USING (true);
+DROP POLICY IF EXISTS "saves_public_insert" ON public.game_saves;
+
 CREATE POLICY "saves_public_insert" ON public.game_saves FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "saves_public_update" ON public.game_saves;
+
 CREATE POLICY "saves_public_update" ON public.game_saves FOR UPDATE USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "saves_public_delete" ON public.game_saves;
+
 CREATE POLICY "saves_public_delete" ON public.game_saves FOR DELETE USING (true);
 
 -- =========================================================
@@ -642,6 +738,7 @@ GRANT ALL ON public.active_sessions TO service_role;
 
 ALTER TABLE public.active_sessions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own active session" ON public.active_sessions;
 CREATE POLICY "Users can manage their own active session"
 ON public.active_sessions
 FOR ALL
@@ -667,6 +764,8 @@ GRANT ALL ON public.app_config TO service_role;
 
 -- Policy de leitura pública
 DROP POLICY IF EXISTS "Public read app_config" ON public.app_config;
+DROP POLICY IF EXISTS "Public read app_config" ON public.app_config;
+
 CREATE POLICY "Public read app_config" ON public.app_config
     FOR SELECT USING (true);
 
@@ -706,13 +805,22 @@ DROP POLICY IF EXISTS black_egg_saves_own_select ON public.black_egg_saves;
 DROP POLICY IF EXISTS black_egg_saves_own_insert ON public.black_egg_saves;
 DROP POLICY IF EXISTS black_egg_saves_own_update ON public.black_egg_saves;
 
+DROP POLICY IF EXISTS black_egg_saves_own_select ON public.black_egg_saves;
+
+
 CREATE POLICY black_egg_saves_own_select ON public.black_egg_saves
   FOR SELECT TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS black_egg_saves_own_insert ON public.black_egg_saves;
+
+
 CREATE POLICY black_egg_saves_own_insert ON public.black_egg_saves
   FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS black_egg_saves_own_update ON public.black_egg_saves;
+
 
 CREATE POLICY black_egg_saves_own_update ON public.black_egg_saves
   FOR UPDATE TO authenticated
@@ -753,7 +861,9 @@ grant all on public.cash_products to service_role;
 alter table public.cash_products enable row level security;
 
 drop policy if exists "cash_products_read_all" on public.cash_products;
-create policy "cash_products_read_all" on public.cash_products
+DROP POLICY IF EXISTS "cash_products_read_all" ON public.cash_products;
+
+CREATE POLICY "cash_products_read_all" ON public.cash_products
   for select to authenticated, anon using (active = true);
 
 -- 2) Carteira do jogador (moedas premium)
@@ -776,15 +886,21 @@ grant all on public.cash_wallets to service_role;
 alter table public.cash_wallets enable row level security;
 
 drop policy if exists "cash_wallets_read_own" on public.cash_wallets;
-create policy "cash_wallets_read_own" on public.cash_wallets
+DROP POLICY IF EXISTS "cash_wallets_read_own" ON public.cash_wallets;
+
+CREATE POLICY "cash_wallets_read_own" ON public.cash_wallets
   for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists "cash_wallets_upsert_own" on public.cash_wallets;
-create policy "cash_wallets_upsert_own" on public.cash_wallets
+DROP POLICY IF EXISTS "cash_wallets_upsert_own" ON public.cash_wallets;
+
+CREATE POLICY "cash_wallets_upsert_own" ON public.cash_wallets
   for insert to authenticated with check (user_id = auth.uid());
 
 drop policy if exists "cash_wallets_update_own" on public.cash_wallets;
-create policy "cash_wallets_update_own" on public.cash_wallets
+DROP POLICY IF EXISTS "cash_wallets_update_own" ON public.cash_wallets;
+
+CREATE POLICY "cash_wallets_update_own" ON public.cash_wallets
   for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- 3) Histórico de compras
@@ -805,11 +921,15 @@ grant all on public.cash_purchases to service_role;
 alter table public.cash_purchases enable row level security;
 
 drop policy if exists "cash_purchases_read_own" on public.cash_purchases;
-create policy "cash_purchases_read_own" on public.cash_purchases
+DROP POLICY IF EXISTS "cash_purchases_read_own" ON public.cash_purchases;
+
+CREATE POLICY "cash_purchases_read_own" ON public.cash_purchases
   for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists "cash_purchases_insert_own" on public.cash_purchases;
-create policy "cash_purchases_insert_own" on public.cash_purchases
+DROP POLICY IF EXISTS "cash_purchases_insert_own" ON public.cash_purchases;
+
+CREATE POLICY "cash_purchases_insert_own" ON public.cash_purchases
   for insert to authenticated with check (user_id = auth.uid());
 
 -- 4) Histórico de conversões
@@ -829,11 +949,15 @@ grant all on public.cash_conversions to service_role;
 alter table public.cash_conversions enable row level security;
 
 drop policy if exists "cash_conv_read_own" on public.cash_conversions;
-create policy "cash_conv_read_own" on public.cash_conversions
+DROP POLICY IF EXISTS "cash_conv_read_own" ON public.cash_conversions;
+
+CREATE POLICY "cash_conv_read_own" ON public.cash_conversions
   for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists "cash_conv_insert_own" on public.cash_conversions;
-create policy "cash_conv_insert_own" on public.cash_conversions
+DROP POLICY IF EXISTS "cash_conv_insert_own" ON public.cash_conversions;
+
+CREATE POLICY "cash_conv_insert_own" ON public.cash_conversions
   for insert to authenticated with check (user_id = auth.uid());
 
 -- =====================================================
@@ -873,25 +997,33 @@ alter table public.cashshop_tickets enable row level security;
 
 -- Usuário vê o próprio ticket
 drop policy if exists ct_select_own on public.cashshop_tickets;
-create policy ct_select_own on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_select_own ON public.cashshop_tickets;
+
+CREATE POLICY ct_select_own ON public.cashshop_tickets
   for select to authenticated using (user_id = auth.uid());
 
 -- Usuário insere só como 'user' e no próprio ticket
 drop policy if exists ct_insert_own on public.cashshop_tickets;
-create policy ct_insert_own on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_insert_own ON public.cashshop_tickets;
+
+CREATE POLICY ct_insert_own ON public.cashshop_tickets
   for insert to authenticated
   with check (user_id = auth.uid() and from_role = 'user');
 
 -- Admin lê todos
 drop policy if exists ct_select_admin on public.cashshop_tickets;
-create policy ct_select_admin on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_select_admin ON public.cashshop_tickets;
+
+CREATE POLICY ct_select_admin ON public.cashshop_tickets
   for select to authenticated
   using (exists (select 1 from public.user_roles ur
                  where ur.user_id = auth.uid() and ur.role = 'admin'));
 
 -- Admin responde como 'support' em qualquer ticket
 drop policy if exists ct_insert_admin on public.cashshop_tickets;
-create policy ct_insert_admin on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_insert_admin ON public.cashshop_tickets;
+
+CREATE POLICY ct_insert_admin ON public.cashshop_tickets
   for insert to authenticated
   with check (from_role = 'support'
               and exists (select 1 from public.user_roles ur
@@ -942,29 +1074,39 @@ alter table public.pending_purchases enable row level security;
 
 -- Jogador vê e cria só as próprias
 drop policy if exists pp_select_own on public.pending_purchases;
-create policy pp_select_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_select_own ON public.pending_purchases;
+
+CREATE POLICY pp_select_own ON public.pending_purchases
   for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists pp_insert_own on public.pending_purchases;
-create policy pp_insert_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_insert_own ON public.pending_purchases;
+
+CREATE POLICY pp_insert_own ON public.pending_purchases
   for insert to authenticated with check (user_id = auth.uid());
 
 -- Jogador pode cancelar a própria enquanto em análise
 drop policy if exists pp_update_own on public.pending_purchases;
-create policy pp_update_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_update_own ON public.pending_purchases;
+
+CREATE POLICY pp_update_own ON public.pending_purchases
   for update to authenticated
   using (user_id = auth.uid() and status = 'analise')
   with check (user_id = auth.uid());
 
 -- Admin: precisa ter role 'admin' em user_roles (já existente no projeto)
 drop policy if exists pp_select_admin on public.pending_purchases;
-create policy pp_select_admin on public.pending_purchases
+DROP POLICY IF EXISTS pp_select_admin ON public.pending_purchases;
+
+CREATE POLICY pp_select_admin ON public.pending_purchases
   for select to authenticated
   using (exists (select 1 from public.user_roles ur
                  where ur.user_id = auth.uid() and ur.role = 'admin'));
 
 drop policy if exists pp_update_admin on public.pending_purchases;
-create policy pp_update_admin on public.pending_purchases
+DROP POLICY IF EXISTS pp_update_admin ON public.pending_purchases;
+
+CREATE POLICY pp_update_admin ON public.pending_purchases
   for update to authenticated
   using (exists (select 1 from public.user_roles ur
                  where ur.user_id = auth.uid() and ur.role = 'admin'))
@@ -1029,6 +1171,7 @@ as $$
 $$;
 
 drop policy if exists user_roles_read_own_or_admin on public.user_roles;
+DROP POLICY IF EXISTS user_roles_read_own_or_admin ON public.user_roles;
 create policy user_roles_read_own_or_admin
   on public.user_roles
   for select
@@ -1053,47 +1196,65 @@ alter table public.pending_purchases enable row level security;
 
 -- 4) Policies dos tickets usando a função segura
 drop policy if exists ct_select_own on public.cashshop_tickets;
-create policy ct_select_own on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_select_own ON public.cashshop_tickets;
+
+CREATE POLICY ct_select_own ON public.cashshop_tickets
   for select to authenticated
   using (user_id = auth.uid());
 
 drop policy if exists ct_insert_own on public.cashshop_tickets;
-create policy ct_insert_own on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_insert_own ON public.cashshop_tickets;
+
+CREATE POLICY ct_insert_own ON public.cashshop_tickets
   for insert to authenticated
   with check (user_id = auth.uid() and from_role = 'user');
 
 drop policy if exists ct_select_admin on public.cashshop_tickets;
-create policy ct_select_admin on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_select_admin ON public.cashshop_tickets;
+
+CREATE POLICY ct_select_admin ON public.cashshop_tickets
   for select to authenticated
   using (public.has_role(auth.uid(), 'admin'));
 
 drop policy if exists ct_insert_admin on public.cashshop_tickets;
-create policy ct_insert_admin on public.cashshop_tickets
+DROP POLICY IF EXISTS ct_insert_admin ON public.cashshop_tickets;
+
+CREATE POLICY ct_insert_admin ON public.cashshop_tickets
   for insert to authenticated
   with check (from_role = 'support' and public.has_role(auth.uid(), 'admin'));
 
 -- 5) Policies de vendas em análise usando a função segura
 drop policy if exists pp_select_own on public.pending_purchases;
-create policy pp_select_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_select_own ON public.pending_purchases;
+
+CREATE POLICY pp_select_own ON public.pending_purchases
   for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists pp_insert_own on public.pending_purchases;
-create policy pp_insert_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_insert_own ON public.pending_purchases;
+
+CREATE POLICY pp_insert_own ON public.pending_purchases
   for insert to authenticated with check (user_id = auth.uid());
 
 drop policy if exists pp_update_own on public.pending_purchases;
-create policy pp_update_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_update_own ON public.pending_purchases;
+
+CREATE POLICY pp_update_own ON public.pending_purchases
   for update to authenticated
   using (user_id = auth.uid() and status = 'analise')
   with check (user_id = auth.uid());
 
 drop policy if exists pp_select_admin on public.pending_purchases;
-create policy pp_select_admin on public.pending_purchases
+DROP POLICY IF EXISTS pp_select_admin ON public.pending_purchases;
+
+CREATE POLICY pp_select_admin ON public.pending_purchases
   for select to authenticated
   using (public.has_role(auth.uid(), 'admin'));
 
 drop policy if exists pp_update_admin on public.pending_purchases;
-create policy pp_update_admin on public.pending_purchases
+DROP POLICY IF EXISTS pp_update_admin ON public.pending_purchases;
+
+CREATE POLICY pp_update_admin ON public.pending_purchases
   for update to authenticated
   using (public.has_role(auth.uid(), 'admin'))
   with check (public.has_role(auth.uid(), 'admin'));
@@ -1160,7 +1321,9 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 
 drop policy if exists user_roles_read_own_or_admin on public.user_roles;
-create policy user_roles_read_own_or_admin on public.user_roles
+DROP POLICY IF EXISTS user_roles_read_own_or_admin ON public.user_roles;
+
+CREATE POLICY user_roles_read_own_or_admin ON public.user_roles
   for select to authenticated
   using (user_id = auth.uid() or public.has_role(auth.uid(), 'admin'));
 
@@ -1201,25 +1364,35 @@ grant all on public.pending_purchases to service_role;
 alter table public.pending_purchases enable row level security;
 
 drop policy if exists pp_select_own on public.pending_purchases;
-create policy pp_select_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_select_own ON public.pending_purchases;
+
+CREATE POLICY pp_select_own ON public.pending_purchases
   for select to authenticated using (user_id = auth.uid());
 
 drop policy if exists pp_insert_own on public.pending_purchases;
-create policy pp_insert_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_insert_own ON public.pending_purchases;
+
+CREATE POLICY pp_insert_own ON public.pending_purchases
   for insert to authenticated with check (user_id = auth.uid());
 
 drop policy if exists pp_update_own on public.pending_purchases;
-create policy pp_update_own on public.pending_purchases
+DROP POLICY IF EXISTS pp_update_own ON public.pending_purchases;
+
+CREATE POLICY pp_update_own ON public.pending_purchases
   for update to authenticated
   using (user_id = auth.uid() and status = 'analise')
   with check (user_id = auth.uid());
 
 drop policy if exists pp_select_admin on public.pending_purchases;
-create policy pp_select_admin on public.pending_purchases
+DROP POLICY IF EXISTS pp_select_admin ON public.pending_purchases;
+
+CREATE POLICY pp_select_admin ON public.pending_purchases
   for select to authenticated using (public.has_role(auth.uid(), 'admin'));
 
 drop policy if exists pp_update_admin on public.pending_purchases;
-create policy pp_update_admin on public.pending_purchases
+DROP POLICY IF EXISTS pp_update_admin ON public.pending_purchases;
+
+CREATE POLICY pp_update_admin ON public.pending_purchases
   for update to authenticated
   using (public.has_role(auth.uid(), 'admin'))
   with check (public.has_role(auth.uid(), 'admin'));
@@ -1284,10 +1457,12 @@ GRANT ALL    ON public.market_listings TO service_role;
 ALTER TABLE public.market_listings ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "market_listings_select_all" ON public.market_listings;
+DROP POLICY IF EXISTS "market_listings_select_all" ON public.market_listings;
 CREATE POLICY "market_listings_select_all"
   ON public.market_listings FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "market_listings_insert_own" ON public.market_listings;
 DROP POLICY IF EXISTS "market_listings_insert_own" ON public.market_listings;
 CREATE POLICY "market_listings_insert_own"
   ON public.market_listings FOR INSERT
@@ -1295,12 +1470,14 @@ CREATE POLICY "market_listings_insert_own"
   WITH CHECK (auth.uid() = seller_id);
 
 DROP POLICY IF EXISTS "market_listings_update_participants" ON public.market_listings;
+DROP POLICY IF EXISTS "market_listings_update_participants" ON public.market_listings;
 CREATE POLICY "market_listings_update_participants"
   ON public.market_listings FOR UPDATE
   TO authenticated
   USING (auth.uid() = seller_id OR auth.uid() = buyer_id)
   WITH CHECK (auth.uid() = seller_id OR auth.uid() = buyer_id);
 
+DROP POLICY IF EXISTS "market_listings_delete_own" ON public.market_listings;
 DROP POLICY IF EXISTS "market_listings_delete_own" ON public.market_listings;
 CREATE POLICY "market_listings_delete_own"
   ON public.market_listings FOR DELETE
@@ -1331,11 +1508,13 @@ GRANT ALL ON public.market_listings TO service_role;
 
 -- Políticas (idempotentes)
 DROP POLICY IF EXISTS "Anyone authenticated can view listings" ON public.market_listings;
+DROP POLICY IF EXISTS "Anyone authenticated can view listings" ON public.market_listings;
 CREATE POLICY "Anyone authenticated can view listings"
   ON public.market_listings FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Seller can create own listing" ON public.market_listings;
 DROP POLICY IF EXISTS "Seller can create own listing" ON public.market_listings;
 CREATE POLICY "Seller can create own listing"
   ON public.market_listings FOR INSERT
@@ -1343,11 +1522,13 @@ CREATE POLICY "Seller can create own listing"
   WITH CHECK (auth.uid()::text = seller_id AND sold_at IS NULL AND buyer_id IS NULL);
 
 DROP POLICY IF EXISTS "Seller can cancel own unsold listing" ON public.market_listings;
+DROP POLICY IF EXISTS "Seller can cancel own unsold listing" ON public.market_listings;
 CREATE POLICY "Seller can cancel own unsold listing"
   ON public.market_listings FOR DELETE
   TO authenticated
   USING (auth.uid()::text = seller_id AND sold_at IS NULL);
 
+DROP POLICY IF EXISTS "Any authenticated user can buy an active listing" ON public.market_listings;
 DROP POLICY IF EXISTS "Any authenticated user can buy an active listing" ON public.market_listings;
 CREATE POLICY "Any authenticated user can buy an active listing"
   ON public.market_listings FOR UPDATE
@@ -1437,7 +1618,9 @@ drop policy if exists "pkm_market_update_seller" on public.pokemon_market;
 drop policy if exists "pkm_market_update_buyer"  on public.pokemon_market;
 
 -- SELECT: qualquer autenticado vê vitrine ativa; dono/comprador vê o próprio
-create policy "pkm_market_select" on public.pokemon_market
+DROP POLICY IF EXISTS "pkm_market_select" ON public.pokemon_market;
+
+CREATE POLICY "pkm_market_select" ON public.pokemon_market
   for select to authenticated
   using (
     (status = 'active' and activate_at <= now())
@@ -1447,7 +1630,9 @@ create policy "pkm_market_select" on public.pokemon_market
   );
 
 -- INSERT: só cria em nome próprio, sempre em estado pending
-create policy "pkm_market_insert_own" on public.pokemon_market
+DROP POLICY IF EXISTS "pkm_market_insert_own" ON public.pokemon_market;
+
+CREATE POLICY "pkm_market_insert_own" ON public.pokemon_market
   for insert to authenticated
   with check (
     seller_id = auth.uid()
@@ -1456,13 +1641,17 @@ create policy "pkm_market_insert_own" on public.pokemon_market
   );
 
 -- UPDATE do vendedor: promover pending→active, cancelar, marcar payout
-create policy "pkm_market_update_seller" on public.pokemon_market
+DROP POLICY IF EXISTS "pkm_market_update_seller" ON public.pokemon_market;
+
+CREATE POLICY "pkm_market_update_seller" ON public.pokemon_market
   for update to authenticated
   using (seller_id = auth.uid())
   with check (seller_id = auth.uid());
 
 -- UPDATE do comprador: comprar (status active→sold)
-create policy "pkm_market_update_buyer" on public.pokemon_market
+DROP POLICY IF EXISTS "pkm_market_update_buyer" ON public.pokemon_market;
+
+CREATE POLICY "pkm_market_update_buyer" ON public.pokemon_market
   for update to authenticated
   using (
     status = 'active'
@@ -1514,12 +1703,16 @@ drop policy if exists "pkm_offers_update_seller" on public.pokemon_market_offers
 drop policy if exists "pkm_offers_update_buyer"  on public.pokemon_market_offers;
 
 -- SELECT: comprador vê as próprias; vendedor vê as do próprio anúncio
-create policy "pkm_offers_select" on public.pokemon_market_offers
+DROP POLICY IF EXISTS "pkm_offers_select" ON public.pokemon_market_offers;
+
+CREATE POLICY "pkm_offers_select" ON public.pokemon_market_offers
   for select to authenticated
   using (buyer_id = auth.uid() or seller_id = auth.uid());
 
 -- INSERT: comprador cria em nome próprio, sempre pending, nunca no próprio anúncio
-create policy "pkm_offers_insert_buyer" on public.pokemon_market_offers
+DROP POLICY IF EXISTS "pkm_offers_insert_buyer" ON public.pokemon_market_offers;
+
+CREATE POLICY "pkm_offers_insert_buyer" ON public.pokemon_market_offers
   for insert to authenticated
   with check (
     buyer_id = auth.uid()
@@ -1528,13 +1721,17 @@ create policy "pkm_offers_insert_buyer" on public.pokemon_market_offers
   );
 
 -- UPDATE do vendedor: aceitar/rejeitar
-create policy "pkm_offers_update_seller" on public.pokemon_market_offers
+DROP POLICY IF EXISTS "pkm_offers_update_seller" ON public.pokemon_market_offers;
+
+CREATE POLICY "pkm_offers_update_seller" ON public.pokemon_market_offers
   for update to authenticated
   using (seller_id = auth.uid())
   with check (seller_id = auth.uid());
 
 -- UPDATE do comprador: cancelar a própria oferta pending
-create policy "pkm_offers_update_buyer" on public.pokemon_market_offers
+DROP POLICY IF EXISTS "pkm_offers_update_buyer" ON public.pokemon_market_offers;
+
+CREATE POLICY "pkm_offers_update_buyer" ON public.pokemon_market_offers
   for update to authenticated
   using (buyer_id = auth.uid() and status = 'pending')
   with check (buyer_id = auth.uid() and status = 'cancelled');
@@ -1589,6 +1786,7 @@ drop policy if exists "market_listings_update_seller"       on public.market_lis
 drop policy if exists "market_listings_update_buy"          on public.market_listings;
 
 -- Vendedor pode atualizar seu próprio anúncio (ex.: editar preço/cancelar via update)
+DROP POLICY IF EXISTS "market_listings_update_seller" ON public.market_listings;
 create policy "market_listings_update_seller"
   on public.market_listings for update
   to authenticated
@@ -1596,6 +1794,7 @@ create policy "market_listings_update_seller"
   with check (auth.uid() = seller_id);
 
 -- Comprador pode reivindicar um anúncio aberto, gravando buyer_id = auth.uid()
+DROP POLICY IF EXISTS "market_listings_update_buy" ON public.market_listings;
 create policy "market_listings_update_buy"
   on public.market_listings for update
   to authenticated
@@ -1624,7 +1823,9 @@ drop policy if exists "pkm_market_update_buyer"       on public.pokemon_market;
 drop policy if exists "pkm_market_update_buyer_claim" on public.pokemon_market;
 
 -- Compra atômica: só quando ainda está ativo e sem comprador.
-create policy "pkm_market_update_buyer" on public.pokemon_market
+DROP POLICY IF EXISTS "pkm_market_update_buyer" ON public.pokemon_market;
+
+CREATE POLICY "pkm_market_update_buyer" ON public.pokemon_market
   for update to authenticated
   using (
     status = 'active'
@@ -1639,7 +1840,9 @@ create policy "pkm_market_update_buyer" on public.pokemon_market
 
 -- Reclamar entrega: o próprio comprador marca buyer_claimed=true
 -- depois que a venda foi concluída (status='sold', buyer_id = eu).
-create policy "pkm_market_update_buyer_claim" on public.pokemon_market
+DROP POLICY IF EXISTS "pkm_market_update_buyer_claim" ON public.pokemon_market;
+
+CREATE POLICY "pkm_market_update_buyer_claim" ON public.pokemon_market
   for update to authenticated
   using (
     status = 'sold'
@@ -1673,6 +1876,7 @@ grant all on public.oddish_event_leaderboard to service_role;
 alter table public.oddish_event_leaderboard enable row level security;
 
 drop policy if exists "Anyone can read oddish leaderboard" on public.oddish_event_leaderboard;
+DROP POLICY IF EXISTS "Anyone can read oddish leaderboard" ON public.oddish_event_leaderboard;
 create policy "Anyone can read oddish leaderboard"
 on public.oddish_event_leaderboard
 for select
@@ -1680,6 +1884,7 @@ to anon, authenticated
 using (true);
 
 drop policy if exists "Users can insert own oddish score" on public.oddish_event_leaderboard;
+DROP POLICY IF EXISTS "Users can insert own oddish score" ON public.oddish_event_leaderboard;
 create policy "Users can insert own oddish score"
 on public.oddish_event_leaderboard
 for insert
@@ -1687,6 +1892,7 @@ to authenticated
 with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update own oddish score" on public.oddish_event_leaderboard;
+DROP POLICY IF EXISTS "Users can update own oddish score" ON public.oddish_event_leaderboard;
 create policy "Users can update own oddish score"
 on public.oddish_event_leaderboard
 for update
@@ -1794,6 +2000,7 @@ grant all on public.ranked_seasons to service_role;
 alter table public.ranked_seasons enable row level security;
 
 drop policy if exists "Anyone can read ranked seasons" on public.ranked_seasons;
+DROP POLICY IF EXISTS "Anyone can read ranked seasons" ON public.ranked_seasons;
 create policy "Anyone can read ranked seasons"
 on public.ranked_seasons
 for select
@@ -1823,6 +2030,7 @@ grant all on public.ranked_leaderboard to service_role;
 alter table public.ranked_leaderboard enable row level security;
 
 drop policy if exists "Anyone can read ranked leaderboard" on public.ranked_leaderboard;
+DROP POLICY IF EXISTS "Anyone can read ranked leaderboard" ON public.ranked_leaderboard;
 create policy "Anyone can read ranked leaderboard"
 on public.ranked_leaderboard
 for select
@@ -1830,6 +2038,7 @@ to anon, authenticated
 using (true);
 
 drop policy if exists "Users can upsert own ranked leaderboard" on public.ranked_leaderboard;
+DROP POLICY IF EXISTS "Users can upsert own ranked leaderboard" ON public.ranked_leaderboard;
 create policy "Users can upsert own ranked leaderboard"
 on public.ranked_leaderboard
 for insert
@@ -1837,6 +2046,7 @@ to authenticated
 with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update own ranked leaderboard" on public.ranked_leaderboard;
+DROP POLICY IF EXISTS "Users can update own ranked leaderboard" ON public.ranked_leaderboard;
 create policy "Users can update own ranked leaderboard"
 on public.ranked_leaderboard
 for update
@@ -1860,6 +2070,7 @@ grant all on public.ranked_scores to service_role;
 alter table public.ranked_scores enable row level security;
 
 drop policy if exists "Anyone can read ranked scores" on public.ranked_scores;
+DROP POLICY IF EXISTS "Anyone can read ranked scores" ON public.ranked_scores;
 create policy "Anyone can read ranked scores"
 on public.ranked_scores
 for select
@@ -1867,6 +2078,7 @@ to anon, authenticated
 using (true);
 
 drop policy if exists "Users can insert own ranked score" on public.ranked_scores;
+DROP POLICY IF EXISTS "Users can insert own ranked score" ON public.ranked_scores;
 create policy "Users can insert own ranked score"
 on public.ranked_scores
 for insert
@@ -1874,6 +2086,7 @@ to authenticated
 with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update own ranked score" on public.ranked_scores;
+DROP POLICY IF EXISTS "Users can update own ranked score" ON public.ranked_scores;
 create policy "Users can update own ranked score"
 on public.ranked_scores
 for update
@@ -2111,13 +2324,22 @@ drop policy if exists saves_public_insert on public.game_saves;
 drop policy if exists saves_public_update on public.game_saves;
 drop policy if exists saves_public_delete on public.game_saves;
 
-create policy game_saves_owner_select on public.game_saves
+DROP POLICY IF EXISTS game_saves_owner_select ON public.game_saves;
+
+
+CREATE POLICY game_saves_owner_select ON public.game_saves
   for select to authenticated using (user_id = auth.uid());
 
-create policy game_saves_owner_insert on public.game_saves
+DROP POLICY IF EXISTS game_saves_owner_insert ON public.game_saves;
+
+
+CREATE POLICY game_saves_owner_insert ON public.game_saves
   for insert to authenticated with check (user_id = auth.uid());
 
-create policy game_saves_owner_update on public.game_saves
+DROP POLICY IF EXISTS game_saves_owner_update ON public.game_saves;
+
+
+CREATE POLICY game_saves_owner_update ON public.game_saves
   for update to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
@@ -2329,13 +2551,19 @@ drop policy if exists profiles_owner_select on public.profiles;
 drop policy if exists profiles_owner_insert on public.profiles;
 drop policy if exists profiles_owner_update on public.profiles;
 
-create policy profiles_owner_select on public.profiles
+DROP POLICY IF EXISTS profiles_owner_select ON public.profiles;
+
+CREATE POLICY profiles_owner_select ON public.profiles
   for select to authenticated using (id = auth.uid());
 
-create policy profiles_owner_insert on public.profiles
+DROP POLICY IF EXISTS profiles_owner_insert ON public.profiles;
+
+CREATE POLICY profiles_owner_insert ON public.profiles
   for insert to authenticated with check (id = auth.uid());
 
-create policy profiles_owner_update on public.profiles
+DROP POLICY IF EXISTS profiles_owner_update ON public.profiles;
+
+CREATE POLICY profiles_owner_update ON public.profiles
   for update to authenticated
   using (id = auth.uid()) with check (id = auth.uid());
 
@@ -2372,7 +2600,8 @@ drop policy if exists game_saves_owner_select on public.game_saves;
 drop policy if exists profiles_public_game_access on public.profiles;
 
 -- Leitura: só o dono. Escrita direta: NENHUMA (só via RPC checkpoint_save).
-create policy game_saves_owner_select on public.game_saves
+DROP POLICY IF EXISTS game_saves_owner_select ON public.game_saves;
+CREATE POLICY game_saves_owner_select ON public.game_saves
   for select to authenticated using (user_id = auth.uid());
 
 revoke all on public.game_saves from anon;
@@ -2572,7 +2801,8 @@ create index if not exists audit_log_user_idx on public.audit_log (user_id, crea
 
 alter table public.audit_log enable row level security;
 drop policy if exists audit_log_owner_select on public.audit_log;
-create policy audit_log_owner_select on public.audit_log
+DROP POLICY IF EXISTS audit_log_owner_select ON public.audit_log;
+CREATE POLICY audit_log_owner_select ON public.audit_log
   for select to authenticated using (user_id = auth.uid());
 revoke all on public.audit_log from anon;
 revoke insert, update, delete on public.audit_log from authenticated;
