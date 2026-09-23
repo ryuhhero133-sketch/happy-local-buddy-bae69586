@@ -7,6 +7,9 @@ import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functi
 
 
 const loginBgAsset = { url: "/login-bg.png" };
+// Arte nova IDLEMON REVO — salve a imagem como public/login-splash.jpg.
+// Se o arquivo ainda não existir, o CSS cai para /login-bg.png sozinho.
+const loginSplashUrl = "/login-splash.jpg";
 
 export const IDENTITY_KEY = "rubym.identity.v1";
 export const GUEST_KEY = "rubym.guest.v1";
@@ -607,26 +610,26 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 font-mono relative overflow-hidden"
-      style={{ background: "#05010a" }}
+      style={{ background: "#04121f" }}
     >
-      {/* Background art */}
+      {/* Background art — splash nova com fallback para a antiga */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${loginBgAsset.url})`,
+          backgroundImage: `url(${loginSplashUrl}), url(${loginBgAsset.url})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.55) saturate(1.05)",
+          filter: "brightness(0.9) saturate(1.1)",
         }}
       />
-      {/* Vignette */}
+      {/* Vignette azul */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(5,1,10,0.35) 0%, rgba(5,1,10,0.75) 65%, rgba(0,0,0,0.95) 100%)",
+            "radial-gradient(ellipse at center, rgba(4,18,31,0.15) 0%, rgba(4,18,31,0.55) 65%, rgba(0,4,10,0.92) 100%)",
         }}
       />
       {/* Subtle scanlines */}
@@ -646,7 +649,7 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
           aria-hidden
           className="absolute -inset-3 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at center, rgba(239,68,68,0.30), transparent 70%)",
+            background: "radial-gradient(ellipse at center, rgba(255,201,60,0.28), transparent 70%)",
             filter: "blur(18px)",
           }}
         />
@@ -654,9 +657,9 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
           className="relative"
           style={{
             padding: 2,
-            background: "linear-gradient(180deg, #fca5a5 0%, #b91c1c 45%, #450a0a 100%)",
+            background: "linear-gradient(180deg, #ffe27a 0%, #b8862a 45%, #4a2f0c 100%)",
             borderRadius: 10,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 22px rgba(239,68,68,0.35)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.85), 0 0 22px rgba(255,201,60,0.35)",
           }}
         >
           <div
@@ -664,7 +667,7 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
             style={{
               padding: "26px 22px 22px",
               background:
-                "linear-gradient(180deg, rgba(15,3,8,0.94), rgba(35,6,14,0.94))",
+                "linear-gradient(180deg, rgba(6,22,38,0.94), rgba(10,38,64,0.94))",
               borderRadius: 8,
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
@@ -674,35 +677,47 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
               <div
                 className="text-lg font-bold"
                 style={{
-                  color: "#fef2f2",
+                  color: "#ffc93c",
                   textShadow:
-                    "2px 2px 0 #7f1d1d, 3px 3px 0 #000, 0 0 14px rgba(239,68,68,0.7)",
+                    "2px 2px 0 #144a7a, 3px 3px 0 #000, 0 0 14px rgba(255,201,60,0.7)",
                   fontFamily: '"Press Start 2P", ui-monospace, monospace',
                   letterSpacing: "4px",
                 }}
               >
-                IDLE MON
+                IDLEMON
+              </div>
+              <div
+                className="text-lg font-bold"
+                style={{
+                  color: "#7ec8f0",
+                  textShadow:
+                    "2px 2px 0 #0b3556, 3px 3px 0 #000, 0 0 14px rgba(126,200,240,0.7)",
+                  fontFamily: '"Press Start 2P", ui-monospace, monospace',
+                  letterSpacing: "4px",
+                }}
+              >
+                REVO
               </div>
             </div>
             <div
               className="text-center mb-4"
               style={{
-                color: "#fca5a5",
+                color: "#ffe27a",
                 fontSize: 9,
-                letterSpacing: "3px",
+                letterSpacing: "2px",
                 textShadow: "1px 1px 0 #000",
               }}
             >
-              AVENTURA · IDLE · MONSTRINHOS
+              A JORNADA REVO • MERCADO IDLE DE 2026
             </div>
 
             {title && (
               <div
                 className="text-center text-[10px] tracking-[4px] mb-3 pb-2"
                 style={{
-                  color: "#fca5a5",
+                  color: "#9adcff",
                   textShadow: "1px 1px 0 #000",
-                  borderBottom: "1px dashed rgba(239,68,68,0.35)",
+                  borderBottom: "1px dashed rgba(126,200,240,0.35)",
                 }}
               >
                 ◆ {title} ◆
@@ -732,10 +747,11 @@ function PrimaryButton({
       disabled={disabled}
       className="w-full py-2 rounded font-bold tracking-wider transition active:scale-95 disabled:opacity-50"
       style={{
-        background: "linear-gradient(180deg, #dc2626, #7f1d1d)",
-        color: "#fff5f5",
-        border: "2px solid #450a0a",
+        background: "linear-gradient(180deg, #2f9df0, #14568f)",
+        color: "#ffffff",
+        border: "2px solid #0b3556",
         textShadow: "1px 1px 0 rgba(0,0,0,0.5)",
+        boxShadow: "0 0 12px rgba(47,157,240,0.45)",
       }}
     >
       {children}
@@ -989,7 +1005,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
 
-        <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#fecaca" }}>
+        <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#9adcff" }}>
           {mode !== "login" ? (
             <button type="button" onClick={() => switchMode("login")} className="underline">
               JÁ TENHO CONTA
