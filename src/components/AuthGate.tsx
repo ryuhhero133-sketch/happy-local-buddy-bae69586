@@ -66,6 +66,14 @@ async function ensureProfile(userId: string): Promise<string | null> {
   log("ensureProfile: select", userId);
   const sel = await sb.from("profiles").select("id, username").eq("id", userId).maybeSingle();
   if (sel.error) {
+    // Banco sem a tabela (setup ainda não rodado): não trava o login.
+    // O jogo segue local; perfil/sync ativam sozinhos quando a tabela existir.
+    const code = (sel.error as { code?: unknown }).code;
+    const msg = String((sel.error as { message?: unknown }).message ?? sel.error);
+    if (code === "42P01" || code === "PGRST205" || /relation .* does not exist|not find|404/i.test(msg)) {
+      warn("ensureProfile: tabela profiles ausente — seguindo em modo local");
+      return null;
+    }
     warn("ensureProfile select error", sel.error);
     throw sel.error;
   }
