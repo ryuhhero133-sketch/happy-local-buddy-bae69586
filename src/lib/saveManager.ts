@@ -289,6 +289,55 @@ function isBackendMissingError(e: unknown): boolean {
   return /PGRST202|not found|Could not find the function|404/i.test(msg);
 }
 
+/**
+ * Normaliza a resposta do RPC checkpoint_save (a fundação do banco pode
+ * usar outros nomes de campos). Desconhecido = rejeitado com segurança
+ * (nunca assume sucesso).
+ */
+function normalizeCheckpointResponse(data: unknown): {
+  ok: boolean;
+  server_version?: number;
+  reason?: string;
+} {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return { ok: false, reason: "bad_response" };
+  }
+  const r = data as Record<string, unknown>;
+  const pickBool = (...keys: string[]): boolean | undefined => {
+    for (const k of keys) if (typeof r[k] === "boolean") return r[k] as boolean;
+    return undefined;
+  };
+  const pickNum = (...keys: string[]): number | undefined => {
+    for (const k of keys) {
+      const v = r[k];
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+    }
+    return undefined;
+  };
+  const pickStr = (...keys: string[]): string | undefined => {
+    for (const k of keys) if (typeof r[k] === "string") return r[k] as string;
+    return undefined;
+  };
+  const ok = pickBool("ok", "success", "applied");
+  return {
+    ok: ok === true,
+    server_version: pickNum("server_version", "version", "new_version"),
+    reason: pickStr("reason", "error", "message"),
+  };
+}
+
+function isDuplicateReason(reason?: string): boolean {
+  return !!reason && /duplicate|already_applied|idempotent/i.test(reason);
+}
+
+function isStaleReason(reason?: string): boolean {
+  return !!reason && /stale|conflict|version_mismatch|outdated/i.test(reason);
+}
+
+function isRateReason(reason?: string): boolean {
+  return !!reason && /rate_limited|rate|too_fast|suspicious/i.test(reason);
+}
+
 function isNetworkError(e: unknown): boolean {
   if (typeof navigator !== "undefined" && navigator.onLine === false) return true;
   const msg = e instanceof Error ? e.message : String(e);
@@ -469,7 +518,7 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
         p_action_id: actionId,
       });
       if (error) throw error;
-      res = (data ?? {}) as { ok: boolean; server_version?: number; reason?: string };
+      res = normalizeCheckpointResponse(data);
     } catch (e) {
       if (isBackendMissingError(e)) {
         setStatus("backend-missing", "checkpoint_save ausente — rode a migration no Supabase");
@@ -491,7 +540,7 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
       lastError = null;
       return true;
     }
-    if (res.reason === "duplicate") {
+    if (res.reason === "duplicate" || (!res.ok && isDuplicateReason(res.reason))) {
       // Replay seguro: já aplicado antes. Adota versão do servidor.
       if (typeof res.server_version === "number") storeVersion(uid, res.server_version);
       try {
@@ -503,7 +552,7 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
       setStatus("ok");
       return true;
     }
-    if (res.reason === "stale" || res.reason === "rate_limited" || res.reason === "rejected") {
+    if (res.reason === "stale" || res.reason === "rate_limited" || res.reason === "rejected" || (!res.ok && (isStaleReason(res.reason) || isRateReason(res.reason)))) {
       // Estado local defasado ou rejeitado: busca o oficial e valida antes de adotar.
       await adoptServerIfNewer(uid);
       setStatus("conflict", `checkpoint rejeitado (${res.reason}) — estado oficial preservado`);

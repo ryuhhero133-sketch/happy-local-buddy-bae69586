@@ -344,6 +344,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
         const username = await ensureProfile(uid);
         if (cancelled) return;
 
+        // Inicializa linhas do jogador no banco novo (best-effort; ignora se RPC ausente).
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        void (supabase as any).rpc("bootstrap_player").then(
+          () => log("bootstrap_player ok"),
+          (e: unknown) => warn("bootstrap_player ignorado", e),
+        );
+
         if (username && username.trim().length > 0) {
           await preloadCloudSave(uid);
           if (cancelled) return;
