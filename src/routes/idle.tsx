@@ -38,11 +38,29 @@ import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
 import navMochila from "@/assets/icons/nav-mochila.png";
-import navMelhorias from "@/assets/icons/nav-melhorias.png";
+import navMelhorias from "@/CHAR/Melhorias.png";
 import navColecao from "@/assets/icons/nav-colecao.png";
 import navLoja from "@/assets/icons/nav-loja.png";
 import navWallet from "@/assets/icons/nav-wallet.png";
 import navMarket from "@/assets/icons/nav-market.png";
+// Ícones da HUD (pasta CHAR) + fotos de perfil do treinador + skinbox
+import hudAmigosPng from "@/CHAR/Amigos.png";
+import hudColecaoPng from "@/CHAR/Coleção.png";
+import hudConfigPng from "@/CHAR/Config.png";
+import hudMelhoriasPng from "@/CHAR/Melhorias.png";
+import hudMissoesPng from "@/CHAR/Missoes.png";
+import skinBoxPng from "@/CHAR/skinbox.png";
+import bottanPng from "@/CHAR/bottan.png";
+import gatoancyPng from "@/CHAR/gatoancy.png";
+import aspectroPng from "@/CHAR/aspectro.png";
+import aspecLoadImg from "@/load/aspec.png";
+import mapaBanidoUrl from "@/assets/mapabanido/mapa banido.png";
+import mapaBanidoMaskUrl from "@/assets/mapabanido/mapa banido colisao.png";
+import perfilChar01Png from "@/CHAR/perfil. char 01.png";
+import perfilChar02Png from "@/CHAR/perfil. char 02.png";
+import perfilCharAshPng from "@/CHAR/perfil. char Ash.png";
+import perfilCharF1Png from "@/CHAR/perfil. char f1.png";
+import perfilCharF2Png from "@/CHAR/perfil. char f2.png";
 import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
 import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
@@ -76,6 +94,30 @@ import reviveIconImg from "@/assets/items/icon-revive.png";
 import berryIconImg from "@/assets/items/icon-berry.png";
 import keyIconImg from "@/assets/items/icon-key.png";
 import fxSlashImg from "@/assets/items/fx-slash.png";
+import skillAguaImg from "@/skill/agua.png";
+import skillFadaImg from "@/skill/fada.png";
+import skillFogoImg from "@/skill/fogo.png";
+import skillGeloImg from "@/skill/gelo.png";
+import skillPedraImg from "@/skill/pedra.png";
+import skillPlantaImg from "@/skill/planta.png";
+import skillVenenoImg from "@/skill/veneno.png";
+import skillDarkFieldImg from "@/skill/skill-area/DARK FIELD.png";
+import skillEarthquakeImg from "@/skill/skill-area/EARTHQUAKE.png";
+import skillElectricFieldImg from "@/skill/skill-area/ELECTRIC FIELD.png";
+import skillElectricImg from "@/skill/skill-area/electric.png";
+import skillFightingImg from "@/skill/skill-area/fighting.png";
+import skillFireBurstImg from "@/skill/skill-area/FIRE BURST.png";
+import skillFlyingImg from "@/skill/skill-area/Flying.png";
+import skillFundoImg from "@/skill/skill-area/FUNDO SKILL AREA.png";
+import skillGhostMistImg from "@/skill/skill-area/GHOST MIST.png";
+import skillNormalImg from "@/skill/skill-area/normal.png";
+import skillPoisonCloudImg from "@/skill/skill-area/POISON CLOUD.png";
+import skillPsychicFieldImg from "@/skill/skill-area/PSYCHIC FIELD.png";
+import skillPsychicImg from "@/skill/skill-area/Psychic.png";
+import skillRootFieldImg from "@/skill/skill-area/ROOT FIELD.png";
+import skillSoniferoImg from "@/skill/skill-area/Sonifero.png";
+import skillSporeImg from "@/skill/skill-area/SPORE  ESPOROS.png";
+import skillStunSporeImg from "@/skill/skill-area/STUN SPORE  ESPOROS DE PARALISIA.png";
 import fxGrassImg from "@/assets/fx/fx-grass.png";
 import fxFireImg from "@/assets/fx/fx-fire.png";
 import fxWaterImg from "@/assets/fx/fx-water.png";
@@ -117,17 +159,33 @@ import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
 import {
   detectTimezone, trustedNow, processMealCycles,
-  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_ENERGY_MARKT_COST,
+  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS,
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
   processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
   type CaredPet,
 } from "@/game/resources";
 import { TYPE_COLOR } from "@/game/movesets";
-import { computeTeamSynergies, computePower } from "@/game/synergies";
+import { computeTeamSynergies, computePower, statusResistFor } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
+import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
+import { GuildPanel } from "@/components/GuildPanel";
+import { QuestBookPanel } from "@/components/QuestBookPanel";
+import type { Guild, GuildElement } from "@/game/guild";
+import {
+  loadGuildMissionProgress, loadGuildMissionsClaimed, saveGuildMissionsClaimed,
+  updateGuildMissionProgress, loadFriends, saveFriends, loadParty, saveParty,
+  type FriendEntry, type GuildMission,
+} from "@/game/guildMissions";
+import {
+  fetchMyGuild, createGuildRemote, sendInviteByUsername, fetchPendingInvites,
+  acceptInvite, declineInvite, leaveGuildRemote, kickMemberRemote, subscribeMyInvites,
+  type GuildInvite,
+} from "@/lib/guildApi";
+import type { PartyRow, PartyMemberRow, PartyInviteRow } from "@/game/party";
+import { PARTY_MAX } from "@/game/party";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
 import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
@@ -156,13 +214,15 @@ import charAshPng from "@/assets/char-inicial/Char Ash.png";
 import charF1Png from "@/assets/char-inicial/Char f1.png";
 import charF2Png from "@/assets/char-inicial/Char f2.png";
 
-const SKINS: { id: string; label: string; url: string; gender: "male" | "female"; locked?: boolean }[] = [
-  { id: "char01", label: "Char 01", url: char01Png, gender: "male" },
-  { id: "char02", label: "Char 02", url: char02Png, gender: "male" },
-  { id: "charf1", label: "Char F1", url: charF1Png, gender: "female" },
-  { id: "charf2", label: "Char F2", url: charF2Png, gender: "female" },
-  { id: "charash", label: "Char Ash", url: charAshPng, gender: "male", locked: true },
+const SKINS: { id: string; label: string; url: string; photo: string; gender: "male" | "female"; locked?: boolean }[] = [
+  { id: "char01", label: "Char 01", url: char01Png, photo: perfilChar01Png, gender: "male" },
+  { id: "char02", label: "Char 02", url: char02Png, photo: perfilChar02Png, gender: "male" },
+  { id: "charf1", label: "Char F1", url: charF1Png, photo: perfilCharF1Png, gender: "female" },
+  { id: "charf2", label: "Char F2", url: charF2Png, photo: perfilCharF2Png, gender: "female" },
+  { id: "charash", label: "Char Ash", url: charAshPng, photo: perfilCharAshPng, gender: "male", locked: true },
 ];
+const skinPhotoOf = (id: string | null | undefined): string | null =>
+  SKINS.find((s) => s.id === id)?.photo ?? null;
 const SKIN_KEY = "rubym.skin.v1";
 const EQUIPMENT_KEY = "rubym.trainer.equipment.v1";
 const OWNED_EQUIPMENT_KEY = "rubym.trainer.owned_equipment.v1";
@@ -291,6 +351,12 @@ import revoRoutUrl from "@/assets/revo rout.png";
 import cidadePrincipalUrl from "@/assets/cidade-principal.png";
 import portalImg from "@/assets/Portal.png";
 import pokemarktUrl from "@/assets/POKEMARKT.png";
+import landRevoUrl from "@/lands/land revo.png";
+import landGeloUrl from "@/lands/land de gelo.png";
+import casa1Url from "@/lands/casa1.png";
+import casa2Url from "@/lands/casa2.png";
+import rotaPinsirUrl from "@/lands/Rota Pinsir.png";
+import desertoAlakaUrl from "@/lands/Deserto de alaka.png";
 import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
 import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
 import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
@@ -431,6 +497,23 @@ import exeggutorAlolaSheetPng from "@/assets/Exeggutor de Alola.png";
 import exeggutorAlolaShinySheetPng from "@/assets/Exeggutor Alola Shiny.png";
 // Snolax — especial da Rota Flower e Valley Plume (sprite 4x4, só via contador de 700 kills)
 import snolaxSheetPng from "@/assets/Snolax.png";
+// Verdejante 1 � Bulbasaur/Ivysaur/Venusaur + shinys + starters em PNG (sprites 4x4 da pasta plus)
+import bulbasaurPlusSheetPng from "@/assets/plus/Bulbasaur.png";
+import bulbasaurPlusShinySheetPng from "@/assets/plus/Bulbasaur Shiny.png";
+import charmanderPlusSheetPng from "@/assets/plus/Charmander.png";
+import charmanderPlusShinySheetPng from "@/assets/plus/Charmander Shiny.png";
+import squirtlePlusSheetPng from "@/assets/plus/Squirtle.png";
+import squirtlePlusShinySheetPng from "@/assets/plus/Squirtle Shiny.png";
+import ivysaurPlusSheetPng from "@/assets/plus/Ivysaur.png";
+import ivysaurPlusShinySheetPng from "@/assets/plus/Ivysaur Shiny.png";
+// Telas de loading do teleport (pasta load/) � uma aleatória por transição, com fallback.
+import loadImg1 from "@/load/l1.png";
+import loadImg2 from "@/load/l2.png";
+import loadImg3 from "@/load/l3.png";
+import loadImg4 from "@/load/l4.png";
+import loadImg5 from "@/load/l5.png";
+import loadImg6 from "@/load/l6.png";
+const LOAD_IMGS = [loadImg1, loadImg2, loadImg3, loadImg4, loadImg5, loadImg6];
 // Ruínas — geodude/graveler/golem/arcanine/growlithe/sprigatito + shinys/plus + graveler alola (sprites 4x4)
 import geodudeSheetPng from "@/assets/Geodude.png";
 import geodudeShinySheetPng from "@/assets/Geodude Shiny.png";
@@ -723,6 +806,15 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   valley_plume: { name: "Valley Plume", diff: "Inicial", bg: valleyPlumeUrl, rate: 1.0, minLevel: 9, maxLevel: 15, element: "Normal", stars: 1 },
   revo_rout: { name: "Revo Rout", diff: "Inicial", bg: revoRoutUrl, rate: 1.0, minLevel: 50, maxLevel: 65, element: "Normal", stars: 1 },
   cidade_principal: { name: "Cidade Principal", diff: "Inicial", bg: cidadePrincipalUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
+  // Esfera Ancestral: mapa especial, só via NPC Bottan (arte real do Mapa Banido).
+  esfera_ancestral: { name: "Esfera Ancestral", diff: "Especial", bg: mapaBanidoUrl, rate: 1.5, minLevel: 1, maxLevel: 100, element: "psychic", stars: 4 },
+  // Mapas limpos (src/lands): sem Pokémon, sem spawn, sem obstáculos — só andar.
+  land_revo: { name: "Land Revo", diff: "Especial", bg: landRevoUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  land_gelo: { name: "Land de Gelo", diff: "Especial", bg: landGeloUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 1 },
+  casa1: { name: "Casa 1", diff: "Especial", bg: casa1Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  casa2: { name: "Casa 2", diff: "Especial", bg: casa2Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  rota_pinsir: { name: "Rota Pinsir", diff: "Especial", bg: rotaPinsirUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  deserto_alaka: { name: "Deserto de Alaka", diff: "Especial", bg: desertoAlakaUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -747,7 +839,7 @@ function mapXpMult(mapId: string): number {
 }
 
 // ⚖️ REGION SYNC — poder efetivo e penalidade ao farmar mapa muito abaixo do nível.
-// NÃO altera nível real, XP acumulado, evolução, moves ou atributos. Só limita o
+// NÒO altera nível real, XP acumulado, evolução, moves ou atributos. Só limita o
 // ganho (XP/ouro ×0.12) e o dano (nível efetivo = teto do mapa + 5) enquanto o
 // líder estiver 5+ níveis acima do teto da região.
 const SYNC_OVER_MAP = 5;
@@ -875,8 +967,13 @@ const GIF: Partial<Record<Species, string>> = {
   riolu: rioluUrl,
   raichu: raichuUrl,
   rayquaza: rayquazaUrl,
-  bulbasaur_flower: bulbasaurFlowerPng,
-  bulbasaur_orange: bulbasaurOrangePng,
+  venusaur: bulbasaurFlowerPng,
+  venusaur_shiny: bulbasaurOrangePng,
+  bulbasaur_shiny: bulbasaurGif,
+  ivysaur: bulbasaurGif,
+  ivysaur_shiny: bulbasaurGif,
+  squirtle_shiny: squirtleGif,
+  charmander_shiny: charmanderGif,
   vaporeon: vaporeonPng,
 };
 
@@ -886,8 +983,16 @@ const GIF: Partial<Record<Species, string>> = {
 const SPRITE_SHEET: Partial<Record<Species, string>> = {
   lucario: lucarioAuraUrl,
   mew: mewAuraUrl,
-  bulbasaur_flower: bulbasaurFlowerPng,
-  bulbasaur_orange: bulbasaurOrangePng,
+  venusaur: bulbasaurFlowerPng,
+  venusaur_shiny: bulbasaurOrangePng,
+  bulbasaur: bulbasaurPlusSheetPng,
+  bulbasaur_shiny: bulbasaurPlusShinySheetPng,
+  squirtle: squirtlePlusSheetPng,
+  squirtle_shiny: squirtlePlusShinySheetPng,
+  charmander: charmanderPlusSheetPng,
+  charmander_shiny: charmanderPlusShinySheetPng,
+  ivysaur: ivysaurPlusSheetPng,
+  ivysaur_shiny: ivysaurPlusShinySheetPng,
   vaporeon: vaporeonPng,
   sandshrew: sandsrewPng,
   sandslash: sandslashPng,
@@ -987,7 +1092,7 @@ type ElementFx = "grass" | "fire" | "water" | "electric" | "poison" | "psychic" 
 const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Grama/bicho
   bulbasaur: "grass", ivysaur: "grass", venusaur: "grass",
-  bulbasaur_flower: "grass", bulbasaur_orange: "grass",
+  venusaur_shiny: "grass", bulbasaur_shiny: "grass", ivysaur_shiny: "grass",
   oddish: "grass", gloom: "grass", vileplume: "grass",
   oddish_shiny: "grass", gloom_shiny: "grass", vileplume_shiny: "grass",
   paras_shiny: "grass", parasect_shiny: "grass",
@@ -1013,11 +1118,11 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   spearow_shiny: "flying", fearow_shiny: "flying",
   virizion: "grass",
   // Fogo
-  charmander: "fire", charmeleon: "fire", charizard: "fire",
+  charmander: "fire", charmeleon: "fire", charizard: "fire", charmander_shiny: "fire",
   growlithe: "fire", arcanine: "fire", ninetales: "fire", vulpix: "fire",
   magmar: "fire", flareon: "fire", moltres: "fire", blaziken: "fire",
   // Água
-  squirtle: "water", wartortle: "water", blastoise: "water", blastoise_shiny: "water",
+  squirtle: "water", wartortle: "water", blastoise: "water", blastoise_shiny: "water", squirtle_shiny: "water",
   psyduck: "water", golduck: "water",
   poliwag: "water", poliwhirl: "water", poliwrath: "fighting",
   magikarp: "water", gyarados: "water", vaporeon: "water", lapras: "water",
@@ -1117,6 +1222,107 @@ const ELEMENT_FX_GLOW: Record<ElementFx, string> = {
   poison: "#c56bff", psychic: "#ff8bd6", ice: "#8ee8ff", rock: "#c69466",
   fighting: "#ffd166", flying: "#cfe9ff", normal: "#ffb84d",
 };
+// ============ Skills visuais por elemento (src/skill, 1 faixa por elemento) ============
+// frames = inícios X exatos de cada frame (fronteiras no meio das faixas vazias).
+const SKILL_SHEET: Record<string, { img: string; w: number; h: number; bounds: number[] }> = {
+  agua:   { img: skillAguaImg,   w: 636, h: 113, bounds: [0, 117, 245, 384, 514, 636] },
+  fada:   { img: skillFadaImg,   w: 672, h: 73,  bounds: [0, 181, 418, 672] },
+  fogo:   { img: skillFogoImg,   w: 453, h: 119, bounds: [0, 88, 175, 267, 362, 453] },
+  gelo:   { img: skillGeloImg,   w: 515, h: 92,  bounds: [0, 85, 169, 259, 353, 435, 515] },
+  pedra:  { img: skillPedraImg,  w: 897, h: 102, bounds: [0, 85, 166, 255, 351, 435, 508, 630, 744, 897] },
+  planta: { img: skillPlantaImg, w: 689, h: 113, bounds: [0, 76, 175, 257, 348, 446, 544, 689] },
+  veneno: { img: skillVenenoImg, w: 357, h: 67,  bounds: [0, 133, 260, 357] },
+};
+const ELEMENT_SKILL: Partial<Record<ElementFx, string>> = {
+  water: "agua", fire: "fogo", ice: "gelo", rock: "pedra", grass: "planta", poison: "veneno",
+  normal: "normalhit",
+};
+const HEAL_SHEET = "fada";
+  // ================= SKILLS INIMIGAS (config por skill; lógica separada do FX) =================
+  // delivery: projectile (viaja) | instant (manifesta no alvo) | aoeInstant | aoePersistent.
+  // category: offensive | heal | buff | debuff. damage 0 = só controle.
+  type SkillDelivery = "projectile" | "instant" | "aoeInstant" | "aoePersistent";
+  type SkillCategory = "offensive" | "heal" | "buff" | "debuff";
+  type SkillDef = {
+    id: string; name: string; element: ElementFx; category: SkillCategory;
+    delivery: SkillDelivery; range: number; areaRadius?: number;
+    damage: number; damageMult?: number; damageType?: string;
+    status?: "sleep" | "paralysis" | "poison" | "none"; statusChance?: number; statusDuration?: number;
+    tickInterval?: number; damagePerTick?: number; areaDuration?: number;
+    castTime: number; recoveryTime: number; cooldown: number; aiChance: number;
+    projectileSpeed?: number; sheet: string | null; allowedPokemon: string[];
+  };
+  const AREA_SHEETS: Record<string, { img: string; w: number; h: number; bounds: number[] }> = {
+    darkfield: { img: skillDarkFieldImg, w: 722, h: 179, bounds: [0, 232, 473, 722] },
+    earthquake: { img: skillEarthquakeImg, w: 714, h: 200, bounds: [0, 199, 446, 714] },
+    electricfield: { img: skillElectricFieldImg, w: 747, h: 182, bounds: [0, 246, 490, 747] },
+    electric: { img: skillElectricImg, w: 380, h: 88, bounds: [0, 119, 250, 380] },
+    fighting: { img: skillFightingImg, w: 246, h: 77, bounds: [0, 71, 157, 246] },
+    fireburst: { img: skillFireBurstImg, w: 733, h: 198, bounds: [0, 239, 485, 733] },
+    flying: { img: skillFlyingImg, w: 376, h: 98, bounds: [0, 125, 265, 376] },
+    fundo: { img: skillFundoImg, w: 716, h: 163, bounds: [0, 210, 440, 716] },
+    ghostmist: { img: skillGhostMistImg, w: 737, h: 198, bounds: [0, 254, 486, 737] },
+    normalhit: { img: skillNormalImg, w: 250, h: 98, bounds: [0, 113, 250] },
+    poisoncloud: { img: skillPoisonCloudImg, w: 737, h: 196, bounds: [0, 737] },
+    psychicfield: { img: skillPsychicFieldImg, w: 716, h: 163, bounds: [0, 210, 440, 716] },
+    psychic: { img: skillPsychicImg, w: 380, h: 71, bounds: [0, 131, 211, 380] },
+    rootfield: { img: skillRootFieldImg, w: 762, h: 190, bounds: [0, 219, 463, 762] },
+    sonifero: { img: skillSoniferoImg, w: 236, h: 71, bounds: [0, 236] },
+    spore: { img: skillSporeImg, w: 724, h: 211, bounds: [0, 241, 489, 724] },
+    stunspore: { img: skillStunSporeImg, w: 733, h: 238, bounds: [0, 253, 504, 733] },
+  };
+  // Catálogo de skills inimigas. damage 0 = só controle. allowedPokemon vazio =
+  // reservado p/ Discos Elementais futuros (aprendizagem do treinador, NÃO ativa).
+  const SKILL_DEFS: Record<string, SkillDef> = {
+    spore_sleep:   { id: "spore_sleep", name: "Esporos do Sono", element: "grass", category: "offensive", delivery: "projectile", range: 420, damage: 0, status: "sleep", statusChance: 1, statusDuration: 3500, castTime: 500, recoveryTime: 1200, cooldown: 14000, aiChance: 0.5, projectileSpeed: 320, sheet: "sonifero", allowedPokemon: ["oddish", "oddish_shiny", "gloom", "gloom_shiny", "paras"] },
+    spore_aoe:     { id: "spore_aoe", name: "Nuvem de Esporos", element: "grass", category: "offensive", delivery: "aoeInstant", range: 300, areaRadius: 110, damage: 0, status: "sleep", statusChance: 1, statusDuration: 3000, castTime: 600, recoveryTime: 1500, cooldown: 18000, aiChance: 0.4, sheet: "spore", allowedPokemon: ["vileplume", "vileplume_shiny", "parasect", "parasect_shiny", "venusaur", "venusaur_shiny"] },
+    poison_sting:  { id: "poison_sting", name: "Ferrão Venenoso", element: "poison", category: "offensive", delivery: "projectile", range: 320, damage: 1.0, damageMult: 1.0, status: "poison", statusChance: 0.35, statusDuration: 6000, tickInterval: 1500, damagePerTick: 0.02, castTime: 400, recoveryTime: 1000, cooldown: 9000, aiChance: 0.45, projectileSpeed: 420, sheet: "veneno", allowedPokemon: ["ekans", "ekans_shiny", "arbok", "arbok_shiny", "grimer", "grimer_shiny", "weedle", "kakuna", "paras"] },
+    poison_cloud:  { id: "poison_cloud", name: "Nuvem Tóxica", element: "poison", category: "offensive", delivery: "aoePersistent", range: 280, areaRadius: 120, areaDuration: 3000, tickInterval: 1000, damage: 0.6, damageMult: 0.6, status: "poison", statusChance: 0.6, statusDuration: 6000, damagePerTick: 0.02, castTime: 700, recoveryTime: 1500, cooldown: 20000, aiChance: 0.35, sheet: "poisoncloud", allowedPokemon: ["muk", "muk_shiny", "swalot", "swalot_shiny"] },
+    ghost_mist:    { id: "ghost_mist", name: "Névoa Fantasma", element: "poison", category: "offensive", delivery: "instant", range: 340, damage: 1.2, damageMult: 1.2, castTime: 400, recoveryTime: 1000, cooldown: 10000, aiChance: 0.4, sheet: "ghostmist", allowedPokemon: ["gastly", "gastly_shiny"] },
+    dark_field:    { id: "dark_field", name: "Campo Sombrio", element: "poison", category: "offensive", delivery: "aoeInstant", range: 280, areaRadius: 120, damage: 1.4, damageMult: 1.4, castTime: 700, recoveryTime: 1500, cooldown: 22000, aiChance: 0.3, sheet: "darkfield", allowedPokemon: ["haunter", "haunter_shiny"] },
+    stun_spore:    { id: "stun_spore", name: "Esporos Paralisantes", element: "grass", category: "offensive", delivery: "projectile", range: 320, damage: 0.8, damageMult: 0.8, status: "paralysis", statusChance: 0.3, statusDuration: 4000, castTime: 400, recoveryTime: 1000, cooldown: 11000, aiChance: 0.4, projectileSpeed: 380, sheet: "stunspore", allowedPokemon: ["zubat", "zubat_shiny", "golbat", "golbat_shiny"] },
+    volt_single:   { id: "volt_single", name: "Choque Elétrico", element: "electric", category: "offensive", delivery: "projectile", range: 360, damage: 1.0, damageMult: 1.0, status: "paralysis", statusChance: 0.25, statusDuration: 4000, castTime: 350, recoveryTime: 900, cooldown: 9000, aiChance: 0.45, projectileSpeed: 520, sheet: "electric", allowedPokemon: ["voltorb", "voltorb_shiny"] },
+    volt_field:    { id: "volt_field", name: "Campo Elétrico", element: "electric", category: "offensive", delivery: "aoeInstant", range: 300, areaRadius: 110, damage: 1.3, damageMult: 1.3, status: "paralysis", statusChance: 0.4, statusDuration: 4000, castTime: 700, recoveryTime: 1500, cooldown: 20000, aiChance: 0.3, sheet: "electricfield", allowedPokemon: ["electrode", "electrode_shiny"] },
+    rock_throw:    { id: "rock_throw", name: "Pedrada", element: "rock", category: "offensive", delivery: "projectile", range: 320, damage: 1.1, damageMult: 1.1, castTime: 400, recoveryTime: 900, cooldown: 9000, aiChance: 0.45, projectileSpeed: 440, sheet: "pedra", allowedPokemon: ["geodude", "geodude_shiny", "cubone", "cubone_shiny", "sandshrew", "sandslash", "rhyhorn", "rhyhorn_shiny", "sandslash_shiny", "marowak", "marowak_shiny"] },
+    quake_aoe:     { id: "quake_aoe", name: "Terremoto", element: "rock", category: "offensive", delivery: "aoeInstant", range: 260, areaRadius: 130, damage: 1.4, damageMult: 1.4, castTime: 800, recoveryTime: 1600, cooldown: 22000, aiChance: 0.3, sheet: "earthquake", allowedPokemon: ["graveler", "graveler_shiny", "graveler_alola", "golem", "golem_shiny"] },
+    fire_single:   { id: "fire_single", name: "Brasa", element: "fire", category: "offensive", delivery: "projectile", range: 340, damage: 1.1, damageMult: 1.1, castTime: 400, recoveryTime: 900, cooldown: 9000, aiChance: 0.45, projectileSpeed: 460, sheet: "fogo", allowedPokemon: ["growlithe", "growlithe_shiny"] },
+    fire_burst:    { id: "fire_burst", name: "Explosão Ígnea", element: "fire", category: "offensive", delivery: "aoeInstant", range: 280, areaRadius: 120, damage: 1.4, damageMult: 1.4, castTime: 700, recoveryTime: 1500, cooldown: 20000, aiChance: 0.3, sheet: "fireburst", allowedPokemon: ["arcanine", "arcanine_shiny"] },
+    water_single:  { id: "water_single", name: "Jato d'Água", element: "water", category: "offensive", delivery: "projectile", range: 340, damage: 1.0, damageMult: 1.0, castTime: 400, recoveryTime: 900, cooldown: 9000, aiChance: 0.45, projectileSpeed: 460, sheet: "agua", allowedPokemon: ["vaporeon"] },
+    grass_single:  { id: "grass_single", name: "Folha Navalha", element: "grass", category: "offensive", delivery: "projectile", range: 320, damage: 1.0, damageMult: 1.0, castTime: 400, recoveryTime: 900, cooldown: 9000, aiChance: 0.45, projectileSpeed: 440, sheet: "planta", allowedPokemon: ["bellsprout", "bellsprout_shiny", "weepinbell", "weepinbell_shiny", "exeggcute", "exeggcute_shiny", "exeggutor", "exeggutor_shiny", "exeggutor_alola", "exeggutor_alola_shiny", "venusaur", "venusaur_shiny"] },
+    root_aoe:      { id: "root_aoe", name: "Raízes Prendedoras", element: "grass", category: "offensive", delivery: "aoeInstant", range: 280, areaRadius: 120, damage: 1.8, damageMult: 1.8, castTime: 700, recoveryTime: 1500, cooldown: 20000, aiChance: 0.55, sheet: "rootfield", allowedPokemon: ["victreebel", "victreebel_shiny", "venusaur", "venusaur_shiny"] },
+    fly_single:    { id: "fly_single", name: "Ataque Aéreo", element: "flying", category: "offensive", delivery: "projectile", range: 380, damage: 1.0, damageMult: 1.0, castTime: 350, recoveryTime: 900, cooldown: 9000, aiChance: 0.45, projectileSpeed: 600, sheet: "flying", allowedPokemon: ["pidgey", "pidgey_shiny", "pidgeotto", "pidgeotto_shiny", "pidgeot", "pidgeot_shiny", "spearow", "spearow_shiny", "fearow", "fearow_shiny"] },
+    psy_single:    { id: "psy_single", name: "Raio Psíquico", element: "psychic", category: "offensive", delivery: "projectile", range: 360, damage: 1.2, damageMult: 1.2, castTime: 400, recoveryTime: 1000, cooldown: 10000, aiChance: 0.4, projectileSpeed: 480, sheet: "psychic", allowedPokemon: ["abra", "kadabra"] },
+    psy_field:     { id: "psy_field", name: "Campo Psíquico", element: "psychic", category: "offensive", delivery: "aoeInstant", range: 300, areaRadius: 120, damage: 1.4, damageMult: 1.4, castTime: 700, recoveryTime: 1500, cooldown: 22000, aiChance: 0.3, sheet: "psychicfield", allowedPokemon: ["kadabra"] },
+    fight_single:  { id: "fight_single", name: "Clava Óssea", element: "rock", category: "offensive", delivery: "instant", range: 180, damage: 1.1, damageMult: 1.1, castTime: 300, recoveryTime: 800, cooldown: 8000, aiChance: 0.5, sheet: "fighting", allowedPokemon: ["marowak", "marowak_shiny"] },
+  };
+  // Sonífero dedicado (controle puro, sem dano): espécies que adormecem o alvo.
+  // (spore_sleep acima já cobre; este alias documenta a skill sonífera da pasta.)
+  const SONIFERO_SKILL_ID = "spore_sleep";
+  // Margem de segurança do range de skill (0.90): o ataque só vale dentro de
+  // range × margem — evita cast que falha por arredondamento/posição/sprite.
+  const SKILL_RANGE_MARGIN = 0.9;
+  // Distância ideal de parada do inimigo (IA de distância): usa a maior skill do
+  // espécime com a margem de segurança, teto 300px — sem skills = corpo a corpo (50px).
+  const enemyStandoffFor = (sp: string): number => {
+    let maxRange = 0;
+    for (const s of Object.values(SKILL_DEFS)) {
+      if (s.allowedPokemon.includes(sp)) maxRange = Math.max(maxRange, s.range);
+    }
+    return maxRange > 0 ? Math.min(300, Math.round(maxRange * SKILL_RANGE_MARGIN)) : 50;
+  };
+  // Skill de combate do Pokémon do jogador: primeira skill com dano da espécie
+  // (mesma prioridade da IA inimiga: AOE antes de single). Sem skill com dano =
+  // ataque básico (alcance fixo ATTACK_RANGE, comportamento original).
+  const playerSkillFor = (sp: string): (typeof SKILL_DEFS)[string] | null => {
+    const damaging = Object.values(SKILL_DEFS).filter((s) => s.allowedPokemon.includes(sp) && (s.damage ?? 0) > 0);
+    if (damaging.length === 0) return null;
+    const ordered = damaging.slice().sort((a, b) => {
+      const pa = a.delivery === "aoeInstant" || a.delivery === "aoePersistent" ? 1 : 2;
+      const pb = b.delivery === "aoeInstant" || b.delivery === "aoePersistent" ? 1 : 2;
+      return pa - pb;
+    });
+    return ordered[0];
+  };
 
 // ============ Obstáculos com colisão ============
 type Obstacle = {
@@ -1144,6 +1350,10 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
   if (mapId === "mapinha6") {
     return [];
   }
+  // Esfera Ancestral (Mapa Banido): sem árvores/pedras � só máscara de colisão
+  if (mapId === "esfera_ancestral") {
+    return [];
+  }
   // Bidril e Kakuna (mapinha12): colisão invisível na colméia (cúpula + favo)
   if (mapId === "mapinha12") {
     const inv = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -1154,7 +1364,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     ];
   }
   // Novos mapas grátis: sem colisão, sem objetos
-  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"].includes(mapId)) {
+  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"].includes(mapId)) {
     return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
@@ -1269,7 +1479,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     const volcano = { x: worldW * 0.5, y: worldH * 0.5 };
     list.push({ id: id++, x: volcano.x, y: volcano.y, w: 240, h: 240, src: volcanoUrl, blocks: true, collideR: 96 });
 
-    // Distribuição espalhada IDÊNTICA ao arena (mesmo seed, mesmos parâmetros),
+    // Distribuição espalhada ID�`NTICA ao arena (mesmo seed, mesmos parâmetros),
     // apenas evitando lagos e o vulcão.
     const MIN_GAP = 60;
     let tries = 0;
@@ -1397,6 +1607,7 @@ type IdleState = {
   gold?: number;
   crystals?: number;
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
+  trainerEnergy?: number;
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
   autoHeal: { enabled: boolean; threshold: number };
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball"; captureHpPct: number };
@@ -1405,6 +1616,8 @@ type IdleState = {
   unlockedSkins?: string[];
   redeemedCodes?: Record<string, boolean>;
   totalKills?: number;
+  gordinQuest?: { shinyDone?: boolean; venusaurDone?: boolean; killRuns?: number; killStart?: number; killActive?: boolean };
+  bottanTrips?: number;
   lastQuestReset?: number;
   lastDailyReward?: number;
   dailyRewardDay?: number;
@@ -1627,12 +1840,18 @@ function loadIdle(): IdleState {
       // Backfill da saga (saves antigos começam do zero, sem retroativo).
       if (!s.saga) s.saga = freshSaga();
       if (!s.sideQuests) s.sideQuests = freshSideQuests();
+      // Migração Bulbasaur Flower/Orange �  Venusaur/Venusaur Shiny (rename de species).
+      const MIGRATE_SP: Record<string, Species> = { bulbasaur_flower: "venusaur", bulbasaur_orange: "venusaur_shiny" };
+      const migSp = (sp: unknown) => ((typeof sp === "string" && MIGRATE_SP[sp]) ? MIGRATE_SP[sp] : sp) as Species;
+      if (Array.isArray(s.collection)) s.collection = s.collection.map((p: CollectionEntry) => ({ ...p, species: migSp((p as CollectionEntry).species) }));
+      if (Array.isArray(s.caughtSpecies)) s.caughtSpecies = (s.caughtSpecies as unknown[]).map((sp) => migSp(sp)) as Species[];
+      if (Array.isArray(s.seenSpecies)) s.seenSpecies = (s.seenSpecies as unknown[]).map((sp) => migSp(sp)) as Species[];
       return s;
     }
   } catch { /* ignore */ }
   return freshIdle();
 }
-function freshIdle(): IdleState {
+export function freshIdle(): IdleState {
   const now = Date.now();
   return {
     startedAt: now, lastTickAt: now,
@@ -1652,6 +1871,7 @@ function freshIdle(): IdleState {
     autoBattle: { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 },
     trainerLevel: 1,
     trainerXp: 0,
+    trainerEnergy: TRAINER_ENERGY_MAX,
     unlockedSkins: ["default"],
     redeemedCodes: {},
     lastQuestReset: 0,
@@ -1737,7 +1957,7 @@ function playerDamageVsHighLevelMult(_leaderLevel: number, _enemyLevel: number) 
 
 
 // ===== Energia por raridade — REMOVIDA (Sistema de Recursos) =====
-// Pokémon NÃO têm mais energia temporal. O cuidado usa FOME + LEALDADE
+// Pokémon NÒO têm mais energia temporal. O cuidado usa FOME + LEALDADE
 // (ciclo ~3h, ver src/game/resources.ts). Funções abaixo viraram no-op
 // para não quebrar chamadas legadas — NÃO reintroduzir dreno.
 const ENERGY_REGEN_MS: Partial<Record<Rarity, number>> = {
@@ -1824,7 +2044,14 @@ function loadTeam(): PetInstance[] {
     if (leader.species === "charizard" && leader.level === 15 && (leader.xp ?? 0) === 0) {
       return [makePet("charmander", 1)];
     }
-    return save.party.slice(0, 1);
+    // Migração Flower/Orange �  Venusaur/Venusaur Shiny
+    return save.party.slice(0, 1).map((p) => {
+      const oldSp = p.species as string;
+      return {
+        ...p,
+        species: (oldSp === "bulbasaur_flower" ? "venusaur" : oldSp === "bulbasaur_orange" ? "venusaur_shiny" : oldSp) as Species,
+      };
+    });
   }
   return [makePet("charmander", 1)];
 }
@@ -1894,6 +2121,8 @@ function IdlePage() {
     const l = initTeam[0];
     return l ? Math.max(l.hp ?? 0, calcIdleMaxHp(l)) : 0;
   });
+  const leaderHpRef = useRef(0);
+  useEffect(() => { leaderHpRef.current = leaderHp; }, [leaderHp]);
   const [leveledAt, setLeveledAt] = useState<number>(0);
   const [levelToast, setLevelToast] = useState<{ level: number; gains?: string[]; bonus?: string; ts: number; type: "trainer" | "pokemon" } | null>(null);
   const prevLevelRef = useRef<number>(0);
@@ -1919,6 +2148,16 @@ function IdlePage() {
   const paralyzedByEnemyIdRef = useRef<number | null>(null);
   const atkDebuffUntilRef = useRef<number>(0);
   const poisonUntilRef = useRef<number>(0);
+  // Status de skills inimigas (reusa os refs existentes; sem sistema paralelo).
+  // Sono usa paralyzedUntilRef (bloqueio total, como o sonífero do Lickitung) +
+  // sleepFxUntilRef só como marcador visual/"alvo dormindo" p/ IA não repetir.
+  const sleepFxUntilRef = useRef<number>(0);
+  // Proteção pós-sono: janela curta após um Sleep aplicado com sucesso em que
+  // novas tentativas de Sleep são bloqueadas (anti-corrente de Sonífero).
+  const sleepProtectionUntilRef = useRef<number>(0);
+  // Veneno configurável por skill (tick usa estes valores; padrão = Peçonha).
+  const poisonCfgRef = useRef<{ tickPct: number }>({ tickPct: 0.03 });
+  const [poisonTickMs, setPoisonTickMs] = useState(1500);
   const mapEnterAtRef = useRef<number>(Date.now());
 
   useEffect(() => { attackTargetIdRef.current = attackTargetId; }, [attackTargetId]);
@@ -1948,6 +2187,7 @@ function IdlePage() {
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [selectedMapInfo, setSelectedMapInfo] = useState<IdleMapId | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // Removido zoom global � mantido 100% nativo (primeiro print) para não criar barra preta embaixo
 
   // ============= Server sync (Supabase anti-cheat) =============
   const idleRef = useRef(idle);
@@ -2102,11 +2342,17 @@ function IdlePage() {
         // O sync normalizado antigo não pode sobrescrever com trainer_state/pokemon_collection defasados.
         if (localStorage.getItem(CLOUD_PRELOADED_KEY)) return;
       } catch { /* ignore */ }
-      // Aplica estado do servidor como fonte de verdade.
+      // Aplica estado do servidor como fonte de verdade, sem downgrade.
       setIdle((prev) => {
         const items = { ...(prev.items ?? {}) };
         for (const b of full.pokeballs) items[b.ball_type] = b.qty;
-        const collection = full.collection.map((p) => ({
+        // Nunca diminuir level/XP por hidratação
+        const srvLevel = full.trainer.trainer_level;
+        const srvXp = full.trainer.trainer_xp;
+        const nextLevel = (typeof prev.trainerLevel === "number" && srvLevel < prev.trainerLevel) ? prev.trainerLevel : srvLevel;
+        const nextXp = (srvLevel === prev.trainerLevel && (srvXp ?? 0) < (prev.trainerXp ?? 0)) ? (prev.trainerXp ?? 0) : srvXp;
+        const hadLocalCollection = Array.isArray(prev.collection) && prev.collection.length > 0;
+        const srvCollection = full.collection.map((p) => ({
           uid: p.id,
           species: p.species as Species,
           level: p.level,
@@ -2114,29 +2360,51 @@ function IdlePage() {
           rarity: p.rarity as Rarity,
           capturedAt: Date.parse(p.captured_at) || Date.now(),
         }));
+        // Se local já tem coleção maior/nova, preserva (evita perda por snapshot antigo)
+        const nextCollection = (hadLocalCollection && srvCollection.length === 0) ? (prev.collection ?? []) : srvCollection;
         return {
           ...prev,
           bank: {
             gold: full.trainer.gold,
             crystals: full.trainer.crystal,
           },
-          trainerLevel: full.trainer.trainer_level,
-          trainerXp: full.trainer.trainer_xp,
-          totals: { ...prev.totals, kills: full.trainer.kill_count },
+          trainerLevel: nextLevel,
+          trainerXp: nextXp,
+          totals: { ...prev.totals, kills: Math.max(prev.totals.kills ?? 0, full.trainer.kill_count ?? 0) },
           items,
-          collection,
+          collection: nextCollection,
         };
       });
-      // Se o server já tem líder salvo (team_slot=0), reidrata.
+      // Se o server já tem líder salvo (team_slot=0), reidrata com merge sem downgrade
       if (full.team.length > 0) {
-        setTeam(() => full.team.slice(0, 6).map((p) => ({
-          ...makePet(p.species as Species, p.level, p.rarity as Rarity),
-          uid: p.id,
-          xp: p.xp ?? 0,
-          hp: p.hp_current ?? p.hp_max,
-          maxHp: p.hp_max,
-          energy: p.energy ?? ENERGY_MAX,
-        } as PetInstance)));
+        setTeam((prev) => {
+          if (prev.length === 0) {
+            return full.team.slice(0, 6).map((p) => ({
+              ...makePet(p.species as Species, p.level, p.rarity as Rarity),
+              uid: p.id,
+              xp: p.xp ?? 0,
+              hp: p.hp_current ?? p.hp_max,
+              maxHp: p.hp_max,
+              energy: p.energy ?? ENERGY_MAX,
+            } as PetInstance));
+          }
+          // Merge por id: preserva level maior
+          const map = new Map(prev.map((x) => [x.uid, x]));
+          for (const p of full.team) {
+            const cur = map.get(p.id);
+            if (!cur || p.level > (cur.level ?? 0) || (p.level === cur.level && (p.xp ?? 0) > (cur.xp ?? 0))) {
+              map.set(p.id, {
+                ...makePet(p.species as Species, p.level, p.rarity as Rarity),
+                uid: p.id,
+                xp: p.xp ?? 0,
+                hp: p.hp_current ?? p.hp_max,
+                maxHp: p.hp_max,
+                energy: p.energy ?? ENERGY_MAX,
+              } as PetInstance);
+            }
+          }
+          return Array.from(map.values()).slice(0, 6);
+        });
       }
     },
   });
@@ -2176,6 +2444,7 @@ function IdlePage() {
         
         if (blob.idle) {
           setIdle((prev) => {
+            // Nunca diminuir level/XP/espécie vindos do servidor (evita downgrade por snapshot antigo)
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
             if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
             if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
@@ -2185,6 +2454,11 @@ function IdlePage() {
             if (!uskins.includes("default")) uskins.unshift("default");
             merged.unlockedSkins = uskins;
             merged.autoHeal = { ...(merged.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: merged.autoHeal?.enabled ?? true };
+            // Preserva level/XP mais alto (servidor pode ter stale)
+            if (typeof prev.trainerLevel === "number" && typeof merged.trainerLevel === "number") {
+              if (merged.trainerLevel < prev.trainerLevel) merged.trainerLevel = prev.trainerLevel;
+              if (merged.trainerLevel === prev.trainerLevel && (merged.trainerXp ?? 0) < (prev.trainerXp ?? 0)) merged.trainerXp = prev.trainerXp;
+            }
             return merged;
           });
         }
@@ -2311,6 +2585,14 @@ const confirmName = () => {
       localStorage.setItem("rubym.setup.skin", setupSkinId);
       localStorage.setItem("rubym.setup.name", name);
     } catch { /* ignore */ }
+    // Persiste no servidor como fonte de verdade (auth.uid isolado)
+    try {
+      supabase.auth.getSession().then(({ data }) => {
+        const uid = data.session?.user?.id;
+        if (!uid) return;
+        void (supabase as any).from("profiles").upsert({ id: uid, username: name, avatar_url: setupSkinId, last_login: new Date().toISOString() }, { onConflict: "id" });
+      });
+    } catch { /* ignore */ }
     setSetupDone(true);
     setSetupStep("skin");
     setSetupName("");
@@ -2344,6 +2626,25 @@ const confirmName = () => {
   });
   const starterChosenRef = useRef(starterChosen);
   useEffect(() => { starterChosenRef.current = starterChosen; }, [starterChosen]);
+  // Se já existe time/coleção no servidor, nunca mostrar escolha de inicial novamente (mesmo sem flag local)
+  useEffect(() => {
+    if (starterChosen) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const uid = data.session?.user?.id;
+        if (!uid) return;
+        const { data: poke } = await (supabase as any).from("pokemon_collection").select("id").eq("user_id", uid).limit(1);
+        if (cancelled) return;
+        if (poke && poke.length > 0) {
+          try { localStorage.setItem("rubym.starter.chosen", "1"); } catch {}
+          setStarterChosen(true);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [starterChosen]);
   // ===== Descanso nas casas (Lar demora 1h, Casa Azul restaura em 5 min) =====
   const REST_DURATION_LAR_MS = 60 * 60 * 1000;      // 1 hora (Lar — restaura HP + energia grátis)
   const REST_DURATION_BLUE_MS = 5 * 60 * 1000;      // 5 minutos (Casa Azul — energia)
@@ -2370,13 +2671,44 @@ const confirmName = () => {
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
   const [, setAnimTick] = useState(0);
   const attackAnimIdRef = useRef(1);
+  // Skill visual elemental (spritesheets src/skill): cast -> projétil -> impacto -> cleanup.
+  // kind: offensive | heal | buff | debuff. sheet = chave SKILL_SHEET (null = fallback fx-img).
+  type SkillFx = { id: number; kind: "offensive" | "heal" | "buff" | "debuff"; element: ElementFx; sheet: string | null; x0: number; y0: number; x1: number; y1: number; ts: number };
+  const [skillFx, setSkillFx] = useState<SkillFx | null>(null);
+  const skillFxIdRef = useRef(1);
+  const skillFxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Projéteis de skills inimigas em voo (posição por tempo; impacto resolve dano/status).
+  type SkillProj = { id: number; skillId: string; element: ElementFx; sheet: string | null; x0: number; y0: number; x1: number; y1: number; t0: number; dur: number; dmg: number; dmgMult: number; eSp: Species; eLevel: number; eElite: boolean; casterId: number; status: string; statusChance: number; statusDuration: number; tickPct: number };
+  const [skillProj, setSkillProj] = useState<SkillProj[]>([]);
+  const skillProjIdRef = useRef(1);
+  const skillTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const trackSkillTimer = (t: ReturnType<typeof setTimeout>) => {
+    skillTimersRef.current.push(t);
+    if (skillTimersRef.current.length > 24) skillTimersRef.current.shift();
+  };
+  // Áreas persistentes (AOE com duração): anel lógico + ticks de dano/status.
+  type SkillArea = { id: number; skillId: string; element: ElementFx; sheet: string | null; x: number; y: number; r: number; until: number; tickMs: number; nextTick: number; dmg: number; dmgMult: number; eSp: Species; eLevel: number; eElite: boolean; casterId: number; status: string; statusChance: number; statusDuration: number; tickPct: number };
+  const [skillArea, setSkillArea] = useState<SkillArea[]>([]);
+  const skillAreaIdRef = useRef(1);
+  const skillAreaRef = useRef<SkillArea[]>([]);
+  useEffect(() => { skillAreaRef.current = skillArea; }, [skillArea]);
+  const fireSkillFx = (kind: SkillFx["kind"], element: ElementFx, sheet: string | null, x0: number, y0: number, x1: number, y1: number) => {
+    if (skillFxTimerRef.current) clearTimeout(skillFxTimerRef.current);
+    const id = skillFxIdRef.current++;
+    setSkillFx({ id, kind, element, sheet, x0, y0, x1, y1, ts: Date.now() });
+    // Duração = nº de frames da sheet (70ms/frame, + folga) — nunca corta sheets grandes.
+    const shSheet = sheet ? (SKILL_SHEET[sheet] ?? (AREA_SHEETS as Record<string, { img: string; w: number; h: number; bounds: number[] }>)[sheet]) : null;
+    const nFrames = shSheet ? Math.max(1, shSheet.bounds.length - 1) : 1;
+    const fxMs = Math.max(900, nFrames * 70 + 120);
+    skillFxTimerRef.current = setTimeout(() => setSkillFx((s) => (s && s.id === id ? null : s)), fxMs);
+  };
   useEffect(() => {
-    if (!attackAnim && !enemyAttackAnim && !captureAnim) return;
+    if (!attackAnim && !enemyAttackAnim && !captureAnim && !skillFx && skillProj.length === 0 && skillArea.length === 0) return;
     let raf: number;
     const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [attackAnim, enemyAttackAnim, captureAnim]);
+  }, [attackAnim, enemyAttackAnim, captureAnim, skillFx, skillProj, skillArea]);
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
@@ -2452,11 +2784,15 @@ const confirmName = () => {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const enemiesRef = useRef<Enemy[]>([]);
+  useEffect(() => { enemiesRef.current = enemies; }, [enemies]);
+  // Kills totais (ref fresca p/ waves dentro de intervals com closure antiga).
+  const totalKillsRef = useRef(0);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit" | "heal";
   const [fx, setFx] = useState<{ id: number; x: number; y: number; text: string; kind: FxKind }[]>([]);
-  // 💎 Balãozinho de Stone Elemental dropada
+  // �x} Balãozinho de Stone Elemental dropada
   const [stonePops, setStonePops] = useState<{ id: number; x: number; y: number; stone: string }[]>([]);
   type Chest = { id: number; x: number; y: number; opened: boolean; openedAt?: number; purple?: boolean };
   const [chests, setChests] = useState<Chest[]>([]);
@@ -2467,7 +2803,196 @@ const confirmName = () => {
   const isFirstSpawnRef = useRef(true);
   const lastSpawnAtRef = useRef(0);
   const orbIdRef = useRef(1);
-  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento">("pokemon");
+  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "guilda">("pokemon");
+
+  // ===== Guilda & Livro de Missões (painéis externos religados) =====
+  const myId = (identity as any)?.id ?? "local";
+  const myName: string = (identity as any)?.name ?? "Treinador";
+  const myLevel: number = (idle as any).trainerLevel ?? 1;
+  const myGold: number = (idle as any).bank?.gold ?? 0;
+  const mySpecies: string | null = ((team as any[])?.[0] as any)?.species ?? null;
+  const getUid = async (): Promise<string | null> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      return data?.session?.user?.id ?? null;
+    } catch { return null; }
+  };
+  // ---- estado da guilda ----
+  const [guild, setGuild] = useState<Guild | null>(null);
+  const [guildLoading, setGuildLoading] = useState(false);
+  const [guildInvites, setGuildInvites] = useState<GuildInvite[]>([]);
+  const [friends, setFriends] = useState<FriendEntry[]>(() => { try { return loadFriends(); } catch { return []; } });
+  const [partyNames, setPartyNames] = useState<string[]>(() => { try { return loadParty(); } catch { return []; } });
+  const [partyInvites, setPartyInvites] = useState<PartyInviteRow[]>([]);
+  const [missionProgress, setMissionProgress] = useState<Record<string, number>>(() => { try { return loadGuildMissionProgress(); } catch { return {}; } });
+  const [claimedMissions, setClaimedMissions] = useState<string[]>(() => { try { return loadGuildMissionsClaimed(); } catch { return []; } });
+  const refreshGuild = async () => {
+    setGuildLoading(true);
+    try {
+      const uid = await getUid();
+      if (uid) {
+        try {
+          const g = await fetchMyGuild(uid);
+          if (g) setGuild(g);
+          const inv = await fetchPendingInvites(uid, myName);
+          setGuildInvites(inv ?? []);
+        } catch { /* backend pode não existir � mantém estado local */ }
+      }
+    } finally { setGuildLoading(false); }
+  };
+  useEffect(() => { void refreshGuild(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    let off: (() => void) | null = null;
+    let alive = true;
+    (async () => {
+      try {
+        const uid = await getUid();
+        if (uid && alive) { try { off = subscribeMyInvites(uid, () => { void refreshGuild(); }); } catch { /* ignore */ } }
+      } catch { /* ignore */ }
+    })();
+    return () => { alive = false; try { off?.(); } catch { /* ignore */ } };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const partyForPanel: { party: PartyRow; members: PartyMemberRow[] } | null =
+    partyNames.length === 0 ? null : {
+      party: { id: "local", name: `Grupo de ${myName}`, leader_id: myId, leader_name: myName, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      members: partyNames.map((n) => ({
+        party_id: "local", player_id: n === myName ? myId : `local-${n}`, player_name: n,
+        level: n === myName ? myLevel : 1, map_id: (idle as any).currentMap ?? null,
+        joined_at: new Date().toISOString(), last_seen: new Date().toISOString(),
+      })),
+    };
+  const GUILD_CREATE_COST = 5000;
+  const handleCreateGuild = async (name: string, element: GuildElement) => {
+    try {
+      if (((idle as any).bank?.gold ?? 0) < GUILD_CREATE_COST) { pushChat(`Criar guilda custa ${GUILD_CREATE_COST} ouro.`, "info"); return; }
+      setGuildLoading(true);
+      try {
+        const uid = await getUid();
+        let created: Guild | null = null;
+        if (uid) {
+          try {
+            const r = await createGuildRemote({ name, element, founderId: uid, founderName: myName, founderLevel: myLevel, leaderSpecies: mySpecies });
+            if (r.ok && r.guild) created = r.guild;
+            else if (r.error) pushChat(r.error, "info");
+          } catch { /* cai para guilda local */ }
+        }
+        if (!created) {
+          created = {
+            id: `g_local_${Date.now()}`, name, element, level: 1, xp: 0,
+            members: [{ id: myId, name: myName, level: myLevel, leaderSpecies: mySpecies, joinedAt: Date.now(), role: "leader" }],
+            founderId: myId, foundedAt: Date.now(), totalDonated: 0,
+          };
+          pushChat(`�x�� Guilda "${name}" fundada (local).`, "cap");
+        } else {
+          pushChat(`�x�� Guilda "${name}" fundada!`, "cap");
+        }
+        setIdle((s: any) => ({ ...s, bank: { ...s.bank, gold: Math.max(0, ((s.bank?.gold ?? 0) - GUILD_CREATE_COST)) } }));
+        setGuild(created);
+      } finally { setGuildLoading(false); }
+    } catch { /* ignore */ }
+  };
+  const handleInviteUsername = async (username: string) => {
+    try {
+      if (!guild) { pushChat("Entre ou crie uma guilda primeiro.", "info"); return; }
+      if (guild.id.startsWith("g_local_")) { pushChat("Guilda local: convites online indisponíveis.", "info"); return; }
+      const uid = await getUid();
+      if (!uid) { pushChat("Conecte-se para convidar.", "info"); return; }
+      const r = await sendInviteByUsername({ guild, fromUserId: uid, fromUsername: myName, toUsername: username });
+      pushChat(r.ok ? `�S0️ Convite enviado para ${username}.` : (r.error ?? "Falha ao convidar."), "info");
+    } catch { /* ignore */ }
+  };
+  const handleAcceptInvite = async (inv: GuildInvite) => {
+    try {
+      const uid = await getUid();
+      if (!uid) { pushChat("Conecte-se para aceitar.", "info"); return; }
+      const r = await acceptInvite({ invite: inv, userId: uid, username: myName, level: myLevel, leaderSpecies: mySpecies });
+      if (!r.ok) { pushChat(r.error ?? "Falha ao aceitar.", "info"); return; }
+      setGuildInvites((prev) => prev.filter((x) => x.id !== inv.id));
+      await refreshGuild();
+      pushChat(`�x}0 Você entrou na guilda ${(inv as any).guild_name ?? ""}!`, "cap");
+    } catch { /* ignore */ }
+  };
+  const handleDeclineInvite = async (id: string) => {
+    try { await declineInvite(id); } catch { /* ignore */ }
+    setGuildInvites((prev) => prev.filter((x) => x.id !== id));
+  };
+  const handleClaimMission = (m: GuildMission) => {
+    try {
+      if (claimedMissions.includes(m.id)) return;
+      if ((missionProgress[m.id] ?? 0) < m.target) { pushChat("Missão ainda não concluída.", "info"); return; }
+      const next = [...claimedMissions, m.id];
+      setClaimedMissions(next);
+      try { saveGuildMissionsClaimed(next); } catch { /* ignore */ }
+      setIdle((s: any) => ({
+        ...s,
+        bank: {
+          ...s.bank,
+          gold: ((s.bank?.gold ?? 0) + ((m as any).rewardGold ?? 0)),
+          crystals: ((s.bank?.crystals ?? 0) + ((m as any).rewardCrystals ?? 0)),
+        },
+      }));
+      setGuild((g) => (g ? { ...g, xp: g.xp + ((m as any).rewardGuildXp ?? 0) } : g));
+      pushChat(`�x}� Missão "${m.title}" concluída!`, "cap");
+    } catch { /* ignore */ }
+  };
+  const handleAddFriend = (name: string) => {
+    const n = name.trim().slice(0, 18);
+    if (!n) return;
+    if (friends.some((f) => f.name.toLowerCase() === n.toLowerCase())) return;
+    const next = [...friends, { name: n, addedAt: Date.now() }];
+    setFriends(next);
+    try { saveFriends(next); } catch { /* ignore */ }
+  };
+  const handleRemoveFriend = (name: string) => {
+    const next = friends.filter((f) => f.name !== name);
+    setFriends(next);
+    try { saveFriends(next); } catch { /* ignore */ }
+  };
+  const handlePartyAdd = (target: { id: string; name: string }) => {
+    if (partyNames.includes(target.name)) return;
+    if (partyNames.length >= PARTY_MAX) { pushChat(`Grupo cheio (${PARTY_MAX}).`, "info"); return; }
+    const next = [...partyNames, target.name];
+    setPartyNames(next);
+    try { saveParty(next); } catch { /* ignore */ }
+  };
+  const handlePartyRemove = (targetName: string) => {
+    const next = partyNames.filter((n) => n !== targetName);
+    setPartyNames(next);
+    try { saveParty(next); } catch { /* ignore */ }
+  };
+  const handleAcceptPartyInvite = (inv: PartyInviteRow) => {
+    handlePartyAdd({ id: inv.from_id, name: inv.from_name });
+    setPartyInvites((prev) => prev.filter((x) => x.id !== inv.id));
+  };
+  const handleDeclinePartyInvite = (id: string) => {
+    setPartyInvites((prev) => prev.filter((x) => x.id !== id));
+  };
+  const handleLeaveParty = () => {
+    setPartyNames([]);
+    try { saveParty([]); } catch { /* ignore */ }
+  };
+  const handleLeaveGuild = async () => {
+    try {
+      if (!guild) return;
+      if (!window.confirm(`Sair da guilda ${guild.name}?`)) return;
+      const uid = await getUid();
+      if (uid && !guild.id.startsWith("g_local_")) { try { await leaveGuildRemote(uid); } catch { /* ignore */ } }
+      setGuild(null);
+      pushChat(`�xa� Você saiu da guilda ${guild.name}.`, "info");
+    } catch { /* ignore */ }
+  };
+  const handleKickMember = async (memberId: string) => {
+    try {
+      if (!guild) return;
+      if (guild.id.startsWith("g_local_")) {
+        setGuild({ ...guild, members: guild.members.filter((m) => m.id !== memberId) });
+        return;
+      }
+      const r = await kickMemberRemote(guild.id, memberId);
+      if (!r.ok) { pushChat(r.error ?? "Falha ao expulsar.", "info"); return; }
+      await refreshGuild();
+    } catch { /* ignore */ }
+  };
   const [skinId, setSkinId] = useState<string>(() => {
     if (typeof window === "undefined") return "char01";
     try { return localStorage.getItem("rubym.setup.skin") || localStorage.getItem(SKIN_KEY) || "char01"; } catch { return "char01"; }
@@ -2489,7 +3014,36 @@ const confirmName = () => {
 
   useEffect(() => {
     try { localStorage.setItem(SKIN_KEY, skinId); } catch { /* ignore */ }
+    // Fonte de verdade no servidor (isolado por auth.uid)
+    void (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const uid = data.session?.user?.id;
+        if (!uid) return;
+        await (supabase as any).from("profiles").upsert({ id: uid, avatar_url: skinId }, { onConflict: "id" });
+      } catch { /* ignore */ }
+    })();
   }, [skinId]);
+
+  // Hidrata skin do servidor na volta (F5 / novo navegador / mesma MetaMask)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const uid = data.session?.user?.id;
+        if (!uid) return;
+        const { data: prof } = await (supabase as any).from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
+        if (cancelled) return;
+        const srv = (prof?.avatar_url as string | null)?.trim();
+        if (srv && srv.startsWith("char") && srv !== skinId) {
+          setSkinId(srv);
+          try { localStorage.setItem("rubym.setup.skin", srv); localStorage.setItem(SKIN_KEY, srv); } catch {}
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     try { localStorage.setItem(EQUIPMENT_KEY, JSON.stringify(equippedItems)); } catch { /* ignore */ }
@@ -2578,6 +3132,13 @@ const confirmName = () => {
   const forgeDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; winX: number; winY: number; hasMoved: boolean } | null>(null);
   const [auraEggCrafting, setAuraEggCrafting] = useState<{ active: boolean; progress: number; rarity?: Rarity } | null>(null);
   const [showAuraEggDetails, setShowAuraEggDetails] = useState(false);
+  const [showForgeLoot, setShowForgeLoot] = useState(false);
+  // ===== Loot do Mapa: resumo VISUAL da sessão no mapa atual (não mexe em inventário/recompensas) =====
+  type MapLoot = { gold: number; crystals: number; pokemon: number; items: Record<string, number> };
+  const emptyMapLoot = (): MapLoot => ({ gold: 0, crystals: 0, pokemon: 0, items: {} });
+  const [mapLoot, setMapLoot] = useState<MapLoot>(emptyMapLoot);
+  // Troca de mapa = resumo novo (cada mapa separa o seu loot)
+  useEffect(() => { setMapLoot(() => emptyMapLoot()); }, [idle.currentMap]);
   const [auraEggDetails, setAuraEggDetails] = useState<{ stonesUsed: Record<string, number>; extraChance: number }>({ stonesUsed: {}, extraChance: 0 });
 
   useEffect(() => {
@@ -2639,6 +3200,15 @@ const confirmName = () => {
     localStorage.setItem("rubym.forge.minimized", String(forgeMinimized));
     localStorage.setItem("rubym.forge.pos", JSON.stringify(forgePos));
   }, [forgeWindowOpen, forgeMinimized, forgePos]);
+
+  // Segurança: se a posição salva da Forja ficou fora da tela (orbe invisível),
+  // traz de volta para o padrão. Só atua com posição inválida.
+  useEffect(() => {
+    const m = 70;
+    if (forgePos.x < -m || forgePos.y < -m || forgePos.x > window.innerWidth - m || forgePos.y > window.innerHeight - m) {
+      setForgePos({ x: window.innerWidth - 380, y: window.innerHeight - 250 });
+    }
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
@@ -2977,6 +3547,7 @@ const confirmName = () => {
   const [chatCooldownUntil, setChatCooldownUntil] = useState<number>(0);
   const [chatFilter, setChatFilter] = useState<"all" | "system" | "world" | "captures">("all");
   const [teamCollapsed, setTeamCollapsed] = useState<boolean>(false);
+  const [topHudMin, setTopHudMin] = useState<boolean>(false);
   const [chatTick, setChatTick] = useState(0);
   const [grassOddishSplash, setGrassOddishSplash] = useState<boolean>(false);
   const [oddishNoStone, setOddishNoStone] = useState<{ have: number; need: number } | null>(null);
@@ -3030,6 +3601,8 @@ const confirmName = () => {
     const kd = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(k)) {
+        // LOADING de teleport: sem movimento.
+        if (mapLoadingRef.current) return;
         // ao andar manualmente, marca o alvo atual como "evitado" por um tempo,
         // para que o auto procure outro pokémon quando reativado
         const cur = attackTargetIdRef.current;
@@ -3051,6 +3624,8 @@ const confirmName = () => {
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
   const MAP_DISPLAY_SCALE: Record<string, number> = {
     mapinha10: 0.65,
+    casa1: 0.65,
+    casa2: 0.65,
   };
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
@@ -3074,10 +3649,20 @@ const confirmName = () => {
     valley_plume: valleyPlumeUrl,
     revo_rout: revoRoutUrl,
     cidade_principal: cidadePrincipalUrl,
+    esfera_ancestral: mapaBanidoUrl,
+    land_revo: landRevoUrl,
+    land_gelo: landGeloUrl,
+    casa1: casa1Url,
+    casa2: casa2Url,
+    rota_pinsir: rotaPinsirUrl,
+    deserto_alaka: desertoAlakaUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal"];
+  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"];
+  // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
+  // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
+  const NO_HIGH_EVENT_MAPS = ["mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -3097,12 +3682,12 @@ const confirmName = () => {
     if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "valley_plume") return ["oddish", "gloom", "vileplume", "paras", "parasect", "eevee", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "paras_shiny", "parasect_shiny", "snolax"];
-    if (mapId === "mapinha13") return ["bulbasaur_flower", "bulbasaur_orange", "butterfree", "caterpie", "butterfree_shiny", "caterpie_shiny", "butterfree_shiny_plus"];
+    if (mapId === "mapinha13") return ["venusaur", "venusaur_shiny", "bulbasaur", "bulbasaur_shiny", "ivysaur", "ivysaur_shiny", "butterfree", "caterpie", "butterfree_shiny", "caterpie_shiny", "butterfree_shiny_plus"];
     if (mapId === "mapinha5") return ["bellsprout", "weepinbell", "victreebel", "voltorb", "electrode", "exeggcute", "exeggutor", "exeggutor_alola", "bellsprout_shiny", "weepinbell_shiny", "victreebel_shiny", "voltorb_shiny", "electrode_shiny", "exeggcute_shiny", "exeggutor_shiny", "exeggutor_alola_shiny", "snolax"];
     if (mapId === "ruinas") return ["geodude", "graveler", "growlithe", "sprigatito", "arcanine", "golem", "graveler_alola", "geodude_shiny", "graveler_shiny", "growlithe_shiny", "arcanine_shiny", "sprigatito_shiny", "golem_shiny", "golem_plus", "arcanine_shiny_plus"];
     if (mapId === "ruinas_de_venus") return ["ekans", "grimer", "gastly", "haunter", "muk", "arbok", "swalot", "ekans_shiny", "grimer_shiny", "gastly_shiny", "haunter_shiny", "muk_shiny", "swalot_shiny", "arbok_shiny"];
     if (mapId === "mapinha8") return ["zubat", "pidgey", "pidgeotto", "pidgeot", "spearow", "golbat", "fearow", "zubat_shiny", "pidgey_shiny", "pidgeotto_shiny", "pidgeot_shiny", "spearow_shiny", "golbat_shiny", "fearow_shiny"];
-    if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || FREE_WALK_MAPS.includes(mapId)) return [];
+    if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
   };
   useEffect(() => {
@@ -3122,6 +3707,7 @@ const confirmName = () => {
         previous?.w === width && previous.h === height ? previous : { w: width, h: height }
       );
       if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, width, height);
+      if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, width, height);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
@@ -3154,6 +3740,10 @@ const confirmName = () => {
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
   const ATTACK_RANGE = 90; // px
+  // Raio de engajamento do POKÉMON: além disso ele não persegue o inimigo.
+  const ENGAGE_RANGE = 420; // px
+  // Treinador para a essa distância do inimigo: ele NÃO entra no combate (fica atrás).
+  const TRAINER_COMBAT_HALT = 220; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
   useEffect(() => {
@@ -3178,6 +3768,9 @@ const confirmName = () => {
   const collidesWithAny = (x: number, y: number) => {
     if (idle.currentMap === "mapinha6") {
       return !isWalkable("mapinha6", x, y);
+    }
+    if (idle.currentMap === "esfera_ancestral") {
+      return !isWalkable("esfera_ancestral", x, y);
     }
     for (const o of obstacles) {
       if (!o.blocks) continue;
@@ -3235,21 +3828,12 @@ const confirmName = () => {
     if (revolandDoorTriggeredRef.current || teleportTransition) return;
     if (!isRevolandOrangeDoor(trainerPos.x, trainerPos.y)) return;
 
-    // Entrar no Pokémarkt custa 2 de energia.
-    if ((trainerEnergyRef.current ?? 0) < TELEPORT_ENERGY_MARKT_COST) {
-      const now = Date.now();
-      if (now - overCapMsgRef.current > 4000) {
-        overCapMsgRef.current = now;
-        pushChat("⚡ Entrar no Pokémarkt custa 2 de energia — coma algo antes!", "info");
-      }
-      return;
-    }
+    // Entrar no Pokémarkt é GRATUITO (sem custo de energia).
     const destination = IDLE_MAPS.mapinha10;
     revolandDoorTriggeredRef.current = true;
     walkTargetRef.current = null;
     setWalkingTo(null);
     setAuto(false);
-    setTrainerEnergy((e) => Math.max(0, e - TELEPORT_ENERGY_MARKT_COST));
     setTeleportTransition({ id: "mapinha10", ...destination });
     teleportTimerRef.current = setTimeout(() => {
       setIdle((state) => ({ ...state, currentMap: "mapinha10" }));
@@ -3257,7 +3841,7 @@ const confirmName = () => {
       setChests([]);
       setMapOrbs([]);
       clearBattleScene();
-      pushChat("Chegou ao Pokemarkt! (-2 ⚡)", "cap");
+      pushChat("Chegou ao Pokemarkt! (grátis)", "cap");
       setTeleportTransition(null);
       teleportTimerRef.current = null;
     }, 4000);
@@ -3282,6 +3866,13 @@ const confirmName = () => {
   // Verdejante 1 oculto: Butterfree Shiny Plus a cada 1000 kills no mapa (SEM aviso no jogo)
   const verdejante1KillsRef = useRef(0);
   const verdejante1PlusDueRef = useRef(false);
+  // Verdejante 1 oculto: Venusaur/Venusaur Shiny a cada 120 kills; Bulbasaur a cada 40; Ivysaur a cada 800 (SEM aviso)
+  const verdejante1VenusKillsRef = useRef(0);
+  const verdejante1VenusDueRef = useRef(false);
+  const verdejante1BulbaKillsRef = useRef(0);
+  const verdejante1BulbaDueRef = useRef(false);
+  const verdejante1IvyKillsRef = useRef(0);
+  const verdejante1IvyDueRef = useRef(false);
   // Rota Flower oculto: shiny a cada 800 kills no mapa (SEM aviso no jogo)
   const rotaFlowerKillsRef = useRef(0);
   const rotaFlowerShinyDueRef = useRef(false);
@@ -3318,11 +3909,37 @@ const confirmName = () => {
   type HealFx = { id: number; x: number; y: number; dx: number; d: number; ring: boolean };
   const [healFx, setHealFx] = useState<HealFx[]>([]);
   const healFxIdRef = useRef(1);
-  const [trainerEnergy, setTrainerEnergy] = useState(100);
-  const trainerEnergyRef = useRef(100);
+  const [trainerEnergy, setTrainerEnergy] = useState(() => {
+    if (typeof window === "undefined") return 100;
+    try {
+      const raw = localStorage.getItem(IDLE_KEY);
+      if (raw) { const o = JSON.parse(raw) as { trainerEnergy?: unknown }; const v = Number(o?.trainerEnergy); if (Number.isFinite(v)) return Math.max(0, Math.min(100, v)); }
+    } catch {}
+    return 100;
+  });
+  const trainerEnergyRef = useRef(trainerEnergy);
   useEffect(() => { trainerEnergyRef.current = trainerEnergy; }, [trainerEnergy]);
-  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan";
+  // Mantém idle.trainerEnergy espelhado para persistência server (game_saves)
+  useEffect(() => {
+    setIdle((s) => (s.trainerEnergy === trainerEnergy ? s : { ...s, trainerEnergy, lastTickAt: Date.now() }));
+  }, [trainerEnergy]);
+  // Restaura energia do servidor (game_saves) sem overwrite por default
+  useEffect(() => {
+    const v = (idle as unknown as { trainerEnergy?: unknown }).trainerEnergy;
+    if (typeof v === "number" && Number.isFinite(v) && Math.abs(v - trainerEnergy) > 0.01) {
+      setTrainerEnergy(Math.max(0, Math.min(100, v)));
+    }
+  }, [idle.trainerEnergy]);
+  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan" | "bottan" | "aspectro" | "gatoancy";
+  const NPC_IMG: Partial<Record<NpcKind, string>> = {
+    gordin: gordinPng, luluzinha: luluzinhaFrontPng, pokemarktClerk: pokemarktClerkUrl,
+    bottan: bottanPng, aspectro: aspectroPng, gatoancy: gatoancyPng,
+    boby: bobyPng, san: sanPng, nanizinha: nanizinhaPng, payka: paykaPng, pan: panPng,
+    bulbaOrange: bulbasaurOrangeUrl, bulbaFlower: bulbasaurFlowerUrl,
+  };
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
+  const npcsRef = useRef<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
+  useEffect(() => { npcsRef.current = npcs; }, [npcs]);
   const [npcDialog, setNpcDialog] = useState<{ kind: NpcKind; page: number } | null>(null);
   // ===== LULUZINHA EVENTO — aparece por sorte nos mapas, some em 20min =====
   // Posição em fração do mundo (0-1) + deslocamento local. Quest: entregar
@@ -3457,6 +4074,41 @@ const confirmName = () => {
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Energia do treinador: +2 a cada 30min de tempo REAL persistido.
+  // Sem tick rápido, sem ganho por ficar parado/mapa/relogar. Relógio
+  // voltado para trás não gera nada (reancora). Teto máximo respeitado.
+  useEffect(() => {
+    const KEY = "rubym.energy.regenAt.v1";
+    const STEP_MS = 30 * 60 * 1000;
+    const STEP_QTY = 2;
+    const MAX_GAP_MS = 12 * 60 * 60 * 1000;
+    const applyRegen = () => {
+      let at: number | null = null;
+      try {
+        const raw = localStorage.getItem(KEY);
+        const v = Number(raw);
+        if (Number.isFinite(v) && v > 0) at = v;
+      } catch { /* ignore */ }
+      const now = Date.now();
+      if (at == null) {
+        try { localStorage.setItem(KEY, String(now)); } catch { /* ignore */ }
+        return;
+      }
+      if (now < at) {
+        try { localStorage.setItem(KEY, String(now)); } catch { /* ignore */ }
+        return;
+      }
+      const span = Math.min(now - at, MAX_GAP_MS);
+      const periods = Math.floor(span / STEP_MS);
+      if (periods <= 0) return;
+      setTrainerEnergy((e) => Math.min(TRAINER_ENERGY_MAX, e + periods * STEP_QTY));
+      try { localStorage.setItem(KEY, String(at + periods * STEP_MS)); } catch { /* ignore */ }
+    };
+    applyRegen();
+    const iv = setInterval(applyRegen, 60000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Recupera HP do líder quando parado sem pokémon por perto
   useEffect(() => {
     const iv = setInterval(() => {
@@ -3498,6 +4150,27 @@ const confirmName = () => {
         { id: 20, kind: "boby", x: 400, y: 560, dir: "down", frame: 0 },
         { id: 21, kind: "san", x: 1050, y: 430, dir: "down", frame: 0 },
         { id: 22, kind: "nanizinha", x: 1000, y: 960, dir: "down", frame: 0 },
+        { id: 25, kind: "bottan", x: 700, y: 850, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "esfera_ancestral") {
+      // Aspectro no topo do corredor caminhável (máscara branca).
+      // LUA NEGRA (gatoancy): nasce ao lado do treinador ao entrar no mapa
+      // e só existe aqui  —  nos outros mapas ele nem é criado.
+      const gatoStart = (() => {
+        const cands = [
+          { x: trainerPos.x - 46, y: trainerPos.y + 58 },
+          { x: trainerPos.x + 46, y: trainerPos.y + 58 },
+          { x: trainerPos.x, y: trainerPos.y + 74 },
+          { x: 528, y: 1100 },
+        ];
+        for (const c of cands) {
+          try { if (isWalkable("esfera_ancestral", c.x, c.y)) return c; } catch { return c; }
+        }
+        return cands[3];
+      })();
+      setNpcs([
+        { id: 26, kind: "aspectro", x: 528, y: 380, dir: "down", frame: 0 },
+        { id: 27, kind: "gatoancy", x: gatoStart.x, y: gatoStart.y, dir: "down", frame: 0 },
       ]);
     } else if (idle.currentMap === "florest_bone") {
       // PAYKA caçando o fóssil raro perto da caveira (1536x1024).
@@ -3523,7 +4196,7 @@ const confirmName = () => {
     if (npcs.length === 0) return;
     const NPC_HOME_RADIUS: Partial<Record<string, number>> = {
       boby: 42, pokemarktClerk: 42, san: 42, nanizinha: 42, payka: 42, pan: 42,
-      gordin: 84, luluzinha: 42,
+      gordin: 84, luluzinha: 42, bottan: 42, aspectro: 0,
     };
     const npcHomeRef = new Map<number, { x: number; y: number }>();
     const iv = setInterval(() => {
@@ -3532,11 +4205,51 @@ const confirmName = () => {
         if (n.kind.startsWith("bulba")) {
           return { ...n, frame: (n.frame + 1) % 4 };
         }
+        // ===== LUA NEGRA (gatoancy): segue o treinador com colisão real =====
+        // Sem teleport: só passos curtos testados em isWalkable (eixo separado
+        // como o treinador faz). Frame próprio (nunca usa walkStep do treinador).
+        if (n.kind === "gatoancy") {
+          const tp = trainerPosRef.current;
+          const wd = walkDirRef.current;
+          const back = wd === "left" ? { x: 1, y: 0 } : wd === "right" ? { x: -1, y: 0 }
+            : wd === "up" ? { x: 0, y: 1 } : { x: 0, y: -1 };
+          // fica atrás e um pouco ao lado do treinador (não grudado)
+          const tx = tp.x + back.x * 74 + back.y * 26;
+          const ty = tp.y + back.y * 74 + back.x * 26;
+          const dx = tx - n.x, dy = ty - n.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 6) return n.frame === 0 ? n : { ...n, frame: 0 };
+          const FOLLOW_SPEED = 16; // px por tick (140ms)  —  alcança o treinador
+          const total = Math.min(dist, FOLLOW_SPEED);
+          const ux = dx / dist, uy = dy / dist;
+          let nx = n.x, ny = n.y, moved = false;
+          // sub-passos curtos: cada trecho precisa ser caminhável (sem atravessar paredes)
+          const sub = Math.max(1, Math.ceil(total / 5));
+          const inc = total / sub;
+          for (let s = 0; s < sub; s++) {
+            const px = nx + ux * inc, py = ny + uy * inc;
+            let ok = false;
+            try { ok = isWalkable(mapId, px, py); } catch { ok = true; }
+            if (ok) { nx = px; ny = py; moved = true; continue; }
+            // trava no eixo dominante  —  igual à colisão do treinador
+            const altX = Math.abs(ux) >= Math.abs(uy);
+            let ax = nx, ay = ny;
+            try { if (altX) { if (isWalkable(mapId, nx + ux * inc, ny)) { ax = nx + ux * inc; } } else { if (isWalkable(mapId, nx, ny + uy * inc)) { ay = ny + uy * inc; } } } catch { /* libera */ }
+            if (ax !== nx || ay !== ny) { nx = ax; ny = ay; moved = true; }
+            break;
+          }
+          if (!moved) return n.frame === 0 ? n : { ...n, frame: 0 };
+          const dir: Dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+          return { ...n, x: nx, y: ny, dir, frame: (n.frame + 1) % 4 };
+        }
         if (!npcHomeRef.has(n.id)) npcHomeRef.set(n.id, { x: n.x, y: n.y });
         const home = npcHomeRef.get(n.id)!;
         const radius = NPC_HOME_RADIUS[n.kind] ?? 60;
         // Raio 0: parado, só anima o sprite.
-        if (radius <= 0) return { ...n, frame: (n.frame + 1) % 4 };
+        if (radius <= 0) {
+          if (n.kind === "aspectro") return { ...n, frame: 0, dir: "down" };
+          return { ...n, frame: (n.frame + 1) % 4 };
+        }
         const dirs: Dir[] = ["down", "left", "right", "up"];
         const shouldTurn = Math.random() < 0.14;
         const dir = shouldTurn ? dirs[Math.floor(Math.random() * 4)] : n.dir;
@@ -3571,7 +4284,7 @@ const confirmName = () => {
   // Cidade inicial (mapa de 1 energia = área segura): automático sempre
   // desligado. Cobre TODAS as formas de chegada (teleporte, portal, evento).
   useEffect(() => {
-    if (teleportEnergyCostFor(idle.currentMap) !== 1) return;
+    if (idle.currentMap !== TELEPORT_HOME_MAP_ID) return;
     if (autoRef.current) {
       setAuto(false);
       walkTargetRef.current = null;
@@ -3691,7 +4404,7 @@ const confirmName = () => {
 
 
 
-  // Hotkeys globais: ESPAÇO = liga/desliga auto; 1/2/3 = trocar pokébola (poké/great/ultra).
+  // Hotkeys globais: ESPA�!O = liga/desliga auto; 1/2/3 = trocar pokébola (poké/great/ultra).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -3702,7 +4415,7 @@ const confirmName = () => {
         setIdle((s) => {
           const ab = s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
           const next = !ab.enabled;
-          if (next && teleportEnergyCostFor(s.currentMap) === 1) {
+          if (next && s.currentMap === TELEPORT_HOME_MAP_ID) {
             queueMicrotask(() => pushChat("😴 Cidade inicial é área segura — viaje para um mapa de caça para ligar o automático.", "info"));
             return s;
           }
@@ -3879,34 +4592,24 @@ const confirmName = () => {
     }
 
     // ===== Códigos PRÉ-REGISTRO (IDLM-XXXX-XXXX — traços opcionais, 1 uso por conta) =====
-    // 01 → 1× EGG Emerald 💚 · 02 → 50× cada Stone · 03 → 300 💎 · 04 → 3× Livro EXP + 3× Orb XP · 05 → 30.000 🪙
-    const PREREG_CODES: Record<string, { items?: Record<string, number>; gold?: number; crystals?: number; msg: string; chat: string }> = {
-      IDLM4L4USAFH: {
-        items: { emerald_egg: 1 },
-        msg: "💚 1× EGG Emerald entregue! Alimente com 5 stones do mesmo tipo.",
-        chat: "🎉 Código pré-registro 01: +1× EGG Emerald 💚!",
-      },
-      IDLMWZNHZFJT: {
-        items: { stone_grass: 50, stone_fire: 50, stone_water: 50, stone_electric: 50, stone_dark: 50, stone_dragon: 50 },
-        msg: "💠 +50 de cada Stone Elemental entregues!",
-        chat: "🎉 Código pré-registro 02: +50× cada Stone Elemental!",
-      },
-      IDLMZMMGAMDV: {
-        crystals: 300,
-        msg: "💎 +300 Cristais entregues!",
-        chat: "🎉 Código pré-registro 03: +300 💎 Cristais!",
-      },
-      IDLMGKPAHVTZ: {
-        items: { book_exp: 3, orb_xp_minor: 3 },
-        msg: "📚 +3 Livros de EXP e +3 Orbs de XP entregues!",
-        chat: "🎉 Código pré-registro 04: +3× Livro EXP e +3× Orb XP!",
-      },
-      IDLMZKPX2HW4: {
-        gold: 30000,
-        msg: "🪙 +30.000 Ouro entregue!",
-        chat: "🎉 Código pré-registro 05: +30.000 🪙 Ouro!",
-      },
-    };
+    // 01 �  1� EGG Emerald �xa · 02 �  50� cada Stone · 03 �  300 �x} · 04 �  3� Livro EXP + 3� Orb XP · 05 �  30.000 �x�"
+    const PREREG_CODES: Record<string, { crystals?: number; gold?: number; items?: Record<string, number>; msg: string; chat: string }> = {
+  IDLMZMMGAMDV: {
+    crystals: 300,
+    msg: "+300 Cristais entregues!",
+    chat: "Código prê-registro 03: +300 Cristais!",
+  },
+  IDLMGKPAHVTZ: {
+    items: { book_exp: 3, orb_xp_minor: 3 },
+    msg: "+3 Livros de EXP e +3 Orbs de XP entregues!",
+    chat: "Código prê-registro 04: +3 Livro EXP e +3 Orb XP!",
+  },
+  IDLMZKPX2HW4: {
+    gold: 30000,
+    msg: "+30.000 Ouro entregue!",
+    chat: "Código prê-registro 05: +30.000 Ouro!",
+  },
+};
     const prereg = PREREG_CODES[raw];
     if (prereg) {
       const base = idleRef.current;
@@ -3950,7 +4653,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
-      setCodeMsg({ kind: "ok", text: `💎 +${crystalAmount.toLocaleString("pt-BR")} Cristais entregues!` });
+      setCodeMsg({ kind: "ok", text: `�x} +${crystalAmount.toLocaleString("pt-BR")} Cristais entregues!` });
       setCodeInput("");
       pushChat(`🎉 Código ${raw}: +${crystalAmount.toLocaleString("pt-BR")} 💎 Cristais.`, "cap");
       return;
@@ -4020,7 +4723,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "💎 +20 000 Cristais entregues!" });
+      setCodeMsg({ kind: "ok", text: "�x} +20 000 Cristais entregues!" });
       setCodeInput("");
       pushChat(`🎉 Código CRYSTAL20K: +20 000 💎 Cristais.`, "cap");
       return;
@@ -4057,9 +4760,26 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "✦ Livro VIP 30d + 25 Ultra Balls + Ovo Épico entregues!" });
+      setCodeMsg({ kind: "ok", text: "�S� Livro VIP 30d + 25 Ultra Balls + Ovo �0pico entregues!" });
       setCodeInput("");
       pushChat(`🎉 Código ${raw}: 1× Livro VIP 30d + 25× Ultra Ball + 1× Ovo Épico ✦.`, "cap");
+      return;
+    }
+
+    // ENERGIA5X � +5 Energéticos (uso único por conta).
+    if (raw === "ENERGIA5X") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, energetico: (base.items.energetico ?? 0) + 5 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "�a� +5 Energéticos entregues!" });
+      setCodeInput("");
+      pushChat(`�x}0 Código ENERGIA5X: +5 �a� Energéticos.`, "cap");
       return;
     }
 
@@ -4074,7 +4794,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "💎 +20 000 Cristais + 100× Ultra Ball entregues!" });
+      setCodeMsg({ kind: "ok", text: "�x} +20 000 Cristais + 100� Ultra Ball entregues!" });
       setCodeInput("");
       pushChat(`🎉 Código CRYULTRA100: +20 000 💎 Cristais + 100× Ultra Ball.`, "cap");
       return;
@@ -4091,7 +4811,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "💎 +60 000 Cristais + 50× Ultra Ball entregues!" });
+      setCodeMsg({ kind: "ok", text: "�x} +60 000 Cristais + 50� Ultra Ball entregues!" });
       setCodeInput("");
       pushChat(`🎉 Código CRYULTRA50: +60 000 💎 Cristais + 50× Ultra Ball.`, "cap");
       return;
@@ -4110,7 +4830,7 @@ const confirmName = () => {
       try { localStorage.setItem(codeKey, "1"); } catch {}
       setCodeMsg({ kind: "ok", text: "🔥 Ovo Mítico Charizard Lv 50 + 2 000 Cristais entregues!" });
       setCodeInput("");
-      pushChat(`🎉 Código CHARIZ50: 1× Ovo Mítico Charizard Lv 50 + 2 000 💎 Cristais.`, "cap");
+      pushChat(`�x}0 Código CHARIZ50: 1� Ovo Mítico Charizard Lv 50 + 2 000 �x} Cristais.`, "cap");
       return;
     }
 
@@ -4245,7 +4965,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "🔥 Ovo Épico Charizard + VIP 30 dias entregues!" });
+      setCodeMsg({ kind: "ok", text: "�x� Ovo �0pico Charizard + VIP 30 dias entregues!" });
       setCodeInput("");
       pushChat(`🎉 Código CHARIZEPIC30: 1× Ovo Charizard + VIP 30 dias (+30% XP/Gold).`, "cap");
       return;
@@ -4281,9 +5001,9 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "🔥 Charizard Épico + VIP 30 dias + 1 000 💎 Cristais entregues!" });
+      setCodeMsg({ kind: "ok", text: "�x� Charizard �0pico + VIP 30 dias + 1 000 �x} Cristais entregues!" });
       setCodeInput("");
-      pushChat(`🎉 Código ${raw}: 1× Charizard Épico Lv 50 + VIP 30d + 1 000 💎 Cristais.`, "cap");
+      pushChat(`�x}0 Código ${raw}: 1� Charizard �0pico Lv 50 + VIP 30d + 1 000 �x} Cristais.`, "cap");
       return;
     }
 
@@ -4324,9 +5044,9 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: "🥚 5× Ovo Épico + 10 000 💎 Cristais entregues!" });
+      setCodeMsg({ kind: "ok", text: "�x�a 5� Ovo �0pico + 10 000 �x} Cristais entregues!" });
       setCodeInput("");
-      pushChat(`🎉 Código EPIC5EGG: 5× Ovo Épico + 10 000 💎 Cristais.`, "cap");
+      pushChat(`�x}0 Código EPIC5EGG: 5� Ovo �0pico + 10 000 �x} Cristais.`, "cap");
       return;
     }
 
@@ -4343,7 +5063,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: `⭐ +50 níveis de treinador! (Lv ${curLv} → ${newLv})` });
+      setCodeMsg({ kind: "ok", text: `⭐ +50 níveis de treinador! (Lv ${curLv} �  ${newLv})` });
       setCodeInput("");
       pushChat(`🎉 Código LVUP50: +50 níveis de treinador (Lv ${curLv} → ${newLv}).`, "cap");
       return;
@@ -4372,7 +5092,7 @@ const confirmName = () => {
       setIdle(next);
       persistCodeReward(next);
       try { localStorage.setItem(codeKey, "1"); } catch {}
-      setCodeMsg({ kind: "ok", text: `⭐ +${add} níveis de treinador! (Lv ${curLv} → ${newLv})` });
+      setCodeMsg({ kind: "ok", text: `⭐ +${add} níveis de treinador! (Lv ${curLv} �  ${newLv})` });
       setCodeInput("");
       pushChat(`🎉 Código ${raw}: +${add} níveis de treinador (Lv ${curLv} → ${newLv}).`, "cap");
       return;
@@ -4543,7 +5263,7 @@ const confirmName = () => {
 
 
     // GOV6CARDS1..4 — 6 Cartas Lendárias (single-use)
-    // GOV1CARD — 1 Carta Lendária
+    // GOV1CARD � 1 Carta Lendária
     // GOV5CARDS1..2 — 5 Cartas Lendárias
     const bigCardMap: Record<string, number> = {
       GOV6CARDS1: 6, GOV6CARDS2: 6, GOV6CARDS3: 6, GOV6CARDS4: 6,
@@ -4671,10 +5391,13 @@ const confirmName = () => {
     const trail = trailRef.current;
     const last = trail[trail.length - 1];
     if (last && Math.hypot(last.x - trainerPos.x, last.y - trainerPos.y) > 220) {
-      const dirOffset = walkDirRef.current === "left" ? { x: 88, y: 28 }
-        : walkDirRef.current === "right" ? { x: -88, y: 28 }
-        : walkDirRef.current === "up" ? { x: 0, y: 92 }
-        : { x: 0, y: -92 };
+    // FASE 4: à frente só com AUTO; senão atrás (original).
+    const front = autoRef.current;
+    const wd = walkDirRef.current;
+    const dirOffset = wd === "left" ? { x: front ? -88 : 88, y: 28 }
+      : wd === "right" ? { x: front ? 88 : -88, y: 28 }
+      : wd === "up" ? { x: 0, y: front ? -92 : 92 }
+      : { x: 0, y: front ? 92 : -92 };
       const next = { x: trainerPos.x + dirOffset.x, y: trainerPos.y + dirOffset.y, dir: walkDirRef.current, moving: false };
       trailRef.current = [{ x: next.x, y: next.y }, { x: trainerPos.x, y: trainerPos.y }];
       followerStateRef.current = next;
@@ -4687,35 +5410,69 @@ const confirmName = () => {
     }
   }, [trainerPos]);
 
-  // Loop de animação: follower persegue um ponto distante atrás do treinador na trilha
+  // Loop de animação do follower (Pokémon líder).
+  // FASE 4 (AUTO ON): fica ì FRENTE do treinador (TREINADOR �  POK�0MON �  INIMIGO).
+  // AUTO OFF (movimento normal): segue atrás pela trilha, como sempre foi.
   useEffect(() => {
     let raf = 0;
     const FOLLOW_DIST = 88;
     const MAX_SPEED = 6.6; // px por frame
     const loop = () => {
-      const trail = trailRef.current;
-      if (trail.length > 0) {
-        // Encontra ponto na trilha ~FOLLOW_DIST atrás do topo
-        let acc = 0;
-        let tx = trail[0].x, ty = trail[0].y;
-        for (let i = trail.length - 1; i > 0; i--) {
-          const a = trail[i], b = trail[i - 1];
-          const seg = Math.hypot(a.x - b.x, a.y - b.y);
-          if (acc + seg >= FOLLOW_DIST) {
-            const t = (FOLLOW_DIST - acc) / seg;
-            tx = a.x + (b.x - a.x) * t;
-            ty = a.y + (b.y - a.y) * t;
-            break;
+      {
+        let tx: number, ty: number;
+        if (autoRef.current) {
+          const wd = walkDirRef.current;
+          const fx = wd === "left" ? -1 : wd === "right" ? 1 : 0;
+          const fy = wd === "up" ? -1 : wd === "down" ? 1 : 0;
+          tx = trainerPosRef.current.x + fx * FOLLOW_DIST;
+          ty = trainerPosRef.current.y + fy * FOLLOW_DIST;
+        } else {
+          const trail = trailRef.current;
+          if (trail.length === 0) {
+            raf = requestAnimationFrame(loop);
+            return;
           }
-          acc += seg;
-          tx = b.x; ty = b.y;
+          // Ponto na trilha ~FOLLOW_DIST atrás do topo (comportamento normal original)
+          let acc = 0;
+          tx = trail[0].x; ty = trail[0].y;
+          for (let i = trail.length - 1; i > 0; i--) {
+            const a = trail[i], b = trail[i - 1];
+            const seg = Math.hypot(a.x - b.x, a.y - b.y);
+            if (acc + seg >= FOLLOW_DIST) {
+              const t = (FOLLOW_DIST - acc) / seg;
+              tx = a.x + (b.x - a.x) * t;
+              ty = a.y + (b.y - a.y) * t;
+              break;
+            }
+            acc += seg;
+            tx = b.x; ty = b.y;
+          }
+        }
+        // AUTO COMBATE tem prioridade: vai até a posição de ataque do alvo.
+        let combatSpeed = 0;
+        const cm = combatMoveRef.current;
+        if (autoRef.current && cm) {
+          const fp = followerStateRef.current;
+          if (cm.hold) {
+            // Dentro do alcance: fica PARADO no lugar (não volta pros 88px nem persegue).
+            tx = fp.x; ty = fp.y;
+          } else {
+            tx = cm.x; ty = cm.y;
+            combatSpeed = 7.5;
+            if (Math.hypot(tx - fp.x, ty - fp.y) < 8) {
+              // Chegou na posição de ataque: FICA (vira hold) em vez de voltar
+              // pros 88px — senão anda até o inimigo, volta, anda de novo em loop.
+              // O tick de batalha (900ms) recalcula: ataca, reapromixa ou libera.
+              combatMoveRef.current = { ...cm, hold: true };
+            }
+          }
         }
         const prev = followerStateRef.current;
         const dx = tx - prev.x;
         const dy = ty - prev.y;
         const dist = Math.hypot(dx, dy);
         if (dist > 0.4) {
-          const step = Math.min(dist, MAX_SPEED);
+          const step = Math.min(dist, combatSpeed > 0 ? combatSpeed : MAX_SPEED);
           const nx = prev.x + (dx / dist) * step;
           const ny = prev.y + (dy / dist) * step;
           let dir: Dir = prev.dir;
@@ -4884,6 +5641,89 @@ const confirmName = () => {
   const mewtwoBallsRef = useRef<Map<number, number>>(new Map());
   // Contador de Ultra Balls arremessadas em bosses raros (Dragonite Shiny / Zapdos / Raichu Mítico).
   const bossBallsRef = useRef<Map<number, number>>(new Map());
+  // FASE 3: 10 arremessos por encontro (por id do inimigo). Bosses com mecânica
+  // própria de mínimo (mewtwo/bosses/eventos) são isentos � fugir aos 10
+  // quebraria o design deles. Ref = fonte da verdade; state = espelho p/ HUD.
+  const MAX_THROWS_PER_ENEMY = 10;
+  const throwsPerEnemyRef = useRef<Map<number, number>>(new Map());
+  const [throwsPerEnemy, setThrowsPerEnemy] = useState<Record<number, number>>({});
+  const BOSS_MIN_SPECIES: Record<string, true> = {
+    mewtwo_event: true, dragonite_shiny: true, zapdos: true, blastoise_shiny: true,
+    rayquaza: true, onix_shiny: true, riolu: true,
+  };
+  const isExempt10 = (t: { sp: Species; rarity: Rarity; level: number; menace?: boolean; mtcBoss?: boolean; eventLegendary?: boolean }) =>
+    !!t.menace || !!t.mtcBoss || !!t.eventLegendary || (t.level ?? 0) >= 500 ||
+    !!BOSS_MIN_SPECIES[t.sp] || (t.sp === "raichu" && (t.rarity === "mythic" || t.rarity === "mythic_shiny"));
+  const bumpEnemyThrow = (id: number): number => {
+    const n = (throwsPerEnemyRef.current.get(id) ?? 0) + 1;
+    throwsPerEnemyRef.current.set(id, n);
+    setThrowsPerEnemy((prev) => ({ ...prev, [id]: n }));
+    return n;
+  };
+  const clearEnemyThrows = (id: number) => {
+    throwsPerEnemyRef.current.delete(id);
+    setThrowsPerEnemy((prev) => {
+      if (!(id in prev)) return prev;
+      const n = { ...prev };
+      delete n[id];
+      return n;
+    });
+  };
+  const fleeEnemy = (id: number, sp: Species) => {
+    clearEnemyThrows(id);
+    setEnemies((cur) => cur.filter((e) => e.id !== id));
+    setAttackTargetId((c) => (c === id ? null : c));
+    pushChat(`�x� ${sp.replace(/_/g, " ").toUpperCase()} fugiu! (10 arremessos)`, "info");
+  };
+  // LOADING de teleport (5s) + FASE 4: toda troca de mapa entra com AUTO OFF.
+  const [mapLoading, setMapLoading] = useState<{ img: string } | null>(null);
+  const [mapLoadingImgOk, setMapLoadingImgOk] = useState(true);
+  const mapLoadingRef = useRef(false);
+  const mapLoadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevMapRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const cur = idle.currentMap as string;
+    if (prevMapRef.current === null) { prevMapRef.current = cur; return; }
+    if (prevMapRef.current === cur) return;
+    prevMapRef.current = cur;
+    // FASE 4: AUTO OFF nos dois autos, sem alvo, sem resume de caminhada.
+    try { setAuto(false); } catch { /* ignore */ }
+    try {
+      setIdle((s: any) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
+    } catch { /* ignore */ }
+    setAttackTargetId(null);
+    attackTargetIdRef.current = null;
+    combatMoveRef.current = null;
+    setSkillFx(null);
+    if (skillFxTimerRef.current) clearTimeout(skillFxTimerRef.current);
+    // Limpa projéteis/áreas de skills (sem resíduo entre mapas).
+    setSkillProj([]);
+    setSkillArea([]);
+    for (const t of skillTimersRef.current) clearTimeout(t);
+    skillTimersRef.current = [];
+    walkTargetRef.current = null;
+    try { setWalkingTo(null); } catch { /* ignore */ }
+    try { keysRef.current.clear(); } catch { /* ignore */ }
+    // FASE 3: contadores 0/10 zeram na troca de mapa.
+    try { throwsPerEnemyRef.current.clear(); setThrowsPerEnemy({}); } catch { /* ignore */ }
+    // LOADING 7s com imagem aleatória da pasta load (Esfera Ancestral usa a própria).
+    if (mapLoadTimerRef.current) clearTimeout(mapLoadTimerRef.current);
+    const img = cur === "esfera_ancestral" ? aspecLoadImg : LOAD_IMGS[Math.floor(Math.random() * LOAD_IMGS.length)];
+    // Esfera Ancestral começa com 100% de zoom.
+    if (cur === "esfera_ancestral") { try { setZoom(1); } catch { /* ignore */ } }
+    mapLoadingRef.current = true;
+    setMapLoadingImgOk(true);
+    setMapLoading({ img });
+    mapLoadTimerRef.current = setTimeout(() => {
+      mapLoadingRef.current = false;
+      setMapLoading(null);
+      mapLoadTimerRef.current = null;
+    }, 7000);
+    return () => {
+      if (mapLoadTimerRef.current) { clearTimeout(mapLoadTimerRef.current); mapLoadTimerRef.current = null; }
+    };
+  }, [idle.currentMap]);
   const DRAGONITE_SHINY_MIN_BALLS = 700;
   const ZAPDOS_MIN_BALLS = 1000;
   const RAICHU_MYTHIC_MIN_BALLS = 2000;
@@ -4941,7 +5781,7 @@ const confirmName = () => {
 
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setMapTeleportOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); return; }
+      if (k === "r") { e.preventDefault(); pushChat("�x�  Ranked temporariamente bloqueado.", "info"); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
@@ -5250,7 +6090,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setTimeout(() => {
         pushChat(`🧙 SÁBIO DAS COLMEIAS: "Bem-vindo, treinador! Aqui vivem Guardiões Anti-Paralisia..."`, "info");
         pushChat(`🧙 "Ditto, Ditto ✦, Electabuzz, Gengar, Hitmontop, Magneton, Scizor e Umbreon."`, "info");
-        pushChat(`🧙 "Basta 2 deles no seu time para ativar a Muralha Elétrica. Quanto mais raros, mais imune à paralisia — reduz até 85% da duração!"`, "info");
+        pushChat(`�x�" "Basta 2 deles no seu time para ativar a Muralha Elétrica. Quanto mais raros, mais imune à paralisia � reduz até 85% da duração!"`, "info");
       }, 800);
     }
   };
@@ -5309,7 +6149,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           walkTargetRef.current = null;
           setWalkingTo(null);
           setWalkMarker(null);
-          if (wt.resumeAuto && (autoBattleRef.current?.enabled ?? true) && teleportEnergyCostFor(idleRef.current.currentMap) !== 1) setAuto(true);
+          if (wt.resumeAuto && (autoBattleRef.current?.enabled ?? true) && idleRef.current.currentMap !== TELEPORT_HOME_MAP_ID) setAuto(true);
           return;
         }
         setTrainerPos((tp) => {
@@ -5322,7 +6162,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             setWalkingTo(null);
             setWalkMarker(null);
             wt.onArrive?.();
-            if (resume && (autoBattleRef.current?.enabled ?? true) && teleportEnergyCostFor(idleRef.current.currentMap) !== 1) setAuto(true);
+            if (resume && (autoBattleRef.current?.enabled ?? true) && idleRef.current.currentMap !== TELEPORT_HOME_MAP_ID) setAuto(true);
             if (moving) setMoving(false);
             return tp;
           }
@@ -5408,7 +6248,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         type Tgt = { x: number; y: number; kind: "enemy" | "chest"; id: number; range: number };
         const candidates: Tgt[] = [
           ...openChests.map((c) => ({ x: c.x, y: c.y, kind: "chest" as const, id: c.id, range: 30 })),
-          ...enemyPool.map((e) => ({ x: e.x, y: e.y, kind: "enemy" as const, id: e.id, range: ATTACK_RANGE * 0.7 })),
+          ...enemyPool.map((e) => ({ x: e.x, y: e.y, kind: "enemy" as const, id: e.id, range: TRAINER_COMBAT_HALT })),
         ];
         // CAÇADA CURTA: só persegue o que está por perto (inimigo ≤420, baú ≤550).
         // Nada por perto = anda um pouco e para (wander), sem atravessar o mapa.
@@ -5625,7 +6465,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const tx = followerNow.x;
         const ty = followerNow.y;
         const nowB = Date.now();
-        const isBulbaSp = (sp: Species) => sp === "bulbasaur_flower" || sp === "bulbasaur_orange" || sp === "vaporeon";
+        const isBulbaSp = (sp: Species) => sp === "venusaur" || sp === "venusaur_shiny" || sp === "vaporeon";
         const tid = attackTargetIdRef.current;
         const playerTarget = tid != null ? prev.find((o) => o.id === tid && o.hp > 0 && o.hp < o.maxHp) ?? null : null;
         const healPlan: { healerId: number; targetId: number; amount: number; x: number; y: number }[] = [];
@@ -5690,7 +6530,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 const cdy = ty - ne.y;
                 const cdist = Math.hypot(cdx, cdy);
                 const caggroR = ne.aggroR ?? 180;
-                if (cdist >= 50 && cdist <= caggroR) {
+                // Para na distância ideal da sua skill (não gruda no alvo)
+                const cStandoff = enemyStandoffFor(ne.sp);
+                if (cdist >= cStandoff && cdist <= caggroR) {
                   const cnx = ne.x + (cdx / cdist) * 3;
                   const cny = ne.y + (cdy / cdist) * 3;
                   if (!collidesWithAny(cnx, cny)) {
@@ -5751,6 +6593,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }
               return { ...ne, wx: undefined, wy: undefined };
             }
+            // Encontro oportunista (comportamento de mundo): errantes às vezes
+            // DECIDEM atacar ao notar o pokémon — com variação de tempo por inimigo.
+            // Passivos nunca iniciam; agressivos naturais já perseguem.
+            if (!ne.aggressive && ne.behavior !== "passive" && nowB > (ne.nextEngageAt ?? 0)) {
+              const nd = Math.hypot(tx - ne.x, ty - ne.y);
+              const noticeR = ne.detectionRadius ?? ne.aggroR ?? 180;
+              if (nd <= noticeR && Math.random() < 0.06) {
+                const dur = 12000 + Math.random() * 8000;
+                changed = true;
+                return { ...ne, aggressive: true, engageUntil: nowB + dur, nextEngageAt: nowB + dur + 10000 + Math.random() * 15000, aiState: "CHASING_PLAYER" };
+              }
+              if (nd <= noticeR) {
+                changed = true;
+                ne = { ...ne, nextEngageAt: nowB + 3000 };
+              }
+            }
             // WANDER ancorado em spawnX/spawnY (RETURNING se longe demais)
             const sX = ne.spawnX ?? ne.x;
             const sY = ne.spawnY ?? ne.y;
@@ -5807,6 +6665,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             return { ...ne, aiState: "IDLE" };
           }
           // CHASING_PLAYER com maxChaseDistance (ancorado no spawn)
+          // Encontro oportunista expirou → volta à vida selvagem (sem perseguir p/ sempre)
+          if (ne.engageUntil != null && nowB > ne.engageUntil) {
+            changed = true;
+            return { ...ne, aggressive: false, engageUntil: undefined, aiState: "RETURNING", wx: undefined, wy: undefined };
+          }
           const sX2 = ne.spawnX ?? ne.x;
           const sY2 = ne.spawnY ?? ne.y;
           const maxChase = ne.maxChaseDistance ?? 340;
@@ -5827,13 +6690,27 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const dy = ty - ne.y;
           const dist = Math.hypot(dx, dy);
           const aggroR = ne.detectionRadius ?? ne.aggroR ?? 180;
-          if (dist < 50 || dist > aggroR) return { ...ne, aiState: dist < 50 ? "ATTACKING" : "WANDER" };
+          // Para na distância ideal da skill (ou 50px corpo a corpo) — não exige alinhamento
+          const standoff = enemyStandoffFor(ne.sp);
+          if (dist <= standoff || dist > aggroR) {
+            if (dist > aggroR) return { ...ne, aiState: "WANDER" };
+            // Face é só visual: mantém virado para o alvo enquanto espera
+            const nface = (Math.abs(dx) > 8 ? (dx >= 0 ? "right" : "left") : ne.face) as "left" | "right";
+            if (nface !== ne.face) changed = true;
+            return { ...ne, aiState: "ATTACKING", face: nface };
+          }
+          // Anti-colagem: cada inimigo mira um ponto levemente deslocado (ângulo
+          // determinístico pelo id) — 2+ inimigos não empilham no mesmo pixel.
+          const sepA = ((ne.id * 137) % 360) * Math.PI / 180;
+          const mdx = (tx + Math.cos(sepA) * 34) - ne.x;
+          const mdy = (ty + Math.sin(sepA) * 34) - ne.y;
+          const md = Math.hypot(mdx, mdy) || 1;
           const speed = 3;
-          const nx = ne.x + (dx / dist) * speed;
-          const ny = ne.y + (dy / dist) * speed;
+          const nx = ne.x + (mdx / md) * speed;
+          const ny = ne.y + (mdy / md) * speed;
           if (collidesWithAny(nx, ny)) return ne;
           changed = true;
-          return { ...ne, x: nx, y: ny, aiState: "CHASING_PLAYER", wdir: (Math.abs(dx) > Math.abs(dy) ? (dx >= 0 ? "right" : "left") : (dy >= 0 ? "down" : "up")) as Dir, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
+          return { ...ne, x: nx, y: ny, aiState: "CHASING_PLAYER", wdir: (Math.abs(mdx) > Math.abs(mdy) ? (mdx >= 0 ? "right" : "left") : (mdy >= 0 ? "down" : "up")) as Dir, face: (dx >= 0 ? "right" : "left") as "left" | "right" };
         });
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
@@ -5844,6 +6721,79 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     return () => clearInterval(iv);
   }, [enemies, moving, obstacles, chests]);
 
+  // ================= WAVES / SPAWNER CONTROLADO =================
+  // Onda = floor(totalKills / KILLS_PER_WAVE) + 1 (persistente, nunca reseta
+  // ao trocar de mapa). Controla densidade, cadência, agressividade e raridade.
+  const WAVE_KILLS_PER_LEVEL = 1000;
+  const SHINY_MILESTONE_KILLS = 100;
+  const MIN_ENEMY_SPAWN_DISTANCE_BONUS = 0; // somado ao MIN_DIST existente
+  const MIN_PLAYER_SPAWN_DISTANCE = 140;
+  const MIN_NPC_SPAWN_DISTANCE = 56;
+  // Gancho futuro: por mapa (kills por onda, teto, viés). Vazio = regra global.
+  const WAVE_MAP_CONFIG: Partial<Record<string, { killsPerWave?: number; maxAliveCap?: number }>> = {};
+  const waveOf = (kills: number, map?: string): number => {
+    const per = (map && WAVE_MAP_CONFIG[map]?.killsPerWave) || WAVE_KILLS_PER_LEVEL;
+    return Math.floor(Math.max(0, kills) / per) + 1;
+  };
+  type WaveCfg = { maxAlive: number; spawnMinMs: number; spawnMaxMs: number; aggressiveChance: number; rareChance: number; epicChance: number; mythicChance: number; shinyKeep: number };
+  const waveCfg = (wave: number): WaveCfg => {
+    const w = Math.max(1, wave);
+    return {
+      maxAlive: Math.min(4 + w, 10),
+      spawnMinMs: Math.max(1500, 4500 - 500 * w),
+      spawnMaxMs: Math.max(3500, 9000 - 1000 * w),
+      aggressiveChance: Math.min(0.05 + 0.04 * (w - 1), 0.35),
+      rareChance: Math.min(0.06 + 0.02 * (w - 1), 0.20),
+      epicChance: Math.min(0.015 + 0.008 * (w - 1), 0.08),
+      mythicChance: Math.min(0.004 + 0.003 * (w - 1), 0.025),
+      shinyKeep: Math.min(0.12 + 0.01 * w, 0.30),
+    };
+  };
+  // Tetos por mapa (preserva o balanceamento existente de cada mapa).
+  const mapSpawnCap = (map: string): number => {
+    const over = WAVE_MAP_CONFIG[map]?.maxAliveCap;
+    if (over != null) return over;
+    if (map === "arena") return 12;
+    if (map === "mapinha7") return 8;
+    if (map === "mapinha13" || map === "mapinha5" || map === "ruinas" || map === "ruinas_de_venus" || map === "mapinha8") return 3;
+    if (map === "florest_ice" || map === "florest_bone" || map === "valley_plume") return 6;
+    return 7;
+  };
+  const waveTargetFor = (map: string, wave: number): number =>
+    Math.max(2, Math.min(mapSpawnCap(map), waveCfg(wave).maxAlive));
+  // Spawner por wave só atua em mapas de batalha (seguras/eventos têm regras próprias).
+  const isWaveSpawnMap = (map: string): boolean =>
+    !["esfera_ancestral", "mapinha6", "mapinha9", "mapinha10", "mapinha11", "mapinha12", "arena"].includes(map);
+  // Posição de ataque: ponto walkable à distância preferida (≈ alcance × margem)
+  // do alvo, do lado do atacante. Sem preferD, usa o padrão corpo a corpo.
+  const getAttackPosition = (ax: number, ay: number, tx: number, ty: number, mapId: string, preferD?: number): { x: number; y: number } => {
+    const dx = tx - ax, dy = ty - ay;
+    const base = Math.hypot(dx, dy) || 1;
+    const ux = dx / base, uy = dy / base;
+    const bounds = customDims ? { w: customDims.w, h: customDims.h } : { w: WORLD_W, h: WORLD_H };
+    const ok = (x: number, y: number) => {
+      if (x < 20 || y < 20 || x > bounds.w - 20 || y > bounds.h - 20) return false;
+      try { if (!isWalkable(mapId, x, y)) return false; } catch { /* sem grid: libera */ }
+      return true;
+    };
+    const dists = preferD != null ? [preferD, 70, 56, 42].filter((d, i, a) => a.indexOf(d) === i) : [70, 56, 42];
+    const angs = [0, 0.7, -0.7, 1.4, -1.4, Math.PI];
+    for (const d of dists) {
+      for (const a of angs) {
+        const ca = Math.cos(a), sa = Math.sin(a);
+        const rx = ux * ca - uy * sa, ry = ux * sa + uy * ca;
+        const px = tx - rx * d, py = ty - ry * d;
+        if (ok(px, py)) return { x: px, y: py };
+      }
+    }
+    return { x: ax, y: ay };
+  };
+  // Refs do sistema de waves (sem re-render: só lógica + chat).
+  const combatMoveRef = useRef<{ x: number; y: number; tx: number; ty: number; id: number; hold?: boolean } | null>(null);
+  const waveRef = useRef(1);
+  const waveBootedRef = useRef(false);
+  const shinyMsRef = useRef(0);
+  const globalShinyDueRef = useRef(false);
   // ---- Top-up lento de inimigos (spawn escalonado, mantém o jogador atento) ----
   useEffect(() => {
     const iv = setInterval(() => {
@@ -5857,12 +6807,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // Verdejante 1 (mapinha13), Rota Flower (mapinha5), Ruínas e Mapa Dos Céus também têm cadência própria e mansa — top-up genérico não mexe
         if (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8") return prev;
         const alive = prev.filter((e) => e.hp > 0);
-        if (alive.length >= ENEMY_TARGET) return prev;
+        // Wave: teto do mapa respeitando a onda atual (nunca acima do cap do mapa).
+        const waveTarget = waveTargetFor(idle.currentMap, waveOf(totalKillsRef.current ?? 0, idle.currentMap));
+        if (alive.length >= waveTarget) return prev;
         // Rajada de reposição: mapa quase vazio (<6 vivos) repõe até 6 de uma vez (recuperação rápida pós-wipe)
         const burst = alive.length < 6 ? 6 : 2;
         const placed = alive.map((e) => ({ x: e.x, y: e.y }));
         const fresh: Enemy[] = [];
-        for (let i = 0; i < burst && alive.length + fresh.length < ENEMY_TARGET; i++) {
+        for (let i = 0; i < burst && alive.length + fresh.length < waveTarget; i++) {
           const ne = spawnOneEnemy(placed);
           if (!ne) break;
           placed.push({ x: ne.x, y: ne.y });
@@ -5897,10 +6849,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setEnemies((prev) => {
         const allowed = allowedSpeciesForMap(idle.currentMap) ?? [];
         const alive = prev.filter((e) => e.hp > 0 && allowed.includes(e.sp));
-        if (alive.length >= 6) return prev;
+        // Wave: teto por onda (nunca acima do cap do mapa).
+        const waveTarget = waveTargetFor(idle.currentMap, waveOf(totalKillsRef.current ?? 0, idle.currentMap));
+        if (alive.length >= waveTarget) return prev;
         const placed = prev.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
         const fresh: Enemy[] = [];
-        for (let i = 0; i < 2 && alive.length + fresh.length < 6; i++) {
+        for (let i = 0; i < 2 && alive.length + fresh.length < waveTarget; i++) {
           const ne = spawnOneEnemy(placed);
           if (!ne) break;
           placed.push({ x: ne.x, y: ne.y });
@@ -5914,8 +6868,74 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
+  // ---- WAVE SPAWNER: reposição contínua controlada por onda (1 por vez) ----
+  // Timeout encadeado com intervalo variável (nunca rajada). Mantém o campo
+  // vivo sem ultrapassar o teto. Limpo ao trocar de mapa/desmontar.
+  useEffect(() => {
+    let dead = false;
+    let to: ReturnType<typeof setTimeout> | null = null;
+    const tickWave = () => {
+      if (dead) return;
+      try {
+        const map = idle.currentMap;
+        const wave = waveOf(totalKillsRef.current ?? 0, map);
+        if (starterChosenRef.current && !restingRef.current && isWaveSpawnMap(map)) {
+          const target = waveTargetFor(map, wave);
+          const aliveCount = enemiesRef.current.filter((e) => e.hp > 0).length;
+          if (aliveCount < target) {
+            const placed = enemiesRef.current.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
+            const ne = spawnOneEnemy(placed);
+            if (ne) {
+              setEnemies((prev) => {
+                const al = prev.filter((e) => e.hp > 0);
+                if (al.length >= waveTargetFor(idle.currentMap, waveOf(totalKillsRef.current ?? 0, idle.currentMap))) return prev;
+                return [...prev.filter((e) => e.hp > 0), ne];
+              });
+            }
+          }
+        }
+        const cfg = waveCfg(wave);
+        const wait = cfg.spawnMinMs + Math.random() * (cfg.spawnMaxMs - cfg.spawnMinMs);
+        to = setTimeout(tickWave, wait);
+      } catch {
+        to = setTimeout(tickWave, 7000);
+      }
+    };
+    to = setTimeout(tickWave, 2500);
+    return () => { dead = true; if (to) clearTimeout(to); };
+  }, [idle.currentMap, customDims]);
+
+  // ---- ONDA + MARCO SHINY: observa totalKills (anuncia onda e arma o shiny) ----
+  useEffect(() => {
+    totalKillsRef.current = idle.totalKills ?? 0;
+    const tk = idle.totalKills ?? 0;
+    const w = waveOf(tk, idle.currentMap);
+    if (!waveBootedRef.current) {
+      waveBootedRef.current = true;
+      waveRef.current = w;
+      shinyMsRef.current = Math.floor(tk / SHINY_MILESTONE_KILLS);
+      return;
+    }
+    if (w !== waveRef.current) {
+      waveRef.current = w;
+      if (w > 1) {
+        pushChat(`🌊 ONDA ${w} — o campo fica mais perigoso! Mais Pokémon, mais rápidos, mais raros.`, "cap");
+        pushEvent("🌊", `ONDA ${w}`, "Derrote para avançar ainda mais!", "#6bd4ff");
+      }
+    }
+    const ms = Math.floor(tk / SHINY_MILESTONE_KILLS);
+    if (ms > shinyMsRef.current) {
+      shinyMsRef.current = ms;
+      const shinyAlive = enemiesRef.current.some((e) => e.hp > 0 && String(e.sp).includes("shiny"));
+      if (!globalShinyDueRef.current && !shinyAlive) {
+        globalShinyDueRef.current = true;
+        pushChat(`✨ Uma energia estranha percorre o mapa... um Shiny pode aparecer a qualquer momento!`, "cap");
+      }
+    }
+  }, [idle.totalKills]);
+
   // ---- Verdejante 1 (mapinha13): cadência MANSA de iniciante ----
-  // Teto de 3 vivos (nunca 6 em cima do jogador), nasce até 2 por vez a cada 12s,
+  // Teto de 3 vivos (nunca 6 em cima do jogador), nasce 1 por vez a cada 18s,
   // e no máximo 1 agressivo (o resto só passeia). Normaliza todo tick.
   useEffect(() => {
     const tick = () => {
@@ -5937,7 +6957,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (aliveCount >= 3) return next;
         const placed = next.filter((e) => e.hp > 0).map((e) => ({ x: e.x, y: e.y }));
         const fresh: Enemy[] = [];
-        for (let i = 0; i < 2 && aliveCount + fresh.length < 3; i++) {
+        for (let i = 0; i < 1 && aliveCount + fresh.length < 3; i++) {
           const ne = spawnOneEnemy(placed);
           if (!ne) break;
           placed.push({ x: ne.x, y: ne.y });
@@ -5957,7 +6977,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       });
     };
     tick();
-    const iv = setInterval(tick, 12000);
+    const iv = setInterval(tick, 18000);
     return () => clearInterval(iv);
   }, [idle.currentMap, team, obstacles]);
 
@@ -6170,9 +7190,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const leaderLv = team[0]?.level ?? 10;
       for (const orb of toHatch) {
         // Pega pool de species do mapa atual
-        let pool: Species[] = ["pidgey", "rattata_f", "metapod", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+        let pool: Species[] = ["pidgey", "rattata_f", "metapod", "venusaur", "venusaur_shiny"] as Species[];
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
-          pool = ["metapod", "pidgey", "rattata_f", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+          pool = ["metapod", "pidgey", "rattata_f", "venusaur", "venusaur_shiny"] as Species[];
         } else if (idle.currentMap === "terra") {
           pool = ["pidgey", "rattata_f", "oddish", "bellsprout", "zubat", "caterpie"] as Species[];
         } else if (idle.currentMap === "arena") {
@@ -6241,36 +7261,63 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const leader = team[0];
       if (!leader) return;
       // Se o meu pokémon está desmaiado: não faz nada (precisa reviver)
-      if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (leaderHp <= 0) { setAttackTargetId((c) => c !== null ? null : c); combatMoveRef.current = null; return; }
       // Líder com FOME crítica ou bloqueado por cuidado: não ataca nem farma
-      if (isStarving(leader) || (leader as CaredPet).needFeeding) { setAttackTargetId((c) => c !== null ? null : c); return; }
-      if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); return; }
+      if (isStarving(leader) || (leader as CaredPet).needFeeding) { setAttackTargetId((c) => c !== null ? null : c); combatMoveRef.current = null; return; }
+      if (!autoBattleRef.current?.enabled) { setAttackTargetId((c) => c !== null ? null : c); combatMoveRef.current = null; return; }
 
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
 
-        if (prev.length === 0) return spawnEnemies();
+        if (prev.length === 0) { combatMoveRef.current = null; return spawnEnemies(); }
         const alive = prev.filter((e) => e.hp > 0);
-        if (alive.length === 0) return spawnEnemies();
-        // acha o mais próximo do treinador
+        if (alive.length === 0) { combatMoveRef.current = null; return spawnEnemies(); }
+        // Alvo = inimigo mais próximo do POKÉMON (combatente principal; o treinador fica atrás)
+        const fpx = followerStateRef.current.x, fpy = followerStateRef.current.y;
         let target = alive[0];
         let bestD = Infinity;
         for (const e of alive) {
-          const d = (e.x - trainerPos.x) ** 2 + (e.y - trainerPos.y) ** 2;
+          const d = (e.x - fpx) ** 2 + (e.y - fpy) ** 2;
           if (d < bestD) { bestD = d; target = e; }
         }
-        // só entra em combate se estiver perto (raio do ataque)
-        if (Math.sqrt(bestD) > ATTACK_RANGE) {
+        const fDist = Math.sqrt(bestD);
+        // REGRA DO RANGE REAL: a skill do líder define o alcance (com margem de
+        // segurança); sem skill com dano, vale o ataque básico (ATTACK_RANGE).
+        const pSkill = playerSkillFor(leader.species);
+        const pRange = pSkill ? pSkill.range * SKILL_RANGE_MARGIN : ATTACK_RANGE;
+        // Engajamento: só persegue o inimigo que estiver num raio razoável do pokémon
+        if (fDist > ENGAGE_RANGE) {
           // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
           setAttackTargetId((cur) => (cur !== null ? null : cur));
+          combatMoveRef.current = null;
           return prev;
         }
         // marca alvo atual (para virar o pokémon na direção dele)
         setAttackTargetId(target.id);
-        const attackFace = target.x >= trainerPos.x ? "right" : "left";
+        if (fDist > pRange) {
+          // Fora do range REAL da skill: só APROXIMA (sem cast, sem FX, sem dano)
+          const ap = getAttackPosition(fpx, fpy, target.x, target.y, idle.currentMap, pSkill ? pRange : undefined);
+          combatMoveRef.current = { x: ap.x, y: ap.y, tx: target.x, ty: target.y, id: target.id };
+          return prev;
+        }
+        // Dentro do range real: hold, para onde está, cast/ataca
+        combatMoveRef.current = { x: fpx, y: fpy, tx: target.x, ty: target.y, id: target.id, hold: true };
+        // O Pokémon olha a partir da PR�PRIA posição (nunca de costas para o alvo).
+        const atkFromX = followerStateRef.current.x;
+        const atkFromY = followerStateRef.current.y;
+        const attackFace = target.x >= atkFromX ? "right" : "left";
         if (attackFace !== pokemonFaceRef.current) {
           pokemonFaceRef.current = attackFace;
           setPokemonFace(attackFace);
+        }
+        // Vira o sprite-sheet do líder para o alvo (4 direções, cardinal dominante).
+        {
+          const fdx = target.x - atkFromX, fdy = target.y - atkFromY;
+          const fdir: Dir = Math.abs(fdx) > Math.abs(fdy) ? (fdx > 0 ? "right" : "left") : (fdy > 0 ? "down" : "up");
+          if (fdir !== followerStateRef.current.dir) {
+            followerStateRef.current = { ...followerStateRef.current, dir: fdir };
+            setFollowerState((p) => ({ ...p, dir: fdir }));
+          }
         }
 
         // Posição atual do pokémon líder (trilha suave)
@@ -6299,6 +7346,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const animId = attackAnimIdRef.current++;
         setAttackAnim({ id: animId, fromX: followerAtX, fromY: followerAtY, toX: target.x, toY: target.y, ts: Date.now(), crit: isCrit, element: elementOf(leader.species) });
         setTimeout(() => setAttackAnim((a) => (a && a.id === animId ? null : a)), 420);
+        // Skill visual elemental do ataque (spritesheet por elemento + fallback fx-img).
+        fireSkillFx("offensive", elementOf(leader.species), ELEMENT_SKILL[elementOf(leader.species)] ?? null, followerAtX, followerAtY, target.x, target.y);
 
         // Dano do meu pokémon → aparece EM CIMA DO INIMIGO (com pequeno delay = impacto do lunge)
         setTimeout(() => {
@@ -6320,11 +7369,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (defTotal < 0.35) {
             poisonUntilRef.current = Date.now() + 6000;
             pushChat(`☠ Seu Pokémon foi ENVENENADO!`, "hit");
+            fireSkillFx("debuff", "poison", ELEMENT_SKILL["poison"] ?? null, followerAtX, followerAtY - 20, followerAtX, followerAtY - 20);
           }
         }
         if (mapNow === "arena" && Math.random() < 0.20) {
           atkDebuffUntilRef.current = Date.now() + 8000;
-          pushChat(`⬇ Ataque reduzido em 40% por 8s!`, "hit");
+          pushChat(`�! Ataque reduzido em 40% por 8s!`, "hit");
+          fireSkillFx("debuff", "poison", ELEMENT_SKILL["poison"] ?? null, followerAtX, followerAtY - 20, followerAtX, followerAtY - 20);
         }
         if (mapNow === "ruinas_de_venus" && Math.random() < 0.30) {
           // Névoa tóxica das Ruínas de Vênus: DoT por 6s (mesma regra da Peçonha de Terry)
@@ -6332,6 +7383,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (defTotalV < 0.35) {
             poisonUntilRef.current = Date.now() + 6000;
             pushChat(`☠ Névoa tóxica das Ruínas de Vênus te ENVENENOU!`, "hit");
+            fireSkillFx("debuff", "poison", ELEMENT_SKILL["poison"] ?? null, followerAtX, followerAtY - 20, followerAtX, followerAtY - 20);
           }
         }
         if (mapNow === "arena") {
@@ -6379,7 +7431,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (Math.random() < spec.para) {
             const synNow = computeTeamSynergies(teamRef.current);
             const resist = Math.min(0.99, synNow.paraResist);
-            if (resist > 0 && Math.random() < resist) {
+            // Sonífero (Ditto/Lickitung/Mewtwo): proteção pós-sono + resistência real.
+            const paraIsSleep = target.sp === "ditto" || target.sp === "ditto_shiny" || target.sp === "lickitung" || target.sp === "lickitung_shiny" || target.sp === "mewtwo_event";
+            if (paraIsSleep && Date.now() < sleepProtectionUntilRef.current) {
+              pushFxAt(followerAtX, followerAtY - 40, "🛡️ BLOQUEADO", "xp");
+            } else if (paraIsSleep && Math.random() < statusResistFor(synNow, "sleep")) {
+              pushChat(`🧠 Sinergia do time RESISTIU ao Sonífero de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
+            } else if (resist > 0 && Math.random() < resist) {
               pushChat(`🧲 Sinergia do time RESISTIU à paralisia de ${target.sp.replace(/_/g," ").toUpperCase()}!`, "info");
             } else {
               // Duração enxuta — paralisia de minuto travava o jogador.
@@ -6399,6 +7457,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               paralyzedUntilRef.current = Date.now() + dur;
               paralyzedByEnemyIdRef.current = target.id;
               setParalyzedUntil(paralyzedUntilRef.current);
+              // Sono aplicado com sucesso → arma a janela de proteção pós-sono.
+              if (paraIsSleep) sleepProtectionUntilRef.current = Date.now() + dur + 6000;
               if (isLickSleep) {
                 pushChat(`💤 ${target.sp === "lickitung_shiny" ? "LICKITUNG ✦" : "LICKITUNG"} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur/1000)}s!`, "hit");
               } else if (isMewtwoSleep) {
@@ -6439,7 +7499,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
         }
 
-        setTimeout(() => {
+        // Alcance do contra-ataque: corpo a corpo (ATTACK_RANGE do pokémon).
+        // Inimigo longe NÃO contra-ataca (sem anim/FX/dano) — p/ longe usa as skills.
+        const counterInRange = fDist <= ATTACK_RANGE;
+        if (counterInRange) setTimeout(() => {
           setEnemyAttackAnim({
             id: attackAnimIdRef.current++,
             fromX: target.x, fromY: target.y,
@@ -6447,9 +7510,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             ts: Date.now(),
             element: elementOf(target.sp),
           });
+          // Skill visual do contra-ataque (mesmo pipeline do ataque).
+          fireSkillFx("offensive", elementOf(target.sp), ELEMENT_SKILL[elementOf(target.sp)] ?? null, target.x, target.y, followerAtX, followerAtY);
           pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
         }, 480);
-        setLeaderHp((h) => {
+        if (counterInRange) setLeaderHp((h) => {
           let nh = Math.max(0, h - eDmg);
           // (dano rotineiro do inimigo — sem spam no chat)
           // Auto-poção: se HP% <= threshold, consome 1 poção
@@ -6462,6 +7527,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               setIdle((s) => ({ ...s, items: { ...s.items, potion: (s.items.potion ?? 0) - 1 } }));
               pushFxAt(followerAtX, followerAtY - 60, `AUTO +${heal} HP`, "gold");
               pushChat(`🧪 Auto-Poção usada (+${heal} HP).`, "info");
+              // Cura tem animação própria (fada), nunca a ofensiva.
+              fireSkillFx("heal", elementOf(leader.species), HEAL_SHEET, followerAtX, followerAtY - 20, followerAtX, followerAtY - 20);
             }
           }
           if (nh <= 0) {
@@ -6475,7 +7542,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             setIdle((s) => {
               const lose = Math.floor((s.bank.gold ?? 0) * deathPct);
               if (lose > 0) {
-                pushChat(`💀 Você desmaiou — perdeu ${lose} 🪙${idle.currentMap === "arena" ? " e -1 nível" : ""}.`, "hit");
+                pushChat(`�x� Você desmaiou � perdeu ${lose} �x�"${idle.currentMap === "arena" ? " e -1 nível" : ""}.`, "hit");
               }
               return { ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank.gold ?? 0) - lose) } };
             });
@@ -6541,6 +7608,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               if (verdejante1KillsRef.current >= 1000) {
                 verdejante1KillsRef.current = 0;
                 verdejante1PlusDueRef.current = true;
+              }
+              // Venusaur (1 a cada 120) · Bulbasaur (1 a cada 40) · Ivysaur (1 a cada 800)
+              verdejante1VenusKillsRef.current += 1;
+              if (verdejante1VenusKillsRef.current >= 120) {
+                verdejante1VenusKillsRef.current = 0;
+                verdejante1VenusDueRef.current = true;
+              }
+              verdejante1BulbaKillsRef.current += 1;
+              if (verdejante1BulbaKillsRef.current >= 40) {
+                verdejante1BulbaKillsRef.current = 0;
+                verdejante1BulbaDueRef.current = true;
+              }
+              verdejante1IvyKillsRef.current += 1;
+              if (verdejante1IvyKillsRef.current >= 800) {
+                verdejante1IvyKillsRef.current = 0;
+                verdejante1IvyDueRef.current = true;
               }
             }
             // Contador OCULTO da Rota Flower (800 kills → próximo spawn shiny, sem aviso)
@@ -6687,7 +7770,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           const mythEventXpMult = idle.currentMap === "arena" ? 6 : 1;
           const grassOddishXpMult = idle.currentMap === "arena" ? 3 : 1;
-          // 🌿 Odisséia Oddish — no evento o ÚNICO benefício é XP extra.
+          // �xR� Odisséia Oddish � no evento o �aNICO benefício é XP extra.
           const oddishEventXpMult = (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena") ? ODDISH_EVENT_XP_MULT : 1;
           // 🌑 Mapas Bônus Dark — XP MUITO maior (é o único ganho relevante lá).
           const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
@@ -6737,13 +7820,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.gold += gold;
           xpAccumRef.current.kills += 1;
           xpAccumRef.current.map = idle.currentMap;
+          // 📋 Loot do Mapa (resumo na Forja): ouro concedido neste abate
+          setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) }));
           // 📖 Saga: progresso de abates do objetivo ativo
           bumpSagaCounter("kill");
+          try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "kill", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena";
           if (isOddishMap) {
-            // 🌿 EVENTO ODISSÉIA ODDISH — sem drops. O único benefício é XP extra.
+            // �xR� EVENTO ODISS�0IA ODDISH � sem drops. O único benefício é XP extra.
           } else {
             for (const it of ITEM_POOL) {
               if (it.id === "pokeball") continue;
@@ -6766,7 +7852,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               if (stoneId && Math.random() < chance) {
                 drops.push(stoneId);
                 pushStonePop(target.x, target.y - 40, stoneId);
-                pushChat(`💎 Stone Elemental dropada: ${STONE_LABEL[stoneId] ?? stoneId}!`, "cap");
+                pushChat(`�x} Stone Elemental dropada: ${STONE_LABEL[stoneId] ?? stoneId}!`, "cap");
               }
             }
           }
@@ -6787,6 +7873,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
+          // 📋 Loot do Mapa: itens/stones dropados neste abate (só resumo)
+          if (drops.length > 0) {
+            setMapLoot((l) => {
+              const items = { ...l.items };
+              for (const id of drops) items[id] = (items[id] ?? 0) + 1;
+              return { ...l, items };
+            });
+          }
 
           // XP para o líder + drena energia. Se ORB DE TIME estiver ativo, TODOS ganham EXP.
           const teamOrbActive = !!(idle.buffs.teamOrbUntil && Date.now() < idle.buffs.teamOrbUntil);
@@ -6797,7 +7891,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const isLeader = idx === 0;
               const gainsXp = isLeader || teamOrbActive;
               if (!gainsXp) return p;
-              // Sem energia temporal: kills NÃO drenam (cuidado = fome + lealdade).
+              // Sem energia temporal: kills NÒO drenam (cuidado = fome + lealdade).
               const newE = ENERGY_MAX;
               const newXp = (p.xp ?? 0) + xp;
               let lv = p.level;
@@ -6862,6 +7956,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             }
             let captured = false;
             let capturedPet: PetInstance | null = null;
+            let ivyDiscDrop = false; // Drop de Disco inicial do Ivysaur (25% ao capturar)
             let spentThrow = false; // 🎯 tentativa consumiu 1 arremesso
             const isEventLeg = !!target.eventLegendary;
             // Se for lendário do evento, pokébola comum não é lançada
@@ -6870,7 +7965,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               usedBall = null;
             }
             if (usedBall) {
-              // ► Animação da pokébola voando
+              // �� Animação da pokébola voando
               const ballAnimId = Date.now();
               setCaptureAnim({
                 id: ballAnimId,
@@ -6885,6 +7980,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               newItems[usedBall.id] = (newItems[usedBall.id] ?? 0) - 1;
               // 🎯 Cada tentativa consome 1 arremesso (sucesso ou falha).
               spentThrow = true;
+              // FASE 3: conta no encontro (0/10). Isentos: bosses com mínimo próprio.
+              const autoThrowCount = isExempt10(target) ? 0 : bumpEnemyThrow(target.id);
               const masteryBonus = (idle.globalStats?.mastery ?? 0) * 0.005;
             const baseChance = 0.020 + masteryBonus; // mais difícil: 2.0% base (com bola comum) + Mastery
               if (target.menace) {
@@ -6987,12 +8084,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               if (captured) {
                 // 📖 Saga: progresso de capturas do objetivo ativo
                 bumpSagaCounter("capture");
+                // 📋 Loot do Mapa: Pokémon capturado (só resumo)
+                setMapLoot((l) => ({ ...l, pokemon: l.pokemon + 1 }));
+                try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "capture", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
                 const rolled = rollTraits(target.rarity);
-                const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
+                const np = { ...makePet(target.sp, 1, target.rarity), traits: rolled };
                 capturedPet = np;
+                // FASE 3: encontro encerrado por captura � limpa o contador 0/10.
+                clearEnemyThrows(target.id);
+                // Drop de Disco inicial do Ivysaur (25% ao capturar)
+                ivyDiscDrop = (target.sp === "ivysaur" || target.sp === "ivysaur_shiny") && Math.random() < 0.25;
                 const rarityLabelMap: Record<string, string> = {
                   common: "Comum", uncommon: "Incomum", rare: "Raro",
-                  epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+                  epic: "�0pico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico �S�",
                 };
                 const rarityColorMap: Record<string, string> = {
                   common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
@@ -7000,7 +8104,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 };
                 const rLabel = rarityLabelMap[np.rarity] ?? String(np.rarity);
                 const rColor = rarityColorMap[np.rarity] ?? "#f5cf6b";
-                pushFxAt(target.x, target.y - 70, `★ ${usedBall.name.toUpperCase()} ★`, "capture");
+                pushFxAt(target.x, target.y - 70, `��& ${usedBall.name.toUpperCase()} ��&`, "capture");
                 pushFxAt(target.x, target.y - 100, `${rLabel.toUpperCase()}!`, "capture");
                 // (captura não anuncia no chat — floating text já mostra ★)
                 // fx visual: contorna a chat com a cor da raridade (via console info)
@@ -7025,8 +8129,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 // (sem chat — o floating "★" e a Coleção falam por si)
 
               } else {
-                pushFxAt(target.x, target.y - 70, `${usedBall.name} falhou`, "enemyDmg");
-                // (falha de pokébola: só floating text, sem spam no chat)
+                // FASE 3: 10ª tentativa falhou �  o Pokémon foge e o encontro termina.
+                if (autoThrowCount >= MAX_THROWS_PER_ENEMY) {
+                  pushFxAt(target.x, target.y - 70, `${usedBall.name} falhou`, "enemyDmg");
+                  fleeEnemy(target.id, target.sp);
+                } else {
+                  pushFxAt(target.x, target.y - 70, `${usedBall.name} falhou`, "enemyDmg");
+                  // (falha de pokébola: só floating text, sem spam no chat)
+                }
               }
             } else {
               pushFxAt(target.x, target.y - 70, "sem pokébola", "enemyDmg");
@@ -7117,13 +8227,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const surpriseBalls = crossed100 ? 10 : 0;
             if (crossed100) {
               queueMicrotask(() => {
-                pushChat(`🎉 SURPRESA! ${newKills} mobs derrotados — +10 Pokébolas!`, "chest");
+                pushChat(`�x}0 SURPRESA! ${newKills} mobs derrotados � +10 Pokébolas!`, "chest");
                 pushFxAt(trainerPos.x, trainerPos.y - 130, `+10 POKÉBOLAS!`, "capture");
               });
             }
             const itemsWithBalls = surpriseBalls > 0
               ? { ...newItems, pokeball: (newItems.pokeball ?? 0) + surpriseBalls }
               : newItems;
+            // Drop de Disco inicial do Ivysaur vai junto nos itens
+            const itemsWithDrops = ivyDiscDrop
+              ? { ...itemsWithBalls, "01_raiz_aprisionante": (itemsWithBalls["01_raiz_aprisionante"] ?? 0) + 1 }
+              : itemsWithBalls;
+            if (ivyDiscDrop) {
+              queueMicrotask(() => {
+                pushChat("�x� Ivysaur dropou o Disco: RAIZ APRISIONANTE!", "cap");
+              });
+            }
             const isGrassOddishAuto = captured && s.currentMap === "arena";
             if (isGrassOddishAuto) {
               const total = (s.grassOddishCaptured ?? 0) + 1;
@@ -7137,7 +8256,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
-              items: itemsWithBalls,
+              items: itemsWithDrops,
               caughtSpecies: newCaught,
               seenSpecies: newSeen,
               collection: newCollection,
@@ -7152,9 +8271,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       });
       // Accrue passivo por segundo
       setIdle((s) => {
-        const lvFactor = 1 + ((leader?.level ?? 5) / 40);
-        const rate = IDLE_MAPS[s.currentMap].rate * lvFactor;
-        const inc = { g: 0.8 * rate, r: 0.02 * rate, c: 0 };
+        // FASE 5: sem ganho passivo por tempo/online � ouro só de Pokémon derrotado.
+        const inc = { g: 0, r: 0, c: 0 };
         const ns: IdleState = {
           ...s,
           lastTickAt: Date.now(),
@@ -7181,7 +8299,213 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     return () => clearInterval(iv);
   }, [team, trainerPos, leaderHp]);
 
-  // Portais NÃO entram mais automaticamente ao caminhar por cima —
+  // Dano de skill inimiga: MESMA fórmula do contra-ataque (sem fórmula paralela).
+  const enemySkillDamage = (eSp: Species, eLevel: number, eElite: boolean, mult: number): number => {
+    const st = idleRef.current;
+    const tm = teamRef.current;
+    const eBase = SPECIES_BASE[eSp] ?? { atk: 30 };
+    const eliteMult = eElite ? 2.5 : 1;
+    const honeyDef = honeyBonusNow();
+    const lv = tm[0]?.level ?? eLevel;
+    return Math.max(1, Math.floor((2 + (eBase as { atk: number }).atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(eLevel, lv) * Math.max(0.1, 1 - (st.buffs?.def ?? 0) - honeyDef) * mult));
+  };
+  // Aplica status de skill no líder (reusa os refs existentes).
+  const applySkillStatus = (status: string, dur: number, targetX: number, targetY: number, spName: string, tickPct?: number, tickMs?: number) => {
+    const now = Date.now();
+    // Reaplicar o MESMO status ativo: estende duração mas NÃO repete chat (evita spam).
+    const already = status === "sleep" ? now < sleepFxUntilRef.current
+      : status === "paralysis" ? now < paralyzedUntilRef.current
+      : status === "poison" ? now < poisonUntilRef.current : false;
+    if (status === "sleep") {
+      paralyzedUntilRef.current = now + dur;
+      setParalyzedUntil(paralyzedUntilRef.current);
+      sleepFxUntilRef.current = now + dur;
+      // Janela de proteção: após dormir, o alvo não pode ser recolocado p/ dormir de imediato.
+      sleepProtectionUntilRef.current = now + dur + 6000;
+      if (!already) pushChat(`💤 ${spName} usou SONÍFERO — seu Pokémon dormiu por ${Math.round(dur / 1000)}s!`, "hit");
+      // Sempre re-armar o despertar (auto-guarda: só limpa se ninguém estendeu o sono).
+      trackSkillTimer(setTimeout(() => {
+        if (Date.now() >= sleepFxUntilRef.current - 150) {
+          sleepFxUntilRef.current = 0;
+          pushChat(`☀️ Seu Pokémon acordou!`, "info");
+        }
+      }, dur + 120));
+    } else if (status === "paralysis") {
+      paralyzedUntilRef.current = now + dur;
+      setParalyzedUntil(paralyzedUntilRef.current);
+      if (!already) pushChat(`⚡ ${spName} paralisou seu Pokémon por ${Math.round(dur / 1000)}s!`, "hit");
+    } else if (status === "poison") {
+      poisonUntilRef.current = now + dur;
+      if (tickPct) poisonCfgRef.current.tickPct = tickPct;
+      if (tickMs) setPoisonTickMs(tickMs);
+      if (!already) pushChat(`☠ ${spName} ENVENENOU seu Pokémon!`, "hit");
+    }
+    void targetX; void targetY;
+  };
+  // Resolve impacto de skill (dano no momento do impacto + status + FX).
+  const resolveSkillImpact = (skill: SkillDef, eSp: Species, eLevel: number, eElite: boolean, casterId: number, ix: number, iy: number) => {
+    // Conjurador morreu no meio do voo → fizzle (sem dano).
+    const casterAlive = enemiesRef.current.some((e) => e.id === casterId && e.hp > 0);
+    fireSkillFx("offensive", skill.element, skill.sheet, ix, iy, ix, iy);
+    if (!casterAlive) return;
+    if (leaderHpRef.current <= 0) return;
+    const fx = followerStateRef.current;
+    const spName = String(eSp).replace(/_/g, " ").toUpperCase();
+    const mult = skill.damageMult ?? skill.damage ?? 1;
+    if ((skill.damage ?? 0) > 0 || mult > 0) {
+      const dmg = Math.max(1, Math.floor(enemySkillDamage(eSp, eLevel, eElite, mult)));
+      setLeaderHp((h) => Math.max(0, h - dmg));
+      pushFxAt(fx.x, fx.y - 40, `-${dmg}`, "enemyDmg");
+    }
+    if (skill.status && skill.status !== "none") {
+      // Sono: proteção pós-sono bloqueia reaplicação imediata; a resistência do
+      // time reduz a chance real (Sonífero nunca é garantido).
+      if (skill.status === "sleep" && Date.now() < sleepProtectionUntilRef.current) {
+        pushFxAt(fx.x, fx.y - 40, "🛡️ BLOQUEADO", "xp");
+      } else {
+        const sleepResist = skill.status === "sleep" ? statusResistFor(computeTeamSynergies(teamRef.current), "sleep") : 0;
+        const effChance = (skill.statusChance ?? 1) * (1 - sleepResist);
+        if (Math.random() < effChance) {
+          applySkillStatus(skill.status, skill.statusDuration ?? 3000, fx.x, fx.y, spName, skill.damagePerTick, skill.tickInterval);
+        } else if (skill.status === "sleep" && sleepResist > 0) {
+          pushChat(`🧠 Sinergia do time RESISTIU ao Sonífero de ${spName}!`, "info");
+        }
+      }
+    }
+  };
+  // ---- Tick de SKILLS inimigas (IA decide, conjura, projétil viaja, impacto resolve) ----   // Só inimigos selvagens normais/elites (chefes/eventos usam mecânicas próprias).
+  // mapinha13 (iniciante) só tem ataque básico. Limpeza total ao trocar de mapa.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      try {
+        if (!starterChosenRef.current) return;
+        if (restingRef.current) return;
+        const leader = teamRef.current[0];
+        if (!leader || leaderHpRef.current <= 0) return;
+        const now = Date.now();
+        const fx = followerStateRef.current;
+        const tpx = trainerPosRef.current.x, tpy = trainerPosRef.current.y;
+        const isControlled = now < paralyzedUntilRef.current || now < sleepFxUntilRef.current || now < poisonUntilRef.current;
+        const castingCount = enemiesRef.current.filter((e) => e.hp > 0 && (e.castingUntil ?? 0) > now).length;
+        let castingNow = castingCount; // contador local: setEnemies é async (não vê o ref no mesmo tick)
+        const list = enemiesRef.current.filter((e) => e.hp > 0);
+        if (list.length === 0) return;
+        for (const e of list) {
+          if (e.eventLegendary || e.menace || e.mtcBoss || e.apex || e.guardian || e.rider) continue;
+          if ((e.castingUntil ?? 0) > now) continue;
+          if ((e.recoverUntil ?? 0) > now) continue;
+          if ((e.nextSkillAt ?? 0) > now) continue;
+          if (castingNow >= 3) break;
+          const dist = Math.hypot(fx.x - e.x, fx.y - e.y);
+          if (dist > 560) continue;
+          const cands = Object.values(SKILL_DEFS).filter((s) => s.allowedPokemon.includes(e.sp));
+          if (cands.length === 0) continue;
+          // Sem engajamento, sem cast: selvagem que não decidiu lutar não conjura
+          // (nem FX, nem cooldown, nem dano) — só se movimenta pelo mundo.
+          if (!e.aggressive) continue;
+          // Prioridade: sono (alvo acordado) > AOE (vantagem) > single > nada.
+          const targetAsleep = now < sleepFxUntilRef.current;
+          const ordered = cands.slice().sort((a, b) => {
+            const sa = a.status === "sleep" && !targetAsleep ? 0 : a.delivery === "aoeInstant" || a.delivery === "aoePersistent" ? 1 : 2;
+            const sb = b.status === "sleep" && !targetAsleep ? 0 : b.delivery === "aoeInstant" || b.delivery === "aoePersistent" ? 1 : 2;
+            return sa - sb;
+          });
+          let picked: (typeof cands)[number] | null = null;
+          for (const s of ordered) {
+            // RANGE REAL com margem: fora de range × margem, nem tenta (sem cast/FX/dano).
+            if (dist > s.range * SKILL_RANGE_MARGIN) continue;
+            if (s.status && s.status !== "none" && isControlled) continue;
+            if (s.status === "sleep" && targetAsleep) continue;
+            // Proteção pós-sono: não desperdiça cast de Sonífero na janela protegida.
+            if (s.status === "sleep" && now < sleepProtectionUntilRef.current) continue;
+            if ((s.delivery === "aoeInstant" || s.delivery === "aoePersistent") && Math.random() > 0.6) continue;
+            if (Math.random() > s.aiChance) continue;
+            picked = s;
+            break;
+          }
+          if (!picked) continue;
+          const cdMul = e.elite ? 0.6 : 1;
+          const castUntil = now + picked.castTime;
+          setEnemies((prev) => prev.map((o) => (o.id === e.id ? { ...o, castingUntil: castUntil, nextSkillAt: now + (picked as NonNullable<typeof picked>).castTime + (picked as NonNullable<typeof picked>).cooldown * cdMul, recoverUntil: now + (picked as NonNullable<typeof picked>).castTime + (picked as NonNullable<typeof picked>).recoveryTime, face: (fx.x >= e.x ? "right" : "left") as "left" | "right" } : o)));
+          castingNow++; // este inimigo passou a conjurar neste mesmo tick
+          // Telegraph: burst no conjurador (lê-se que vem skill).
+          fireSkillFx("offensive", picked.element, picked.sheet, e.x, e.y, e.x, e.y - 10);
+          const skill = picked;
+          const ex = e.x, ey = e.y, esp = e.sp, elv = e.level, eel = !!e.elite, eid = e.id;
+          trackSkillTimer(setTimeout(() => {
+            // Lançamento: destino TRAVADO (desviável) — projétil viaja, área se forma.
+            const fxx = followerStateRef.current.x, fyy = followerStateRef.current.y;
+            const ix = fxx;
+            const iy = fyy;
+            if (skill.delivery === "projectile") {
+              const d = Math.hypot(ix - ex, iy - ey) || 1;
+              const dur = Math.min(1200, Math.max(300, (d / (skill.projectileSpeed ?? 420)) * 1000));
+              const pid = skillProjIdRef.current++;
+              setSkillProj((prev) => [...prev.slice(-3), { id: pid, skillId: skill.id, element: skill.element, sheet: skill.sheet, x0: ex, y0: ey, x1: ix, y1: iy, t0: Date.now(), dur, dmg: skill.damage, dmgMult: skill.damageMult ?? skill.damage ?? 1, eSp: esp, eLevel: elv, eElite: eel, casterId: eid, status: skill.status ?? "none", statusChance: skill.statusChance ?? 0, statusDuration: skill.statusDuration ?? 0, tickPct: skill.damagePerTick ?? 0.02 }]);
+              trackSkillTimer(setTimeout(() => {
+                setSkillProj((prev) => prev.filter((p) => p.id !== pid));
+                resolveSkillImpact(skill, esp, elv, eel, eid, ix, iy);
+              }, dur + 30));
+            } else if (skill.delivery === "instant") {
+              resolveSkillImpact(skill, esp, elv, eel, eid, ix, iy);
+            } else if (skill.delivery === "aoeInstant") {
+              const r = skill.areaRadius ?? 120;
+              const fx2 = followerStateRef.current;
+              const inside = Math.hypot(fx2.x - ix, fx2.y - iy) <= r;
+              // Sem duplicação: um único FX/dano por conjuração (resolveSkillImpact já dispara o FX).
+              if (inside) resolveSkillImpact(skill, esp, elv, eel, eid, ix, iy);
+              else {
+                fireSkillFx("offensive", skill.element, skill.sheet, ix, iy, ix, iy);
+                pushFxAt(ix, iy - 30, "ERROU!", "xp");
+              }
+            } else if (skill.delivery === "aoePersistent") {
+              const r = skill.areaRadius ?? 120;
+              const durA = skill.areaDuration ?? 3000;
+              const aid = skillAreaIdRef.current++;
+              setSkillArea((prev) => [...prev.slice(-2), { id: aid, skillId: skill.id, element: skill.element, sheet: skill.sheet, x: ix, y: iy, r, until: Date.now() + durA, tickMs: skill.tickInterval ?? 1000, nextTick: Date.now() + (skill.tickInterval ?? 1000), dmg: skill.damage, dmgMult: skill.damageMult ?? skill.damage ?? 1, eSp: esp, eLevel: elv, eElite: eel, casterId: eid, status: skill.status ?? "none", statusChance: skill.statusChance ?? 0, statusDuration: skill.statusDuration ?? 0, tickPct: skill.damagePerTick ?? 0.02 }]);
+              fireSkillFx("offensive", skill.element, skill.sheet, ix, iy, ix, iy);
+            }
+          }, skill.castTime));
+        }
+      } catch { /* tick de skills nunca quebra o jogo */ }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]);
+
+  // ---- Ticks de ÁREAS persistentes (dano/status por intervalo dentro do raio) ----
+  useEffect(() => {
+    const iv = setInterval(() => {
+      try {
+        const now = Date.now();
+        if (skillAreaRef.current.length === 0) return;
+        const fx = followerStateRef.current;
+        let expired = false;
+        const nowAreas = skillAreaRef.current;
+        for (const a of nowAreas) {
+          if (now >= a.until) { expired = true; continue; }
+          if (now < a.nextTick) continue;
+          a.nextTick = now + a.tickMs;
+          if (leaderHpRef.current <= 0 || !teamRef.current[0]) continue;
+          if (Math.hypot(fx.x - a.x, fx.y - a.y) > a.r) continue;
+          const casterAlive = enemiesRef.current.some((e) => e.id === a.casterId && e.hp > 0);
+          if (!casterAlive) { expired = true; a.until = 0; continue; }
+          // Dano por tick = dano completo da skill (fórmula do inimigo) proporcional ao intervalo.
+          const fullDmg = Math.max(1, Math.floor(enemySkillDamage(a.eSp, a.eLevel, a.eElite, a.dmgMult || a.dmg || 1)));
+          const tickDmg = Math.max(1, Math.floor(fullDmg * (a.tickMs / 1000)));
+          setLeaderHp((h) => Math.max(0, h - tickDmg));
+          pushFxAt(fx.x, fx.y - 40, `-${tickDmg}`, "enemyDmg");
+          if (a.status && a.status !== "none" && Math.random() < (a.statusChance || 0)) {
+            applySkillStatus(a.status, a.statusDuration || 3000, fx.x, fx.y, "ÁREA", a.tickPct, a.tickMs);
+          }
+        }
+        setSkillArea((prev) => {
+          const kept = prev.filter((x) => x.until > Date.now());
+          return kept.length === prev.length && !expired ? prev : kept;
+        });
+      } catch { /* ticker de áreas nunca quebra o jogo */ }
+    }, 500);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]);
   // agora só viajam com clique explícito no portal (evita gastar ouro/cristal sem querer).
 
 
@@ -7316,10 +8640,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const LEGEND_DURATION_MS = 3 * 60 * 1000;
   const LEGEND_ROSTER: { sp: Species; label: string; rarity: Rarity; level: number; icon: string; color: string; weather?: "snow" | "rain"; w: number }[] = [
     // VIRIZION removido a pedido do usuário.
-    { sp: "luxray_f",      label: "LUXRAY ♀",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff", w: 10 },
+    { sp: "luxray_f",      label: "LUXRAY ★",      rarity: "epic",         level: 78, icon: "⚡", color: "#5ec2ff", w: 10 },
     { sp: "raikou",        label: "RAIKOU",        rarity: "epic",         level: 82, icon: "⚡", color: "#f5cf6b", w: 2 },
-    { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "❄", color: "#8ec5ff", weather: "rain", w: 2 },
-    { sp: "suicune_shiny", label: "SUICUNE ✦",     rarity: "mythic_shiny", level: 92, icon: "💠", color: "#ff97e1", weather: "snow", w: 1 },
+    { sp: "suicune",       label: "SUICUNE",       rarity: "mythic",       level: 88, icon: "💧", color: "#8ec5ff", weather: "rain", w: 2 },
+    { sp: "suicune_shiny", label: "SUICUNE ✨",     rarity: "mythic_shiny", level: 92, icon: "✨", color: "#ff97e1", weather: "snow", w: 1 },
   ];
   const legendIdxRef = useRef(0);
   const [legendUntil, setLegendUntil] = useState<{ until: number; weather?: "snow" | "rain" } | null>(null);
@@ -7328,7 +8652,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => {
     const trigger = () => {
       // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial), no Pokémarkt (loja) nem nos mapas de pool estrita
-      if (currentMapRef.current === "arena" || currentMapRef.current === "mapinha10" || currentMapRef.current === "florest_ice" || currentMapRef.current === "florest_bone" || currentMapRef.current === "valley_plume" || currentMapRef.current === "mapinha13" || currentMapRef.current === "mapinha5" || currentMapRef.current === "ruinas" || currentMapRef.current === "ruinas_de_venus" || currentMapRef.current === "mapinha8") return;
+      // + nunca em cidades/zonas seguras/Esfera (NO_HIGH_EVENT_MAPS).
+      const cm = currentMapRef.current;
+      if (NO_HIGH_EVENT_MAPS.includes(cm) || cm === "florest_ice" || cm === "florest_bone" || cm === "valley_plume" || cm === "mapinha13" || cm === "mapinha5" || cm === "ruinas" || cm === "ruinas_de_venus" || cm === "mapinha8") return;
       const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
       let rw = Math.random() * totalW;
       let pick = LEGEND_ROSTER[0];
@@ -7364,9 +8690,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   // (Clima gerenciado pelo ciclo global de neve — não sobrescrever aqui)
 
-  // Ao entrar no Vale Verdejante, remove qualquer lendário do evento remanescente
+  // Ao entrar no Vale Verdejante ou em mapa seguro, remove qualquer lendário do evento remanescente
   useEffect(() => {
-    if (idle.currentMap === "arena") {
+    if (idle.currentMap === "arena" || NO_HIGH_EVENT_MAPS.includes(idle.currentMap)) {
       setEnemies((prev) => prev.filter((e) => !e.eventLegendary));
       setLegendUntil(null);
     }
@@ -7448,18 +8774,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
   // ==== Peçonha (Terry) — DoT enquanto poisonUntilRef ativo ====
+  // Duração via poisonUntilRef; dano% e intervalo configuráveis por skill.
   useEffect(() => {
     const iv = setInterval(() => {
       if (Date.now() >= poisonUntilRef.current) return;
       const leader = team[0]; if (!leader) return;
       const maxHp = calcIdleMaxHp(leader);
-      const tick = Math.max(2, Math.floor(maxHp * 0.03));
+      const tick = Math.max(2, Math.floor(maxHp * (poisonCfgRef.current.tickPct || 0.03)));
       setLeaderHp((h) => Math.max(0, h - tick));
       const fx = followerStateRef.current;
       pushFxAt(fx.x, fx.y - 30, `☠ -${tick}`, "enemyDmg");
-    }, 1500);
+    }, poisonTickMs);
     return () => clearInterval(iv);
-  }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [team, poisonTickMs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ==== EVENTO PÁSSAROS LENDÁRIOS: Moltres / Zapdos / Articuno a cada 2h ====
   // Extremamente fortes, agressivos ao ver, captura minúscula (só ULTRA/MASTER).
@@ -7471,6 +8798,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const BIRD_WARN_MS = 5 * 60 * 1000; // aviso 5min antes
   useEffect(() => {
     const spawnBird = () => {
+      // Mapas limpos (src/lands): NUNCA spawna pokémon (nem lendários).
+      if (TELEPORT_LAND_MAP_IDS.includes(currentMapRef.current)) return;
       if (currentMapRef.current === "arena" || currentMapRef.current === "mapinha10") return;
       const pick = BIRD_ROSTER[Math.floor(Math.random() * BIRD_ROSTER.length)];
       setEnemies((prev) => {
@@ -7538,6 +8867,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   // Lança bola manualmente em um inimigo (clique)
    const throwBallAt = (enemyId: number) => {
+    // LOADING de teleport: sem captura.
+    if (mapLoadingRef.current) return;
     const target = enemies.find((e) => e.id === enemyId);
     if (!target || target.hp <= 0) return;
     // Evento Gelius: apenas ditto/gengar/magmar capturáveis
@@ -7583,7 +8914,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (target.menace) {
       // 💀 PERIGO ABISSAL — impossível capturar; ficará agressivo após o lançamento
       chance = 0;
-      pushChat(`💀 A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
+      pushChat(`�x� A criatura abissal repeliu a pokébola e ficou ENFURECIDA!`, "hit");
       setEnemies((cur) => cur.map((en) => en.id === target.id ? { ...en, aggressive: true, aggroR: 800 } : en));
     } else
     if (target.mtcBoss) {
@@ -7613,7 +8944,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         chance = 0.02;
       }
     } else if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
-      // 💠 Míticos (e shiny): 2% fixo por lançamento manual
+      // �x� Míticos (e shiny): 2% fixo por lançamento manual
       chance = 0.02;
     } else {
       const base = 0.030 + (1 - hpPct) * 0.16;
@@ -7625,6 +8956,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
+    // FASE 3: cada Pokébola lançada conta no encontro (0/10). Isentos: bosses com mínimo próprio.
+    const manualThrowCount = isExempt10(target) ? 0 : bumpEnemyThrow(target.id);
     // ► Animação da pokébola voando (manual)
     const ballAnimId = Date.now();
     setCaptureAnim({
@@ -7637,7 +8970,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     });
     setTimeout(() => setCaptureAnim((c) => (c && c.id === ballAnimId ? null : c)), 1200);
     const ballName = usedBall.name;
-    // 🎯 Cada tentativa consome 1 arremesso (sucesso ou falha).
+    // �x}� Cada tentativa consome 1 arremesso (sucesso ou falha).
     setIdle((s) => ({
       ...s,
       items: { ...s.items, [ballId]: Math.max(0, (s.items[ballId] ?? 0) - 1) },
@@ -7645,17 +8978,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }));
     pushFxAt(target.x, target.y - 40, `${ballName}!`, "capture");
     if (success) {
-      // 📖 Saga: progresso de capturas do objetivo ativo
+      // �x Saga: progresso de capturas do objetivo ativo
       bumpSagaCounter("capture");
+      try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "capture", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
       const rolled = rollTraits(target.rarity);
-      const np = { ...makePet(target.sp, target.level, target.rarity), traits: rolled };
+      const np = { ...makePet(target.sp, 1, target.rarity), traits: rolled };
       const rarityLabelMap: Record<string, string> = {
         common: "Comum", uncommon: "Incomum", rare: "Raro",
-        epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+        epic: "�0pico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico �S�",
       };
       const rLabel = rarityLabelMap[np.rarity] ?? String(np.rarity);
-      pushFxAt(target.x, target.y - 70, `★ CAPTUROU! ★`, "capture");
-      pushChat(`★ Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
+      pushFxAt(target.x, target.y - 70, `��& CAPTUROU! ��&`, "capture");
+      pushChat(`��& Capturado manualmente (${rLabel}) com ${ballName}: ${target.sp.replace(/_/g, " ").toUpperCase()}!`, "capture");
       setQuestProgress((prev) => {
         const nextQ: Record<string, number> = { ...prev };
         let ch = false;
@@ -7674,10 +9008,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       }
       playBonus();
       setEnemies((prev) => prev.filter((e) => e.id !== enemyId));
+      clearEnemyThrows(enemyId);
       setIdle((s) => {
         const prev = s.collection ?? [];
         if (prev.length >= MAX_COLLECTION) {
-          queueMicrotask(() => pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
+          queueMicrotask(() => pushChat(`�a� Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
           return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
         const isOddishEvent = s.currentMap === "arena" || s.currentMap === "arena" || s.currentMap === "arena";
@@ -7686,7 +9021,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (isGrassOddish) {
           const total = (s.grassOddishCaptured ?? 0) + 1;
           queueMicrotask(() => {
-            try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
+            try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "�xR� Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
           });
         }
         return {
@@ -7698,8 +9033,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         };
       });
     } else {
-      pushFxAt(target.x, target.y - 70, `${ballName} falhou`, "enemyDmg");
+      // FASE 3: 10ª tentativa falhou �  o Pokémon foge e o encontro termina.
+      if (manualThrowCount >= MAX_THROWS_PER_ENEMY) {
+        pushFxAt(target.x, target.y - 70, `${ballName} falhou`, "enemyDmg");
+        fleeEnemy(target.id, target.sp);
+      } else {
+        pushFxAt(target.x, target.y - 70, `${ballName} falhou`, "enemyDmg");
       pushChat(`✗ ${ballName} falhou (HP ${Math.round(hpPct * 100)}%).`, "hit");
+      }
     }
   };
 
@@ -7741,14 +9082,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setTrainerEnergy((e) => Math.max(0, Math.min(100, e + fv.energy)));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `+${fv.hunger} 🍖 +${fv.energy} ⚡`, "gold");
       pushChat(`Você se alimentou (${fv.label}). Ciclo registrado às ${new Date(now).toLocaleTimeString()}.`, "cap");
-      // 📖 Saga: progresso de alimentação do treinador
+      // �x Saga: progresso de alimentação do treinador
       bumpSagaCounter("feed_trainer");
     } else if (id === "morango" || id === "limao") {
       // 🍓 Cuidado Pokémon: alimenta o líder (fome + lealdade, ciclo ~3h).
       const fed = feedPet(team[0] as CaredPet, id as "morango" | "limao", trustedNow().now);
       setTeam((tm) => tm.length === 0 ? tm : [fed.pet as PetInstance, ...tm.slice(1)]);
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
-      // 📖 Saga: progresso de alimentação do Pokémon
+      // �x Saga: progresso de alimentação do Pokémon
       bumpSagaCounter("feed_pet");
       const pv = id === "morango" ? "+30 🍖 +10 ❤️" : "+20 🍖 +5 ❤️";
       pushFxAt(trainerPos.x, trainerPos.y - 40, pv, "gold");
@@ -7939,7 +9280,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         items: { ...s.items, incenso_mel: (s.items.incenso_mel ?? 0) - 1 },
         buffs: { ...s.buffs, honeyUntil: nowT + HONEY_DURATION_MS },
       }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, "🍯 MEL +10% · 1h", "capture");
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "�x�� MEL +10% · 1h", "capture");
       pushChat(`🍯 Incenso de Mel ativado! +10% drop/xp/def/velocidade por 1 hora.`, "cap");
     } else if (id === "incenso_mel_raro") {
       const nowT = Date.now();
@@ -8000,7 +9341,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // (Rarity é importada de @/game/systems)
   const RARITY_LABEL: Record<Rarity, string> = {
     common: "Comum", uncommon: "Incomum", rare: "Raro",
-    epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+    epic: "�0pico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico �S�",
   };
   const RARITY_COLOR: Record<Rarity, string> = {
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
@@ -8180,7 +9521,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     { sp: "nidoran_f" as Species,  w: 6, forcedRarity: "uncommon" },
     { sp: "pidgeotto" as Species,  w: 4, forcedRarity: "uncommon" },
     { sp: "raticate_f" as Species, w: 4, forcedRarity: "uncommon" },
-    // Raros ★ (mais fortes)
+    // Raros ��& (mais fortes)
     { sp: "bulbasaur" as Species,  w: 3, forcedRarity: "rare" },
     { sp: "growlithe" as Species,  w: 3, forcedRarity: "rare" },
     { sp: "vulpix" as Species,     w: 3, forcedRarity: "rare" },
@@ -8206,12 +9547,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
+    // Esfera Ancestral (Mapa Banido): sem pokémons selvagens.
+    if (idle.currentMap === "esfera_ancestral") {
+      return null;
+    }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
+    // Sem eventos high-level (Dialga/roamers/MTC/menace/guardians/apex/riders) em cidades/zonas seguras.
+    const noHighEvents = NO_HIGH_EVENT_MAPS.includes(idle.currentMap);
     if ((idle.currentMap === "arena" || idle.currentMap === "arena") && !customDims) return null;
     const isSmallMapSpawn = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || !!customMapUrls[idle.currentMap];
     const useW = isSmallMapSpawn && customDims ? customDims.w : WORLD_W;
@@ -8235,6 +9582,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       // Verdejante 1 (mapa iniciante): nunca nasce em cima do jogador (150px de folga)
       // Rota Flower, Ruínas e Mapa Dos Céus: mesma folga (spawn manso)
       if ((idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8") && Math.hypot(x - trainerPos.x, y - trainerPos.y) < 150) continue;
+      // Wave: distância mínima do jogador em todos os mapas (campo natural, sem grude).
+      if (Math.hypot(x - trainerPos.x, y - trainerPos.y) < MIN_PLAYER_SPAWN_DISTANCE) continue;
+      // Wave: nunca nasce em cima de NPC (fala/loja/saga).
+      let npcBlock = false;
+      for (const n of (npcsRef.current ?? npcs)) {
+        if (Math.hypot(x - n.x, y - n.y) < MIN_NPC_SPAWN_DISTANCE) { npcBlock = true; break; }
+      }
+      if (npcBlock) continue;
       let ok = true;
       for (const p of placed) {
         if (Math.hypot(x - p.x, y - p.y) < MIN_DIST) { ok = false; break; }
@@ -8265,13 +9620,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           pool = ["beedrill", "butterfree", "pinsir", "golem", "jolteon", "lapras"] as Species[];
         }
         if (idle.currentMap === "mapinha13") {
-          // Verdejante 1: bulbasaurs + butterfree/caterpie comuns; shinys com presença baixa.
+          // Verdejante 1: caterpie/metapod comuns, butterfree raro; shinys com presença baixa.
+          // Venusaur/Venusaur Shiny e Bulbasaur/Ivysaur (+shinys) S� via contadores ocultos de kills.
           // Butterfree Shiny Plus SÓ via contador oculto (1000 kills).
-          pool = ["bulbasaur_flower", "bulbasaur_flower", "bulbasaur_flower", "butterfree", "butterfree", "butterfree", "caterpie", "caterpie", "caterpie", "bulbasaur_orange", "butterfree_shiny", "caterpie_shiny"] as Species[];
+          pool = ["caterpie", "caterpie", "caterpie", "caterpie", "butterfree", "metapod", "metapod", "butterfree_shiny", "caterpie_shiny"] as Species[];
           if (verdejante1PlusDueRef.current && !enemies.some((e) => e.hp > 0 && e.sp === "butterfree_shiny_plus")) {
             pool = ["butterfree_shiny_plus"] as Species[];
             verdejante1PlusDueRef.current = false;
             forcedRarity = "epic";
+          } else if (verdejante1VenusDueRef.current && !enemies.some((e) => e.hp > 0 && (e.sp === "venusaur" || e.sp === "venusaur_shiny"))) {
+            pool = [Math.random() < 0.5 ? "venusaur" : "venusaur_shiny"] as Species[];
+            verdejante1VenusDueRef.current = false;
+            forcedRarity = "epic";
+          } else if (verdejante1BulbaDueRef.current && !enemies.some((e) => e.hp > 0 && (e.sp === "bulbasaur" || e.sp === "bulbasaur_shiny"))) {
+            pool = [Math.random() < 0.1 ? "bulbasaur_shiny" : "bulbasaur"] as Species[];
+            verdejante1BulbaDueRef.current = false;
+          } else if (verdejante1IvyDueRef.current && !enemies.some((e) => e.hp > 0 && (e.sp === "ivysaur" || e.sp === "ivysaur_shiny"))) {
+            pool = [Math.random() < 0.2 ? "ivysaur_shiny" : "ivysaur"] as Species[];
+            verdejante1IvyDueRef.current = false;
+            forcedRarity = "rare";
           }
           // ⚖️ Escada de progressão: Verdejante 1 = Lv3–8 (mapa de entrada)
           mapLvRange = [3, 8];
@@ -8358,7 +9725,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             // Garante raridade boa e pula o gate de valiosos
             forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
           }
-          // ⚖️ Escada de progressão: Ruínas = Lv16–24
+          // �a️ Escada de progressão: Ruínas = Lv16�24
           mapLvRange = [16, 24];
         }
         if (idle.currentMap === "mapinha8") {
@@ -8372,7 +9739,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             // Garante raridade boa e pula o gate de valiosos
             forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
           }
-          // ⚖️ Escada de progressão: Mapa Dos Céus = Lv24–33
+          // �a️ Escada de progressão: Mapa Dos Céus = Lv24�33
           mapLvRange = [24, 33];
         }
         if (idle.currentMap === "ruinas_de_venus") {
@@ -8386,12 +9753,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             // Garante raridade boa e pula o gate de valiosos
             forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
           }
-          // ⚖️ Escada de progressão: Ruínas de Vênus = Lv20–28
+          // �a️ Escada de progressão: Ruínas de Vênus = Lv20�28
           mapLvRange = [20, 28];
         }
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           // Mapinhas iniciais: só Metapod, Pidgey e Rattata, Lv 1-20
-          pool = ["metapod", "pidgey", "rattata_f", "bulbasaur_flower", "bulbasaur_orange"] as Species[];
+          pool = ["metapod", "pidgey", "rattata_f", "venusaur", "venusaur_shiny"] as Species[];
           mapLvRange = [1, 20];
         }
         if (idle.currentMap === "arena") {
@@ -8438,7 +9805,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           ] as Species[];
           mapLvRange = [700, 1200];
         }
-        // ═══ CADEIA ABISSAL — Lv 1000-3000 ═══
+        // �"��"��"� CADEIA ABISSAL � Lv 1000-3000 �"��"��"�
         if (idle.currentMap === "arena") {
           pool = ["lapras", "lapras_shiny", "articuno", "dragonair", "dragonite", "dragonite_shiny", "gyarados", "skarmory", "tyranitar", "machamp", "ursaring"] as Species[];
           mapLvRange = [1000, 1500];
@@ -8525,7 +9892,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             mapLvRange = [Math.max(1, leaderLv - 2), leaderLv + 3];
           }
         }
-        // ⚡ ZAPDOS EVENT — ENCERRADO
+        // �a� ZAPDOS EVENT � ENCERRADO
         // ⚡✦ RAICHU MÍTICO — spawn RARO exclusivo dos mapas Oddish Odyssey e Grass Oddish
         {
           const oddyMaps: string[] = ["arena", "arena", "arena", "arena"];
@@ -8597,7 +9964,44 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (filtered.length > 0) pool = filtered;
           else pool = ["oddish"] as Species[];
         }
+        // Wave: MARCO SHINY global — a cada 100 derrotados, o próximo spawn
+        // normal vira um Shiny da pool do mapa (1 por vez, sem fila).
+        // Contadores ocultos por mapa têm prioridade (não mexe se já forçaram).
+        let milestoneForced = false;
+        if (globalShinyDueRef.current && !forcedRarity) {
+          const allowPool = allowedSpeciesForMap(idle.currentMap) ?? pool;
+          const shinyCands = allowPool.filter((s) => String(s).includes("shiny") && hasGif(s));
+          const shinyAlive = enemiesRef.current.some((e) => e.hp > 0 && String(e.sp).includes("shiny"));
+          if (!shinyAlive) {
+            let pickS: Species | null = shinyCands.length > 0
+              ? shinyCands[Math.floor(Math.random() * shinyCands.length)]
+              : null;
+            if (!pickS) {
+              const bases = (allowPool.length > 0 ? allowPool : pool).filter((s) => !String(s).includes("shiny"));
+              const b = bases.length > 0 ? bases[Math.floor(Math.random() * bases.length)] : null;
+              const cand = b ? ((String(b) + "_shiny") as Species) : null;
+              if (cand && hasGif(cand) && SPECIES_BASE[cand]) pickS = cand;
+            }
+            if (pickS) {
+              pool = [pickS];
+              forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+              globalShinyDueRef.current = false;
+              milestoneForced = true;
+              setTimeout(() => pushChat(`✨ Um SHINY selvagem apareceu no mapa! (${String(pickS).replace(/_/g, " ").toUpperCase()})`, "cap"), 60);
+            }
+          }
+        }
         sp = pool[Math.floor(Math.random() * pool.length)];
+        // Wave: trava de flood de Shiny — sorteio aleatório raramente mantém o
+        // shiny (marco de 100 kills garante o evento de verdade). Só vale para
+        // spawns normais: com forcedRarity (eventos/contadores) não mexe.
+        if (!forcedRarity && !milestoneForced && String(sp).endsWith("_shiny")) {
+          const keep = Math.min(0.30, 0.12 + waveOf(totalKillsRef.current ?? 0, idle.currentMap) * 0.01);
+          if (Math.random() > keep) {
+            const base = String(sp).replace(/_shiny$/, "") as Species;
+            if (pool.includes(base)) sp = base;
+          }
+        }
         // Florest Ice: vaporeon NUNCA nasce épico/shiny (só comum/incomum/raro)
         if (idle.currentMap === "florest_ice" && sp === "vaporeon" && !forcedRarity) {
           const vr = Math.random();
@@ -8622,11 +10026,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // um mon mais comum da pool caso não passe. Deixa os valiosos MUITO mais raros.
         if (!forcedRarity) {
           const baseRar = SPECIES_BASE[sp]?.rarity;
+          // Wave: raridades abrem gradualmente (onda 1 mansa, ondas altas variadas).
+          const wv = waveOf(totalKillsRef.current ?? 0, idle.currentMap);
           const gate =
-            baseRar === "mythic_shiny" ? 0.05 :
-            baseRar === "mythic"       ? 0.08 :
-            baseRar === "legendary"    ? 0.15 :
-            baseRar === "epic"         ? 0.35 : 1;
+            baseRar === "mythic_shiny" ? Math.min(0.15, 0.05 + wv * 0.008) :
+            baseRar === "mythic"       ? Math.min(0.25, 0.08 + wv * 0.012) :
+            baseRar === "legendary"    ? Math.min(0.35, 0.15 + wv * 0.02) :
+            baseRar === "epic"         ? Math.min(0.60, 0.35 + wv * 0.03) : 1;
           if (gate < 1 && Math.random() > gate) {
             const cheaper = pool.filter((p) => {
               const rr = SPECIES_BASE[p]?.rarity;
@@ -8649,12 +10055,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       let isDialgaEvent = false;
       try {
         const last = Number(localStorage.getItem("dialga_last_spawn_ms") || 0);
-        if (!dialgaOnMap && !currentRoamers && Date.now() - last >= DIALGA_INTERVAL_MS && Math.random() < 0.02) {
+        if (!noHighEvents && !dialgaOnMap && !currentRoamers && Date.now() - last >= DIALGA_INTERVAL_MS && Math.random() < 0.02) {
           isDialgaEvent = true;
           localStorage.setItem("dialga_last_spawn_ms", String(Date.now()));
         }
       } catch {}
-      const isMythicRoamer = !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.0015;
+      let isMythicRoamer = !noHighEvents && !isDialgaEvent && currentRoamers === 0 && Math.random() < 0.0015;
       if (isDialgaEvent) {
         sp = "dialga";
         forcedRarity = "mythic_shiny";
@@ -8664,7 +10070,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         forcedRarity = "mythic_shiny";
         mapLvRange = [500, 500];
       }
-      // Domínio Mítico Shiny — força a raridade e nível alto próximo do líder
+      // Domínio Mítico Shiny � força a raridade e nível alto próximo do líder
       const isMythShinyEvent = idle.currentMap === "arena";
       if (isMythShinyEvent) {
         forcedRarity = "mythic_shiny";
@@ -8683,6 +10089,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (sPool.length > 0) {
             sp = sPool[Math.floor(Math.random() * sPool.length)];
             forcedRarity = undefined;
+            // BUGFIX: evento (Dialga Lv800 / roamer Lv500) sorteado num mapa de pool
+            // estrita virava um mob local com o level do evento. Cancela o evento
+            // p/ este spawn (espécie, level e raridade voltam às regras do mapa).
+            isDialgaEvent = false;
+            isMythicRoamer = false;
+            mapLvRange = null;
             if (idle.currentMap === "florest_ice" && sp === "vaporeon") {
               const vr2 = Math.random();
               forcedRarity = vr2 < 0.70 ? "common" : vr2 < 0.90 ? "uncommon" : "rare";
@@ -8705,15 +10117,15 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (hardCap != null && !isMythicRoamer && !isDialgaEvent) lv = Math.min(lv, hardCap);
       if (isMythicRoamer) lv = 500;
       if (isDialgaEvent) lv = 800;
-      // Épico só aparece quando o líder chega ao nível 50.
+      // �0pico só aparece quando o líder chega ao nível 50.
       const allowEpic = leaderLv >= 50;
       if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
       let pet = makePet(sp, lv, forcedRarity);
       if (!isMythicRoamer && (pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
         pet = makePet(sp, lv, "rare");
       }
-      // ★ POKÉMON RIDER: 1.2% de chance — muito acima do nível do líder, dá MUITO xp
-      const isRider = !isMythicRoamer && !isDialgaEvent && Math.random() < 0.005 && !mapLvRange;
+      // ��& POK�0MON RIDER: 1.2% de chance � muito acima do nível do líder, dá MUITO xp
+      const isRider = !noHighEvents && !isMythicRoamer && !isDialgaEvent && Math.random() < 0.005 && !mapLvRange;
       if (isRider) {
         const boost = 25 + Math.floor(Math.random() * 21); // +25..+45
         lv = leaderLv + boost;
@@ -8724,7 +10136,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
       const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
-      const guardianEligible = !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
+      const guardianEligible = !noHighEvents && !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
       const isGuardian = guardianEligible && Math.random() < 0.003;
       if (isGuardian) {
         sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
@@ -8751,7 +10163,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         { sp: "skarmory",       minLv: 350, rarityFloor: "legendary" },
       ];
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
-      const apexEligible = !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
+      const apexEligible = !noHighEvents && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
       // 0.6% chance quando elegível (aparição escassa)
       const isApex = apexEligible && Math.random() < 0.0025;
       if (isApex) {
@@ -8776,7 +10188,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         "kangaskhan","meganium","meganium_shiny","moltres_shiny","onix_shiny",
       ];
       let isMtcBoss = false;
-      if (!isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
+      if (!noHighEvents && !isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
         // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
         const chance = Math.min(0.008, 0.003 + (leaderLv - 500) * 0.000008);
         if (Math.random() < chance) {
@@ -8796,7 +10208,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       let isMenace = false;
       try {
         const last = Number(localStorage.getItem("menace_last_spawn_ms") || 0);
-        if (!menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && !isApex
+        if (!noHighEvents && !menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && !isApex
             && leaderLv >= 400
             && Date.now() - last >= MENACE_INTERVAL_MS
             && Math.random() < 0.015) {
@@ -8837,7 +10249,35 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const wanderR = 90 + Math.floor(Math.random() * 50);
       const detectR = aggroR;
       const maxChase = 320 + Math.floor(Math.random() * 60);
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: isAggro, aggroR, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: "WANDER" };
+      // Wave: comportamento inicial variado (passivo anda pouco / errante passeia /
+      // agressivo persegue / elite é ativo). Usa o tick de IA existente.
+      const wBeh = waveOf(totalKillsRef.current ?? 0, idle.currentMap);
+      const wAggro = waveCfg(wBeh).aggressiveChance;
+      const rollBeh = Math.random();
+      const isEliteLike = elite || pet.rarity === "epic" || pet.rarity === "legendary" || pet.rarity === "mythic" || pet.rarity === "mythic_shiny";
+      let behavior: "passive" | "wander" | "aggressive" | "elite" = "wander";
+      let agg = isAggro;
+      let aggroRx = aggroR;
+      if (elite) {
+        behavior = "elite";
+        agg = true;
+        aggroRx = Math.max(aggroR, 300);
+      } else if (isMenace) {
+        behavior = "passive";
+        agg = false;
+      } else if (rollBeh < wAggro) {
+        behavior = "aggressive";
+        agg = true;
+      } else if (rollBeh < wAggro + 0.45) {
+        behavior = "wander";
+      } else {
+        behavior = "passive";
+      }
+      if (!agg && (pet.rarity === "epic" || pet.rarity === "legendary" || pet.rarity === "mythic" || pet.rarity === "mythic_shiny") && Math.random() < 0.5) {
+        behavior = "aggressive";
+        agg = true;
+      }
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: Math.random() < 0.5 ? "left" : "right", aggressive: agg, aggroR: aggroRx, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: behavior === "passive" ? "IDLE" : "WANDER", behavior, nextSkillAt: Date.now() + 4000 + Math.random() * 5000 };
 
 
     }
@@ -8856,7 +10296,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (isFirst) setTimeout(() => { isFirstSpawnRef.current = false; }, 1800);
     // Só spawna alguns de imediato — o resto entra aos poucos (setInterval abaixo)
     const isGrassOddish = idle.currentMap === "arena";
-    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : (idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume") ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5)); // Grass Oddish: 28-33, mansos: 3, Ice/Bone/Plume: 4-6, outros: 16-20
+    // Wave: o lote inicial respeita o teto da onda (onda 1 começa tranquila).
+    const waveCap0 = waveTargetFor(idle.currentMap, waveOf(totalKillsRef.current ?? 0, idle.currentMap));
+    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : Math.min((idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume") ? 4 + Math.floor(Math.random() * 3) : 16 + Math.floor(Math.random() * 5)), waveCap0); // Grass Oddish: 28-33, mansos: 3, Ice/Bone/Plume: 4-6, outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
@@ -9031,6 +10473,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       queueMicrotask(() => {
         pushChat(`📜 Pedido concluído: "${q.title}"! +${q.crystals} 💎${bonusTxt ? " · " + bonusTxt : ""}`, "chest");
         pushToast(`+${q.crystals} 💎`, "chest");
+        if (qid === "boby_s1") {
+          pushChat("�a� Guarde bem seus Energéticos. Sua energia é importante � use-os apenas quando realmente precisar!", "info");
+        }
         if (starsNow > starsFor(before)) {
           pushChat(`⭐ ${SAGA_NPCS[q.npc].name} subiu para ${starsNow} estrela${starsNow > 1 ? "s" : ""}! Novos pedidos liberados.`, "cap");
           pushToast(`⭐ ${starsNow} estrela${starsNow > 1 ? "s" : ""}!`, "cap");
@@ -9102,7 +10547,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         pushToast(`Saga: ${rewardTxt}`, "chest");
         // Fim das 20 etapas → abre A ESCOLHA final
         if (st.id === "pan4") {
-          pushChat(`🖤 Cinco começaram. Dois continuarão. Três esquecerão. É hora de ESCOLHER.`, "cap");
+          pushChat(`�x� Cinco começaram. Dois continuarão. Três esquecerão. �0 hora de ESCOLHER.`, "cap");
           setSagaTalk("choice");
           setSagaPage(0);
           setSagaChoiceSel([]);
@@ -9181,7 +10626,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       };
     });
   };
-  // Pergaminho de Teleporte — 100 💎 por unidade. Consumido para teleporte instantâneo no mapa mundi.
+  // Pergaminho de Teleporte � 100 �x} por unidade. Consumido para teleporte instantâneo no mapa mundi.
   const buyTeleportScroll = (qty: number = 1) => {
     const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
@@ -9216,14 +10661,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     });
   };
   // ===== Carteira: câmbio ouro ↔ cristal =====
-  // 1 💎 = 1000 ouro (compra); vende 1 💎 por 800 ouro (spread do câmbio)
+  // 1 �x} = 1000 ouro (compra); vende 1 �x} por 800 ouro (spread do câmbio)
   const exchange = (dir: "g2c" | "c2g", amount: number) => {
     if (!Number.isFinite(amount) || amount <= 0) return;
     setIdle((s) => {
       if (dir === "g2c") {
         const cost = 1000 * amount;
         if (s.bank.gold < cost) { pushChat(`Ouro insuficiente para ${amount} 💎.`, "info"); return s; }
-        pushChat(`Câmbio: −${cost} ouro → +${amount} 💎`, "cap");
+        pushChat(`Câmbio: ��${cost} ouro �  +${amount} �x}`, "cap");
         return { ...s, bank: { ...s.bank, gold: s.bank.gold - cost, crystals: s.bank.crystals + amount } };
       } else {
         if (s.bank.crystals < amount) { pushChat(`Cristais insuficientes.`, "info"); return s; }
@@ -9326,7 +10771,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       return { ...s, bank, items };
     });
     if (insufficient) { pushChat("Saldo mudou — compra abortada, ninguém foi cobrado indevidamente.", "info"); return false; }
-    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
+    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "�x} cristais" : "�xa safiras";
     pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
     // força persistência imediata da compra (item + débito) — evita perder no F5
     void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
@@ -9352,7 +10797,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (cur === "crystal") return { ...s, bank: { ...s.bank, crystals: s.bank.crystals + listing.price } };
       return { ...s, items: { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + listing.price } };
     });
-    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "💎 cristais" : "💚 safiras";
+    const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "�x} cristais" : "�xa safiras";
     pushChat(`💰 Recebeu ${listing.price} ${curLabel} pela venda de ${listing.qty}x ${listing.item_id}.`, "cap");
     void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
     return true;
@@ -9498,7 +10943,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         return s;
       }
       if (totalGoldExtra && s.bank.gold < totalGoldExtra) {
-        pushChat(`Ouro insuficiente para ${n}× ${bk.name} (custa ${bk.priceGold} 🪙 + ${bk.price} 💎 cada).`, "info");
+        pushChat(`Ouro insuficiente para ${n}� ${bk.name} (custa ${bk.priceGold} �x�" + ${bk.price} �x} cada).`, "info");
         return s;
       }
       const curQty = s.items[bk.id] ?? 0;
@@ -9645,8 +11090,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         }
         return { ...s2, items: items2 };
       });
-      if (luckyKind === "upgrade") pushChat(`🌟 SORTE! Orb evoluiu para ${orbName}!`, "cap");
-      else if (luckyKind === "time") pushChat(`🌟 SORTE! ${orbName} com +${extraHours}h extras (aplicado ao ativar).`, "cap");
+      if (luckyKind === "upgrade") pushChat(`�xRx SORTE! Orb evoluiu para ${orbName}!`, "cap");
+      else if (luckyKind === "time") pushChat(`�xRx SORTE! ${orbName} com +${extraHours}h extras (aplicado ao ativar).`, "cap");
       else pushChat(`✦ NPC forjou 1 ${orbName}.`, "cap");
     }, 2200);
   };
@@ -9711,6 +11156,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   // ===== Baús espalhados no mapa =====
   function spawnChests(count = 4): Chest[] {
+    // Esfera Ancestral (Mapa Banido): sem baús.
+    if (idle.currentMap === "esfera_ancestral") return [];
     const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
     const useH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
     const isSmallMapChest = idle.currentMap === "arena" || idle.currentMap === "arena";
@@ -9749,7 +11196,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "mapinha13" || FREE_WALK_MAPS.includes(idle.currentMap)) return remaining.length > 0 ? [] : remaining;
         if (active.length >= chestTarget) return remaining;
         const news = spawnChests(1);
-        if (news.length > 0) pushEvent("🎁", "NOVO BAÚ NO MAPA", "Aproxime-se para abrir", "#ffa64a");
+        if (news.length > 0) pushEvent("�x}�", "NOVO BA�a NO MAPA", "Aproxime-se para abrir", "#ffa64a");
         return [...remaining, ...news];
       });
     }, 10 * 60 * 1000);
@@ -9809,7 +11256,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           bonusCrystal = 1;
         }
         const parts: string[] = [];
-        if (emptyDrop) parts.push("vazio…");
+        if (emptyDrop) parts.push("vazio⬦");
         if (gain > 0) parts.push(`+${gain} ouro`);
         if (bonusCrystal) parts.push("+1 💎");
         if (bonusBall) parts.push("+1 Pokébola");
@@ -9817,6 +11264,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         pushFxAt(oc.x, oc.y - 50, parts.join(" · "), "gold");
         pushChat(`Baú aberto! ${parts.join(" · ")}`, "chest");
         playChestOpen();
+        // 📋 Loot do Mapa: resumo do baú (só visual — o baú já concede via setIdle abaixo)
+        setMapLoot((l) => {
+          const items = { ...l.items };
+          if (bonusBall) items.pokeball = (items.pokeball ?? 0) + bonusBall;
+          if (bonusKey) items.chest_key = (items.chest_key ?? 0) + bonusKey;
+          return { ...l, gold: l.gold + gain, crystals: l.crystals + bonusCrystal, items };
+        });
         setIdle((s) => {
           const now = Date.now();
           const lastReset = s.lastReset || 0;
@@ -9920,14 +11374,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     setMoving(false);
     setNearBuilding(null);
     const label = kind === "azul"
-      ? "🏡 Casa Azul (5 min)"
-      : "🏠 Lar (5s — recuperando HP)";
+      ? "�x�� Casa Azul (5 min)"
+      : "�x�� Lar (5s � recuperando HP)";
     pushChat(`${label} — descansando... todo o time será curado.`, "info");
   };
 
 
   // ===== Casa Azul: coloca 1 Pokémon para restaurar energia =====
-  // Modo pago: 5💎 -> 5 min. Modo grátis (auto): 1h.
+  // Modo pago: 5�x} -> 5 min. Modo grátis (auto): 1h.
   // Adianta um descanso em andamento gastando cristais
   const speedUpAzulRest = (uid: string) => {
     const now = Date.now();
@@ -9939,7 +11393,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       return;
     }
     if (idle.bank.crystals < AZUL_REST_COST) {
-      pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}💎).`, "info");
+      pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}�x}).`, "info");
       return;
     }
     const refreshed = { ...pet, fome: 100, lealdade: Math.min(100, (pet.lealdade ?? 100) + 10), lastFedAt: now, needFeeding: false, azulRestUntil: undefined, azulRestFromEnergy: undefined, azulRestTotalMs: undefined } as PetInstance;
@@ -9992,7 +11446,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const auto = !!opts?.auto;
     const usePaid = idle.bank.crystals >= AZUL_REST_COST;
     if (!auto && !usePaid) {
-      pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}💎).`, "info");
+      pushChat(`Cristais insuficientes (precisa ${AZUL_REST_COST}�x}).`, "info");
       return;
     }
     const dur = usePaid ? AZUL_REST_MS : AZUL_REST_FREE_MS;
@@ -10146,7 +11600,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           >
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 20% 20%, rgba(180,255,180,0.25), transparent 55%), radial-gradient(circle at 85% 85%, rgba(80,220,120,0.28), transparent 60%)" }} />
             <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 10, letterSpacing: 6, color: "#8affb0", fontWeight: 900, textShadow: "0 0 12px #8affb0", background: "#0a1a0a", padding: "3px 12px", borderRadius: 999, border: "1px solid #8dfa8d" }}>
-              ✦ EVENTO GRASS ODDISH ✦
+              �S� EVENTO GRASS ODDISH �S�
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 6, marginBottom: 10, position: "relative" }}>
@@ -10251,7 +11705,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           >
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(circle at 20% 20%, rgba(255,200,200,0.22), transparent 55%), radial-gradient(circle at 85% 85%, rgba(220,80,80,0.24), transparent 60%)" }} />
             <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 10, letterSpacing: 6, color: "#ffd0d0", fontWeight: 900, textShadow: "0 0 12px #ff9a9a", background: "#2a0d0d", padding: "3px 12px", borderRadius: 999, border: "1px solid #ff9a9a" }}>
-              ✦ EVENTO BLOQUEADO ✦
+              �S� EVENTO BLOQUEADO �S�
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 6, marginBottom: 10, position: "relative" }}>
@@ -10308,13 +11762,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 position: "relative",
               }}
             >
-              FECHAR ✕
+              FECHAR ✕"
             </button>
           </div>
         </div>
       )}
 
-      {/* 🏆 RANKING GLOBAL — Grass Oddish */}
+      {/* �x�  RANKING GLOBAL � Grass Oddish */}
       {oddishRankOpen && (
         <div
           onClick={() => setOddishRankOpen(false)}
@@ -10345,7 +11799,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             <div style={{ position: "relative", textAlign: "center", marginBottom: 10 }}>
               <div style={{ fontSize: 10, letterSpacing: 6, color: "#8affb0", fontWeight: 900, textShadow: "0 0 10px #8affb0" }}>✦ RANKING GLOBAL ✦</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: "#eaffea", marginTop: 2, textShadow: "0 2px 0 rgba(0,0,0,0.5)" }}>
-                🏆 Grass Oddish
+                �x�  Grass Oddish
               </div>
               <div style={{ fontSize: 10.5, color: "#c8e8c8", marginTop: 4, lineHeight: 1.35 }}>
                 Total de Oddish capturados — atualizado ao vivo. Quando o evento encerrar, o pódio final fica visível pra todos.
@@ -10357,7 +11811,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
             <div style={{ position: "relative", flex: 1, overflowY: "auto", background: "rgba(0,0,0,0.35)", borderRadius: 12, border: "1px solid rgba(141,250,141,0.35)", padding: 6 }}>
               {oddishRankLoading && oddishRankRows.length === 0 && (
-                <div style={{ padding: 20, textAlign: "center", color: "#c8e8c8", fontSize: 12 }}>Carregando ranking…</div>
+                <div style={{ padding: 20, textAlign: "center", color: "#c8e8c8", fontSize: 12 }}>Carregando ranking⬦</div>
               )}
               {!oddishRankLoading && oddishRankRows.length === 0 && (
                 <div style={{ padding: 20, textAlign: "center", color: "#c8e8c8", fontSize: 12 }}>
@@ -10417,7 +11871,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 position: "relative",
               }}
             >
-              FECHAR ✕
+              FECHAR ✕"
             </button>
           </div>
         </div>
@@ -10458,16 +11912,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               ))}
             </div>
             <h1 style={{ margin: 0, fontSize: 30, fontWeight: 900, letterSpacing: 3, color: "#eaffea", textShadow: "0 2px 0 rgba(0,0,0,0.7), 0 0 18px rgba(141,250,141,0.75)" }}>
-              🌿 GRASS ODDISH 🌿
+              �xR� GRASS ODDISH �xR�
             </h1>
             <div style={{ marginTop: 4, fontSize: 12, fontWeight: 800, letterSpacing: 4, color: "#c8e8c8" }}>
               PORTAL VERDE ABERTO
             </div>
             <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(141,250,141,0.35)", borderRadius: 12, textAlign: "left", fontSize: 12.5, lineHeight: 1.55, color: "#e8ffe8" }}>
-              <div style={{ marginBottom: 6 }}>• Somente <b style={{ color: "#8affb0" }}>Oddish</b> aparece neste mapa.</div>
+              <div style={{ marginBottom: 6 }}>⬢ Somente <b style={{ color: "#8affb0" }}>Oddish</b> aparece neste mapa.</div>
               <div style={{ marginBottom: 6 }}>• Raridades: <b style={{ color: "#7effa0" }}>Raro</b> · <b style={{ color: "#c58bff" }}>Épico</b> · <b style={{ color: "#ffd76a" }}>Mítico</b>.</div>
               <div style={{ marginBottom: 6 }}>• Taxa de captura <b>igual ao servidor</b> — o ganho é o <b>volume</b> de spawns.</div>
-              <div>• Contador de capturas ativo no menu lateral.</div>
+              <div>⬢ Contador de capturas ativo no menu lateral.</div>
             </div>
             <div style={{ marginTop: 14, fontSize: 11, color: "#a8d0a8", letterSpacing: 1 }}>
               Clique em qualquer lugar para fechar
@@ -10651,7 +12105,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 fontSize: 10, letterSpacing: 3, color: "#ffd23a",
                 textTransform: "uppercase", opacity: 0.9,
               }}>
-                ✦ Evento Relâmpago ✦
+                �S� Evento Relâmpago �S�
               </div>
               <div style={{
                 color: "#fff2c2", fontSize: 18, fontWeight: 800, letterSpacing: 2,
@@ -10674,24 +12128,141 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         display: "grid",
         gridTemplateColumns: "minmax(220px, 240px) 1fr minmax(220px, 240px)",
         gridTemplateRows: "auto 1fr auto",
-        gap: 8, padding: 8,
+        gap: 4, padding: 4,
         height: "100vh",
         overflow: "hidden",
       }}>
 
         {/* ============ TOPBAR (treinador + moedas + atalhos + relógio) ============ */}
+        {/* TEMP-REVERSIVEL-TOPO-FLUXO: topbar visível com painel fino em fluxo normal */}
         <div style={{
           gridColumn: "1 / -1",
-          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-          background: "linear-gradient(180deg, rgba(10,17,32,0.97) 0%, rgba(6,10,20,0.97) 100%)",
-          border: "1px solid rgba(100,160,255,0.35)",
-          borderRadius: 14, padding: "6px 14px",
-          boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(150,200,255,0.22)",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap",
+          background: "linear-gradient(180deg, rgba(10,17,32,0.96) 0%, rgba(6,10,20,0.96) 100%)",
+          border: "1px solid rgba(100,160,255,0.25)",
+          borderRadius: 8, padding: "2px 8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(150,200,255,0.15)",
+          transform: "translateY(-3px)",
         }}>
+          {/* TEMP-REVERSIVEL-TOPO-FLUXO: painel fino visível; conteúdo antigo escondido logo abaixo */}
+          {topHudMin ? (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+              background: "rgba(0,0,0,0.85)",
+              border: "2px solid rgba(6,40,25,0.9)", borderRadius: 6,
+              padding: "2px 8px", margin: "0 8px 4px",
+              boxShadow: "inset 0 0 0 1px rgba(180,255,205,0.3)",
+              fontFamily: "'Courier New', monospace", imageRendering: "pixelated",
+            }}>
+              <div style={{ width: 26, height: 26, borderRadius: 6, overflow: "hidden", flexShrink: 0, border: "2px solid #2c2c2c", background: "#0a1322" }}>
+                <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+              <div style={{ color: "#fff", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>
+                {identity?.name ?? "Treinador"} <span style={{ fontSize: 9, color: "#7ef2a2" }}>Lv. {idle.trainerLevel ?? 1}</span>
+              </div>
+              <button onClick={() => setTopHudMin(false)} title="Maximizar" style={{ width: 20, height: 20, borderRadius: 6, cursor: "pointer", background: "rgba(16,120,70,0.9)", color: "#fff", border: "2px solid rgba(6,40,25,0.9)", fontWeight: 900, fontSize: 12, lineHeight: 1 }}>+</button>
+            </div>
+          ) : (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "center",
+            background: "rgba(16,120,70,0.72)",
+            border: "3px solid rgba(6,40,25,0.9)", borderRadius: 6,
+            padding: "2px 6px", margin: "0 8px 4px",
+            boxShadow: "inset 0 0 0 2px rgba(180,255,205,0.5), 0 2px 0 rgba(6,40,25,0.7)",
+            backdropFilter: "blur(6px)",
+            fontFamily: "'Courier New', monospace", imageRendering: "pixelated",
+          }}>
+            <div style={{
+              width: 30, height: 30, borderRadius: 6, overflow: "hidden", flexShrink: 0,
+              border: "2px solid #2c2c2c", background: "#0a1322",
+            }}>
+              <div style={{
+                width: "100%", height: "100%",
+                backgroundImage: `url(${skinPhotoOf(skinId) ?? trainerSheet})`,
+                backgroundSize: "cover", backgroundPosition: "center",
+                imageRendering: "pixelated",
+              }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: "#1a0f26", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>
+                {identity?.name ?? "Treinador"} <span style={{ fontSize: 9 }}>Lv. {idle.trainerLevel ?? 1}</span>
+              </div>
+              <div style={{ width: 70, height: 4, borderRadius: 999, background: "rgba(0,0,0,0.4)", border: "1px solid #2c2c2c", overflow: "hidden" }}>
+                <div style={{
+                  width: `${Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100))}%`, height: "100%",
+                  background: "#3b82f6",
+                }} />
+              </div>
+            </div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0a1322", border: "2px solid #2c2c2c", padding: "1px 5px", borderRadius: 6, color: "#fff", fontWeight: 800, fontSize: 10 }}>
+              ⚡ {Math.round(trainerEnergy)}%
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0a1322", border: "2px solid #2c2c2c", padding: "1px 5px", borderRadius: 6, color: "#fff", fontWeight: 800, fontSize: 10 }}>
+              🍖 {Math.round(idle.trainerHunger ?? 100)}%
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0a1322", border: "2px solid #2c2c2c", padding: "1px 5px", borderRadius: 6, color: "#fff", fontWeight: 800, fontSize: 10 }}>
+              🎯 {Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))}/{MAX_THROW_COUNT}
+            </span>
+            {([
+              { el: <GoldCoin size={14} />, val: Math.floor(idle.bank.gold).toLocaleString("pt-BR") },
+              { el: <CrystalGem size={14} />, val: Math.floor(idle.bank.crystals).toLocaleString("pt-BR") },
+              { el: <img src={crystalRedImg} alt="" width={14} height={14} style={{ imageRendering: "pixelated" }} />, val: Math.floor(idle.pending.rubies).toLocaleString("pt-BR") },
+            ]).map((c, i) => (
+              <span key={i} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                background: "#0a1322", border: "2px solid #2c2c2c",
+                padding: "1px 5px", borderRadius: 6,
+                color: "#fff", fontWeight: 800, fontSize: 10,
+              }}>
+                {c.el}{c.val}
+              </span>
+            ))}
+            {([
+              { label: "Missões", img: hudMissoesPng, badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
+              { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
+              { label: "Amigos", img: hudAmigosPng, badge: guildInvites.length, onClick: () => { playClick(); setTab("guilda"); } },
+              { label: "Config.", img: hudConfigPng, badge: 0, onClick: () => setShowAutoSettings(true) },
+            ] as const).map((b) => (
+              <button
+                key={b.label}
+                onClick={() => { playClick(); b.onClick(); }}
+                title={b.label}
+                style={{
+                  position: "relative", background: "transparent", border: "none", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
+                  padding: "1px 4px", borderRadius: 6, color: "#1a0f26", fontSize: 8, fontWeight: 700,
+                }}
+              >
+                {"img" in b && (b as { img?: string }).img
+                  ? <img src={(b as { img?: string }).img} alt={b.label} width={18} height={18} style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />
+                  : <span style={{ fontSize: 16, filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}>{(b as { icon?: string }).icon}</span>}
+                {b.label}
+                {b.badge > 0 && (
+                  <span style={{
+                    position: "absolute", top: 0, right: 0, minWidth: 14, height: 14, borderRadius: 999,
+                    background: "#e11d48", color: "#fff", fontSize: 9, fontWeight: 900,
+                    display: "grid", placeItems: "center", padding: "0 3px",
+                    border: "1px solid #fff",
+                  }}>{b.badge}</span>
+                )}
+              </button>
+            ))}
+            <div style={{ textAlign: "right", paddingLeft: 6, borderLeft: "2px solid #2c2c2c" }}>
+              <div style={{ color: "#1a0f26", fontWeight: 900, fontSize: 13, whiteSpace: "nowrap" }}>
+                ☀️ {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </div>
+              <div style={{ fontSize: 8, color: "#4a3a52", textTransform: "capitalize", whiteSpace: "nowrap" }}>
+                {new Date().toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })}
+              </div>
+            </div>
+            <button onClick={() => setTopHudMin(true)} title="Minimizar (só perfil)" style={{ width: 20, height: 20, borderRadius: 6, cursor: "pointer", background: "rgba(0,0,0,0.5)", color: "#fff", border: "2px solid #2c2c2c", fontWeight: 900, fontSize: 12, lineHeight: 1, flexShrink: 0 }}>�</button>
+          </div>
+          )}
+          <div style={{ display: "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             <div style={{
-              width: 54, height: 54, borderRadius: 10, overflow: "hidden", flexShrink: 0,
-              border: "2px solid rgba(245,207,107,0.7)", background: "#0a1322",
+              width: 36, height: 36, borderRadius: 7, overflow: "hidden", flexShrink: 0,
+              border: "1.5px solid rgba(245,207,107,0.7)", background: "#0a1322",
               boxShadow: "0 0 0 3px rgba(245,207,107,0.18), 0 4px 12px rgba(0,0,0,0.5)",
             }}>
                   <div style={{
@@ -10699,12 +12270,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     border: "2px solid rgba(245,207,107,0.7)", background: "#0a1322",
                     boxShadow: "0 0 0 3px rgba(245,207,107,0.18), 0 4px 12px rgba(0,0,0,0.5)",
                   }}>
-                    <div style={{
-                      width: "100%", height: "100%",
-                      backgroundImage: `url(${skinUrl ?? trainerSheet})`,
-                      backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
-                      imageRendering: "pixelated",
-                    }} />
+                    <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="Treinador" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
             </div>
             <div style={{ minWidth: 0 }}>
@@ -10714,7 +12280,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                 <span style={{ color: "#fff", fontWeight: 800, fontSize: 11, whiteSpace: "nowrap" }}>Lv. {idle.trainerLevel ?? 1}</span>
-                <div style={{ width: 100, height: 7, borderRadius: 999, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(110,175,255,0.35)", overflow: "hidden" }}>
+                <div style={{ width: 70, height: 4, borderRadius: 999, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(110,175,255,0.3)", overflow: "hidden" }}>
                   <div style={{
                     width: `${Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100))}%`, height: "100%",
                     background: "linear-gradient(90deg, #3b82f6, #67c7f5)", boxShadow: "0 0 8px rgba(90,160,255,0.8)",
@@ -10729,8 +12295,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   width: 18, height: 18, borderRadius: "50%", display: "grid", placeItems: "center",
                   fontSize: 11, background: "linear-gradient(180deg,#d8ffe2,#8fe3a8)",
                   border: "1px solid #4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.55)",
-                }}>⚡</span>
-                <div title="Energia do treinador" style={{ width: 100, height: 10, borderRadius: 999, background: "#20301f", border: "1px solid #4ade80", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
+                }}>�a�</span>
+                <div title="Energia do treinador" style={{ width: 70, height: 5, borderRadius: 999, background: "#20301f", border: "1px solid #4ade80", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
                   <div style={{ width: `${Math.round(trainerEnergy)}%`, height: "100%", background: trainerEnergy > 30 ? "linear-gradient(180deg,#d9ffd9,#4ade80 60%,#22c55e)" : "linear-gradient(180deg,#ffd9d9,#f87171 60%,#ef4444)", borderRadius: 999, transition: "width 400ms" }} />
                   <div style={{ position: "absolute", top: 1, left: 4, right: 4, height: 2, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
                 </div>
@@ -10741,8 +12307,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   width: 18, height: 18, borderRadius: "50%", display: "grid", placeItems: "center",
                   fontSize: 11, background: "linear-gradient(180deg,#fff3d9,#ffd98f)",
                   border: "1px solid #f5cf6b", boxShadow: "0 0 6px rgba(245,207,107,0.55)",
-                }}>🍖</span>
-                <div title="Fome do treinador" style={{ width: 100, height: 10, borderRadius: 999, background: "#33270f", border: "1px solid #f5cf6b", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
+                }}>�x�</span>
+                <div title="Fome do treinador" style={{ width: 70, height: 5, borderRadius: 999, background: "#33270f", border: "1px solid #f5cf6b", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
                   <div style={{ width: `${Math.round(idle.trainerHunger ?? 100)}%`, height: "100%", background: (idle.trainerHunger ?? 100) > 30 ? "linear-gradient(180deg,#fff3d9,#f5cf6b 60%,#d9a441)" : "linear-gradient(180deg,#ffd9d9,#f87171 60%,#ef4444)", borderRadius: 999, transition: "width 400ms" }} />
                   <div style={{ position: "absolute", top: 1, left: 4, right: 4, height: 2, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
                 </div>
@@ -10754,7 +12320,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   filter: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "drop-shadow(0 0 4px rgba(255,255,255,0.5))" : "grayscale(0.6) brightness(0.7)",
                   animation: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "none" : "pulse 1s ease-in-out infinite",
                 }} />
-                <div title="Arremessos restantes" style={{ width: 100, height: 10, borderRadius: 999, background: "#1f2a3a", border: "1px solid #8fd0ff", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
+                <div title="Arremessos restantes" style={{ width: 70, height: 5, borderRadius: 999, background: "#1f2a3a", border: "1px solid #8fd0ff", overflow: "hidden", position: "relative", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
                   <div style={{ width: `${Math.max(0, Math.min(100, ((idle.throwsLeft ?? MAX_THROW_COUNT) / MAX_THROW_COUNT) * 100))}%`, height: "100%", background: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "linear-gradient(180deg,#d9efff,#8fd0ff 60%,#4a9eff)" : "linear-gradient(180deg,#ffd9d9,#f87171 60%,#ef4444)", borderRadius: 999, transition: "width 400ms" }} />
                   <div style={{ position: "absolute", top: 1, left: 4, right: 4, height: 2, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
                 </div>
@@ -10790,35 +12356,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 {c.el}{c.val}
               </span>
             ))}
-            <button
-              onClick={() => { playClick(); setTab("loja"); }}
-              title="Loja"
-              style={{
-                width: 24, height: 24, borderRadius: "50%", cursor: "pointer",
-                background: "linear-gradient(180deg,#3b82f6,#1d4ed8)", color: "#fff",
-                border: "1px solid rgba(150,200,255,0.6)", fontWeight: 900, fontSize: 15, lineHeight: 1,
-                boxShadow: "0 0 10px rgba(70,130,255,0.5)",
-              }}
-            >+</button>
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-end", gap: 2, marginLeft: "auto" }}>
             {([
-              { label: "Cash", img: assetUrlFromJson(iconCashPackage), badge: 0, onClick: () => setCashShopOpen(true) },
-              { label: "Correio", icon: "📦", badge: idle.tasks.filter((t) => t.done).length, onClick: () => {
-                const done = idle.tasks.filter((t) => t.done);
-                if (done.length === 0) pushToast("Nenhuma recompensa para resgatar.", "info");
-                else { done.forEach((t) => claimTask(t.id)); pushChat(`Resgatou ${done.length} recompensa(s)!`, "chest"); }
-              } },
-              { label: "Missões", icon: "📋", badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
+              { label: "Missões", img: hudMissoesPng, badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
               { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
-              { label: "Amigos", icon: "👥", badge: 0, onClick: () => setBigMapOpen(true) },
-              { label: "Config.", icon: "⚙️", badge: 0, onClick: () => setShowAutoSettings(true) },
+              { label: "Amigos", img: hudAmigosPng, badge: guildInvites.length, onClick: () => { playClick(); setTab("guilda"); } },
+              { label: "Config.", img: hudConfigPng, badge: 0, onClick: () => setShowAutoSettings(true) },
             ] as const).map((b) => (
               <button
                 key={b.label}
                 onClick={() => { playClick(); b.onClick(); }}
-                title={b.label === "Amigos" ? "Ver treinadores no mapa" : b.label === "Correio" ? "Resgatar recompensas" : b.label === "Cash" ? "Lojinha Cash" : b.label}
+                title={b.label === "Amigos" ? "Ver treinadores no mapa" : b.label}
                 className="bottomnav-btn"
                 style={{
                   position: "relative", background: "transparent", border: "none", cursor: "pointer",
@@ -10848,6 +12398,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 {new Date().toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })}
               </div>
             </div>
+          </div>
           </div>
         </div>
 
@@ -11065,12 +12616,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                           m.kind === "hit" ? "#ff6b6b" :
                           m.kind === "dmg" ? "#f5cf6b" : "#c8b8d0";
                         const prefix =
-                          m.kind === "chest" ? "🎁" :
-                          m.kind === "capture" ? "✦" :
-                          m.kind === "cap" ? "★" :
-                          m.kind === "lv" ? "⬆" :
-                          m.kind === "hit" ? "✖" :
-                          m.kind === "dmg" ? "⚔" : "•";
+                          m.kind === "chest" ? "�x}�" :
+                          m.kind === "capture" ? "�S�" :
+                          m.kind === "cap" ? "��&" :
+                          m.kind === "lv" ? "� " :
+                          m.kind === "hit" ? "�S" :
+                          m.kind === "dmg" ? "�a" : "⬢";
                         const playerMatch = m.text.startsWith("💬") ? m.text.replace(/^💬\s*/, "").match(/^([^:]+):\s*(.*)$/) : null;
                         if (playerMatch) {
                           return (
@@ -11112,7 +12663,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       textAlign: "center",
                     }}
                   >
-                    🔇 Chat global desativado
+                    �x! Chat global desativado
                   </div>
                 );
               })()}
@@ -11130,6 +12681,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           onDoubleClick={(e) => e.preventDefault()}
           onDragStart={(e) => e.preventDefault()}
           onClick={(e) => {
+            // LOADING de teleport: nenhuma interação com o mapa.
+            if (mapLoadingRef.current) { e.stopPropagation(); return; }
             const t = e.target as HTMLElement;
             if (t.closest && t.closest("button, a, input, select, textarea")) return;
             const rect = viewportRef.current?.getBoundingClientRect();
@@ -11168,8 +12721,39 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         >
 
 
-          {/* Nome/Estilo no canto esquerdo — Revoland (mapinha6) */}
-          {idle.currentMap === "mapinha6" && (() => { const m = IDLE_MAPS["mapinha6"]; return (
+          {/* LOADING de teleport (5s) � bloqueia toda interação com o mapa */}
+          {mapLoading && (
+            <div
+              onClick={(e) => { e.stopPropagation(); }}
+              style={{
+                position: "fixed", left: 0, top: 0, right: 0, bottom: 0, width: "100vw", height: "100vh", zIndex: 9999,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10,
+                background: "#060a13",
+                cursor: "wait",
+              }}
+            >
+              {mapLoadingImgOk ? (
+                <img
+                  src={mapLoading.img}
+                  alt="Carregando..."
+                  onError={() => setMapLoadingImgOk(false)}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
+                  draggable={false}
+                />
+              ) : (
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, #14263d 0%, #060a13 75%)" }} />
+              )}
+              <div style={{ position: "relative", color: "#f5cf6b", fontWeight: 900, fontSize: 18, letterSpacing: 2, textShadow: "2px 2px 0 #000", fontFamily: '"Press Start 2P", monospace' }}>
+                CARREGANDO...
+              </div>
+              <div style={{ position: "relative", width: 180, height: 10, borderRadius: 999, background: "rgba(0,0,0,0.6)", border: "2px solid #f5cf6b", overflow: "hidden" }}>
+                <div style={{ width: "100%", height: "100%", background: "linear-gradient(90deg,#f5cf6b,#ff9d2e)", animation: "maploadbar 7s linear forwards" }} />
+              </div>
+              <style>{`@keyframes maploadbar { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
+            </div>
+          )}
+          {/* Nome/Estilo no canto esquerdo � Revoland (mapinha6), esconde quando aba aberta */}
+          {idle.currentMap === "mapinha6" && tab === "batalha" && (() => { const m = IDLE_MAPS["mapinha6"]; return (
             <div style={{ position: "absolute", top: 12, left: 12, zIndex: 68, pointerEvents: "none", background: "rgba(11,5,16,0.88)", border: "1px solid rgba(245,207,107,0.45)", borderRadius: 10, padding: "6px 10px", display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
               <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13, letterSpacing: 0.5, textShadow: "1px 1px 0 #000" }}>{m.name}</span>
               <span style={{ color: "#c8b8d0", fontSize: 11, fontWeight: 700 }}>{m.diff} · {m.element} {m.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(m.stars)}</span> : null}</span>
@@ -11186,7 +12770,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 t.kind === "chest" ? { border: "#ffa64a", bg: "rgba(90,40,10,0.92)", icon: "🎁" } :
                 t.kind === "cap" ? { border: "#f5cf6b", bg: "rgba(60,45,10,0.92)", icon: "★" } :
                 t.kind === "lv" ? { border: "#6bd4ff", bg: "rgba(10,40,60,0.92)", icon: "⬆" } :
-                { border: "#8b5cf6", bg: "rgba(30,15,50,0.92)", icon: "•" };
+                { border: "#8b5cf6", bg: "rgba(30,15,50,0.92)", icon: "⬢" };
               return (
                 <div key={t.id} style={{
                   width: "100%", animation: "evt-slide 300ms ease-out",
@@ -11207,16 +12791,107 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
           {/* Diálogo clássico NPC — estilo RPG pixel (typewriter + seta) */}
           {npcDialog && (() => {
-            const hasOrange = [...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_orange");
+            {/* Quest do Gordin: turn-ins (shiny� 3 / venusaur� 5 energéticos) e depois 1000 kills 5x */}
+            const gq = idle.gordinQuest ?? {};
+            const hasShinyGordin = [...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_shiny" || p.species === "venusaur_shiny");
+            const hasVenusaurGordin = [...team, ...(idle.collection ?? [])].some((p) => p.species === "venusaur");
+            const gordinPhase2 = !!(gq.shinyDone && gq.venusaurDone);
+            const gordinRunsLeft = Math.max(0, 5 - (gq.killRuns ?? 0));
+            const gordinKillProg = gq.killActive ? Math.max(0, (idle.totalKills ?? 0) - (gq.killStart ?? 0)) : 0;
+            const claimGordinShiny = () => {
+              if (gq.shinyDone) return;
+              if (![...team, ...(idle.collection ?? [])].some((p) => p.species === "bulbasaur_shiny" || p.species === "venusaur_shiny")) { pushChat("Você não tem nenhum Shiny (Bulbasaur/Venusaur) para mostrar!", "info"); return; }
+              setIdle((s) => ({
+                ...s,
+                items: { ...s.items, energetico: (s.items.energetico ?? 0) + 3 },
+                gordinQuest: { ...(s.gordinQuest ?? {}), shinyDone: true },
+              }));
+              pushChat("�S� Gordin te deu +3 Energéticos pelo Shiny!", "cap");
+            };
+            const claimGordinVenusaur = () => {
+              if (gq.venusaurDone) return;
+              if (![...team, ...(idle.collection ?? [])].some((p) => p.species === "venusaur")) { pushChat("Você não tem nenhum Venusaur para mostrar!", "info"); return; }
+              setIdle((s) => ({
+                ...s,
+                items: { ...s.items, energetico: (s.items.energetico ?? 0) + 5 },
+                gordinQuest: { ...(s.gordinQuest ?? {}), venusaurDone: true },
+              }));
+              pushChat("�xR� Gordin te deu +5 Energéticos pelo Venusaur!", "cap");
+            };
+            const acceptGordinKills = () => {
+              if (!gordinPhase2 || gordinRunsLeft <= 0 || gq.killActive) return;
+              const start = idle.totalKills ?? 0;
+              setIdle((s) => ({ ...s, gordinQuest: { ...(s.gordinQuest ?? {}), killActive: true, killStart: start } }));
+              pushChat("�a️ Quest do Gordin: derrote 1000 Pokémon!", "info");
+            };
+            const claimGordinKills = () => {
+              const prog = Math.max(0, (idle.totalKills ?? 0) - (gq.killStart ?? 0));
+              if (!gq.killActive || prog < 1000) return;
+              if ((gq.killRuns ?? 0) >= 5) return;
+              setIdle((s) => ({
+                ...s,
+                items: { ...s.items, pokeball: (s.items.pokeball ?? 0) + 10, greatball: (s.items.greatball ?? 0) + 2 },
+                gordinQuest: { ...(s.gordinQuest ?? {}), killActive: false, killRuns: (s.gordinQuest?.killRuns ?? 0) + 1 },
+              }));
+              pushChat("�x}� Gordin te deu +10 Pokébolas e +2 Great Balls!", "cap");
+            };
             const simple: Record<string, string[]> = {
               gordin: [
-                "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um de cor diferente, azulado, que ninguém nunca viu!",
-                hasOrange
-                  ? "ESSE É ELE!! O Bulbasaur azulado! Quando quiser vender, me procura... pago uma fortuna em esmeraldas! 💎💎"
-                  : "Dizem que ele nasce dos orbs roxos... Se você capturar um e me mostrar, pago MUITO bem em esmeraldas! 💎"
+                "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um Shiny de cor diferente, que ninguém nunca viu!",
+                gordinPhase2
+                  ? (gordinRunsLeft > 0
+                    ? `Agora só me interessa batalha! Derrote 1000 Pokémon e te pago 10 Pokébolas + 2 Great Balls. (restam ${gordinRunsLeft}x)`
+                    : "Valeu por tudo, treinador! Já te paguei tudo que podia. Boa caçada! �x��")
+                  : "Se capturar um Shiny (Bulbasaur ou Venusaur) me mostra que te dou 3 Energéticos! E um Venusaur grandão vale 5! �xR�",
               ],
               bulbaOrange: ["Bulbasaur laranja te observa com curiosidade...", "Ele parece feliz!"],
               bulbaFlower: ["Bulbasaur florido balança suas pétalas...", "Que fofo!"],
+              bottan: [
+                "Olá, viajante! Eu sou Bottan. Conheço o caminho para a Esfera Ancestral... um lugar envolto em aurora e neve negra. �S�",
+                "Cada travessia tem um preço, e ele alterna: 5 de energia... depois 1000 de ouro... depois 2 cristais... e recomeça!",
+                ],
+                aspectro: [
+                  "Olá...",
+                "...",
+              ],
+              gatoancy: [
+                "Não precisa falar...\nEstou falando com ele.",
+                "Lua Negra está se comunicando com seu Pokémon.",
+                "Ué...\nele falou comigo telepaticamente?",
+                "A primeira meia-noite já começou.",
+                "A primeira?",
+                "Na segunda meia-noite...\nolhe para a lua.",
+                "Segunda meia-noite...?",
+                "Hoje será apenas a primeira.",
+                "Quando chegar a segunda...\nseu Pokémon saberá.",
+              ],
+            };
+            // Bottan: custo alternado por viagem (energia → ouro → cristal).
+            const bottanTrips = idle.bottanTrips ?? 0;
+            const bottanCostKind = (["energia", "ouro", "cristal"] as const)[bottanTrips % 3];
+            const bottanCostLabel = bottanCostKind === "energia" ? "5 ⚡ energia" : bottanCostKind === "ouro" ? "1000 🪙 ouro" : "2 💎 cristais";
+            const travelWithBottan = () => {
+              const trips = idle.bottanTrips ?? 0;
+              const kind = (["energia", "ouro", "cristal"] as const)[trips % 3];
+              if (kind === "energia") {
+                if ((trainerEnergy ?? 0) < 5) { pushChat("⚡ Você precisa de 5 de energia para viajar.", "info"); return; }
+                setTrainerEnergy((e) => Math.max(0, e - 5));
+              } else if (kind === "ouro") {
+                if ((idle.bank.gold ?? 0) < 1000) { pushChat("🪙 Você precisa de 1000 de ouro para viajar.", "info"); return; }
+                setIdle((s) => ({ ...s, bank: { ...s.bank, gold: Math.max(0, (s.bank?.gold ?? 0) - 1000) } }));
+              } else {
+                if ((idle.bank.crystals ?? 0) < 2) { pushChat("💎 Você precisa de 2 cristais para viajar.", "info"); return; }
+                setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: Math.max(0, (s.bank?.crystals ?? 0) - 2) } }));
+              }
+              playClick();
+              setIdle((s) => ({ ...s, currentMap: "esfera_ancestral", bottanTrips: (s.bottanTrips ?? 0) + 1 }));
+              setTrainerPos({ x: 528, y: 1100 });
+              walkTargetRef.current = null;
+              setWalkingTo(null);
+              setEnemies([]);
+              setChests([]);
+              setNpcDialog(null);
+              pushChat(`✨ Bottan te levou à Esfera Ancestral! (custo: ${bottanCostLabel})`, "cap");
             };
             const luluLines = [
               "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?",
@@ -11227,7 +12902,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const isMenu = npcDialog.kind === "luluzinha" && npcDialog.page === 0;
             const pages = npcDialog.kind === "luluzinha" ? luluLines : (simple[npcDialog.kind] ?? ["..."]);
             const page = Math.min(npcDialog.page, pages.length - 1);
-            const portraitUrl = npcDialog.kind === "gordin" ? gordinPng : npcDialog.kind === "luluzinha" ? luluzinhaFrontPng : npcDialog.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+            const portraitUrl = NPC_IMG[npcDialog.kind] ?? bulbasaurFlowerUrl;
             const advance = () => {
               if (isMenu) return;
               if (page < pages.length - 1) setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
@@ -11246,8 +12921,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 footer={isMenu ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
                     {[
-                      "🌸 Que flor você procura?",
-                      "💎 Por que ela é especial?",
+                      "�xR� Que flor você procura?",
+                      "�x} Por que ela é especial?",
                       "🔍 Onde posso procurar?",
                     ].map((label, idx) => (
                       <button
@@ -11268,7 +12943,45 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.25)", color: "#ffb0dd", padding: "4px 10px", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 800 }}
                     >← voltar às perguntas</button>
                   </div>
-                ) : null)}
+                ) : (npcDialog.kind === "gordin" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                    {!gq.shinyDone && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); claimGordinShiny(); }}
+                        style={{ textAlign: "left", background: hasShinyGordin ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >�S� Entregar Shiny (+3 Energéticos)</button>
+                    )}
+                    {!gq.venusaurDone && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); claimGordinVenusaur(); }}
+                        style={{ textAlign: "left", background: hasVenusaurGordin ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >�xR� Entregar Venusaur (+5 Energéticos)</button>
+                    )}
+                    {gordinPhase2 && gordinRunsLeft > 0 && !gq.killActive && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); acceptGordinKills(); }}
+                        style={{ textAlign: "left", background: "rgba(245,207,107,0.2)", border: "1px solid rgba(245,207,107,0.5)", color: "#ffe9a8", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >�a️ Aceitar: derrote 1000 ({gordinRunsLeft}x restantes)</button>
+                    )}
+                    {gordinPhase2 && !!gq.killActive && (
+                      <div style={{ fontSize: 10, color: "#ffe9a8", fontWeight: 800 }}>�a️ Progresso: {Math.min(1000, gordinKillProg)}/1000</div>
+                    )}
+                    {gordinPhase2 && !!gq.killActive && gordinKillProg >= 1000 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); claimGordinKills(); }}
+                        style={{ textAlign: "left", background: "rgba(34,197,94,0.3)", border: "1px solid #22c55e", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >🎁 Resgatar (+10 Pokébolas, +2 Great Balls)</button>
+                    )}
+                  </div>
+                ) : (npcDialog.kind === "bottan" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                    <div style={{ fontSize: 10, color: "#ffe9a8", fontWeight: 800 }}>Próxima travessia: {bottanCostLabel}</div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); travelWithBottan(); }}
+                      style={{ textAlign: "left", background: "rgba(139,92,246,0.25)", border: "1px solid rgba(139,92,246,0.6)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                    >�S� Viajar para a Esfera Ancestral ({bottanCostLabel})</button>
+                  </div>
+                ) : null)))}
               />
             );
           })()}
@@ -11364,7 +13077,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
                 }}
                 title="Fechar"
-              >✕</button>
+              >�S"</button>
             );
             // Retrato de quem está falando: NPC ou VOCÊ (foto do treinador).
             const speakerPortrait = (npc: SagaNpcId, line: string) => {
@@ -11375,12 +13088,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       width: 56, height: 56, border: "2px solid #7fd8ff", borderRadius: 6, overflow: "hidden",
                       background: "#0b0510", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.3)",
                     }}>
-                      <div style={{
-                        width: "100%", height: "100%",
-                        backgroundImage: `url(${skinUrl ?? trainerSheet})`,
-                        backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
-                        imageRendering: "pixelated",
-                      }} />
+                      <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="Você" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                     <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: "#7fd8ff" }}>VOCÊ</span>
                   </div>
@@ -11434,7 +13142,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         fontSize: 10, fontWeight: 900, letterSpacing: 1,
                       }}
                       title="Pedidos secundárias"
-                    >📜 PEDIDOS</button>
+                    >�xS PEDIDOS</button>
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
@@ -11458,7 +13166,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                       <span style={{ color: "#ffcc33", fontSize: 14, letterSpacing: 2 }}>
-                        {"★".repeat(starsP)}<span style={{ color: "rgba(255,255,255,0.25)" }}>{"★".repeat(3 - starsP)}</span>
+                        {"��&".repeat(starsP)}<span style={{ color: "rgba(255,255,255,0.25)" }}>{"��&".repeat(3 - starsP)}</span>
                       </span>
                       <span style={{ color: "#c8b8d0", fontSize: 10, fontWeight: 800 }}>
                         {doneP}/15 pedidos · ★ a cada 5
@@ -11605,7 +13313,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 san: "SAN: Orbs? Falo por horas. Mas sua missão atual é com outro, né?\n\n💡 DICA: Orb de XP dá +EXP por 1h — ative na mochila antes de farmar. E o AUTOMÁTICO só funciona fora da cidade inicial!",
                 nanizinha: "NANIZINHA: Comeu hoje? ...Sua missão é com outro colega, mas come mesmo assim!\n\n💡 DICA: Poção cura 50% do HP do líder, Berry cura tudo e Revive levanta quem caiu. E coma de 8 em 8h (🍖) pra manter a energia cheia!",
                 payka: "PAYKA: Sigo farejando aquele FÓSSIL aqui em Florest Bone... dizem que lembra o MEW! Se achar pista de passagem secreta, me conta — tem recompensa gorda!",
-                pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.\n\n💡 DICA: viajar custa energia — voltar pra Revoland custa 1⚡, outros mapas 5⚡. O custo aparece antes de confirmar, e sem energia não tem viagem!",
+                pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.\n\n💡 DICA: viajar custa energia — voltar pra Revoland e entrar no Pokémarkt é grátis, outros mapas 5⚡. O custo aparece antes de confirmar, e sem energia não tem viagem!",
               };
               const targetNpc = st ? st.npc : null;
               const targetMapName = targetNpc ? (IDLE_MAPS[SAGA_NPCS[targetNpc].map]?.name ?? "Revoland") : "—";
@@ -11785,7 +13493,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             </div>
           )}
 
-          {/* ===== Controles (zoom + config + ranking) ===== */}
+          {/* ===== Controles (zoom + config + ranking) — some com aba aberta ===== */}
+          {tab === "batalha" && (
           <div style={{
             position: "absolute", top: 8, right: 8, zIndex: 55,
             pointerEvents: "auto", display: "flex", flexDirection: "column", gap: 4,
@@ -11804,13 +13513,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 <div>
                   <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, curIdx + 1)]); }} style={zoomBtn}>+</button>
                   <div style={{ ...zoomBtn, cursor: "default", fontSize: 10 }}>{Math.round(zoom * 100)}%</div>
-                  <button onClick={() => { playClick(); setZoom(ZOOM_LEVELS[Math.max(0, curIdx - 1)]); }} style={zoomBtn}>−</button>
+                  <button onClick={() => { playClick(); if (idle.currentMap === "esfera_ancestral" && zoom <= 1) { pushChat("�x� Zoom bloqueado na Esfera Ancestral.", "info"); return; } setZoom(ZOOM_LEVELS[Math.max(0, curIdx - 1)]); }} style={zoomBtn}>��</button>
                 </div>
               );
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); pushChat("🏆 Ranked temporariamente bloqueado.", "info"); }}
+              onClick={() => { playClick(); pushChat("�x�  Ranked temporariamente bloqueado.", "info"); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -12069,7 +13778,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               );
             })()}
           </div>
-
+          )}
 
 
 
@@ -12127,6 +13836,45 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </div>
             </div>
           )}
+              {idle.currentMap === "esfera_ancestral" && (
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5, overflow: "hidden" }}>
+                  <div className="aurora-band-a" style={{
+                    position: "absolute", left: "-10%", right: "-10%", top: "-12%", height: "46%",
+                    background: "linear-gradient(180deg, transparent 0%, rgba(60,220,180,0.28) 35%, rgba(120,80,255,0.35) 60%, transparent 100%)",
+                    filter: "blur(18px)", transform: "rotate(-6deg)",
+                    animation: "auroraDrift 9s ease-in-out infinite alternate",
+                  }} />
+                  <div className="aurora-band-b" style={{
+                    position: "absolute", left: "-10%", right: "-10%", top: "-6%", height: "34%",
+                    background: "linear-gradient(180deg, transparent 0%, rgba(150,80,255,0.30) 40%, rgba(60,200,255,0.25) 65%, transparent 100%)",
+                    filter: "blur(22px)", transform: "rotate(4deg)",
+                    animation: "auroraDrift 12s ease-in-out infinite alternate-reverse",
+                  }} />
+                  {Array.from({ length: 42 }, (_, i) => {
+                    const r1 = ((i * 9301 + 49297) % 233280) / 233280;
+                    const r2 = ((i * 7919) % 1000) / 1000;
+                    const r3 = ((i * 6271) % 1000) / 1000;
+                    const size = 3 + r3 * 5;
+                    return (
+                      <span key={`bsnow-${i}`} style={{
+                        position: "absolute", left: `${r1 * 100}%`, top: "-12px",
+                        width: size, height: size, borderRadius: "50%",
+                        background: "radial-gradient(circle at 35% 35%, #2a2a3a 0%, #0a0a12 70%)",
+                        border: "1px solid rgba(150,80,255,0.5)",
+                        boxShadow: "0 0 6px rgba(120,80,255,0.6)",
+                        opacity: 0.85,
+                        animation: `blackSnowFall ${7 + r2 * 6}s linear infinite`,
+                        animationDelay: `-${r2 * 10}s`,
+                        ["--drift" as string]: `${(r3 - 0.5) * 120}px`,
+                      } as React.CSSProperties} />
+                    );
+                  })}
+                  <style>{`
+                    @keyframes blackSnowFall { 0% { transform: translate3d(0, -5vh, 0); } 100% { transform: translate3d(var(--drift, 40px), 110vh, 0); } }
+                    @keyframes auroraDrift { 0% { transform: rotate(-6deg) translateX(-3%); opacity: 0.75; } 100% { transform: rotate(-2deg) translateX(3%); opacity: 1; } }
+                  `}</style>
+                </div>
+              )}
 
 
             {/* Contador de jogadores online removido a pedido do usuário */}
@@ -12345,23 +14093,38 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </>
             )}
             {npcs.map((n) => {
+              // Gate de mapa: Lua Negra só existe na Esfera Ancestral (spawn já
+              // o restringe, mas double-check p/ nunca aparecer em 0,0).
+              if (n.kind === "gatoancy" && idle.currentMap !== "esfera_ancestral") return null;
               const isSagaNpc = n.kind === "boby" || n.kind === "san" || n.kind === "nanizinha" || n.kind === "payka" || n.kind === "pan";
-              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || isSagaNpc;
-              const url = n.kind === "gordin" ? gordinPng : n.kind === "luluzinha" ? luluzinhaFrontPng : n.kind === "pokemarktClerk" ? pokemarktClerkUrl : n.kind === "boby" ? bobyPng : n.kind === "san" ? sanPng : n.kind === "nanizinha" ? nanizinhaPng : n.kind === "payka" ? paykaPng : n.kind === "pan" ? panPng : n.kind === "bulbaOrange" ? bulbasaurOrangeUrl : bulbasaurFlowerUrl;
+              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || n.kind === "bottan" || n.kind === "aspectro" || n.kind === "gatoancy" || isSagaNpc;
+              const url = NPC_IMG[n.kind] ?? bulbasaurFlowerUrl;
               const singlePortrait = n.kind === "luluzinha";
-              const dirRow = { down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0;
+              // Lua Negra: a esquerda é o reflexo da direita (o sheet não tem
+              // animação válida de esquerda)  —  usa a row "right" com scaleX(-1).
+              const mirrorLeft = n.kind === "gatoancy" && n.dir === "left";
+              const dirRow = (mirrorLeft ? 2 : ({ down: 0, left: 1, right: 2, up: 3 }[n.dir] ?? 0));
               return (
                 <div
                   key={`npc-${n.id}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isInteractive) return;
+                    // Lua Negra: 1 conversa = 1 energia, cobrada SÓ na abertura.
+                    // Sem energia  →  não abre (mensagem padrão do sistema de energia).
+                    if (n.kind === "gatoancy" && (trainerEnergy ?? 0) < 1) {
+                      pushChat("⚡  Você está exausto. Alimente-se para recuperar energia.", "info");
+                      return;
+                    }
                     setAuto(false);
                     walkTargetRef.current = null;
                     setWalkingTo(null);
                     if (n.kind === "pokemarktClerk") setPokemarktShopOpen(true);
                     else if (isSagaNpc) { setSagaTalk(n.kind as SagaNpcId); setSagaPage(0); setSagaTab("fala"); }
-                    else setNpcDialog({ kind: n.kind, page: 0 });
+                    else {
+                      if (n.kind === "gatoancy") setTrainerEnergy((en) => Math.max(0, en - 1));
+                      setNpcDialog({ kind: n.kind, page: 0 });
+                    }
                   }}
                   style={{
                     position: "absolute", left: n.x, top: n.y, width: 48, height: 48,
@@ -12386,6 +14149,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       backgroundImage: `url(${url})`,
                       backgroundSize: "400% 400%",
                       backgroundPosition: `${n.frame * 33.333}% ${dirRow * 33.333}%`,
+                      transform: mirrorLeft ? "scaleX(-1)" : undefined,
                       imageRendering: "pixelated",
                       filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.3))",
                     }} />
@@ -12434,7 +14198,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   background: "#ff8bd0", border: "1px solid #fff", borderRadius: 4, padding: "1px 5px",
                   fontSize: 10, fontWeight: 900, whiteSpace: "nowrap", boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
                   animation: "npcArrowBob 1s ease-in-out infinite",
-                }}>🌸 !</div>
+                }}>�xR� !</div>
               </div>
             )}
             {/* Marca GPS — pirâmide roxinha girando tipo pião */}
@@ -12561,7 +14325,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         color: "#ffe9a8", cursor: "pointer", fontSize: 18, width: 32, height: 32,
                         borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
                       }}
-                    >×</button>
+                    >�</button>
                   </div>
 
                   {/* Tabs */}
@@ -12592,7 +14356,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   {/* List */}
                   <div style={{ overflow: "auto", padding: 14, flex: 1 }}>
                     {rankLoading ? (
-                      <div style={{ textAlign: "center", padding: 40, opacity: 0.7 }}>Carregando ranking…</div>
+                      <div style={{ textAlign: "center", padding: 40, opacity: 0.7 }}>Carregando ranking⬦</div>
                     ) : rankRows.length === 0 ? (
                       <div style={{ textAlign: "center", padding: 40, opacity: 0.7 }}>Nenhum treinador encontrado.</div>
                     ) : (
@@ -12612,7 +14376,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                            const claimRubyKey = () => {
                              const base = idleRef.current;
                              if (base.redeemedCodes?.[rubyFlag]) {
-                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
+                               pushChat(`�x� Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
                                return;
                              }
                                const ok = typeof window !== "undefined"
@@ -12621,7 +14385,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                              if (!ok) return;
                              const fresh = idleRef.current;
                              if (fresh.redeemedCodes?.[rubyFlag]) {
-                               pushChat(`🔴 Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
+                               pushChat(`�x� Chave Ruby do ranking de ${rubyModeLabel} já foi coletada.`, "info");
                                return;
                              }
                              const next: IdleState = {
@@ -12780,7 +14544,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   </div>
                   <div style={{ fontSize: 11, lineHeight: 1.4, marginBottom: 10, opacity: 0.85 }}>
                     Coloque até <b>3 Beedrills</b> nesta colmeia. Cada um produz <b>2 Incensos</b> a cada <b>10 min</b>.
-                    Beedrills <b>Épicos+</b> geram <b>Incenso Raro</b> (dobra o bônus e vende por mais).
+                    Beedrills <b>�0picos+</b> geram <b>Incenso Raro</b> (dobra o bônus e vende por mais).
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {Array.from({ length: HIVE_SLOTS_PER_COCOON }).map((_, i) => {
@@ -12801,7 +14565,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                   border: "1px solid rgba(255,214,80,0.5)", fontSize: 12,
                                 }}
                               >
-                                <option value="">+ Selecionar Beedrill…</option>
+                                <option value="">+ Selecionar Beedrill⬦</option>
                                 {availableBeedrills.map((b) => (
                                   <option key={b.uid} value={b.uid}>
                                     Beedrill Lv.{b.level} · {b.rarity}
@@ -13003,7 +14767,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             })()}
 
 
-            {/* 🧙 NPC Trocador removido de todos os mapas a pedido do usuário */}
+            {/* �x�" NPC Trocador removido de todos os mapas a pedido do usuário */}
 
             {/* 👑 NPC Governante — visível apenas no Salão do Governante */}
             {idle.currentMap === "arena" && (() => {
@@ -13060,7 +14824,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const dead = e.hp <= 0;
               const face = e.face ?? "left";
               const sx = SPRITE_SHEET[showSp] ? 1 : (face === "left" ? 1 : -1);
-              const scale = (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
+              const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2 : (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
               const size = Math.round(46 * scale);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
@@ -13083,8 +14847,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               // Estrelas por raridade (só aparecem para raro+)
               const rarityStars: Record<Rarity, string> = {
                 common: "", uncommon: "",
-                rare: "★", epic: "★★",
-                legendary: "★★★", mythic: "★★★★", mythic_shiny: "✦★★★★",
+                rare: "��&", epic: "��&��&",
+                legendary: "��&��&��&", mythic: "��&��&��&��&", mythic_shiny: "�S���&��&��&��&",
               };
               const stars = camouflaged ? "" : rarityStars[e.rarity];
               // Shiny: nome rosa brilhando acima do pokémon
@@ -13187,7 +14951,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                           textShadow: "0 0 4px #000, 0 0 8px #7a00b8",
                           pointerEvents: "none", zIndex: -1,
                           animation: "pulse 1.2s ease-in-out infinite",
-                        }}>✦</div>
+                        }}>�S�</div>
                       ))}
                     </div>
                   )}
@@ -13219,7 +14983,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         color: "#3a2600",
                         textShadow: "0 0 4px #fff4a1, 0 1px 0 #fff",
                         filter: "drop-shadow(0 0 3px #fff8b8)",
-                      }}>⚡</span>
+                      }}>�a�</span>
                     </div>
                   )}
                   {e.sp === "rayquaza" && !camouflaged && (
@@ -13239,7 +15003,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         color: "#062a1a",
                         textShadow: "0 0 4px #b5ffd8, 0 1px 0 #fff",
                         filter: "drop-shadow(0 0 3px #d8ffec)",
-                      }}>🐉</span>
+                      }}>�x�0</span>
                     </div>
                   )}
                   {idle.currentMap === "arena" && !camouflaged && (e.sp === "dragonite_shiny" || e.sp === "onix_shiny" || e.sp === "riolu") && (
@@ -13285,7 +15049,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       whiteSpace: "nowrap", pointerEvents: "none",
                       filter: "drop-shadow(0 0 6px #ff5ec7) drop-shadow(0 0 12px #ff5ec7aa)",
                       animation: "pulse 1.2s ease-in-out infinite",
-                    }}>✦</div>
+                    }}>�S�</div>
                   )}
                   {e.guardian && !e.rider && !camouflaged && (
                     <div style={{
@@ -13297,7 +15061,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       whiteSpace: "nowrap", pointerEvents: "none",
                       filter: "drop-shadow(0 0 4px #000)",
                       animation: "pulse 1.6s ease-in-out infinite",
-                    }}>✦</div>
+                    }}>�S�</div>
                   )}
                   {stars && !e.rider && (
                     <div style={{
@@ -13325,6 +15089,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   }}>
                     <span style={{ fontSize: 9 }}>{crystal}</span>
                     {isShinyE && <span>{e.sp.replace(/_/g, " ").toUpperCase()} </span>}Lv.{e.level}
+                    {(throwsPerEnemy[e.id] ?? 0) > 0 && (
+                      <span style={{ fontSize: 8, fontWeight: 900, color: "#ffd23f", textShadow: "1px 1px 0 #000" }}>🎯{throwsPerEnemy[e.id]}/10</span>
+                    )}
                   </div>
                   <div style={{
                     position: "absolute", bottom: -6, left: 4, right: 4, height: 5,
@@ -13525,7 +15292,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   left: trainerPos.x - 30, top: trainerPos.y - 90,
                   fontSize: 24, pointerEvents: "none",
                   animation: "chest-pop 900ms ease-in-out infinite",
-                }}>💤💚</div>
+                }}>�x��xa</div>
               </div>
             )}
 
@@ -13625,6 +15392,29 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   )}
 
                   {/* Barra HP */}
+                  {(() => {
+                    const fomeLead = Math.max(0, Math.min(100, ((team[0] as unknown as { fome?: number })?.fome ?? 100)));
+                    const fomeSt = petHungerState(fomeLead);
+                    if (fomeSt !== "fome" && fomeSt !== "faminto" && fomeSt !== "critica") return null;
+                    return (
+                      <div style={{
+                        position: "absolute", top: -30, left: "50%", transform: "translateX(-50%)",
+                        background: "linear-gradient(180deg, rgba(20,10,4,0.96), rgba(8,4,2,0.96))",
+                        border: "1px solid #f5cf6b", borderRadius: 12, padding: "2px 7px",
+                        fontSize: 12, lineHeight: 1, pointerEvents: "none", whiteSpace: "nowrap",
+                        boxShadow: "0 4px 10px rgba(0,0,0,0.6)", zIndex: 8,
+                        animation: "pulse 1.2s ease-in-out infinite",
+                      }}>
+                        �x�
+                        <span style={{
+                          position: "absolute", bottom: -4, left: "50%", width: 7, height: 7,
+                          background: "rgba(12,6,3,0.96)",
+                          borderRight: "1px solid #f5cf6b", borderBottom: "1px solid #f5cf6b",
+                          transform: "translateX(-50%) rotate(45deg)",
+                        }} />
+                      </div>
+                    );
+                  })()}
                   <div style={{
                     position: "absolute", bottom: -8, left: 4, right: 4, height: 6,
                     background: "#3a1010", borderRadius: 3, border: "1px solid rgba(0,0,0,0.6)",
@@ -13663,8 +15453,33 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const opacity = (dt < 0.5 ? dt / 0.5 : 1 - (dt - 0.5) / 0.5) * 0.9;
               const scale = 0.6 + dt * 0.9;
               const size = attackAnim.crit ? 96 : 68;
-              const glow = ELEMENT_FX_GLOW[attackAnim.element];
+              const glow = ELEMENT_FX_GLOW[attackAnim.element] ?? "#ffd94d";
+              // Projétil elemental visual: viaja do Pokémon ao inimigo (representação
+              // do ataque atual � sem dano extra). Pula se a distância for curta.
+              const pdx = attackAnim.toX - attackAnim.fromX;
+              const pdy = attackAnim.toY - attackAnim.fromY;
+              const pdist = Math.hypot(pdx, pdy);
+              const pt = Math.min(1, dt / 0.55);
+              const showProj = pdist >= 28 && dt < 0.7;
+              const pxx = attackAnim.fromX + pdx * pt;
+              const pyy = attackAnim.fromY + pdy * pt;
               return (
+                <>
+                {showProj && (
+                  <div key={`proj-${attackAnim.id}`} style={{
+                    position: "absolute",
+                    left: pxx, top: pyy,
+                    width: 16, height: 16,
+                    transform: "translate(-50%, -50%)",
+                    opacity: Math.max(0, 1 - Math.max(0, dt - 0.45) * 4),
+                    pointerEvents: "none",
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle, #ffffff 0%, ${glow} 55%, ${glow}00 75%)`,
+                    filter: `drop-shadow(0 0 8px ${glow})`,
+                    mixBlendMode: "screen",
+                    zIndex: 7,
+                  }} />
+                )}
                 <div key={attackAnim.id} style={{
                   position: "absolute",
                   left: attackAnim.toX, top: attackAnim.toY,
@@ -13678,8 +15493,120 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   mixBlendMode: "screen",
                   zIndex: 7,
                 }} />
+                </>
               );
             })()}
+
+            {/* SKILL ELEMENTAL (src/skill): cast no atacante -> impacto no alvo -> cleanup automático */}
+            {skillFx && (() => {
+              const nowMs = Date.now();
+              const frame = Math.floor((nowMs - skillFx.ts) / 70);
+              const sh = skillFx.sheet ? (SKILL_SHEET[skillFx.sheet] ?? (AREA_SHEETS as Record<string, { img: string; w: number; h: number; bounds: number[] }>)[skillFx.sheet]) : null;
+              const nF = sh ? sh.bounds.length - 1 : 1;
+              if (frame > nF + 4) return null;
+              const glow = ELEMENT_FX_GLOW[skillFx.element] ?? "#ffd94d";
+              const castOn = frame <= 2;
+              const impFrame = Math.max(0, frame - 2);
+              const impIdx = sh ? Math.min(impFrame, nF - 1) : 0;
+              const castIdx = sh ? Math.min(frame, 1) : 0;
+              const slice = (idx: number, size: number) => {
+                if (!sh) return null;
+                const x0f = sh.bounds[idx], x1f = sh.bounds[idx + 1];
+                const fw = x1f - x0f;
+                const sc = size / Math.max(1, fw);
+                return (
+                  <div style={{
+                    width: size, height: sh.h * sc, overflow: "hidden", position: "relative",
+                    imageRendering: "pixelated",
+                  }}>
+                    <div style={{
+                      position: "absolute", left: -x0f * sc, top: 0,
+                      width: sh.w * sc, height: sh.h * sc,
+                      backgroundImage: `url(${sh.img})`,
+                      backgroundSize: `${sh.w * sc}px ${sh.h * sc}px`,
+                      backgroundRepeat: "no-repeat",
+                      filter: `drop-shadow(0 0 6px ${glow})`,
+                    }} />
+                  </div>
+                );
+              };
+              const fallback = (size: number) => {
+                const img = ELEMENT_FX_IMG[skillFx.element];
+                if (!img) return null;
+                return (
+                  <img src={img} alt="" draggable={false} style={{
+                    width: size, height: size, objectFit: "contain",
+                    imageRendering: "pixelated",
+                    filter: `drop-shadow(0 0 8px ${glow})`,
+                  }} />
+                );
+              };
+              const op = frame > nF + 1 ? Math.max(0, 1 - (frame - nF - 1) / 3) : 1;
+              return (
+                <>
+                  {castOn && (
+                    <div key={`cast-${skillFx.id}`} style={{
+                      position: "absolute", left: skillFx.x0, top: skillFx.y0,
+                      transform: "translate(-50%, -50%)", opacity: op, pointerEvents: "none", zIndex: 8,
+                    }}>
+                      {sh ? slice(castIdx, 64) : fallback(48)}
+                    </div>
+                  )}
+                  {frame >= 1 && (
+                    <div key={`imp-${skillFx.id}`} style={{
+                      position: "absolute", left: skillFx.x1, top: skillFx.y1,
+                      transform: "translate(-50%, -50%)", opacity: op, pointerEvents: "none", zIndex: 8,
+                    }}>
+                      {sh ? slice(impIdx, skillFx.kind === "heal" ? 72 : 88) : fallback(64)}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* PROJÉTEIS de skills inimigas (viajam; impacto resolve dano/status) */}
+            {skillProj.map((p) => {
+              const t = Math.min(1, (Date.now() - p.t0) / Math.max(1, p.dur));
+              if (t >= 1) return null;
+              const px = p.x0 + (p.x1 - p.x0) * t;
+              const py = p.y0 + (p.y1 - p.y0) * t;
+              const glow = ELEMENT_FX_GLOW[p.element] ?? "#ffd94d";
+              return (
+                <div key={`sproj-${p.id}`} style={{
+                  position: "absolute", left: px, top: py,
+                  width: 22, height: 22, transform: "translate(-50%, -50%)",
+                  borderRadius: "50%", pointerEvents: "none", zIndex: 8,
+                  background: `radial-gradient(circle, #ffffff 0%, ${glow} 55%, ${glow}00 75%)`,
+                  filter: `drop-shadow(0 0 9px ${glow})`,
+                  mixBlendMode: "screen",
+                }} />
+              );
+            })}
+            {/* ÁREAS persistentes (anel lógico = raio real do dano) */}
+            {skillArea.map((a) => {
+              const glow = ELEMENT_FX_GLOW[a.element] ?? "#ffd94d";
+              return (
+                <div key={`sarea-${a.id}`} style={{
+                  position: "absolute", left: a.x, top: a.y,
+                  width: a.r * 2, height: a.r * 2, transform: "translate(-50%, -50%)",
+                  borderRadius: "50%", pointerEvents: "none", zIndex: 6,
+                  border: `2px solid ${glow}`,
+                  background: `radial-gradient(circle, ${glow}33 0%, ${glow}11 60%, transparent 70%)`,
+                  boxShadow: `0 0 18px ${glow}66, inset 0 0 24px ${glow}33`,
+                  animation: "pulse 1.2s ease-in-out infinite",
+                }} />
+              );
+            })}
+            {/* SONO no líder (reusa bloqueio do sonífero; visual Zzz) */}
+            {Date.now() < sleepFxUntilRef.current && followerState && (
+              <div style={{
+                position: "absolute", left: followerState.x, top: followerState.y - 52,
+                transform: "translate(-50%, -100%)", pointerEvents: "none", zIndex: 9,
+                fontSize: 20, fontWeight: 900, color: "#b9a7ff",
+                textShadow: "1px 1px 0 #000, 0 0 8px #7a5cff",
+                animation: "pulse 1.2s ease-in-out infinite",
+              }}>💤</div>
+            )}
 
             {/* FX de contra-ataque do inimigo — glow radial */}
             {enemyAttackAnim && (() => {
@@ -13961,7 +15888,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }}>
                 <button
                   onClick={() => {
-                    if (!on && teleportEnergyCostFor(idle.currentMap) === 1) {
+                    if (idle.currentMap === "esfera_ancestral") {
+                      pushChat("�xRR Automático desativado na Esfera Ancestral.", "info");
+                      return;
+                    }
+                    if (!on && idle.currentMap === TELEPORT_HOME_MAP_ID) {
                       pushChat("😴 Cidade inicial é área segura — viaje para um mapa de caça para ligar o automático.", "info");
                       return;
                     }
@@ -13992,7 +15923,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 13,
                   }}
-                >⚙</button>
+                >�a"</button>
                 <button
                   onClick={() => { playClick(); setAB({ useBall: !ab.useBall }); }}
                   title={ab.useBall ? "Auto-captura LIGADA (clique para desligar)" : "Auto-captura DESLIGADA (clique para ligar)"}
@@ -14060,6 +15991,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onEquipItem={onEquipItem}
               trainerTheme={trainerTheme}
               toggleTrainerTheme={toggleTrainerTheme}
+              guildPanelProps={{
+                guild, guildLoading, invites: guildInvites, friends, party: partyForPanel,
+                partyInvites, missionProgress, claimedMissions,
+                myId, myName, myLevel, myGold, mySpecies,
+                onCreateGuild: handleCreateGuild, onInviteUsername: handleInviteUsername,
+                onAcceptInvite: handleAcceptInvite, onDeclineInvite: handleDeclineInvite,
+                onClaimMission: handleClaimMission, onAddFriend: handleAddFriend,
+                onRemoveFriend: handleRemoveFriend, onPartyAdd: handlePartyAdd,
+                onPartyRemove: handlePartyRemove, onAcceptPartyInvite: handleAcceptPartyInvite,
+                onDeclinePartyInvite: handleDeclinePartyInvite, onLeaveParty: handleLeaveParty,
+                onLeaveGuild: handleLeaveGuild, onKickMember: handleKickMember,
+                onRefresh: () => { void refreshGuild(); },
+              }}
 
 
               onBuyChestAmulet={buyChestAmulet}
@@ -14075,7 +16019,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onSagaClaim={claimSagaReward}
               onSagaTalk={(n) => { setSagaTalk(n); setSagaPage(0); setSagaTab("fala"); }}
               onSagaLocate={(n) => {
-                // FALAR na quest NÃO abre diálogo: mostra onde o NPC está e
+                // FALAR na quest NÒO abre diálogo: mostra onde o NPC está e
                 // abre o teleporte — o jogador precisa ir até ele e clicar.
                 const npcMap = SAGA_NPCS[n].map;
                 const mapName = IDLE_MAPS[npcMap]?.name ?? npcMap;
@@ -14180,7 +16124,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 setWalkingTo(label);
                 setWalkMarker({ x: cx, y: cy });
                 setAuto(false);
-                pushChat(`Indo para ${label}…`, "info");
+                pushChat(`Indo para ${label}⬦`, "info");
               };
               type GateDef = {
                 key: string;
@@ -14224,6 +16168,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 valley_plume: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 revo_rout: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 cidade_principal: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                land_revo: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                land_gelo: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                casa1: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                casa2: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                rota_pinsir: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                deserto_alaka: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
@@ -14256,11 +16206,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 if (targetMap.entryCrystals && idle.currentMap !== g.target) {
                   const cost = targetMap.entryCrystals;
                   if (idle.bank.crystals < cost) {
-                    pushChat(`💎 ${targetMap.name} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
+                    pushChat(`�x} ${targetMap.name} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
                     return;
                   }
                   setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
-                  pushChat(`💎 Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
+                  pushChat(`�x} Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
                 }
                 playClick();
                 goTo(targetMap.name, g.x, g.y, () => {
@@ -14412,7 +16362,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         color: "#f5cf6b", borderRadius: 4, padding: "2px 6px",
                         fontSize: 11, fontWeight: 800, cursor: "pointer",
                       }}
-                    >⛶</button>
+                    >�:�</button>
                   </div>
                   <div style={{ marginTop: 8, fontSize: 11, color: "#c8b8d0", textAlign: "center" }}>
                     {map.name} · {map.diff} {map.stars ? <span style={{ color: "#ffd94d" }}>{"★".repeat(map.stars)}</span> : null}
@@ -14424,7 +16374,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       fontSize: 10, color: "#9db4d8",
                     }}>
                       <span style={{ minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={map.name}>
-                        ◇ {map.name}
+                        �! {map.name}
                       </span>
                       <span style={{ fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
                         X: {Math.round(trainerPos.x)} Y: {Math.round(trainerPos.y)}
@@ -14459,7 +16409,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                           <button
                             onClick={() => setBigMapOpen(false)}
                             style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 10px", fontWeight: 800, cursor: "pointer" }}
-                          >✕</button>
+                          >�S"</button>
                         </div>
                         {renderMap(true, true)}
                         <div style={{ marginTop: 10, fontSize: 12, color: "#c8b8d0", textAlign: "center" }}>
@@ -14549,12 +16499,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                             </div>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                               <span style={{ background: scrollsAvail > 0 ? "linear-gradient(135deg,#3d2a08,#5a3d10)" : "#1a1420", border: `1px solid ${scrollsAvail > 0 ? "#f5cf6b" : "#4a3a52"}`, color: scrollsAvail > 0 ? "#ffe08a" : "#7a6a82", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
-                                📜 Pergaminho: {scrollsAvail}
+                                �xS Pergaminho: {scrollsAvail}
                               </span>
                               <button
                                 onClick={() => setWorldMapOpen(false)}
                                 style={{ background: "#3a1010", border: "1px solid #f5cf6b", color: "#f5cf6b", borderRadius: 6, padding: "4px 12px", fontWeight: 800, cursor: "pointer" }}
-                              >✕</button>
+                              >�S"</button>
                             </div>
                           </div>
                           {/* Tabs de continentes */}
@@ -14563,7 +16513,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                               { id: 1 as const, label: "🌍 Continente I", sub: "Universo Pokémon" },
                               { id: 2 as const, label: "👑 Continente II", sub: hasGovCard ? "Templo do Governante" : "🔒 Requer Carta do Governante" },
                               { id: 3 as const, label: "🌋 Continente III", sub: "Novas Fronteiras (Bônus)" },
-                              { id: 4 as const, label: "🌌 Continente IV", sub: "Profundezas Abissais (Em Breve)" },
+                              { id: 4 as const, label: "�xRR Continente IV", sub: "Profundezas Abissais (Em Breve)" },
                             ]).map((t) => {
                               const active = worldTab === t.id;
                               const locked = t.id === 2 && !hasGovCard;
@@ -14786,7 +16736,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                       padding: "2px 6px", fontSize: 8, fontWeight: 900, color: glowColor, whiteSpace: "nowrap",
                                       textShadow: `0 0 6px ${glowColor}`,
                                     }}>
-                                      🔒 {pin.name}
+                                      �x {pin.name}
                                     </div>
                                   </button>
                                 );
@@ -14994,10 +16944,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                     setWorldMapOpen(false);
                                     setSelectedMapInfo(null);
                                     travelToGate(synthGate);
-                                    pushChat(`📜 Pergaminho consumido — viagem para ${selMap.name}. (-${tpCost} ⚡)`, "cap");
+                                    pushChat(`�xS Pergaminho consumido � viagem para ${selMap.name}. (-${tpCost} �a�)`, "cap");
                                     return;
                                   }
-                                  if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
+                                  if (trainerEnergy < tpCost) { pushChat(`�a� Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
                                   setWorldMapOpen(false);
                                   setSelectedMapInfo(null);
                                   setPendingGate({ target: pinId, gate: synthGate, fromBig: false });
@@ -15008,7 +16958,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                   cursor: "pointer", boxShadow: "0 4px 0 #7a5d15"
                                 }}
                               >
-                                VIAJAR AGORA · {teleportEnergyCostFor(selectedMapInfo!)} ⚡
+                                VIAJAR AGORA · {teleportEnergyCostFor(selectedMapInfo!) > 0 ? `${teleportEnergyCostFor(selectedMapInfo!)} ⚡` : "grátis"}
                               </button>
                             </div>
                           )}
@@ -15070,7 +17020,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.4)", border: `1px solid ${energyOk ? "#7ef27a" : "#e05252"}`, borderRadius: 8, padding: "8px 12px" }}>
                               <span style={{ color: "#c8b8d0", fontSize: 12, fontWeight: 700 }}>⚡ Energia {pendingGate.target === "mapinha6" ? "(Revoland)" : ""}</span>
                               <span style={{ color: energyOk ? "#7ef27a" : "#ff8888", fontWeight: 900 }}>
-                                {tpCost} {energyOk ? "✓" : `(você: ${Math.floor(trainerEnergy)})`}
+                                {tpCost > 0 ? tpCost : "grátis"} {energyOk ? "✓" : `(você: ${Math.floor(trainerEnergy)})`}
                               </span>
                             </div>
                             {tm.raid ? (
@@ -15127,7 +17077,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10"];
+              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -15144,7 +17094,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     if (!m || teleportTransition) return;
                     if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
                     const tpCost = teleportEnergyCostFor(destination.id);
-                    if (trainerEnergy < tpCost) { pushChat(`⚡ Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
+                    if (trainerEnergy < tpCost) { pushChat(`�a� Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
                     playClick();
                     setTrainerEnergy((energy) => Math.max(0, energy - tpCost));
                     setMapTeleportOpen(false);
@@ -15158,7 +17108,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       setChests([]);
                       setMapOrbs([]);
                       clearBattleScene();
-                      pushChat(`Teleportado para ${m.name}! (-${tpCost} ⚡)`, "info");
+                      pushChat(`Teleportado para ${m.name}!${tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`, "info");
                       setTeleportTransition(null);
                       teleportTimerRef.current = null;
                     }, 4000);
@@ -15211,7 +17161,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       {hoveredQuest === q.id && questTabOpen !== q.id && (
                         <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", color: "#fff", padding: "5px 7px", borderRadius: 6, fontSize: 8, whiteSpace: "nowrap", border: "1px solid #ffcc33", zIndex: 20, textAlign: "center", pointerEvents: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.35)" }}>
                           <div style={{ fontWeight: 900, color, fontSize: 9 }}>{q.title}</div>
-                          <div style={{ color: "#d0d0d0", marginTop: 1 }}>{prog}/{q.target} • <span style={{ color: "#ffd60a", fontWeight: 900 }}>{q.reward} ouro</span></div>
+                          <div style={{ color: "#d0d0d0", marginTop: 1 }}>{prog}/{q.target} ⬢ <span style={{ color: "#ffd60a", fontWeight: 900 }}>{q.reward} ouro</span></div>
                           {isGolden && <div style={{ color: "#ffd60a", fontSize: 7, fontWeight: 800 }}>★ VIP • Brilha sempre</div>}
                           <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid #ffcc33" }} />
                         </div>
@@ -15263,38 +17213,38 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onClick={() => { playClick(); setPacotesCollapsed((v) => !v); }}
               style={{
                 display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "7px 8px", cursor: "pointer", userSelect: "none",
+                padding: "4px 6px", cursor: "pointer", userSelect: "none",
                 borderBottom: pacotesCollapsed ? "none" : "1px solid rgba(245,207,107,0.18)",
                 background: "rgba(255,255,255,0.03)",
               }}
               title={pacotesCollapsed ? "Expandir" : "Minimizar"}
             >
-              <span style={{ color: "#ffe08a", fontWeight: 900, fontSize: 10, letterSpacing: 1.1 }}>✦ PACOTES ESPECIAIS</span>
+              <span style={{ color: "#ffe08a", fontWeight: 900, fontSize: 8, letterSpacing: 1 }}>�S� PACOTES ESPECIAIS</span>
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 0.8, background: "rgba(245,207,107,0.18)", color: "#ffe08a", border: "1px solid rgba(245,207,107,0.30)", padding: "2px 6px", borderRadius: 999 }}>EM BREVE</span>
                 <span style={{ color: "#ffe08a", fontSize: 10, width: 18, height: 18, display: "grid", placeItems: "center", background: "rgba(245,207,107,0.12)", border: "1px solid rgba(245,207,107,0.25)", borderRadius: 4 }}>{pacotesCollapsed ? "▸" : "▾"}</span>
               </span>
             </div>
             {!pacotesCollapsed && (
-              <div style={{ padding: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 42, height: 42, flexShrink: 0, display: "grid", placeItems: "center" }}>
-                    <img src={assetUrlFromJson(iconCashPackage)} alt="" width={38} height={38} style={{ objectFit: "contain" }} />
+              <div style={{ padding: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 32, height: 32, flexShrink: 0, display: "grid", placeItems: "center" }}>
+                    <img src={assetUrlFromJson(iconCashPackage)} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", letterSpacing: 0.4 }}>Lojinha Cash</div>
-                    <div style={{ fontSize: 9, color: "#b8a8d0", marginTop: 2 }}>Pacotes premium com cristais, ovos míticos e VIP.</div>
+                  <div style={{ flex: 1, minWidth: 0, lineHeight: 1.2 }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, color: "#fff", letterSpacing: 0.3 }}>Lojinha Cash</div>
+                    <div style={{ fontSize: 7, color: "#b8a8d0", marginTop: 1 }}>Pacotes premium com cristais, ovos míticos e VIP.</div>
                   </div>
                 </div>
                 <button
                   onClick={() => setCashShopOpen(true)}
                   className="lojinha-btn-glow"
                   style={{
-                    marginTop: 8, width: "100%",
+                    marginTop: 4, width: "100%",
                     background: "linear-gradient(135deg, #1ad66a 0%, #0ea85a 100%)",
                     border: "1px solid rgba(184,255,207,0.9)",
-                    color: "#062a13", fontWeight: 900, fontSize: 10, letterSpacing: 1.2,
-                    borderRadius: 6, padding: "7px", cursor: "pointer",
+                    color: "#062a13", fontWeight: 900, fontSize: 8, letterSpacing: 1,
+                    borderRadius: 6, padding: "5px", cursor: "pointer",
                     boxShadow: "0 2px 10px rgba(46,255,140,0.35)",
                     position: "relative", overflow: "hidden",
                   }}
@@ -15327,18 +17277,112 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         {/* ============ NAV INFERIOR ============ */}
         <div className="bottom-nav-bar" style={{ gridColumn: "1 / -1", alignItems: "center" }}>
 
+          {/* TEMP-REVERSIVEL: cópia inferior desativada (painel fino agora no topo em fluxo normal) */}
           <div style={{
-            display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 0,
-            flex: 1, minWidth: 0,
+            display: "none",
+            background: "#d8c99a",
+            border: "3px solid #2c2c2c", borderRadius: 6,
+            padding: "2px 6px", margin: "0 8px 4px",
+            boxShadow: "inset 0 0 0 2px #f0e6c8, 0 2px 0 #2c2c2c",
+            fontFamily: "'Courier New', monospace", imageRendering: "pixelated",
+          }}>
+            <div style={{
+              width: 30, height: 30, borderRadius: 6, overflow: "hidden", flexShrink: 0,
+              border: "2px solid #2c2c2c", background: "#0a1322",
+            }}>
+              <div style={{
+                width: "100%", height: "100%",
+                backgroundImage: `url(${skinPhotoOf(skinId) ?? trainerSheet})`,
+                backgroundSize: "cover", backgroundPosition: "center",
+                imageRendering: "pixelated",
+              }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: "#1a0f26", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>
+                {identity?.name ?? "Treinador"} <span style={{ fontSize: 9 }}>Lv. {idle.trainerLevel ?? 1}</span>
+              </div>
+              <div style={{ width: 70, height: 4, borderRadius: 999, background: "rgba(0,0,0,0.4)", border: "1px solid #2c2c2c", overflow: "hidden" }}>
+                <div style={{
+                  width: `${Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100))}%`, height: "100%",
+                  background: "#3b82f6",
+                }} />
+              </div>
+            </div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0a1322", border: "2px solid #2c2c2c", padding: "1px 5px", borderRadius: 6, color: "#fff", fontWeight: 800, fontSize: 10 }}>
+              ⚡ {Math.round(trainerEnergy)}%
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0a1322", border: "2px solid #2c2c2c", padding: "1px 5px", borderRadius: 6, color: "#fff", fontWeight: 800, fontSize: 10 }}>
+              🍖 {Math.round(idle.trainerHunger ?? 100)}%
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0a1322", border: "2px solid #2c2c2c", padding: "1px 5px", borderRadius: 6, color: "#fff", fontWeight: 800, fontSize: 10 }}>
+              🎯 {Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))}/{MAX_THROW_COUNT}
+            </span>
+            {([
+              { el: <GoldCoin size={14} />, val: Math.floor(idle.bank.gold).toLocaleString("pt-BR") },
+              { el: <CrystalGem size={14} />, val: Math.floor(idle.bank.crystals).toLocaleString("pt-BR") },
+              { el: <img src={crystalRedImg} alt="" width={14} height={14} style={{ imageRendering: "pixelated" }} />, val: Math.floor(idle.pending.rubies).toLocaleString("pt-BR") },
+            ]).map((c, i) => (
+              <span key={i} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                background: "#0a1322", border: "2px solid #2c2c2c",
+                padding: "1px 5px", borderRadius: 6,
+                color: "#fff", fontWeight: 800, fontSize: 10,
+              }}>
+                {c.el}{c.val}
+              </span>
+            ))}
+            {([
+              { label: "Missões", img: hudMissoesPng, badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
+              { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
+              { label: "Amigos", img: hudAmigosPng, badge: guildInvites.length, onClick: () => { playClick(); setTab("guilda"); } },
+              { label: "Config.", img: hudConfigPng, badge: 0, onClick: () => setShowAutoSettings(true) },
+            ] as const).map((b) => (
+              <button
+                key={b.label}
+                onClick={() => { playClick(); b.onClick(); }}
+                title={b.label}
+                style={{
+                  position: "relative", background: "transparent", border: "none", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
+                  padding: "1px 4px", borderRadius: 6, color: "#1a0f26", fontSize: 8, fontWeight: 700,
+                }}
+              >
+                {"img" in b && (b as { img?: string }).img
+                  ? <img src={(b as { img?: string }).img} alt={b.label} width={18} height={18} style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />
+                  : <span style={{ fontSize: 16, filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }}>{(b as { icon?: string }).icon}</span>}
+                {b.label}
+                {b.badge > 0 && (
+                  <span style={{
+                    position: "absolute", top: 0, right: 0, minWidth: 14, height: 14, borderRadius: 999,
+                    background: "#e11d48", color: "#fff", fontSize: 9, fontWeight: 900,
+                    display: "grid", placeItems: "center", padding: "0 3px",
+                    border: "1px solid #fff",
+                  }}>{b.badge}</span>
+                )}
+              </button>
+            ))}
+            <div style={{ textAlign: "right", paddingLeft: 6, borderLeft: "2px solid #2c2c2c" }}>
+              <div style={{ color: "#1a0f26", fontWeight: 900, fontSize: 13, whiteSpace: "nowrap" }}>
+                ☀️ {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </div>
+              <div style={{ fontSize: 8, color: "#4a3a52", textTransform: "capitalize", whiteSpace: "nowrap" }}>
+                {new Date().toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })}
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 2,
+            flex: 1, minWidth: 0, maxWidth: 880, margin: "0 auto", width: "100%",
             background: "linear-gradient(180deg, #0d1729 0%, #070c17 100%)",
             border: "1px solid rgba(100,160,255,0.38)",
-            borderRadius: 12, padding: "4px 8px 5px", margin: "0 8px",
+            borderRadius: 12, padding: "3px 10px 4px",
             boxShadow: "0 8px 28px rgba(0,0,0,0.6), 0 0 22px rgba(70,130,255,0.16), inset 0 1px 0 rgba(150,200,255,0.28)",
           }}>
             {([
               { id: "pokemon",  label: "Pokémon",  img: navPokemon },
               { id: "mochila",  label: "Mochila",  img: bagIconImg },
-              { id: "colecao",  label: "Coleção",  img: navColecao },
+              { id: "colecao",  label: "Coleção",  img: hudColecaoPng },
               { id: "pokedex",  label: "Pokédex",  img: navColecao },
             ] as const).map((t) => (
               <BottomNavBtn
@@ -15354,9 +17398,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               title="Mapa — teleporte"
               className="bottomnav-btn world-globe-btn"
               style={{
-                width: 84, flexShrink: 0, background: "transparent", border: "none",
+                width: 72, flexShrink: 0, background: "transparent", border: "none",
                 padding: 0, cursor: "pointer", display: "flex", flexDirection: "column",
-                alignItems: "center", gap: 3,
+                alignItems: "center", gap: 1,
               }}
             >
               <span style={{
@@ -15439,7 +17483,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               );
             })}
           </div>
-          {/* ===== BOTÃO SALVAR NA NUVEM ===== */}
+          {/* ===== BOTÒO SALVAR NA NUVEM ===== */}
           <button
             onClick={async () => {
               playClick();
@@ -15503,7 +17547,7 @@ onClick={(e) => {
               }}
               style={{ position: "absolute", top: 15, right: 20, background: "rgba(0,0,0,0.3)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 32, height: 32, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 20, cursor: "pointer", fontWeight: 900, zIndex: 10, boxShadow: "0 0 10px rgba(245,207,107,0.3)" }}
             >
-              ×
+              �
             </button>
             <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
               <div style={{ fontSize: 26, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 10px rgba(245,207,107,0.5)" }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
@@ -15592,7 +17636,7 @@ onClick={(e) => {
                            position: "absolute", inset: 0, background: "rgba(255,255,255,0.4)",
                            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5,
                            fontSize: 24
-                         }}>✅</div>
+                         }}>�S&</div>
                        )}
                        <div style={{ 
                          color: (day === 10) ? "#f5cf6b" : "#f59e0b", 
@@ -15857,7 +17901,7 @@ onClick={(e) => {
             {forgeShowOrbit && (
               <>
                 <div 
-                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowForgeLoot(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -15877,7 +17921,7 @@ onClick={(e) => {
 
 
                 <div 
-                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowForgeLoot(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -15925,7 +17969,7 @@ onClick={(e) => {
                 </div>
 
                 <div 
-                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
+                  onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setShowForgeLoot(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -15949,6 +17993,7 @@ onClick={(e) => {
                     e.stopPropagation(); 
                     setForgeMinimized(false);
                     setShowForgeQuests(false);
+                    setShowForgeLoot(false);
                     setShowAuraEggDetails(true);
                     setForgeShowOrbit(false);
                     playClick();
@@ -16091,7 +18136,7 @@ onClick={(e) => {
                    }}
                    style={{ background: "#ef4444", border: "none", color: "#fff", padding: "4px 8px", cursor: "pointer", borderRadius: 6, fontWeight: 900 }}
                  >
-                   ×
+                   �
                  </button>
               </div>
             </div>
@@ -16176,7 +18221,7 @@ onClick={(e) => {
                                          }));
                                          playClick();
                                       } else {
-                                         pushChat("❌ Sem stones suficientes para aumentar a chance!", "info");
+                                         pushChat("�R Sem stones suficientes para aumentar a chance!", "info");
                                       }
                                    }}
                                      style={{ 
@@ -16210,7 +18255,7 @@ onClick={(e) => {
                           const hasStones = STONES.every(s => (idle.items?.[s] ?? 0) >= (200 + (auraEggDetails?.stonesUsed?.[s] || 0)));
                           
                           if (!hasSafira || !hasStones) {
-                            pushChat("❌ Recursos insuficientes!", "info");
+                            pushChat("�R Recursos insuficientes!", "info");
                             return;
                           }
 
@@ -16306,7 +18351,7 @@ onClick={(e) => {
               ) : showForgeQuests ? (
                 <div>
                    <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                     ✨ Missões da Forja ✨
+                     �S� Missões da Forja �S�
                    </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {(() => {
@@ -16455,12 +18500,75 @@ onClick={(e) => {
                      VOLTAR PARA FORJA
                    </button>
                 </div>
+              ) : showForgeLoot ? (
+                <div>
+                   <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                     💰 Loot do Mapa 💰
+                   </div>
+                   <div style={{ fontSize: 10, color: "#78350f", textAlign: "center", marginBottom: 12, fontWeight: 700 }}>
+                     {IDLE_MAPS[idle.currentMap]?.name ?? idle.currentMap} · sessão atual
+                   </div>
+                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+                     {[
+                       { l: "Ouro", v: mapLoot.gold, e: "🪙" },
+                       { l: "Cristais", v: mapLoot.crystals, e: "💎" },
+                       { l: "Capturados", v: mapLoot.pokemon, e: "🎯" },
+                     ].map((c) => (
+                       <div key={c.l} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: "8px 4px", textAlign: "center" }}>
+                         <div style={{ fontSize: 14 }}>{c.e}</div>
+                         <div style={{ fontSize: 12, fontWeight: 900, color: "#78350f" }}>{Number(c.v).toLocaleString()}</div>
+                         <div style={{ fontSize: 8, fontWeight: 800, color: "#92400e" }}>{c.l}</div>
+                       </div>
+                     ))}
+                   </div>
+                   <div style={{ fontSize: 11, color: "#92400e", fontWeight: 700, textAlign: "center", marginBottom: 8, textTransform: "uppercase" }}>
+                     Itens e Stones
+                   </div>
+                   {Object.keys(mapLoot.items).length === 0 ? (
+                     <div style={{ fontSize: 10, color: "#92400e", textAlign: "center", background: "#fff9eb", border: "2px dashed #fde68a", borderRadius: 10, padding: 14 }}>
+                       Nenhum item coletado neste mapa ainda.
+                     </div>
+                   ) : (
+                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                       {Object.entries(mapLoot.items).map(([id, n]) => (
+                         <div key={id} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 10, padding: "6px 4px", display: "flex", alignItems: "center", gap: 6 }}>
+                           <ItemPixelIcon id={id} size={24} />
+                           <div style={{ flex: 1, minWidth: 0 }}>
+                             <div style={{ fontSize: 9, fontWeight: 800, color: "#78350f", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                               {STONE_LABEL[id] ?? ITEM_POOL.find((p) => p.id === id)?.name ?? id.replace(/_/g, " ").toUpperCase()}
+                             </div>
+                           </div>
+                           <div style={{ background: "#d97706", color: "#fff", fontSize: 10, padding: "1px 6px", borderRadius: 6, fontWeight: 900 }}>
+                             {Number(n).toLocaleString()}
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   )}
+                   <div style={{ fontSize: 8, color: "#92400e", textAlign: "center", marginTop: 10 }}>
+                     Resumo visual da sessão — não altera inventário nem recompensas. Trocar de mapa zera o resumo.
+                   </div>
+                   <button 
+                    onClick={() => { setShowForgeLoot(false); playClick(); }}
+                    style={{ marginTop: 15, width: "100%", background: "#d97706", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
+                   >
+                     VOLTAR PARA FORJA
+                   </button>
+                </div>
               ) : (
                 <>
 
+              {/* Loot do Mapa — resumo visual da sessão no mapa atual */}
+              <button
+                onClick={() => { setShowForgeLoot(true); playClick(); }}
+                style={{ width: "100%", background: "linear-gradient(135deg,#065f46,#047857)", color: "#fff", border: "none", padding: "10px", borderRadius: 10, fontWeight: 900, fontSize: 12, cursor: "pointer", marginBottom: 14, boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+              >
+                {`💰 LOOT DO MAPA${mapLoot.gold > 0 || mapLoot.crystals > 0 || mapLoot.pokemon > 0 || Object.keys(mapLoot.items).length > 0 ? ` · +${mapLoot.gold} 🪙 · +${mapLoot.crystals} 💎 · +${mapLoot.pokemon} capt.` : ""}`}
+              </button>
+
               {/* Inventário de Pedras (Essências) */}
               <div style={{ fontSize: 12, color: "#92400e", marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                ✨ Inventário de Essências ✨
+                �S� Inventário de Essências �S�
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
                 {Object.entries(idle.items || {})
@@ -16554,7 +18662,7 @@ onClick={(e) => {
                           onClick={() => {
                             const hasStones = STONES.every(s => (idle.items[s] ?? 0) >= stoneCost);
                             if (!hasStones) {
-                              pushChat(`❌ Precisa de ${stoneCost} stones de CADA tipo para chocar!`, "info");
+                              pushChat(`�R Precisa de ${stoneCost} stones de CADA tipo para chocar!`, "info");
                               return;
                             }
                             
@@ -16614,7 +18722,7 @@ onClick={(e) => {
                       const cost = 100;
                       const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
                       const hasAll = STONES.every(k => (idle.items[k] ?? 0) >= cost);
-                      if (!hasAll) { pushChat("❌ Precisa de 100 stones de CADA tipo!", "info"); return; }
+                      if (!hasAll) { pushChat("�R Precisa de 100 stones de CADA tipo!", "info"); return; }
                       
                       setIdle(prev => {
                         const nextItems = { ...prev.items };
@@ -16651,7 +18759,7 @@ onClick={(e) => {
                       const cost = 50;
                       const STONES = ["stone_grass","stone_fire","stone_water","stone_electric","stone_dark","stone_dragon"];
                       const hasAll = STONES.every(k => (idle.items[k] ?? 0) >= cost);
-                      if (!hasAll) { pushChat("❌ Precisa de 50 stones de CADA tipo!", "info"); return; }
+                      if (!hasAll) { pushChat("�R Precisa de 50 stones de CADA tipo!", "info"); return; }
                       
                       setIdle(prev => {
                         const nextItems = { ...prev.items };
@@ -16677,7 +18785,7 @@ onClick={(e) => {
 
               {/* Inventário de Rare Candy e Ação */}
               <div style={{ fontSize: 12, color: "#92400e", marginTop: 20, marginBottom: 12, fontWeight: 700, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                💊 Uso de Rare Candy 💊
+                �x` Uso de Rare Candy �x`
               </div>
               <div style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
@@ -17083,7 +19191,7 @@ onClick={(e) => {
                 <button
                   onClick={() => { setWorldTraderOpen(false); setWorldTraderPick(null); setWorldTraderSel(new Set()); }}
                   style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 20 }}
-                >✕</button>
+                >�S"</button>
               </div>
 
               {!worldTraderPick && (
@@ -17424,7 +19532,7 @@ onClick={(e) => {
                 <div>
                   <div style={{
                     position: "absolute", fontSize: 96, animation: "orb-crack .8s ease-out both", pointerEvents: "none",
-                  }}>💔</div>
+                  }}>�x</div>
                   {[0,1,2,3,4,5].map((i) => {
                     const angle = (i / 6) * Math.PI * 2;
                     const dx = Math.cos(angle) * 80;
@@ -17449,9 +19557,9 @@ onClick={(e) => {
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: orbAnim.color }}>+1× {orbAnim.label}</div>
                   {orbAnim.lucky && orbAnim.extraHours ? (
-                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>�xRx SORTE! +{orbAnim.extraHours}h extras ao ativar</div>
                   ) : orbAnim.lucky ? (
-                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>🌟 SORTE! Orb evoluiu de raridade!</div>
+                    <div style={{ fontSize: 12, color: "#ffd94d", fontWeight: 700 }}>�xRx SORTE! Orb evoluiu de raridade!</div>
                   ) : null}
                 </div>
               )}
@@ -17485,7 +19593,7 @@ onClick={(e) => {
           fontFamily: "monospace", cursor: "pointer",
           boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
         }}
-      >🔑 Código</button>
+      >�x Código</button>
 
       {codeOpen && (
         <div
@@ -17509,7 +19617,7 @@ onClick={(e) => {
               <div style={{ fontWeight: 800, color: "#f5cf6b" }}>🔑 Resgatar código</div>
               <button onClick={() => setCodeOpen(false)} style={{
                 background: "transparent", border: "none", color: "#f3e5c5", cursor: "pointer", fontSize: 16,
-              }}>✕</button>
+              }}>�S"</button>
             </div>
             <div style={{ fontSize: 11, color: "#c8b8d0", marginBottom: 8 }}>
               Digite um código secreto para receber recompensas.
@@ -17519,7 +19627,7 @@ onClick={(e) => {
                 value={codeInput}
                 onChange={(e) => setCodeInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") redeemCrystalCode(); }}
-                placeholder="código…"
+                placeholder="código⬦"
                 autoFocus
                 spellCheck={false}
                 style={{
@@ -17817,7 +19925,7 @@ onClick={(e) => {
         };
         const rarityLabelMap: Record<string, string> = {
           common: "Comum", uncommon: "Incomum", rare: "Raro",
-          epic: "Épico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico ✦",
+          epic: "�0pico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico �S�",
         };
         const c = rarityColorMap[eggOpenResult.rarity] ?? "#f5cf6b";
         const label = rarityLabelMap[eggOpenResult.rarity] ?? eggOpenResult.rarity;
@@ -17953,7 +20061,7 @@ onClick={(e) => {
                           position: "absolute", top: 6, right: 6,
                           background: "rgba(255,100,100,0.2)", border: "1px solid #ff6b6b",
                           borderRadius: 6, padding: "2px 6px", fontSize: 9, color: "#ff8888", fontWeight: 800
-                        }}>🔒 PRÉ-REGISTRO</div>
+                        }}>�x PR�0-REGISTRO</div>
                       )}
                     </button>
                   ))}
@@ -18010,7 +20118,7 @@ onClick={(e) => {
                       onMouseEnter={(e) => e.currentTarget.style.borderColor = "#8a7ab5"}
                       onMouseLeave={(e) => e.currentTarget.style.borderColor = "#6b5b95"}
                     >
-                      ◀ VOLTAR
+                      �� VOLTAR
                     </button>
                     <button
                       onClick={confirmName}
@@ -18195,13 +20303,13 @@ onClick={(e) => {
                             onClick={() => feedBenchPet(p.uid, "morango")}
                             title="Morango: +30 fome, +10 lealdade"
                             style={{ background: (idle.items.morango ?? 0) > 0 ? "#4a9eff" : "#2a3a4a", color: (idle.items.morango ?? 0) > 0 ? "#0b0510" : "#5a6a7a", border: "none", borderRadius: 8, padding: "8px 10px", fontWeight: 900, cursor: "pointer", fontSize: 14 }}
-                          >🍓</button>
+                          >�x�</button>
                           <button
                             disabled={(idle.items.limao ?? 0) <= 0}
                             onClick={() => feedBenchPet(p.uid, "limao")}
                             title="Limão: +20 fome, +5 lealdade"
                             style={{ background: (idle.items.limao ?? 0) > 0 ? "#4a9eff" : "#2a3a4a", color: (idle.items.limao ?? 0) > 0 ? "#0b0510" : "#5a6a7a", border: "none", borderRadius: 8, padding: "8px 10px", fontWeight: 900, cursor: "pointer", fontSize: 14 }}
-                          >🍋</button>
+                          >�x�9</button>
                         </div>
                       ) : (() => {
                         const canSpeed = resting && idle.bank.crystals >= AZUL_REST_COST;
@@ -18365,20 +20473,20 @@ onClick={(e) => {
         const gif = GIF[tgt.sp];
         return (
           <div key={tgt.id} style={{
-            position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
+            position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)",
             zIndex: 9997, pointerEvents: "none",
-            display: "flex", alignItems: "center", gap: 10,
+            display: "flex", alignItems: "center", gap: 8,
             background: "linear-gradient(180deg, rgba(38,14,14,0.94) 0%, rgba(20,6,6,0.94) 100%)",
             border: `2px solid ${rColor}`,
-            borderRadius: 14,
-            padding: "8px 14px 8px 8px",
+            borderRadius: 12,
+            padding: "6px 10px 6px 6px",
             boxShadow: `0 8px 22px rgba(0,0,0,0.6), 0 0 0 1px ${rColor}44 inset, 0 0 16px ${rColor}66`,
-            minWidth: 260,
+            minWidth: 220,
             animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
           }}>
 
             <div style={{
-              width: 54, height: 54, flexShrink: 0, borderRadius: "50%",
+              width: 44, height: 44, flexShrink: 0, borderRadius: "50%",
               background: `radial-gradient(circle at 40% 35%, ${rColor}66 0%, #2a0a0a 75%)`,
               border: `2px solid ${rColor}`,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -18416,17 +20524,17 @@ onClick={(e) => {
                     background: "linear-gradient(180deg,#c72525,#7a1010)",
                     padding: "2px 5px", borderRadius: 4, letterSpacing: 1,
                     border: "1px solid #f5cf6b",
-                  }}>★ ELITE</span>
+                  }}>��& ELITE</span>
                 )}
                 <span style={{
-                  fontSize: 13, fontWeight: 900, color: "#ffe5c5",
+                  fontSize: 11, fontWeight: 900, color: "#ffe5c5",
                   textShadow: "1px 1px 0 #000", letterSpacing: 0.5,
                   textTransform: "uppercase",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>{tgt.sp.replace(/_/g, " ")}</span>
               </div>
               <div style={{
-                position: "relative", height: 12, background: "#0a0410",
+                position: "relative", height: 10, background: "#0a0410",
                 border: "1px solid #4a1a1a", borderRadius: 6, overflow: "hidden",
                 boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
               }}>
@@ -18448,7 +20556,7 @@ onClick={(e) => {
                 fontSize: 8, color: rColor, marginTop: 2, letterSpacing: 1.5,
                 textTransform: "uppercase", fontWeight: 800,
                 textShadow: "1px 1px 0 #000",
-              }}>◆ {tgt.rarity} ◆ ALVO</div>
+              }}>�  {tgt.rarity} �  ALVO</div>
             </div>
           </div>
         );
@@ -18628,9 +20736,9 @@ onClick={(e) => {
           saveIdle(nextIdle);
           setIdle(nextIdle);
           void pushCloudSaveNow({ idle: nextIdle, team: teamRef.current, restingBench, savedAt: Date.now() });
-          pushChat(`💚 EGG Emerald chocou: ${hatchSpecies.toUpperCase()} (${element}) com 3 traits! Já está na Coleção.`, "cap");
+          pushChat(`�xa EGG Emerald chocou: ${hatchSpecies.toUpperCase()} (${element}) com 3 traits! Já está na Coleção.`, "cap");
         }}
-        onNotify={(msg) => pushChat(`💚 EGG Emerald: ${msg}`, "cap")}
+        onNotify={(msg) => pushChat(`�xa EGG Emerald: ${msg}`, "cap")}
       />
 
       <GovernanteDialog
@@ -19097,13 +21205,13 @@ function BottomNavBtn({ label, img, active, onClick }: {
       title={label}
       className="bottomnav-btn"
       style={{
-        flex: 1, maxWidth: 120, minWidth: 0,
+        flex: 1, maxWidth: 86, minWidth: 0,
         background: active
           ? "radial-gradient(ellipse at 50% 0%, rgba(90,150,255,0.25), rgba(90,150,255,0.05) 70%, transparent 100%)"
           : "transparent",
         border: "none", padding: "3px 2px 2px", cursor: "pointer",
         borderRadius: 10, display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 2, position: "relative",
+        alignItems: "center", gap: 1, position: "relative",
       }}
     >
       <img
@@ -19219,7 +21327,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
             border: `1px solid ${qty === p ? buttonColor : "#4a3a52"}`,
             background: qty === p ? `${buttonColor}22` : "#1a0f26",
             color: qty === p ? buttonColor : "#b8a8c8", cursor: "pointer",
-          }}>×{p}</button>
+          }}>�{p}</button>
         ))}
         <button onClick={() => setQty(clamp(Math.max(...presets)))} style={{
           padding: "3px 8px", fontSize: 11, fontWeight: 800, borderRadius: 5,
@@ -19250,7 +21358,8 @@ function TabOverlay({
   onSagaClaim, onSagaTalk, onSagaLocate, onAcceptSideQuest, onClaimSideQuest,
   idle, setIdle, pushChat,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
-  trainerTheme, toggleTrainerTheme
+  trainerTheme, toggleTrainerTheme,
+  guildPanelProps
 
 }: {
 
@@ -19293,6 +21402,7 @@ function TabOverlay({
   onAcceptSideQuest: (qid: string) => void;
   onClaimSideQuest: (qid: string) => void;
   onSagaClaim: (stageId: string) => void;
+  guildPanelProps: React.ComponentProps<typeof GuildPanel>;
   onSagaTalk: (npc: SagaNpcId | "choice") => void;
   onSagaLocate: (npc: SagaNpcId) => void;
   onOpenColecaoDetail: (uid: string) => void;
@@ -19333,6 +21443,10 @@ function TabOverlay({
 
 }) {
 
+  const [selectedMonIdx, setSelectedMonIdx] = useState(0);
+  // Clamp selection when team changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (selectedMonIdx >= team.length) setSelectedMonIdx(Math.max(0, team.length - 1)); }, [team.length]);
 
   const title =
     tab === "pokemon"   ? "MEU POKÉMON" :
@@ -19453,17 +21567,17 @@ function TabOverlay({
     <div
       onClick={(e) => e.stopPropagation()}
       style={{
-      position: "absolute", inset: (tab === "mochila" || tab === "loja") ? 6 : 12,
-      background: (tab === "mochila" || tab === "loja") ? "rgba(4,8,16,0.55)" : "rgba(11,5,16,0.96)",
-      border: (tab === "mochila" || tab === "loja") ? "none" : "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
-      zIndex: 20, padding: (tab === "mochila" || tab === "loja") ? 10 : 16, overflowY: "auto",
+      position: "absolute", inset: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? 6 : 12,
+      background: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? "rgba(4,8,16,0.28)" : "rgba(11,5,16,0.96)",
+      border: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? "none" : "1px solid rgba(245,207,107,0.3)", borderRadius: 12,
+      zIndex: 20, padding: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? 8 : 16, overflowY: "auto",
       display: (tab === "mochila" || tab === "loja") ? "grid" : undefined, placeItems: (tab === "mochila" || tab === "loja") ? "center" : undefined,
     }}>
-      {tab !== "mochila" && tab !== "loja" && (
+      {tab !== "mochila" && tab !== "loja" && tab !== "pokemon" && (
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 20, color: "#f5cf6b" }}>{title}</h2>
         <button onClick={onClose} style={{ ...smallBtn, background: "#c92a2a", color: "#fff", border: "none", padding: "6px 14px" }}>
-          ← Voltar
+          � � Voltar
         </button>
       </div>
       )}
@@ -19488,11 +21602,9 @@ function TabOverlay({
             fontSize: 10, fontWeight: 900, letterSpacing: 3,
             color: "#ff97e1", textShadow: "0 0 8px rgba(255,151,225,0.7)",
             opacity: 0.85,
-          }}>✦ MEW ✦</div>
+          }}>�S� MEW �S�</div>
           <div style={{ position: "relative" }}>
-          <PokemonDetail pet={leader} currentHp={leaderHp} src={gifMap[leader.species]} />
-          <ActiveBonuses leaderRarity={leader.rarity} team={team} buffs={buffs} idle={idle} />
-          <SpeciesLore species={leader.species} rarity={leader.rarity} />
+          {/* B�NUS movido para dentro de SEU TIME como filtro � sem repetir figura */}
 
 
           {(() => {
@@ -19517,48 +21629,28 @@ function TabOverlay({
               }}>
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
                 {/* Header do time */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
-                  <div>
-                    <div style={{ color: "#f5cf6b", fontSize: 18, fontWeight: 900, letterSpacing: 2, textShadow: "0 2px 0 #0b0510, 0 0 10px rgba(245,207,107,0.6)" }}>
-                      ⚔ SEU TIME ⚔
-                    </div>
-                    <div style={{ color: "#b8a8c8", fontSize: 10, marginTop: 2, letterSpacing: 1 }}>
-                      Ordene por prioridade — o Líder é o #1
-                    </div>
-                  </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 4, position: "relative" }}>
                   <div style={{
-                    background: "rgba(245,207,107,0.15)", border: "1px solid rgba(245,207,107,0.4)",
-                    padding: "4px 12px", borderRadius: 999, color: "#f5cf6b",
-                    fontSize: 12, fontWeight: 900, letterSpacing: 1,
+                    background: "rgba(245,207,107,0.12)", border: "1px solid rgba(245,207,107,0.3)",
+                    padding: "1px 6px", borderRadius: 999, color: "#f5cf6b",
+                    fontSize: 9, fontWeight: 900, letterSpacing: 1,
                   }}>{team.length}/6</div>
                 </div>
 
-                <SynergyPanel team={team} />
-                <div style={{ marginTop: 10, padding: 8, background: "rgba(0,0,0,0.3)", borderRadius: 10, border: "1px solid rgba(245,207,107,0.1)" }}>
-                   <div style={{ color: "#f5cf6b", fontSize: 10, fontWeight: 900, marginBottom: 4, textAlign: "center", letterSpacing: 1 }}>MINI DASHBOARD DE SINERGIA</div>
-                   <div style={{ display: "flex", justifyContent: "space-around", alignItems: "flex-end", height: 30, gap: 2 }}>
-                      {(() => {
-                        const synergies = computeTeamSynergies(team) as any;
-                        const types = Object.keys(synergies);
-                        if (types.length === 0) return <div style={{ color: "#8a7a9c", fontSize: 9 }}>Sem bônus ativos</div>;
-                        return types.map(t => {
-                          const val = synergies[t] || 0;
-                          const height = Math.min(100, (val / 5) * 100);
-                          const typeCol = (TYPE_COLOR as any)[t] || "#ccc";
-                          return (
-                            <div key={t} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                               <div style={{ width: "100%", height: `${height}%`, background: typeCol, borderRadius: 2, minHeight: 4, boxShadow: `0 0 5px ${typeCol}aa` }} />
-                               <div style={{ fontSize: 7, fontWeight: 900, color: typeCol }}>{t.slice(0,3).toUpperCase()}</div>
-                            </div>
-                          );
-                        });
-                      })()}
-                   </div>
-                </div>
+                <SynergyStatusScreen
+                  team={team}
+                  selectedIndex={selectedMonIdx}
+                  onSelect={setSelectedMonIdx}
+                  leaderHp={leaderHp}
+                  gifMap={gifMap}
+                  onReorderTeam={onReorderTeam}
+                  onViewCard={(p) => setStatsCardPet(p)}
+                  onClose={onClose}
+                />
 
 
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
+                 <div style={{ display: "none", gridTemplateColumns: "1fr", gap: 8, position: "relative" }}>
                   {team.map((p, i) => {
                     const src = gifMap[p.species];
                     const isLeader = i === 0;
@@ -19749,7 +21841,7 @@ function TabOverlay({
                                 color: i === 0 ? "#4a3560" : "#eadfe8",
                                 border: `1px solid ${i === 0 ? "#3a2450" : "#5a3d78"}`,
                                 borderRadius: 5, cursor: i === 0 ? "not-allowed" : "pointer",
-                              }}>▲</button>
+                              }}>��</button>
                             <button onClick={() => move(i, i + 1)} disabled={i === team.length - 1}
                               title="Descer"
                               style={{
@@ -19758,7 +21850,7 @@ function TabOverlay({
                                 color: i === team.length - 1 ? "#4a3560" : "#eadfe8",
                                 border: `1px solid ${i === team.length - 1 ? "#3a2450" : "#5a3d78"}`,
                                 borderRadius: 5, cursor: i === team.length - 1 ? "not-allowed" : "pointer",
-                              }}>▼</button>
+                              }}>��</button>
                           </div>
                           {!isLeader && (
                             <button onClick={() => move(i, 0)}
@@ -19769,7 +21861,7 @@ function TabOverlay({
                                 color: "#0b0510", border: "1px solid #fff4d0",
                                 borderRadius: 5, cursor: "pointer",
                                 boxShadow: "0 2px 4px rgba(184,134,42,0.55)",
-                              }}>★ LÍDER</button>
+                              }}>��& LÍDER</button>
                           )}
                           <button
                             onClick={() => {
@@ -19817,249 +21909,34 @@ function TabOverlay({
 
 
       {tab === "tarefas" && (
-        <div>
-          <div style={{ color: "#c8b8d0", fontSize: 13, marginBottom: 12 }}>
-            Complete as tarefas para ganhar <img src={crystalGreenImg} alt="" style={{ width: 12, verticalAlign: "middle" }} /> cristais.
-          </div>
-          {/* ===== PEDIDOS SECUNDÁRIOS (novo pedido + em andamento) ===== */}
-          {(() => {
-            const sq = idle.sideQuests ?? freshSideQuests();
-            const rows = sq.accepted
-              .map((id: string) => SIDE_QUESTS.find((q) => q.id === id))
-              .filter(Boolean) as SideQuest[];
-            const nextRows = (["boby", "san", "nanizinha", "payka", "pan"] as const)
-              .flatMap((npc) => {
-                const done = sq.completed[npc] ?? 0;
-                const cooling = SIDE_QUESTS.filter((q) => q.npc === npc && sq.claimedAt[q.id] && Date.now() - sq.claimedAt[q.id] < 20 * 3600 * 1000);
-                const free = SIDE_QUESTS.filter((q) => q.npc === npc && !sq.claimedAt[q.id] && q.minStars <= starsFor(done) && !sq.accepted.includes(q.id));
-                if (free.length === 0 || cooling.length >= free.length) return [];
-                return [free[0]];
-              })
-              .slice(0, 3);
-            return (
-              <div style={{
-                background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)",
-                border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 14,
-                boxShadow: "0 4px 14px rgba(255,139,208,0.35)",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ color: "#d63384", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>📜 PEDIDOS</span>
-                  <span style={{ fontSize: 10, color: "#a08a96", fontWeight: 800 }}>aceite nos NPCs · entregue lá · cooldown 20h</span>
-                </div>
-                {rows.length === 0 && nextRows.length === 0 ? (
-                  <div style={{ color: "#a08a96", fontSize: 12, padding: 8 }}>
-                    Nenhum pedido ativo. Fale com os NPCs da saga e aceite em 📜 PEDIDOS.
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {rows.map((q) => {
-                      const npcMeta = SAGA_NPCS[q.npc];
-                      const ready = sideObjectiveDone(q, sq, idle.items, idle.currentMap);
-                      const here = npcMeta ? idle.currentMap === npcMeta.map : false;
-                      const accent = npcThemeFor(q.npc).accent;
-                      const prog = sideProgressText(q, sq, idle.items, idle.currentMap);
-                      return (
-                        <div key={q.id} style={{
-                          background: "#fff", borderRadius: 10, padding: "8px 10px",
-                          border: `3px solid ${ready ? "#22c55e" : "#ef4444"}`,
-                          boxShadow: ready
-                            ? "0 0 10px rgba(34,197,94,0.55), 0 0 18px rgba(34,197,94,0.35)"
-                            : "0 0 10px rgba(239,68,68,0.5), 0 0 16px rgba(239,68,68,0.3)",
-                          display: "flex", gap: 10, alignItems: "flex-start",
-                        }}>
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                            <div style={{
-                              width: 44, height: 44, border: `2px solid ${accent}`, borderRadius: 8,
-                              overflow: "hidden", background: "#0b0510",
-                            }}>
-                              <div style={{
-                                width: "100%", height: "100%",
-                                backgroundImage: `url(${q.npc === "boby" ? bobyPng : q.npc === "san" ? sanPng : q.npc === "nanizinha" ? nanizinhaPng : q.npc === "payka" ? paykaPng : panPng})`,
-                                backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated",
-                              }} />
-                            </div>
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ color: "#5b2333", fontWeight: 900, fontSize: 13 }}>{q.title}</div>
-                            <div style={{ color: "#8a5a6c", fontSize: 11, marginTop: 2 }}>
-                              🎯 {q.objectiveLabel}: <b style={{ color: ready ? "#059669" : "#d97706" }}>{prog}</b>
-                            </div>
-                            <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4, flexWrap: "wrap" }}>
-                              <span style={{ color: "#5b2333", fontSize: 11, fontWeight: 800 }}>💎 {q.crystals}</span>
-                              {(q.bonus ?? []).map((b, i) => (
-                                <span key={i} style={{ color: "#8a5a6c", fontSize: 11 }}>+{b.qty} {b.itemId}</span>
-                              ))}
-                            </div>
-                            <div style={{ color: "#2563eb", fontSize: 11, marginTop: 3 }}>
-                              📍 {npcMeta?.name ?? q.npc} está em <b>{npcMeta?.map ? (IDLE_MAPS[npcMeta.map]?.name ?? npcMeta.map) : "Revoland"}</b>
-                            </div>
-                            <button
-                              onClick={() => onSagaLocate(q.npc)}
-                              style={{
-                                marginTop: 6, width: "100%",
-                                background: ready
-                                  ? "linear-gradient(180deg, #22c55e, #15803d)"
-                                  : "linear-gradient(180deg, #ff8bd0, #ec4899)",
-                                color: ready ? "#052e16" : "#fff",
-                                border: "none", borderRadius: 10, padding: "8px",
-                                fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: "pointer",
-                                boxShadow: ready ? "0 3px 0 #14532d" : "0 3px 0 #be185d",
-                              }}
-                            >{here ? (ready ? "🎁 ENTREGAR — FALAR" : "💬 FALAR") : "🗺️ FALAR — IR ATÉ ELE"}</button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {nextRows.length > 0 && (
-                      <div style={{
-                        background: "#fff", borderRadius: 10, padding: "8px 10px",
-                        border: "3px solid #9ca3af", opacity: 0.85,
-                      }}>
-                        <div style={{ color: "#6b7280", fontWeight: 900, fontSize: 11, marginBottom: 4 }}>🔒 NOVOS PEDIDOS</div>
-                        {nextRows.map((q) => (
-                          <div key={q.id} style={{ display: "flex", justifyContent: "space-between", gap: 6, alignItems: "center", padding: "3px 0" }}>
-                            <span style={{ color: "#374151", fontSize: 11, fontWeight: 700 }}>{q.title}</span>
-                            <span style={{ color: "#9ca3af", fontSize: 10, fontWeight: 800, whiteSpace: "nowrap" }}>
-                              ★{q.minStars} · 💎{q.crystals}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-          {/* ===== SAGA "AS MEMÓRIAS APAGADAS" ===== */}
-          {(() => {
-            const sg: SagaProgress = idle.saga ?? freshSaga();
-            const sagaPngLocal = (npc: SagaNpcId): string =>
-              npc === "boby" ? bobyPng : npc === "san" ? sanPng : npc === "nanizinha" ? nanizinhaPng : npc === "payka" ? paykaPng : panPng;
-            const portraitSm = (npc: SagaNpcId, size = 72) => {
-              const t = npcThemeFor(npc);
-              return (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
-                  <div style={{ width: size, height: size, border: `3px solid ${t.frame}`, borderRadius: 10, overflow: "hidden", background: "#0b0510", boxShadow: `0 0 12px ${t.glow}` }}>
-                    <div style={{ width: "100%", height: "100%", backgroundImage: `url(${sagaPngLocal(npc)})`, backgroundSize: "400% 400%", backgroundPosition: "0% 0%", imageRendering: "pixelated" }} />
-                  </div>
-                  <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: t.accent }}>{SAGA_NPCS[npc].name}</span>
-                </div>
-              );
-            };
-            if (sg.finished) {
-              return (
-                <div style={{ background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)", border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 12, boxShadow: "0 4px 14px rgba(255,139,208,0.35)" }}>
-                  <div style={{ color: "#d63384", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>📖 AS MEMÓRIAS APAGADAS — concluída 💖</div>
-                  <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-                    {sg.chosen.map((n) => (
-                      <div key={n} style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid #ffc4da", borderRadius: 10, padding: 6 }}>
-                        {portraitSm(n, 56)}
-                        <div>
-                          <div style={{ color: "#059669", fontWeight: 800, fontSize: 11 }}>{SAGA_NPCS[n].name} ✦ preservado</div>
-                          <button onClick={() => onSagaTalk(n)} style={{ background: "linear-gradient(180deg, #ff8bd0, #ec4899)", color: "#fff", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 10, fontWeight: 900, cursor: "pointer", marginTop: 2, boxShadow: "0 2px 0 #be185d" }}>Conversar</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            }
-            if (sg.stage >= SAGA_STAGES.length) {
-              return (
-                <div style={{ background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)", border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 12, boxShadow: "0 4px 14px rgba(255,139,208,0.35)" }}>
-                  <div style={{ color: "#d63384", fontWeight: 900, fontSize: 13, letterSpacing: 1 }}>🖤 A ESCOLHA — quais dois continuarão?</div>
-                  <button onClick={() => onSagaTalk("choice")} style={{ marginTop: 8, background: "linear-gradient(180deg, #ff8bd0, #ec4899)", color: "#fff", border: "none", borderRadius: 10, padding: "9px 14px", fontWeight: 900, cursor: "pointer", boxShadow: "0 3px 0 #be185d" }}>ESCOLHER AGORA 💖</button>
-                </div>
-              );
-            }
-            const st = SAGA_STAGES[sg.stage];
-            const ob = st.objective;
-            const here = ob.kind === "visit" ? idle.currentMap === ob.map : false;
-            const prog = sagaProgressTextPure(st, sg, idle.items, here);
-            const isDone = (() => {
-              if (ob.kind === "talk" || ob.kind === "choice") return true;
-              if (ob.kind === "kill" || ob.kind === "capture" || ob.kind === "feed_pet" || ob.kind === "feed_trainer") return sg.count >= ob.count;
-              if (ob.kind === "item") return (idle.items[ob.itemId] ?? 0) >= ob.qty;
-              return here;
-            })();
-            const claimed = !!sg.claimed[st.id];
-            const accent = npcThemeFor(st.npc).accent;
-            const npcHere = idle.currentMap === SAGA_NPCS[st.npc].map;
-            const countMax = (st.objective.kind === "kill" || st.objective.kind === "capture" || st.objective.kind === "feed_pet" || st.objective.kind === "feed_trainer") ? st.objective.count : null;
-            return (
-              <div style={{ background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)", border: "2px solid #ff8bd0", borderRadius: 14, padding: 12, marginBottom: 12, boxShadow: "0 4px 14px rgba(255,139,208,0.35)" }}>
-                <div style={{ color: "#d63384", fontWeight: 900, fontSize: 11, letterSpacing: 2 }}>📖 AS MEMÓRIAS APAGADAS · ETAPA {sg.stage + 1}/{SAGA_TOTAL_STAGES}</div>
-                <div style={{ display: "flex", gap: 12, marginTop: 10, alignItems: "flex-start" }}>
-                  {portraitSm(st.npc)}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#5b2333", fontWeight: 900, fontSize: 14 }}>{st.title}</div>
-                    <div style={{ color: "#8a5a6c", fontSize: 11, marginTop: 3 }}>🎯 {st.objectiveLabel}: <b style={{ color: isDone ? "#059669" : "#d97706" }}>{prog}</b></div>
-                    {countMax != null && (
-                      <div style={{ width: "100%", height: 8, background: "#ffe0ec", borderRadius: 4, overflow: "hidden", marginTop: 4, border: "1px solid #ffc4da" }}>
-                        <div style={{ width: `${Math.min(100, (sg.count / countMax) * 100)}%`, height: "100%", background: "linear-gradient(90deg, #ff8bd0, #ec4899)", transition: "width 0.3s" }} />
-                      </div>
-                    )}
-                    <div style={{ color: "#8a5a6c", fontSize: 11, marginTop: 4 }}>🎁 Recompensa: <b style={{ color: "#5b2333" }}>{sagaRewardText(st.reward)}</b></div>
-                    <div style={{ color: "#2563eb", fontSize: 11, marginTop: 3 }}>📍 {SAGA_NPCS[st.npc].name} está em <b>{IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland"}</b>{st.npc === "boby" ? " · Cidade Inicial" : ""}</div>
-                    <button
-                      onClick={() => onSagaLocate(st.npc)}
-                      style={{ marginTop: 8, width: "100%", background: "linear-gradient(180deg, #ff8bd0, #ec4899)", color: "#fff", border: "none", borderRadius: 10, padding: "9px", fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: "pointer", boxShadow: "0 3px 0 #be185d, 0 4px 12px rgba(236,72,153,0.45)", textShadow: "1px 1px 0 rgba(0,0,0,0.2)" }}
-                    >{npcHere ? "💬 FALAR" : "🗺️ FALAR — IR ATÉ ELE"}</button>
-                    <div style={{ fontSize: 10, color: claimed ? "#059669" : "#a08a96", fontWeight: 800, textAlign: "center", marginTop: 4 }}>
-                      {claimed ? "✓ recompensa resgatada" : "vá até o NPC e clique nele para conversar"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-          {tasks.length === 0 ? (
-            <div style={{ color: "#8a7a9c", fontSize: 13, padding: 20, textAlign: "center" }}>
-              Todas as tarefas foram concluídas! Aguarde novas em breve.
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {tasks.map((t) => (
-                <div key={t.id} style={{
-                  background: "linear-gradient(180deg, #fffdf9 0%, #ffeef5 100%)",
-                  border: `3px solid ${t.done ? "#22c55e" : "#ef4444"}`,
-                  borderRadius: 12, padding: 12,
-                  boxShadow: t.done
-                    ? "0 0 10px rgba(34,197,94,0.5), 0 0 18px rgba(34,197,94,0.3)"
-                    : "0 0 10px rgba(239,68,68,0.45), 0 0 16px rgba(239,68,68,0.28)",
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <span style={{ color: "#5b2333", fontWeight: 900, fontSize: 13 }}>{t.title}</span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#d63384", fontWeight: 900 }}>
-                      <img src={crystalGreenImg} alt="" style={{ width: 14, imageRendering: "pixelated" }} />
-                      {t.reward}
-                    </span>
-                  </div>
-                  <div style={{ height: 6, background: "#ffe0ec", borderRadius: 3, border: "1px solid #ffc4da" }}>
-                    <div style={{
-                      width: `${Math.min(100, (t.progress / t.target) * 100)}%`,
-                      height: "100%", background: t.done ? "#22c55e" : "#ec4899",
-                      borderRadius: 3, transition: "width 200ms",
-                    }} />
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-                    <span style={{ color: "#8a5a6c", fontSize: 11, fontWeight: 700 }}>{t.progress}/{t.target}</span>
-                    {t.done && (
-                      <button onClick={() => onClaimTask(t.id)}
-                        style={{
-                          background: "linear-gradient(180deg, #22c55e, #15803d)", color: "#052e16",
-                          border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 900, cursor: "pointer",
-                          boxShadow: "0 2px 0 #14532d",
-                        }}>
-                        COLETAR
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <QuestBookPanel
+          idle={idle}
+          tasks={idle.tasks}
+          crystalGreenImg={crystalGreenImg}
+          npcPng={{ boby: bobyPng, san: sanPng, nanizinha: nanizinhaPng, payka: paykaPng, pan: panPng }}
+          SIDE_QUESTS={SIDE_QUESTS}
+          SAGA_NPCS={SAGA_NPCS}
+          SAGA_STAGES={SAGA_STAGES}
+          SAGA_TOTAL_STAGES={SAGA_TOTAL_STAGES}
+          IDLE_MAPS={IDLE_MAPS}
+          freshSaga={freshSaga}
+          freshSideQuests={freshSideQuests}
+          sagaRewardText={sagaRewardText}
+          sagaProgressTextPure={sagaProgressTextPure}
+          sideObjectiveDone={sideObjectiveDone}
+          sideProgressText={sideProgressText}
+          npcThemeFor={npcThemeFor}
+          starsFor={starsFor}
+          onSagaLocate={onSagaLocate}
+          onSagaTalk={onSagaTalk}
+          onClaimTask={onClaimTask}
+          onClose={onClose}
+        />
+      )}
+
+      {tab === "guilda" && (
+        <div style={{ maxWidth: 760, margin: "0 auto", maxHeight: "72vh", overflowY: "auto" }}>
+          <GuildPanel {...guildPanelProps} />
         </div>
       )}
 
@@ -20072,7 +21949,7 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
-          bau_esmeralda: "Baú de Esmeralda 💠",
+          bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
@@ -20089,7 +21966,7 @@ function TabOverlay({
           emerald_egg: "EGG Emerald 💚",
           egg_boost_69: "Cristal do Despertar ✦",
           stone_pack_all: "Pacote das Seis Stones 💠",
-          maca: "Maçã 🍎", laranja: "Laranja 🍊", picole: "Picolé 🍧",
+          maca: "Maçã �x�}", laranja: "Laranja �x�`", picole: "Picolé �x��",
           refrigerante: "Refrigerante 🥤", cafe: "Café Expresso ☕",
           cha_verde: "Chá Verde 🍵", bolo_morango: "Bolo de Morango 🍰",
           leite_manga: "Leite de Manga 🧋",
@@ -20240,12 +22117,7 @@ function TabOverlay({
                       boxShadow: "0 0 10px rgba(125,196,255,0.6)",
                       background: "radial-gradient(circle at 35% 30%, #1e3a5e, #0a1830)",
                     }}>
-                      <div style={{
-                        width: "100%", height: "100%",
-                        backgroundImage: `url(${skinUrl ?? trainerSheet})`,
-                        backgroundSize: "400% 400%", backgroundPosition: "0% 0%",
-                        imageRendering: "pixelated",
-                      }} />
+                      <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="Treinador" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -20302,12 +22174,12 @@ function TabOverlay({
                     const meta = slotMeta[slot];
                     const rColor = eq ? (RARITY_COLOR[eq.rarity] ?? "#8a7a4a") : null;
                     return (
-                      <button
-                        key={slot}
-                        onClick={() => setEquipmentSlotPicker(slot)}
+                    <button
+                    key={slot}
+                    onClick={() => setEquipmentSlotPicker(slot)}
                         title={eq ? `${eq.name} — clique para trocar` : `${meta.label} vazio — clique para equipar`}
-                        style={{
-                          aspectRatio: "1", borderRadius: 8, cursor: "pointer",
+                    style={{
+                    aspectRatio: "1", borderRadius: 8, cursor: "pointer",
                           background: eq ? "rgba(255,217,77,0.10)" : "rgba(255,255,255,0.04)",
                           border: eq ? `1.5px solid ${rColor}` : "1.5px dashed rgba(150,150,255,0.35)",
                           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, padding: 2,
@@ -20335,6 +22207,42 @@ function TabOverlay({
                     </div>
                   );
                 })()}
+                {/* SKINS DO TREINADOR � equipar com ticket */}
+                <div style={{ fontSize: 9, color: "#9a9ac8", fontWeight: 800, letterSpacing: 1, textAlign: "center", marginTop: 4 }}>SKINS</div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center", background: "rgba(0,0,0,0.3)", border: "1px solid #3a6a9a", borderRadius: 8, padding: 4 }}>
+                  <img src={skinBoxPng} alt="Skin Box" width={30} height={30} style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: 8, color: "#cfe6ff", fontWeight: 700, lineHeight: 1.3 }}>🏿️ Tickets: <b>{skinTickets ?? 0}</b></span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, width: "100%" }}>
+                  {SKINS.map((sk) => {
+                    const owned = !sk.locked || (unlockedSkins ?? []).includes(sk.id);
+                    const active = skinId === sk.id;
+                    const canUnlock = !owned && (skinTickets ?? 0) > 0;
+                    return (
+                      <button
+                        key={sk.id}
+                        onClick={() => {
+                          if (active) return;
+                          if (owned) { setSkinId(sk.id); pushChat(`�S� Skin equipada: ${sk.label}!`, "cap"); }
+                          else if (canUnlock) { onUnlockSkin(sk.id); }
+                          else { pushChat("�x Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
+                        }}
+                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
+                        style={{
+                          borderRadius: 8, cursor: "pointer", padding: 2,
+                          background: active ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.04)",
+                          border: active ? "1.5px solid #f5cf6b" : "1.5px solid rgba(150,150,255,0.35)",
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
+                          opacity: !owned && !canUnlock ? 0.55 : 1,
+                          boxShadow: active ? "0 0 8px rgba(245,207,107,0.5)" : "none",
+                        }}
+                      >
+                        <img src={sk.photo} alt={sk.label} style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: 6 }} />
+                        <span style={{ fontSize: 6.5, fontWeight: 800, color: active ? "#f5cf6b" : "#cfe6ff", lineHeight: 1.2 }}>{sk.locked ? "�x " : ""}{sk.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
                 </>
                 ) : (
                   <div style={{
@@ -20521,7 +22429,7 @@ function TabOverlay({
                           }}
                           title="Descartar 1 (tecla X)"
                           style={{ ...btnBase, flex: 0.7, background: "linear-gradient(180deg, #c46a6a, #8a2a2a)", color: "#fff", border: "2px solid #5a1a1a", boxShadow: "0 2px 0 #5a1a1a" }}
-                        >✕</button>
+                        >�S"</button>
                         {sellPrice > 0 && !id.startsWith("stone_") && (
                           <button
                             onClick={() => onSellItem(id, 1)}
@@ -20542,7 +22450,7 @@ function TabOverlay({
                             title="Vender por Safira Verde (250 stones = 2 safiras)"
                             disabled={n < 250}
                             style={{ ...btnBase, flex: 1.4, background: n < 250 ? "#9a9a9a" : "linear-gradient(180deg,#6ee7a8,#059669)", color: "#0b2540", border: "2px solid #065f46", boxShadow: "0 2px 0 #065f46", opacity: n < 250 ? 0.6 : 1 }}
-                          >💚</button>
+                          >�xa</button>
                         )}
                         {rule && (
                           <button
@@ -20550,7 +22458,7 @@ function TabOverlay({
                             disabled={!(okLv && okQty)}
                             title={okLv ? (okQty ? `Forjar ${rule.label}` : `Precisa de ${rule.cost}×`) : `Requer Treinador Lv.${rule.trainerLv}`}
                             style={{ ...btnBase, flex: 0.8, background: (okLv && okQty) ? "linear-gradient(180deg, #8bffb0, #3a8a5a)" : "#9a9a9a", color: (okLv && okQty) ? "#0b2010" : "#3a3a3a", border: "2px solid #2a5a3a", boxShadow: "0 2px 0 #2a5a3a", opacity: (okLv && okQty) ? 1 : 0.6 }}
-                          >⚒️</button>
+                          >�a️</button>
                         )}
                       </div>
                     </div>
@@ -20593,7 +22501,7 @@ function TabOverlay({
                     <button onClick={() => setItemDetail(null)} style={{
                       position: "absolute", top: 8, right: 10, background: "transparent",
                       border: "none", color: P.inkSoft, fontSize: 20, cursor: "pointer", fontWeight: 900,
-                    }}>×</button>
+                    }}>�</button>
                     <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                       <div style={{
                         width: 84, height: 84, borderRadius: 12, flexShrink: 0,
@@ -20699,7 +22607,7 @@ function TabOverlay({
           }}>
             <div>
               <div style={{ color: "#c084fc", fontSize: 20, fontWeight: 900, letterSpacing: 3, fontFamily: "inherit", textShadow: "0 0 10px rgba(192,132,252,0.6)" }}>
-                ✦ COLEÇÃO ✦
+                �S� COLE�!ÒO �S�
               </div>
               <div style={{ color: "#b39dd8", fontSize: 12, marginTop: 2, fontStyle: "italic" }}>
                 Registro particular do treinador
@@ -20975,7 +22883,7 @@ function TabOverlay({
                       title={inTeam ? "No time — não pode fragmentar" : locked ? "Travado — destrave para fragmentar" : `Fragmentar por +${gain} pts de craft`}
                     >
                       {inTeam ? (
-                        <span style={{ fontWeight: 900 }}>★ NO TIME</span>
+                        <span style={{ fontWeight: 900 }}>��& NO TIME</span>
                       ) : locked ? (
                         <span style={{ fontWeight: 900 }}>🔒 TRAVADO</span>
                       ) : (
@@ -21022,7 +22930,7 @@ function TabOverlay({
           }}>
             <div>
               <div style={{ color: "#ff6b8a", fontSize: 18, fontWeight: 900, letterSpacing: 2 }}>
-                📕 POKÉDEX
+                �x" POK�0DEX
               </div>
               <div style={{ color: "#ffb3c1", fontSize: 11, marginTop: 2 }}>
                 Registro de Pokémon enfrentados em duelos
@@ -21389,7 +23297,7 @@ function TabOverlay({
 
           {/* ═══ Trocador NPC — Orbs de XP por Pokémon capturados ═══ */}
           <h3 style={{ color: "#ffd94d", fontSize: 15, margin: "22px 0 6px" }}>
-            🧙 Trocador NPC — Orbs de XP
+            �x�" Trocador NPC � Orbs de XP
           </h3>
           <div style={{ color: "#b8a8c8", fontSize: 11, marginBottom: 10, lineHeight: 1.5 }}>
             O NPC aceita Pokémon da sua <b>Coleção</b> (não da equipe) em troca de Orbs mais fortes.
@@ -21423,7 +23331,7 @@ function TabOverlay({
                   </div>
                   {t.requires && (
                     <div style={{ fontSize: 10, fontWeight: 800, color: reqOk ? "#8ae28a" : "#ff9a6b", background: reqOk ? "#0f2018" : "#2a1620", border: `1px solid ${reqOk ? "#8ae28a55" : "#ff9a6b55"}`, borderRadius: 6, padding: "3px 8px", textAlign: "center" }}>
-                      {reqOk ? "✓" : "🔒"} Requer {t.requires.qty}× {t.requires.label} ({reqOwned}/{t.requires.qty})
+                      {reqOk ? "�S" : "�x"} Requer {t.requires.qty}� {t.requires.label} ({reqOwned}/{t.requires.qty})
                     </div>
                   )}
                   <div style={{ fontSize: 11, color: "#8a7a9c" }}>Você tem: {owned}</div>
@@ -21471,7 +23379,7 @@ function TabOverlay({
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <div style={{ fontWeight: 900, color: op.color, fontSize: 15 }}>
-                      🧙 Escolha {op.count} Pokémon {op.rarity.toUpperCase()}
+                      �x�" Escolha {op.count} Pokémon {op.rarity.toUpperCase()}
                     </div>
                     <button onClick={() => setOrbPicker(null)} style={{ background: "transparent", border: "none", color: "#eadfe8", cursor: "pointer", fontSize: 18 }}>✕</button>
                   </div>
@@ -21517,7 +23425,7 @@ function TabOverlay({
                               <div style={{
                                 position: "absolute", top: 2, right: 2, background: op.color, color: "#0b0510",
                                 width: 18, height: 18, borderRadius: 999, fontSize: 11, fontWeight: 900, display: "grid", placeItems: "center",
-                              }}>✓</div>
+                              }}>�S</div>
                             )}
                           </button>
                         );
@@ -21622,7 +23530,7 @@ function TabOverlay({
               const ni = { ...s.items }; ni[config.stone] = (ni[config.stone] ?? 0) - Math.floor(stoneCost/2);
               return { ...s, items: ni };
             });
-            pushChat(`❌ FALHA! Perdido: ${Math.floor(stoneCost/2)}x Stones.`, "info");
+            pushChat(`�R FALHA! Perdido: ${Math.floor(stoneCost/2)}x Stones.`, "info");
             return;
           }
           setIdle((s: any) => {
@@ -21840,7 +23748,7 @@ function TabOverlay({
               <button 
                 onClick={() => setEquipmentSlotPicker(null)}
                 style={{ background: "none", border: "none", color: "#8a7a9c", cursor: "pointer", fontSize: 20 }}
-              >✕</button>
+              >�S"</button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 400, overflowY: "auto", paddingRight: 5 }}>
@@ -21942,7 +23850,7 @@ function TabOverlay({
               <input type="checkbox" checked={audioSettings.sfx}
                 onChange={(e) => setAudioSettings((s) => ({ ...s, sfx: e.target.checked }))}
                 style={{ width: 18, height: 18 }} />
-              <span style={{ color: "#eadfe8", fontWeight: 700 }}>🔊 Efeitos sonoros (clique, level-up, capturas)</span>
+              <span style={{ color: "#eadfe8", fontWeight: 700 }}>�x` Efeitos sonoros (clique, level-up, capturas)</span>
             </label>
             <div>
               <div style={{ fontSize: 11, color: "#b8a8c8", marginBottom: 4 }}>Volume dos efeitos: {Math.round(audioSettings.sfxVol * 100)}%</div>
@@ -22037,7 +23945,7 @@ function TabOverlay({
                 <button onClick={() => setFragConfirm(null)} style={{
                   width: 32, height: 32, borderRadius: 8, border: "1px solid #6a5a7c",
                   background: "#2a1638", color: "#f7ecf7", fontSize: 16, fontWeight: 900, cursor: "pointer",
-                }}>✕</button>
+                }}>�S"</button>
               </div>
 
               <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
@@ -22169,7 +24077,7 @@ function WalletScreen({
     potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
     stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧",
     stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
-    egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico",
+    egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo �0pico", egg_mystic: "Ovo Místico",
     black_mitic_egg: "Black Mitic Egg ✦", premium_box: "Caixa Premium ✦"
   };
 
@@ -22324,13 +24232,13 @@ function MarketScreen({
     pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
     chest_amulet: "Amuleto do Baú",
     potion: "Poção",
-    stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
-    stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
-    stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
+    stone_grass: "Stone Verdejante �xR�", stone_fire: "Stone Ígnea �x�",
+    stone_water: "Stone Aquática �x�", stone_electric: "Stone Elétrica �a�",
+    stone_dark: "Stone Sombria �xR", stone_dragon: "Stone Dragão �x�0",
   };
   const ICONS: Record<string, string> = {
     pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
-    chest_amulet: "🎗", potion: "🧪",
+    chest_amulet: "�x}", potion: "�x��",
     stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
     stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",
   };
@@ -22449,7 +24357,7 @@ function MarketScreen({
                           <img src={STONE_CHEST[l.item_id]} alt="" width={52} height={52} style={{ imageRendering: "auto" }} />
                         </div>
                       ) : (
-                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "�x�"}</div>
                       )}
                       <div>
                         <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
@@ -22467,7 +24375,7 @@ function MarketScreen({
               </div>
             </div>
           )}
-          <div style={{ color: "#ff9d3d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>À VENDA ({others.length})</div>
+          <div style={{ color: "#ff9d3d", fontSize: 12, fontWeight: 800, margin: "6px 2px" }}>ì VENDA ({others.length})</div>
           {others.length === 0 ? (
             <div style={{ color: "#8a7a9c", fontStyle: "italic", padding: 20, textAlign: "center" }}>Nenhum anúncio ativo no momento.</div>
           ) : (
@@ -22484,7 +24392,7 @@ function MarketScreen({
                           <img src={STONE_CHEST[l.item_id]} alt="" width={58} height={58} style={{ imageRendering: "auto" }} />
                         </div>
                       ) : (
-                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "📦"}</div>
+                        <div style={{ fontSize: 22 }}>{ICONS[l.item_id] ?? "�x�"}</div>
                       )}
                       <div>
                         <div style={{ color: "#f5cf6b", fontWeight: 800, fontSize: 13 }}>{l.qty}x {LABELS[l.item_id] ?? l.item_id}</div>
@@ -22786,7 +24694,7 @@ const RARITY_LORE: Partial<Record<Rarity, string>> = {
   common: "Um companheiro leal — comum, mas cheio de potencial nas mãos certas.",
   uncommon: "Um pouco acima da média. Boa base para longas jornadas.",
   rare: "Raro de se encontrar — atrai olhares por onde passa.",
-  epic: "Épico em batalha, temido por treinadores iniciantes.",
+  epic: "�0pico em batalha, temido por treinadores iniciantes.",
   legendary: "Um lendário — poucos treinadores têm o privilégio de encontrá-lo.",
   mythic: "Ser mítico e atemporal. Sua presença altera o curso do combate.",
   mythic_shiny: "Mítico brilhante — uma variante quase impossível de existir.",
@@ -22980,7 +24888,7 @@ function GovernanteDialog(props: {
             fontSize: 20, fontWeight: 900, letterSpacing: 2,
             color: "#ffd44a", textShadow: "0 0 10px rgba(255,212,74,0.6)",
           }}>
-            👑 GOVERNANTE
+            �x GOVERNANTE
             <span style={{ marginLeft: 8, fontSize: 10, color: "#c58bff", letterSpacing: 3 }}>SENHOR DAS CARTAS</span>
           </div>
           <div style={{
@@ -23024,7 +24932,7 @@ function GovernanteDialog(props: {
                       fontWeight: 900, cursor: "pointer", fontSize: 12, letterSpacing: 1,
                       boxShadow: "0 0 18px rgba(208,102,255,0.85)",
                     }}
-                  >✦ PLUS {canGivePlus} POKÉMON{canGivePlus > 1 ? "S" : ""} NA COLEÇÃO</button>
+                  >�S� PLUS {canGivePlus} POK�0MON{canGivePlus > 1 ? "S" : ""} NA COLE�!ÒO</button>
                 )}
                 {canGiveRiolu > 0 && onExchangeRiolu && (
                   <button
@@ -23108,16 +25016,16 @@ function MapIconRenderer({ type, name, ok }: { type: string; name: string; ok: b
   // Fallback visual RPG (Original melhorado)
   const getEmoji = () => {
     switch(type) {
-      case "castle": return "🏰";
-      case "village": return "🏡";
-      case "volcano": return "🌋";
-      case "cave": return "💎";
-      case "forest": return "🌿";
-      case "beach": return "🐚";
-      case "mountain": return "🗻";
-      case "snow": return "❄️";
+      case "castle": return "�x��";
+      case "village": return "�x��";
+      case "volcano": return "�xR9";
+      case "cave": return "�x}";
+      case "forest": return "�xR�";
+      case "beach": return "�x�a";
+      case "mountain": return "�x�";
+      case "snow": return "�️";
       case "island": return "🏝️";
-      default: return "📍";
+      default: return "�x�";
     }
   };
 

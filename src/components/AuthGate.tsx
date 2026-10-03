@@ -1,10 +1,20 @@
-import { useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
+import { claimSnapshotOwner, clearSnapshotOwner } from "@/lib/saveManager";
+import { computeIsExisting, saveShowsProgress } from "@/lib/accountExists";
+import { makePet } from "@/game/systems";
+import perfilChar01Png from "@/CHAR/perfil. char 01.png";
+import perfilChar02Png from "@/CHAR/perfil. char 02.png";
+import perfilCharF1Png from "@/CHAR/perfil. char f1.png";
+import perfilCharF2Png from "@/CHAR/perfil. char f2.png";
+import charmanderGif from "@/assets/charmander.gif";
+import bulbasaurGif from "@/assets/bulbasaur.gif";
+import squirtleGif from "@/assets/squirtle.gif";
+import MetaMaskLoginButton from "@/components/MetaMaskLoginButton";
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
-import { updateActiveSession, getActiveSessionToken } from "@/lib/session.functions";
-import MetaMaskLoginButton from "@/components/MetaMaskLoginButton";
+import { updateActiveSession, getActiveSessionToken, clearActiveSession } from "@/lib/session.functions";
 
 
 const loginBgAsset = { url: "/login-bg.png" };
@@ -27,6 +37,25 @@ const log = (...args: unknown[]) => console.log("[AuthGate]", ...args);
 const warn = (...args: unknown[]) => console.warn("[AuthGate]", ...args);
 const IDLE_KEY = "rubym.idle.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
+const CURRENT_UID_KEY = "rubym.currentUid";
+
+/** Limpeza SOMENTE local (nunca toca o Supabase). Remove todo `rubym.*`
+ * da conta anterior, preservando s� o marcador de uid vigente � e solta o
+ * dono do snapshot em mem�ria (anti-clobber). */
+function wipeLocalGameData() {
+  try {
+    const keep = new Set<string>([CURRENT_UID_KEY]);
+    const toRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (keep.has(k)) continue;
+      if (k.startsWith("rubym.")) toRemove.push(k);
+    }
+    toRemove.forEach((k) => localStorage.removeItem(k));
+  } catch { /* ignore */ }
+  clearSnapshotOwner();
+}
 
 function isCloudBlob(value: unknown): value is { idle?: unknown; team?: unknown[]; restingBench?: unknown[]; party?: unknown[] } {
   if (!value || typeof value !== "object") return false;
@@ -61,11 +90,11 @@ function writeIdentity(id: string, name: string) {
  * Garante que existe linha em `profiles` para esse usuário e devolve
  * o username (ou null se ainda não foi escolhido). Não depende do trigger SQL.
  */
-async function ensureProfile(userId: string): Promise<string | null> {
+async function ensureProfile(userId: string): Promise<{ username: string | null; avatarUrl: string | null }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any;
   log("ensureProfile: select", userId);
-  const sel = await sb.from("profiles").select("id, username").eq("id", userId).maybeSingle();
+  const sel = await sb.from("profiles").select("id, username, avatar_url").eq("id", userId).maybeSingle();
   if (sel.error) {
     // Banco sem a tabela (setup ainda não rodado): não trava o login.
     // O jogo segue local; perfil/sync ativam sozinhos quando a tabela existir.
@@ -73,31 +102,50 @@ async function ensureProfile(userId: string): Promise<string | null> {
     const msg = String((sel.error as { message?: unknown }).message ?? sel.error);
     if (code === "42P01" || code === "PGRST205" || /relation .* does not exist|not find|404/i.test(msg)) {
       warn("ensureProfile: tabela profiles ausente — seguindo em modo local");
-      return null;
+      return { username: null, avatarUrl: null };
     }
     warn("ensureProfile select error", sel.error);
     throw sel.error;
   }
   if (sel.data) {
     log("ensureProfile: row exists", sel.data);
-    return (sel.data.username as string | null) ?? null;
+    return {
+      username: (sel.data.username as string | null) ?? null,
+      avatarUrl: (sel.data.avatar_url as string | null) ?? null,
+    };
   }
   log("ensureProfile: inserting row (trigger ausente?)");
-  const ins = await sb.from("profiles").upsert({ id: userId, username: null }, { onConflict: "id" });
+  const ins = await sb.from("profiles").upsert({ id: userId, username: null, avatar_url: null }, { onConflict: "id" });
   if (ins.error) {
     // Race: outra aba/trigger criou. Re-leitura.
     warn("ensureProfile insert error (tentando re-ler)", ins.error);
-    const sel2 = await sb.from("profiles").select("username").eq("id", userId).maybeSingle();
+    const sel2 = await sb.from("profiles").select("username, avatar_url").eq("id", userId).maybeSingle();
     if (sel2.error) throw sel2.error;
-    return (sel2.data?.username as string | null) ?? null;
+    return {
+      username: (sel2.data?.username as string | null) ?? null,
+      avatarUrl: (sel2.data?.avatar_url as string | null) ?? null,
+    };
   }
-  return null;
+  return { username: null, avatarUrl: null };
 }
 
 async function preloadCloudSave(userId: string) {
   try {
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
+    // Anti-corrida: se a sess�o mudou durante o fetch, descarta o resultado.
+    // Sem isso, um preload(A) tardio sobrescreve os globais de B.
+    try {
+      const { data } = await supabase.auth.getSession();
+      if ((data.session?.user?.id ?? null) !== userId) {
+        log("preloadCloudSave descartado: uid mudou durante o fetch");
+        return;
+      }
+    } catch {
+      // Sem sess�o verific�vel: n�o grava nada (fail-closed).
+      log("preloadCloudSave descartado: sess�o n�o verific�vel");
+      return;
+    }
     if (isCloudBlob(cloud)) {
       if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
       const party = Array.isArray(cloud.party)
@@ -140,27 +188,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [identity, setIdentity] = useState<LocalIdentity | null>(null);
   const [needsChar, setNeedsChar] = useState(false);
+  const [suggestedName, setSuggestedName] = useState("");
   const [checking, setChecking] = useState(true);
   const [bootstrapping, setBootstrapping] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
-  const [isGuest, setIsGuest] = useState(false);
-
-
 
   useEffect(() => {
     setMounted(true);
 
     if (typeof window !== "undefined") {
-      try {
-        const guestFlag = localStorage.getItem(GUEST_KEY);
-        const guestId = loadIdentity();
-        if (guestFlag === "1" && guestId && guestId.id.startsWith("guest-")) {
-          setIsGuest(true);
-          setIdentity(guestId);
-          setChecking(false);
-          return;
-        }
-      } catch { /* ignore */ }
       if (
         window.location.hash.includes("type=recovery") ||
         window.location.search.includes("recovery=1")
@@ -168,21 +204,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setRecoveryMode(true);
       }
     }
-
-    const CURRENT_UID_KEY = "rubym.currentUid";
-    const wipeLocalGameData = () => {
-      try {
-        const keep = new Set<string>([CURRENT_UID_KEY]);
-        const toRemove: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (!k) continue;
-          if (keep.has(k)) continue;
-          if (k.startsWith("rubym.")) toRemove.push(k);
-        }
-        toRemove.forEach((k) => localStorage.removeItem(k));
-      } catch { /* ignore */ }
-    };
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       log("authStateChange", event, sess?.user?.id);
@@ -208,6 +229,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
           // Logout real: limpa dados locais para evitar vazamento entre contas.
           wipeLocalGameData();
           localStorage.removeItem(CURRENT_UID_KEY);
+          // Clear server-side active session
+          void clearActiveSession();
         } catch {
           /* ignore */
         }
@@ -216,11 +239,29 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
     // Em F5 não desloga: a sessão ativa é necessária para reidratar/salvar no Supabase
     // antes de qualquer cache local ser usado. Logout manual continua limpando tudo.
-    supabase.auth.getSession().then(({ data }) => {
-      log("initial session", data.session?.user?.id ?? null);
-      setSession(data.session);
-      setChecking(false);
-    });
+    const loadInitialSession = async () => {
+      // Force checking=false after 8s no matter what (fallback if Supabase hangs)
+      const fallbackTimer = setTimeout(() => {
+        log("initial session timeout - forcing checking=false");
+        setChecking(false);
+      }, 8000);
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const { data } = await supabase.auth.getSession();
+        clearTimeout(timeoutId);
+        clearTimeout(fallbackTimer);
+        log("initial session", data.session?.user?.id ?? null);
+        setSession(data.session);
+      } catch (e) {
+        log("initial session failed", e);
+        setSession(null);
+      } finally {
+        clearTimeout(fallbackTimer);
+        setChecking(false);
+      }
+    };
 
     // Check maintenance immediately and periodically
     const checkMaint = async () => {
@@ -265,6 +306,36 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   }, []);
 
+  // Load initial session only on client side
+  useEffect(() => {
+    // Guaranteed fallback: force checking=false after 8s no matter what
+    const guaranteedFallback = setTimeout(() => {
+      log("Guaranteed fallback - forcing checking=false");
+      setChecking(false);
+    }, 8000);
+
+    const loadInitialSession = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const { data } = await supabase.auth.getSession();
+        clearTimeout(timeoutId);
+        clearTimeout(guaranteedFallback);
+        log("initial session", data.session?.user?.id ?? null);
+        setSession(data.session);
+      } catch (e) {
+        log("initial session failed", e);
+        setSession(null);
+      } finally {
+        clearTimeout(guaranteedFallback);
+        setChecking(false);
+      }
+    };
+    void loadInitialSession();
+
+    return () => clearTimeout(guaranteedFallback);
+  }, []);
+
   // Effect to handle session changes and re-verify admin status
   useEffect(() => {
     if (maintenance && session?.user) {
@@ -286,41 +357,61 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [session, maintenance]);
 
 
-  // Single-session enforcement
-  const [kicked, setKicked] = useState(false);
+  // Single-session enforcement: PRIMEIRA sess�o vence, SEGUNDA � recusada
+  const [sessionRejected, setSessionRejected] = useState(false);
   const sessionTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!session?.user?.id) return;
+    if (sessionRejected) return;
 
     const token = crypto.randomUUID();
     sessionTokenRef.current = token;
 
     const initSession = async () => {
       try {
-        await updateActiveSession({ data: { token } });
+        const res = await updateActiveSession({ data: { token } });
+        if (!res.ok && res.error === "SESSION_TAKEN") {
+          console.warn("[AuthGate] Second session rejected - account already active elsewhere");
+          setSessionRejected(true);
+          await supabase.auth.signOut();
+        }
       } catch (e) {
         console.error("Failed to update active session", e);
       }
     };
     initSession();
 
-    const checkSession = async () => {
-      try {
-        const { token: serverToken } = await getActiveSessionToken();
-        if (serverToken && serverToken !== sessionTokenRef.current) {
-          console.warn("[AuthGate] Multiple logins detected, kicking...");
-          setKicked(true);
-          await supabase.auth.signOut();
-        }
-      } catch (e) {
-        // ignore errors during check
+    // Heartbeat to keep session alive (update timestamp)
+    const interval = setInterval(async () => {
+      if (sessionTokenRef.current) {
+        await updateActiveSession({ data: { token: sessionTokenRef.current } }).catch(() => {});
       }
-    };
-
-    const interval = setInterval(checkSession, 10000); // Check every 10s
+    }, 30000); // Every 30s
     return () => clearInterval(interval);
-  }, [session?.user?.id]);
+  }, [session?.user?.id, sessionRejected]);
+
+  // Show rejection screen
+  if (sessionRejected) {
+    return (
+      <PanelShell title="SESS�O RECUSADA">
+        <div style={{ textAlign: "center", padding: 20 }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>??</div>
+          <h2 style={{ color: "#ff6b6b", fontSize: 16, marginBottom: 8 }}>Sess�o duplicada detectada</h2>
+          <p style={{ color: "#9adcff", marginBottom: 16, lineHeight: 1.5 }}>
+            Esta conta j� est� conectada em outra aba/janela.<br />
+            A sess�o original permanece ativa.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: "10px 20px", background: "#2f9df0", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}
+          >
+            Recarregar e tentar novamente
+          </button>
+        </div>
+      </PanelShell>
+    );
+  }
 
 
 
@@ -337,12 +428,27 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (recoveryMode) return;
     if (bootstrappedUidRef.current === currentUid) return;
     bootstrappedUidRef.current = currentUid;
+    // Isolamento A?B: a sess�o pode ter sido restaurada sem evento SIGNED_IN
+    // (F5) com res�duos de outra conta no armazenamento. Se o uid vigente
+    // diverge do marcador ou da identidade local, limpa TUDO (local) ANTES
+    // de qualquer hidrata��o/preload. Nunca toca o banco aqui.
+    try {
+      const storedUid = localStorage.getItem(CURRENT_UID_KEY);
+      const ident = loadIdentity();
+      if ((storedUid && storedUid !== currentUid) || (ident && ident.id !== currentUid)) {
+        log("uid divergente do armazenamento � wipe local antes de hidratar");
+        wipeLocalGameData();
+      }
+      localStorage.setItem(CURRENT_UID_KEY, currentUid);
+    } catch { /* ignore */ }
     let cancelled = false;
     (async () => {
       setBootstrapping(true);
       const uid = currentUid;
       try {
-        const username = await ensureProfile(uid);
+        const profile = await ensureProfile(uid);
+        const username = profile.username;
+        const avatarUrl = profile.avatarUrl;
         if (cancelled) return;
 
         // Inicializa linhas do jogador no banco novo (best-effort; ignora se RPC ausente).
@@ -352,27 +458,57 @@ export function AuthGate({ children }: { children: ReactNode }) {
           (e: unknown) => warn("bootstrap_player ignorado", e),
         );
 
-        if (username && username.trim().length > 0) {
-          await preloadCloudSave(uid);
+        // Determina se é jogador existente via servidor (não localStorage).
+        // REGRA (accountExists): username sozinho NÃO prova onboarding — era
+        // gravado no 1º passo. Exige 2ª prova: avatar_url (skin) OU
+        // pokemon_collection (starter/captura) OU game_saves com progresso real.
+        // trainer_state é ignorado pois bootstrap_player cria linha vazia para novos.
+        const hasName = !!(username && username.trim().length > 0);
+        let isExisting = false;
+        if (hasName) {
+          if (avatarUrl && avatarUrl.trim().length > 0) {
+            isExisting = true;
+          } else {
+            try {
+              const [pokeRes, saveRes] = await Promise.all([
+                (supabase as any).from("pokemon_collection").select("id").eq("user_id", uid).limit(1),
+                (supabase as any).from("game_saves").select("data").eq("user_id", uid).maybeSingle(),
+              ]);
+              const hasPoke = Array.isArray(pokeRes?.data) && pokeRes.data.length > 0;
+              const saveData = saveRes?.data?.data ?? null;
+              isExisting = computeIsExisting({
+                username,
+                avatarUrl,
+                hasCollection: hasPoke,
+                saveHasProgress: saveShowsProgress(saveData),
+              });
+            } catch { /* ignora, trata como novo */ }
+            if (cancelled) return;
+          }
+        }
+
+        if (isExisting) {
+          // Jogador existente: hidrata antes de liberar o jogo (evita flash level 1 / starter)
+          try { await preloadCloudSave(uid); } catch {}
           if (cancelled) return;
-          setIdentity(writeIdentity(uid, username));
+          // Aqui username sempre existe (regra accountExists exige nome + 2ª prova).
+          const finalName = username!;
+          setIdentity(writeIdentity(uid, finalName));
+          if (avatarUrl && typeof avatarUrl === "string" && avatarUrl.startsWith("char")) {
+            try { localStorage.setItem("rubym.setup.skin", avatarUrl); localStorage.setItem("rubym.skin.v1", avatarUrl); } catch { /* ignore */ }
+          }
+          try { localStorage.setItem("rubym.starter.chosen", "1"); localStorage.setItem("rubym.setup.done", "1"); } catch {}
           setNeedsChar(false);
-          // last_login best-effort
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          void (supabase as any)
-            .from("profiles")
-            .update({ last_login: new Date().toISOString() })
-            .eq("id", uid)
-            .then(({ error }: { error: unknown }) => {
-              if (error) warn("update last_login falhou", error);
-            });
         } else {
-          log("usuário sem username — exibindo CreateCharacterScreen");
+          log("carteira nova ou onboarding incompleto — exibindo CreateCharacterScreen");
+          // Pré-preenche com o nome parcial, se houver (não usa como definitivo).
+          setSuggestedName(username ?? "");
           setIdentity(null);
           setNeedsChar(true);
         }
       } catch (e) {
         warn("bootstrap falhou", e);
+        setSuggestedName("");
         setIdentity(null);
         setNeedsChar(true);
       } finally {
@@ -466,9 +602,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (isGuest && identity) return <>{children}</>;
   if (typeof window !== "undefined" && window.location.search.includes("login")) return <PanelShell title="ENTRAR"><form className="space-y-3"><MetaMaskLoginButton /><button type="button" onClick={() => window.location.href="/?login=1"} className="w-full py-2 bg-amber-600 text-black font-black">RECARREGAR LOGIN</button></form></PanelShell>;
-  if (!session) return <GuestNameScreen />;
+  // Sem sessão: SOMENTE MetaMask (fluxo convidado "ENTRAR NO MUNDO" removido).
+  if (!session) {
+    return (
+      <PanelShell title="ENTRAR">
+        <div className="space-y-3">
+          <p className="text-xs" style={{ color: "#fecaca" }}>
+            Conecte sua carteira MetaMask para jogar. Cada carteira tem seu próprio treinador.
+          </p>
+          <MetaMaskLoginButton />
+        </div>
+      </PanelShell>
+    );
+  }
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
 
@@ -476,7 +623,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return (
       <CreateCharacterScreen
         userId={session.user.id}
-        defaultName={session.user.email?.split("@")[0] ?? ""}
+        defaultName={(suggestedName || session.user.email?.split("@")[0]) ?? ""}
         onCreated={(name) => {
           setIdentity(writeIdentity(session.user.id, name));
           setNeedsChar(false);
@@ -485,7 +632,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return <Fragment key={session.user.id}>{children}</Fragment>;
 }
 
 /* ───────────────────────────── UI helpers ─────────────────────────── */
@@ -753,15 +900,18 @@ function PrimaryButton({
   children,
   disabled,
   type = "submit",
+  onClick,
 }: {
   children: ReactNode;
   disabled?: boolean;
   type?: "submit" | "button";
+  onClick?: () => void;
 }) {
   return (
     <button
       type={type}
       disabled={disabled}
+      onClick={onClick}
       className="w-full py-2 rounded font-bold tracking-wider transition active:scale-95 disabled:opacity-50"
       style={{
         background: "linear-gradient(180deg, #2f9df0, #14568f)",
@@ -1043,30 +1193,6 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           )}
         </div>
 
-        {mode === "login" && (
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                const name = (prompt("Nome do treinador (aparece no chat):", "Convidado") || "").trim().slice(0, 16);
-                if (name.length < 2) return;
-                const guest: LocalIdentity = {
-                  id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
-                  name,
-                  secretKey: "",
-                  createdAt: Date.now(),
-                };
-                localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
-                localStorage.setItem(GUEST_KEY, "1");
-                window.location.reload();
-              } catch { /* ignore */ }
-            }}
-            className="w-full mt-2 py-2 text-[11px] tracking-[2px] underline"
-            style={{ color: "#fde68a" }}
-          >
-            MODO CONVIDADO
-          </button>
-        )}
       </form>
     </PanelShell>
   );
@@ -1114,6 +1240,24 @@ function ResetPasswordScreen({ onDone }: { onDone: () => void }) {
 
 /* ───────────────────────────── Criação de personagem ──────────────── */
 
+/* ───────────────────────────── Criação de personagem ────────────────
+   Fluxo obrigatório para carteira nova: NOME → SKIN → STARTER → CONFIRMAR.
+   NADA é persistido antes de CONFIRMAR (nem profiles, nem save local).
+   Só depois de CONFIRMAR o jogo é liberado. */
+
+const CHAR_SKINS = [
+  { id: "char01", label: "Char 01", img: perfilChar01Png },
+  { id: "char02", label: "Char 02", img: perfilChar02Png },
+  { id: "charf1", label: "Char F1", img: perfilCharF1Png },
+  { id: "charf2", label: "Char F2", img: perfilCharF2Png },
+];
+
+const CHAR_STARTERS = [
+  { sp: "charmander" as const, name: "Charmander", img: charmanderGif, color: "#ff6b3d", desc: "Fogo — ataque forte" },
+  { sp: "bulbasaur" as const, name: "Bulbasaur", img: bulbasaurGif, color: "#5ec26a", desc: "Planta — equilibrado" },
+  { sp: "squirtle" as const, name: "Squirtle", img: squirtleGif, color: "#6bd4ff", desc: "Água — defensivo" },
+];
+
 function CreateCharacterScreen({
   userId,
   defaultName,
@@ -1123,100 +1267,270 @@ function CreateCharacterScreen({
   defaultName: string;
   onCreated: (name: string) => void;
 }) {
-  const [name, setName] = useState(defaultName.replace(/[^A-Za-z0-9 _-]/g, "").slice(0, 16));
+  const cleanDefault = (defaultName ?? "").replace(/[^A-Za-z0-9 _-]/g, "").slice(0, 16);
+  const [step, setStep] = useState<"name" | "skin" | "starter" | "confirm">("name");
+  const [name, setName] = useState(cleanDefault);
+  const [skin, setSkin] = useState("char01");
+  const [starter, setStarter] = useState<"charmander" | "bulbasaur" | "squirtle" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  const confirm = async () => {
     setError(null);
     const trimmed = name.trim();
-    if (trimmed.length < 2) return setError("Nome precisa ter ao menos 2 caracteres.");
+    if (trimmed.length < 2) { setError("Nome precisa ter ao menos 2 caracteres."); setStep("name"); return; }
+    if (!starter) { setError("Escolha 1 Pokémon inicial."); setStep("starter"); return; }
     setBusy(true);
+    const msgOf = (e: unknown): string => {
+      if (e instanceof Error && e.message) return e.message;
+      if (e && typeof e === "object") {
+        const o = e as Record<string, unknown>;
+        const parts = [o.message, o.details, o.hint, o.code].filter(
+          (x): x is string => typeof x === "string" && x.length > 0,
+        );
+        if (parts.length > 0) return parts.join(" · ");
+      }
+      return "Falha ao criar personagem.";
+    };
     try {
-      log("createCharacter upsert", { userId, trimmed });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("profiles").upsert(
+      log("createCharacter confirm", { userId, trimmed, skin, starter });
+      // Verifica se o servidor já tem time (onboarding refeito com progresso):
+      // nesse caso NÃO semeia time novo para não sobrescrever o progresso.
+      const [pokeRes, saveRes] = await Promise.all([
+        (supabase as any).from("pokemon_collection").select("id").eq("user_id", userId).limit(1),
+        (supabase as any).from("game_saves").select("data").eq("user_id", userId).maybeSingle(),
+      ]);
+      const snap = saveRes?.data?.data as { team?: Array<{ species?: string; level?: number; xp?: number }> } | null;
+      const snapTeam = Array.isArray(snap?.team) ? snap.team : [];
+      const hasCollection = Array.isArray(pokeRes?.data) && pokeRes.data.length > 0;
+      // Time "real" = tem algo além do charmander lv1 default (semente/fallback).
+      // Um save só com charmander lv1/xp0 é resto da era bugada → trata como novo.
+      const teamReal = snapTeam.some(
+        (p) => (p?.species ?? "charmander") !== "charmander" || (Number(p?.level) || 1) > 1 || (Number(p?.xp) || 0) > 0,
+      );
+      const serverHasTeam = hasCollection || teamReal;
+      // Servidor PRIMEIRO: sem isso, nada está criado.
+      // Tenta completo (com skin); se o banco rejeitar a coluna, cai no
+      // formato mínimo já comprovado (username).
+      // (last_login NÃO existe no profiles de produção — PGRST204.)
+      const full = await (supabase as any).from("profiles").upsert(
         {
           id: userId,
           username: trimmed,
-          last_login: new Date().toISOString(),
+          avatar_url: skin,
         },
         { onConflict: "id" },
       );
-      if (error) throw error;
-      log("createCharacter upsert ok");
+      let upErr = full?.error ?? null;
+      if (upErr) {
+        warn("createCharacter upsert com skin falhou, tentando sem avatar", upErr);
+        const minimal = await (supabase as any).from("profiles").upsert(
+          {
+            id: userId,
+            username: trimmed,
+          },
+          { onConflict: "id" },
+        );
+        upErr = minimal?.error ?? null;
+      }
+      if (upErr) throw upErr;
+      // A partir daqui, o estado em mem�ria/local pertence a este uid.
+      claimSnapshotOwner(userId);
+      // Carteira realmente nova (servidor vazio): semeia time + publica o
+      // save IMEDIATAMENTE (prova server-side p/ F5 logo ap�s confirmar).
+      const pet = makePet(starter, 5);
+      if (!serverHasTeam) {
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify({ party: [pet] }));
+        } catch { /* ignore */ }
+        // Conta realmente nova: o IDLE local tamb�m recome�a do zero.
+        // Sem isso, ouro/n�vel/itens da conta anterior vazam p/ o jogo novo.
+        try {
+          const { freshIdle } = await import("@/routes/idle");
+          localStorage.setItem(IDLE_KEY, JSON.stringify(freshIdle()));
+        } catch (e) {
+          warn("seed de IDLE fresco falhou (n�o bloqueia)", e);
+        }
+        try {
+          const { pushCloudSaveNow } = await import("@/lib/cloudSave");
+          await pushCloudSaveNow({
+            idle: { bank: { gold: 0, crystals: 0 }, totals: { captured: 0, kills: 0 } },
+            team: [pet],
+            restingBench: [],
+          });
+        } catch (e) {
+          warn("push inicial do save falhou (não bloqueia)", e);
+        }
+      }
+      try {
+        localStorage.setItem("rubym.setup.done", "1");
+        localStorage.setItem("rubym.setup.skin", skin);
+        localStorage.setItem("rubym.setup.name", trimmed);
+        localStorage.setItem("rubym.starter.chosen", "1");
+      } catch { /* ignore */ }
+      log("createCharacter confirm ok");
       onCreated(trimmed);
     } catch (err) {
       warn("createCharacter falhou", err);
-      setError(err instanceof Error ? err.message : "Falha ao criar personagem.");
+      setError(msgOf(err));
       setBusy(false);
     }
   };
 
+  const skinLabel = CHAR_SKINS.find((s) => s.id === skin)?.label ?? skin;
+  const starterInfo = CHAR_STARTERS.find((s) => s.sp === starter) ?? null;
+  const steps: Array<"name" | "skin" | "starter" | "confirm"> = ["name", "skin", "starter", "confirm"];
+  const stepNames = ["1. NOME", "2. SKIN", "3. POKÉMON", "4. CONFIRMAR"];
+
   return (
     <PanelShell title="CRIE SEU TREINADOR">
-      <form onSubmit={submit} className="space-y-3">
-        <Field
-          label="Nome do Treinador"
-          value={name}
-          onChange={(v) => setName(v.replace(/[^A-Za-z0-9 _-]/g, "").slice(0, 16))}
-          placeholder="Ex: Ash, IdleMaster..."
-        />
-        <ErrorBox message={error} />
-        <PrimaryButton disabled={busy}>{busy ? "CRIANDO..." : "ENTRAR NO MUNDO"}</PrimaryButton>
-        <button
-          type="button"
-          onClick={() => supabase.auth.signOut()}
-          className="w-full text-[10px] tracking-[2px] underline"
-          style={{ color: "#86efac", background: "transparent", border: 0, padding: "4px 0" }}
-        >
-          SAIR
-        </button>
-      </form>
+      <div className="flex gap-2 justify-center mb-3">
+        {steps.map((s, i) => (
+          <span
+            key={s}
+            className="text-[10px] font-black tracking-widest"
+            style={{ color: step === s ? "#f5cf6b" : "#6b5b95" }}
+          >
+            {stepNames[i]}{i < steps.length - 1 ? " › " : ""}
+          </span>
+        ))}
+      </div>
+
+      {step === "name" && (
+        <div className="space-y-3">
+          <Field
+            label="1. Digite seu nome de Treinador"
+            value={name}
+            onChange={(v) => setName(v.replace(/[^A-Za-z0-9 _-]/g, "").slice(0, 16))}
+            placeholder="Ex: Ash, IdleMaster..."
+          />
+          <ErrorBox message={error} />
+          <PrimaryButton disabled={busy || name.trim().length < 2} onClick={() => setStep("skin")}>
+            CONTINUAR ›
+          </PrimaryButton>
+        </div>
+      )}
+
+      {step === "skin" && (
+        <div className="space-y-3">
+          <p className="text-xs" style={{ color: "#fecaca" }}>2. Escolha sua skin</p>
+          <div className="grid grid-cols-4 gap-2">
+            {CHAR_SKINS.map((s) => {
+              const active = skin === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSkin(s.id)}
+                  className="rounded-lg p-1.5"
+                  style={{
+                    background: active ? "linear-gradient(160deg, #3a1f5c 0%, #6b3fb0 100%)" : "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
+                    border: active ? "2px solid #f5cf6b" : "2px solid #7f1d1d",
+                    boxShadow: active ? "0 0 14px rgba(245,207,107,0.55)" : "none",
+                    cursor: "pointer",
+                    transform: active ? "translateY(-2px)" : "none",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = active ? "translateY(-2px)" : "none"; }}
+                >
+                  <img src={s.img} alt={s.label} className="w-full" style={{ borderRadius: 6, aspectRatio: "1 / 1", objectFit: "cover", border: active ? "1px solid #f5cf6b" : "1px solid rgba(255,255,255,0.15)" }} />
+                  <div className="text-[9px] font-black mt-1" style={{ color: active ? "#f5cf6b" : "#fecaca" }}>{active ? `◆ ${s.label}` : s.label}</div>
+                </button>
+              );
+            })}
+          </div>
+          <ErrorBox message={error} />
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setStep("name")} className="flex-1 py-2.5 text-xs font-black rounded-lg" style={{ background: "linear-gradient(180deg, #1a2f1a, #0d1f0d)", color: "#86efac", border: "2px solid #166534", boxShadow: "0 2px 0 #052e16", cursor: "pointer" }}>‹ VOLTAR</button>
+            <button type="button" onClick={() => setStep("starter")} className="flex-[2] py-2.5 text-xs font-black rounded-lg" style={{ background: "linear-gradient(180deg, #2f9df0, #14568f)", color: "#fff", border: "2px solid #0b3556", boxShadow: "0 2px 0 #082a44, 0 0 12px rgba(47,157,240,0.45)", cursor: "pointer", textShadow: "1px 1px 0 rgba(0,0,0,0.5)" }}>CONTINUAR ›</button>
+          </div>
+        </div>
+      )}
+
+      {step === "starter" && (
+        <div className="space-y-3">
+          <p className="text-xs" style={{ color: "#fecaca" }}>3. Escolha 1 Pokémon inicial (nível 5)</p>
+          <div className="grid grid-cols-3 gap-2">
+            {CHAR_STARTERS.map((c) => (
+              <button
+                key={c.sp}
+                type="button"
+                onClick={() => setStarter(c.sp)}
+                className="rounded p-2 flex flex-col items-center gap-1"
+                style={{
+                  background: starter === c.sp ? "#3a1f5c" : "#120406",
+                  border: `2px solid ${starter === c.sp ? "#f5cf6b" : c.color}`,
+                }}
+              >
+                <img src={c.img} alt={c.name} width={64} height={64} style={{ imageRendering: "pixelated" }} />
+                <div className="text-[10px] font-black" style={{ color: c.color }}>{c.name}</div>
+                <div className="text-[9px]" style={{ color: "#fecaca" }}>{c.desc}</div>
+              </button>
+            ))}
+          </div>
+          <ErrorBox message={error} />
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setStep("skin")} className="flex-1 py-2 text-xs font-black rounded" style={{ background: "transparent", color: "#86efac", border: "1px solid #166534" }}>‹ VOLTAR</button>
+            <PrimaryButton disabled={!starter} onClick={() => starter && setStep("confirm")}>REVISAR ›</PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      {step === "confirm" && (
+        <div className="space-y-3">
+          <p className="text-sm font-black text-center" style={{ color: "#f5cf6b" }}>CONFIRMAR ESTE TREINADOR?</p>
+          <div className="rounded p-3 text-xs space-y-1" style={{ background: "#120406", border: "2px solid #7f1d1d", color: "#fff5f5" }}>
+            <div>Nome: <b>{name.trim() || "—"}</b></div>
+            <div>Skin: <b>{skinLabel}</b></div>
+            <div>Pokémon: <b style={{ color: starterInfo?.color }}>{starterInfo ? starterInfo.name : "—"}</b></div>
+          </div>
+          {starterInfo && (
+            <div className="flex justify-center">
+              <img src={starterInfo.img} alt={starterInfo.name} width={72} height={72} style={{ imageRendering: "pixelated" }} />
+            </div>
+          )}
+          <ErrorBox message={error} />
+          <div className="flex gap-2">
+            <button type="button" disabled={busy} onClick={() => setStep("starter")} className="flex-1 py-2 text-xs font-black rounded" style={{ background: "transparent", color: "#86efac", border: "1px solid #166534" }}>‹ VOLTAR</button>
+            <PrimaryButton disabled={busy} onClick={confirm}>{busy ? "CRIANDO..." : "CONFIRMAR"}</PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => supabase.auth.signOut()}
+        className="w-full text-[10px] tracking-[2px] underline"
+        style={{ color: "#86efac", background: "transparent", border: 0, padding: "4px 0" }}
+      >
+        SAIR
+      </button>
     </PanelShell>
   );
 }
 
-function GuestNameScreen() {
-  const [name, setName] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const trimmed = name.trim().slice(0, 16).replace(/[^A-Za-z0-9 _-]/g, "");
-    if (trimmed.length < 2) return setError("Nome precisa ter ao menos 2 caracteres.");
-    try {
-      const guest: LocalIdentity = {
-        id: `guest-${crypto.randomUUID?.() ?? Date.now()}`,
-        name: trimmed,
-        secretKey: "",
-        createdAt: Date.now(),
-      };
-      localStorage.setItem(IDENTITY_KEY, JSON.stringify(guest));
-      localStorage.setItem(GUEST_KEY, "1");
-      window.location.reload();
-    } catch {
-      setError("Falha ao criar treinador.");
-    }
-  };
-  return (
-    <PanelShell title="ENTRAR">
-      <form onSubmit={submit} className="space-y-3">
-        <Field label="Nome do Treinador" value={name} onChange={setName} placeholder="Ex: Ash, Lenda" />
-        <ErrorBox message={error} />
-        <PrimaryButton>ENTRAR NO MUNDO</PrimaryButton>
-      </form>
-    </PanelShell>
-  );
+async function persistSkinToServer(skinId: string) {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const uid = data.session?.user?.id;
+    if (!uid) return;
+    await (supabase as any).from("profiles").upsert({ id: uid, avatar_url: skinId }, { onConflict: "id" });
+  } catch { /* ignore */ }
 }
 
 export async function signOutRubyM() {
   try {
-    localStorage.removeItem(IDENTITY_KEY);
+    // Logout encerra a sessão no Supabase; o handler SIGNED_OUT do AuthGate
+    // limpa os dados locais (wipe de rubym.*) para isolar as carteiras.
+    // Só o flag de guest sai aqui para o AuthGate reavaliar a sessão.
     localStorage.removeItem(GUEST_KEY);
-    localStorage.removeItem(SAVE_KEY);
   } catch {
     /* ignore */
   }
   await supabase.auth.signOut();
 }
+
+
+
+

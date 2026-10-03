@@ -1,16 +1,43 @@
-
 // Lógica do servidor para syncClientState.
 // Separado para evitar limites de transformação e problemas com SSR.
 
 const CAP_GAIN = {
   gold: 250_000,
   crystal: 500,
+  ruby: 1_000,
   trainer_xp: 80_000,
   trainer_level: 3,
   kill_count: 60,
   ball_per_type: 120,
   new_pokemons: 15,
+} as const;
+
+const MASSIVE_GAIN_CAP: Record<string, number> = {
+  gold: 250_000,
+  crystal: 500,
+  ruby: 1_000,
+  trainer_xp: 80_000,
+  trainer_level: 3,
+  kill_count: 60,
+  pokeballs: 120,
+  new_pokemons: 15,
 };
+
+const MAX_GAIN_PER_SEC: Record<string, number> = {
+  gold: 200,
+  crystal: 5,
+  ruby: 2,
+  trainer_xp: 800,
+  trainer_level: 0.05,
+  kill_count: 6,
+  pokeballs: 10,
+  new_pokemons: 0.5,
+};
+
+function computeMaxGainPerSec(resource: string, elapsedSec: number): number {
+  const rate = MAX_GAIN_PER_SEC[resource] ?? 0;
+  return Math.floor(rate * elapsedSec * 2);
+}
 
 const comboKey = (s: string, r: string) => `${s}:${r}`;
 
@@ -18,32 +45,57 @@ export async function syncClientState_handler({ data, context }: { data: any, co
   const supabase = context.supabase as any;
   const userId = context.userId;
 
-  const { data: cur } = await supabase.from("trainer_state")
-    .select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count")
+  const { data: curState } = await supabase.from("trainer_state")
+    .select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count, updated_at")
     .eq("user_id", userId).maybeSingle();
 
-  if (!cur) {
+  if (!curState) {
     return { ok: false, clamped: false };
   }
 
+  const now = new Date();
+  const lastSync = curState.updated_at ? new Date(curState.updated_at) : new Date(0);
+  const elapsedSec = Math.max(0, (now.getTime() - lastSync.getTime()) / 1000);
+
+  if (elapsedSec < 5) {
+    return { 
+      ok: false, 
+      clamped: true, 
+      reason: "rate_limited",
+      message: `Aguarde ${Math.ceil(5 - elapsedSec)}s antes de sincronizar novamente.`
+    };
+  }
+
+  const elapsedSecForGains = Math.max(1, (now.getTime() - (curState.updated_at ? new Date(curState.updated_at).getTime() : 0)) / 1000);
+
   let clamped = false;
-  const clamp = (prev: number, next: number, maxGain: number) => {
+  const clamp = (prev: number, next: number, maxGain: number, resource: string) => {
     if (next <= prev) return next;
-    // CRITICAL: Force server authority for major resources
-    // Client should not be able to "sync" an increase in Gold/Crystal/Level
-    // This function should eventually be removed or only handle non-critical UI state.
-    const gain = 0; // Disable client-side gains via sync for gold/crystal/xp
+    const gain = next - prev;
+    const timeAllowed = computeMaxGainPerSec(resource, Math.max(1, Math.floor(elapsedSec)));
+    const allowed = Math.min(MASSIVE_GAIN_CAP[resource] ?? maxGain, timeAllowed);
+    
+    if (gain <= allowed) {
+      return next;
+    }
     clamped = true;
-    return prev;
+    return prev + allowed;
   };
 
+  const { data: curState2 } = await supabase.from("trainer_state")
+    .select("gold, crystal, ruby, trainer_level, trainer_xp, kill_count, updated_at")
+    .eq("user_id", userId).maybeSingle();
 
-  const newGold  = clamp(Number(cur.gold),  data.gold,  CAP_GAIN.gold);
-  const newCry   = clamp(Number(cur.crystal), data.crystal, CAP_GAIN.crystal);
-  const newRuby  = clamp(Number(cur.ruby ?? 0), data.ruby, 1000);
-  const newLevel = clamp(cur.trainer_level, data.trainer_level, CAP_GAIN.trainer_level);
-  const newXp    = clamp(Number(cur.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp);
-  const newKills = clamp(Number(cur.kill_count), data.kill_count, CAP_GAIN.kill_count);
+  if (!curState2) {
+    return { ok: false, clamped: false };
+  }
+
+  const newGold  = clamp(Number(curState2.gold),  data.gold,  CAP_GAIN.gold,  "gold");
+  const newCry   = clamp(Number(curState2.crystal), data.crystal, CAP_GAIN.crystal, "crystal");
+  const newRuby  = clamp(Number(curState2.ruby ?? 0), data.ruby,  CAP_GAIN.ruby,  "ruby");
+  const newLevel = clamp(curState2.trainer_level, data.trainer_level, CAP_GAIN.trainer_level, "trainer_level");
+  const newXp    = clamp(Number(curState2.trainer_xp), data.trainer_xp, CAP_GAIN.trainer_xp, "trainer_xp");
+  const newKills = clamp(Number(curState2.kill_count), data.kill_count, CAP_GAIN.kill_count, "kill_count");
 
   await supabase.from("trainer_state").update({
     gold: newGold, crystal: newCry, ruby: newRuby,
@@ -59,7 +111,7 @@ export async function syncClientState_handler({ data, context }: { data: any, co
 
   for (const [bt, qty] of Object.entries(data.pokeballs)) {
     const prev = curMap[bt] ?? 0;
-    const nxt = clamp(prev, qty as number, CAP_GAIN.ball_per_type);
+    const nxt = clamp(prev, qty as number, CAP_GAIN.ball_per_type, "pokeballs");
     if (nxt !== prev) {
       await supabase.from("pokeballs").upsert(
         { user_id: userId, ball_type: bt, qty: nxt },

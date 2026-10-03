@@ -169,16 +169,20 @@ export const TRAINER_ENERGY_MAX = 100;
 export const TRAINER_ENERGY_DRAIN_PER_HOUR = 20;
 export const TRAINER_ENERGY_DRAIN_PER_SEC = TRAINER_ENERGY_DRAIN_PER_HOUR / 3600;
 export const TELEPORT_ENERGY_COST = 5;
-/** Retornar para Revoland (mapinha6, cidade inicial) custa 1 energia. */
-export const TELEPORT_ENERGY_HOME_COST = 1;
+/** Retornar para Revoland (mapinha6, cidade inicial) é GRATUITO. */
+export const TELEPORT_ENERGY_HOME_COST = 0;
 export const TELEPORT_HOME_MAP_ID = "mapinha6";
-/** Entrar no Pokémarkt custa 2 energia. */
-export const TELEPORT_ENERGY_MARKT_COST = 2;
+/** Entrar no Pokémarkt é GRATUITO. */
+export const TELEPORT_ENERGY_MARKT_COST = 0;
 export const TELEPORT_MARKT_MAP_ID = "mapinha10";
-/** Custo de energia por destino: Revoland = 1, Pokémarkt = 2, demais = 5. */
+/** Mapas limpos novos (src/lands): teleporte custa 1 energia. */
+export const TELEPORT_LAND_MAP_IDS = ["land_revo", "land_gelo", "casa1", "casa2", "rota_pinsir", "deserto_alaka"];
+export const TELEPORT_ENERGY_LAND_COST = 1;
+/** Custo de energia por destino: Revoland = 0, Pokémarkt = 0, lands novas = 1, demais = 5. */
 export function teleportEnergyCostFor(mapId: string): number {
   if (mapId === TELEPORT_HOME_MAP_ID) return TELEPORT_ENERGY_HOME_COST;
   if (mapId === TELEPORT_MARKT_MAP_ID) return TELEPORT_ENERGY_MARKT_COST;
+  if (TELEPORT_LAND_MAP_IDS.includes(mapId)) return TELEPORT_ENERGY_LAND_COST;
   return TELEPORT_ENERGY_COST;
 }
 

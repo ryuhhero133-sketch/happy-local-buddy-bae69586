@@ -39,7 +39,7 @@ export function starsFor(completed: number): number {
 
 export const SIDE_QUESTS: SideQuest[] = [
   // ================= BOBY (bolas & captura) =================
-  { id: "boby_s1", npc: "boby", title: "Caça modesta", desc: "Boby precisa de movimento no estoque: capture para ele.", objective: { kind: "capture", count: 8 }, objectiveLabel: "Capture 8 Pokémon", crystals: 4, bonus: [{ itemId: "pokeball", qty: 3 }], minStars: 0 },
+  { id: "boby_s1", npc: "boby", title: "Caça modesta", desc: "Boby precisa de movimento no estoque: capture para ele.", objective: { kind: "capture", count: 8 }, objectiveLabel: "Capture 8 Pokémon", crystals: 4, bonus: [{ itemId: "pokeball", qty: 3 }, { itemId: "energetico", qty: 2 }], minStars: 0 },
   { id: "boby_s2", npc: "boby", title: "Limpeza de campo", desc: "Selvagens demais perto da cidade. Limpe a área.", objective: { kind: "kill", count: 30 }, objectiveLabel: "Derrote 30 selvagens", crystals: 4, bonus: [{ itemId: "greatball", qty: 2 }], minStars: 0 },
   { id: "boby_s3", npc: "boby", title: "Estoque de emergência", desc: "Boby trocou poções por bolas e ficou sem nada.", objective: { kind: "item", itemId: "potion", qty: 5, consume: true }, objectiveLabel: "Entregue 5 Poções", crystals: 5, bonus: [{ itemId: "pokeball", qty: 5 }], minStars: 0 },
   { id: "boby_s4", npc: "boby", title: "Caçador experiente", desc: "Só para quem já provou serviço com ele.", objective: { kind: "capture", count: 15 }, objectiveLabel: "Capture 15 Pokémon", crystals: 5, bonus: [{ itemId: "ultraball", qty: 1 }], minStars: 1 },

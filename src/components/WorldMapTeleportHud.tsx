@@ -104,7 +104,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                     disabled={isLocked}
                     onClick={() => onTeleport({ ...destination, previewImage })}
                   >
-                    {isCurrent ? "Atual" : `Teleportar · ${costFor(destination.id)}⚡`}
+                    {isCurrent ? "Atual" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
                     {!isCurrent && <span aria-hidden="true">→</span>}
                   </Button>
                 </div>
@@ -116,7 +116,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <footer className="world-atlas__footer">
           <Sparkles aria-hidden="true" />
           <span>Escolha um destino ilustrado</span>
-          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland: 1 ⚡ · Pokémarkt: 2 ⚡ · outros: 5 ⚡</span>
+          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland: grátis · Pokémarkt: grátis · outros: 5 ⚡</span>
         </footer>
       </section>
     </div>

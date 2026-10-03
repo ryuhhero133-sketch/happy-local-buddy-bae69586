@@ -158,6 +158,7 @@ export interface SynergyPack {
   dodgeChance: number;  // 0..1
   lifeSteal: number;    // 0..1
   paraResist: number;   // 0..1 — chance de resistir a paralisia inimiga
+  sleepResist: number;  // 0..1 — chance de resistir a sono/Sonífero inimigo
   effects: string[];    // labels legíveis
   byElement: Partial<Record<Element, number>>; // contagem por elemento
   combos: string[];     // combos ativos
@@ -175,7 +176,7 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   const pack: SynergyPack = {
     xpMult: 0, goldMult: 0, dmgMult: 0, defMult: 0, hpMult: 0,
     atkSpeedMult: 0, regenPct: 0, critChance: 0, dodgeChance: 0, lifeSteal: 0,
-    paraResist: 0,
+    paraResist: 0, sleepResist: 0,
     effects: [], byElement, combos: [],
   };
 
@@ -183,11 +184,12 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   const tier = (n: number, arr: number[]) => (n <= 0 ? 0 : arr[Math.min(n, arr.length) - 1] ?? 0);
   void STEP;
 
-  // Planta — regen + xp
+  // Planta — regen + xp + resistência a sono (ervas conhecem esporos)
   if (c("planta") > 0) {
     pack.regenPct += tier(c("planta"), [0.01, 0.02, 0.03, 0.04, 0.06]);
     pack.xpMult   += tier(c("planta"), [0.05, 0.10, 0.15, 0.20, 0.30]);
-    pack.effects.push(`🌿 Planta ×${c("planta")} — regen ${Math.round(pack.regenPct*100)}%/3s`);
+    pack.sleepResist += tier(c("planta"), [0.05, 0.10, 0.18, 0.28, 0.40]);
+    pack.effects.push(`🌿 Planta ×${c("planta")} — regen ${Math.round(pack.regenPct*100)}%/3s · ${Math.round(tier(c("planta"),[5,10,18,28,40]))}% resist. sono`);
   }
   // Fogo — dano
   if (c("fogo") > 0) {
@@ -255,12 +257,13 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
     pack.xpMult += u; pack.goldMult += u; pack.dmgMult += u; pack.defMult += u;
     pack.effects.push(`🐉 Dragão ×${c("dragao")} — +${Math.round(u*100)}% em tudo`);
   }
-  // Fada — regen + def + pequena resistência a paralisia
+  // Fada — regen + def + pequena resistência a paralisia e sono
   if (c("fada") > 0) {
     pack.regenPct += tier(c("fada"), [0.005, 0.01, 0.02, 0.03, 0.04]);
     pack.defMult  += tier(c("fada"), [0.05, 0.10, 0.15, 0.20, 0.30]);
     pack.paraResist += tier(c("fada"), [0.03, 0.07, 0.12, 0.18, 0.25]);
-    pack.effects.push(`🧚 Fada ×${c("fada")} — proteção mágica · anti-paralisia`);
+    pack.sleepResist += tier(c("fada"), [0.03, 0.07, 0.12, 0.18, 0.25]);
+    pack.effects.push(`🧚 Fada ×${c("fada")} — proteção mágica · anti-paralisia e anti-sono`);
   }
 
   // ===== Combos cruzados =====
@@ -376,6 +379,15 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   }
 
   return pack;
+}
+
+// ===== Resistência a status (consolidada, com teto anti-stacking) =====
+export type StatusKind = "sleep" | "freeze" | "paralysis" | "stun";
+// Por enquanto só Sleep está implementado; os demais retornam 0
+// (estrutura pronta para expansão futura sem espalhar hardcodes).
+export function statusResistFor(pack: SynergyPack, status: StatusKind): number {
+  if (status === "sleep") return Math.min(0.85, Math.max(0, pack.sleepResist ?? 0));
+  return 0;
 }
 
 

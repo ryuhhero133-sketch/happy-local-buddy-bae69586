@@ -35,16 +35,41 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const msg = (error as Error)?.message ?? String(error ?? "erro desconhecido");
+  const stack = ((error as Error)?.stack ?? "")
+    .split("\n")
+    .slice(0, 8)
+    .join("\n");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+      <div className="max-w-lg text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
+        <pre
+          style={{
+            marginTop: 12,
+            padding: 10,
+            fontSize: 11,
+            textAlign: "left",
+            background: "#1a0306",
+            color: "#fecaca",
+            border: "1px solid #7f1d1d",
+            borderRadius: 8,
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            maxHeight: 220,
+            overflowY: "auto",
+            userSelect: "text",
+          }}
+        >
+          {msg}
+          {stack ? "\n\n" + stack : ""}
+        </pre>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -117,13 +142,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 import { Toaster } from "@/components/ui/sonner";
+import { AuthGate } from "@/components/AuthGate";
+import { useState, useEffect } from "react";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthGate>
+        <Outlet />
+      </AuthGate>
       <Toaster position="top-center" />
     </QueryClientProvider>
   );

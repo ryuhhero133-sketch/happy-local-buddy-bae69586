@@ -159,10 +159,10 @@ export function PartyOverlay({
             <div className="text-xs text-emerald-300">Carregando...</div>
           ) : !state ? (
             <div className="space-y-3">
-              {invites.length > 0 && (
+              {Array.isArray(invites) && invites.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-[11px] tracking-[2px]" style={{ color: "#bbf7d0" }}>CONVITES</div>
-                  {invites.map((inv) => (
+                  {Array.isArray(invites) && invites.map((inv) => (
                     <div key={inv.id} className="flex items-center justify-between gap-2 p-2 rounded" style={{ background: "#06060b", border: "1px solid #14532d" }}>
                       <div className="text-xs text-emerald-100">
                         <div className="font-bold">{inv.party_name}</div>

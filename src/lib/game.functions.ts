@@ -82,6 +82,22 @@ export const getFullGameState = createServerFn({ method: "GET" })
       supabase.from("pokeballs").select("ball_type, qty").eq("user_id", userId),
     ]);
 
+    // Leitura que falha NÃO pode virar estado válido: antes este ponto
+    // fabricava DTO zerado (gold=0 etc.) que o onHydrate aplicava como
+    // verdade, apagando o progresso. Agora propaga o erro — o chamador
+    // (useServerSync) marca erro e NÃO hidrata, preservando o local.
+    const readError =
+      (trainerRes as { error?: unknown }).error ??
+      (pokemonsRes as { error?: unknown }).error ??
+      (invRes as { error?: unknown }).error ??
+      (ballsRes as { error?: unknown }).error;
+    if (readError) {
+      const e = readError as { message?: unknown; code?: unknown };
+      const msg = typeof e?.message === "string" ? e.message : "falha de leitura";
+      const code = typeof e?.code === "string" ? ` (${e.code})` : "";
+      throw new Error(`getFullGameState: ${msg}${code}`);
+    }
+
     const t = trainerRes.data ?? {
       gold: 0, ruby: 0, crystal: 0, trainer_level: 1, trainer_xp: 0,
       kill_count: 0, active_map: "verdejante",
@@ -528,5 +544,142 @@ export const syncClientState = createServerFn({ method: "POST" })
   .validator((data: unknown) => SyncSchema.parse(data))
   .handler(async (args) => {
     return syncClientState_handler(args);
+  });
+
+// ---- Reset de conta (TESTE) -------------------------------------------------
+// Apaga SOMENTE as linhas do auth.uid() atual (service_role, sem dropar
+// tabelas/RPCs/RLS). Indispensável como endpoint porque as tabelas de
+// economia/registro têm `revoke all + grant select` p/ authenticated —
+// o cliente NÃO consegue deletá-las (prova em
+// supabase/migrations/20260924*_revo_*.sql). NÃO apaga: auth.users,
+// audit_log, action_receipts, ranked, guilds, players, market.
+// Após o reset, profiles fica sem username/avatar → bootstrap exige onboarding.
+export const resetMyAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => ({}))
+  .handler(async ({ context }): Promise<{ ok: boolean; cleared: Record<string, number>; errors: Record<string, string> }> => {
+    const supabase = context.supabase as any;
+    const userId = context.userId as string;
+    const cleared: Record<string, number> = {};
+    const errors: Record<string, string> = {};
+    const wipe = async (table: string, col: string) => {
+      try {
+        const { error, count } = await supabase
+          .from(table)
+          .delete({ count: "exact" })
+          .eq(col, userId);
+        if (error) errors[table] = (error.message ?? "erro") + (error.code ? ` (${error.code})` : "");
+        else cleared[table] = count ?? 0;
+      } catch (e) {
+        errors[table] = e instanceof Error ? e.message : String(e);
+      }
+    };
+    await wipe("trainer_state", "user_id");
+    await wipe("pokeballs", "user_id");
+    await wipe("pokemon_collection", "user_id");
+    await wipe("player_pokemon_registry", "user_id");
+    await wipe("game_saves", "user_id");
+    await wipe("player_balances", "user_id");
+    await wipe("player_stocks", "user_id");
+    await wipe("buff_windows", "user_id");
+    await wipe("egg_ledger", "user_id");
+    try {
+      const { error, count } = await supabase
+        .from("profiles")
+        .update({ username: null, avatar_url: null }, { count: "exact" })
+        .eq("id", userId);
+      if (error) errors["profiles"] = (error.message ?? "erro") + (error.code ? ` (${error.code})` : "");
+      else cleared["profiles"] = count ?? 0;
+    } catch (e) {
+      errors["profiles"] = e instanceof Error ? e.message : String(e);
+    }
+    return { ok: true, cleared, errors };
+  });
+ 
+
+// ---- Party XP Distribution (Server-Authoritative) ---------------------------
+// Calcula e distribui XP entre membros da party baseado na tabela oficial:
+// 1 jogador = 100%, 2 = 60% cada, 3 = 45% cada, 4 = 38% cada, 5 = 34% cada.
+// O cliente envia: partyId, killerId, baseXp, targetLevel, targetRarity.
+// O servidor valida membros, proximidade e calcula o XP final.
+
+const PARTY_XP_SHARE = {
+  1: 1.00,
+  2: 0.60,
+  3: 0.45,
+  4: 0.38,
+  5: 0.34,
+} as const;
+
+const PartyXpSchema = z.object({
+  partyId: z.string().uuid(),
+  killerId: z.string(),
+  baseXp: z.number().int().min(1).max(1_000_000),
+  targetLevel: z.number().int().min(1).max(1000),
+  targetRarity: z.string().min(1).max(32),
+});
+
+export const distributePartyXp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => PartyXpSchema.parse(data))
+  .handler(async ({ data, context }): Promise<{ ok: boolean; xpDistribution?: Record<string, number>; error?: string }> => {
+    const supabase = context.supabase as any;
+    const userId = context.userId as string;
+
+    try {
+      // Verify the caller is in the party
+      const { data: member } = await supabase
+        .from("party_members")
+        .select("party_id, player_id")
+        .eq("party_id", data.partyId)
+        .eq("player_id", userId)
+        .maybeSingle();
+
+      if (!member) {
+        return { ok: false, error: "Você não está nesta party." };
+      }
+
+      // Get all party members
+      const { data: members } = await supabase
+        .from("party_members")
+        .select("player_id, level, map_id")
+        .eq("party_id", data.partyId);
+
+      if (!members || members.length === 0) {
+        return { ok: false, error: "Party não encontrada." };
+      }
+
+      const memberCount = members.length;
+      if (memberCount > 5) {
+        return { ok: false, error: "Party excede o limite de 5 membros." };
+      }
+
+      const shareMultiplier = PARTY_XP_SHARE[memberCount as keyof typeof PARTY_XP_SHARE] ?? 1.0;
+
+      // Calculate base XP with level/rarity modifiers (simplified server-side)
+      // Client sends baseXp already calculated with multipliers, we just apply party share
+      const xpPerMember = Math.max(1, Math.floor(data.baseXp * shareMultiplier));
+
+      // Apply level difference penalty (same logic as client)
+      const xpDistribution: Record<string, number> = {};
+      for (const m of members) {
+        const levelDiff = Math.abs((m.level ?? 1) - data.targetLevel);
+        let penalty = 1.0;
+        if (levelDiff >= 15) {
+          penalty = Math.max(0.02, 1 - (levelDiff - 14) * 0.08);
+        }
+        const finalXp = Math.max(1, Math.floor(xpPerMember * penalty));
+        xpDistribution[m.player_id] = finalXp;
+      }
+
+      // Apply XP to each member via trainer_state update
+      for (const [pid, xp] of Object.entries(xpDistribution)) {
+        await supabase.rpc("increment_trainer_xp", { _user_id: pid, _xp: xp });
+      }
+
+      return { ok: true, xpDistribution };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "Erro ao distribuir XP." };
+    }
   });
 

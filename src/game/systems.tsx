@@ -159,8 +159,8 @@ export type Species =
   | "riolu"
   // Rayquaza — evento Grass Oddish (dragão mítico, carrega Stone Dragão)
   | "rayquaza"
-  // Bulbasaurs custom — florido (verde) e laranja (azul), sprites 4x4
-  | "bulbasaur_flower" | "bulbasaur_orange"
+  // Venusaur (ex-florido) + shinys custom em sprites 4x4
+  | "venusaur_shiny" | "bulbasaur_shiny" | "ivysaur_shiny" | "squirtle_shiny" | "charmander_shiny"
   // Florest Bone — cubone/marowak/rhyhorn + shinys + Marowak Plus (sprites 4x4)
   | "cubone_shiny" | "marowak" | "marowak_shiny" | "marowak_plus" | "rhyhorn" | "rhyhorn_shiny"
   // Valley Plume — oddish/gloom/vileplume/paras/parasect + shinys + eevee (sprites 4x4)
@@ -258,6 +258,7 @@ export interface PetInstance {
   hungerUpdatedAt?: number; // ms — último cálculo de decaimento de fome
   traits?: string[]; // IDs de traits (ver src/game/traits.ts) sorteados na captura
   event?: string; // tag opcional de origem (ex.: "black_mitic_plus:fire") — usada por visuais especiais
+  skillDisc?: string | null; // ID do disco de habilidade equipado no slot (ex.: "disc_raiz") — item sai da mochila ao equipar
 }
 
 export type LoyaltyStatKey = "hp" | "atk" | "def" | "spa" | "spd" | "spe";
@@ -333,8 +334,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   butterfree: { hp: 60, atk: 45, def: 50, spa: 90, spd: 80, spe: 70, rarity: "rare", goldRange: [8, 14], crystalChance: 0.04, catchMod: 1.15, minLv: 10 },
   butterfree_shiny_plus: { hp: 72, atk: 58, def: 62, spa: 112, spd: 100, spe: 82, rarity: "epic", goldRange: [30, 55], crystalChance: 0.12, catchMod: 1.6, minLv: 30 },
   bulbasaur_hat: { hp: 50, atk: 55, def: 55, spa: 70, spd: 70, spe: 50, rarity: "rare", goldRange: [10, 16], crystalChance: 0.06, catchMod: 1.2, minLv: 8 },
-  bulbasaur_flower:  { hp: 55, atk: 58, def: 58, spa: 72, spd: 72, spe: 55, rarity: "rare", goldRange: [10, 16], crystalChance: 0.05, catchMod: 1.2, minLv: 6 },
-  bulbasaur_orange:  { hp: 60, atk: 64, def: 60, spa: 78, spd: 78, spe: 60, rarity: "rare", goldRange: [11, 18], crystalChance: 0.055, catchMod: 1.25, minLv: 8 },
+  venusaur_shiny:  { hp: 88, atk: 92, def: 90, spa: 112, spd: 112, spe: 88, rarity: "epic", goldRange: [26, 45], crystalChance: 0.13, catchMod: 1.7, minLv: 32 },
+  bulbasaur_shiny: { hp: 50, atk: 55, def: 55, spa: 72, spd: 72, spe: 50, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 1 },
+  ivysaur_shiny:   { hp: 68, atk: 70, def: 70, spa: 90, spd: 90, spe: 68, rarity: "epic", goldRange: [16, 28], crystalChance: 0.09, catchMod: 1.4, minLv: 16 },
+  squirtle_shiny:  { hp: 50, atk: 54, def: 72, spa: 56, spd: 70, spe: 48, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 1 },
+  charmander_shiny:{ hp: 45, atk: 58, def: 48, spa: 66, spd: 56, spe: 72, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 1 },
   pikachu:    { hp: 35, atk: 55, def: 40, spa: 50, spd: 50, spe: 90, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.025, catchMod: 1.0, minLv: 4 },
   sandslash:  { hp: 75, atk: 100, def: 110, spa: 45, spd: 55, spe: 65, rarity: "rare", goldRange: [11, 18], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
   mewtwo:     { hp: 106, atk: 110, def: 90, spa: 154, spd: 90, spe: 130, rarity: "mythic", goldRange: [40, 70], crystalChance: 0.25, catchMod: 2.0, minLv: 90 },

@@ -14,6 +14,7 @@ import {
   syncClientState,
   type FullStateDTO,
 } from "@/lib/game.functions";
+import { claimSnapshotOwner, getSnapshotOwner } from "@/lib/saveManager";
 
 export type LocalSnapshotForPush = {
   gold: number;
@@ -79,6 +80,8 @@ export function useServerSync(opts: {
 
         await bootstrap({} as any);
         let full = (await fetchFull({} as any)) as FullStateDTO;
+        // O snapshot em memória a partir daqui pertence a esta sessão.
+        claimSnapshotOwner(session.user.id);
 
         const serverEmpty =
           full.trainer.gold === 0 &&
@@ -117,6 +120,18 @@ export function useServerSync(opts: {
 
   const doPush = useCallback(async () => {
     if (!readyRef.current) return;
+    // Anti-clobber: só empurra se a memória pertence à sessão atual.
+    try {
+      const { data } = await supabase.auth.getSession();
+      const suid = data.session?.user?.id ?? null;
+      const owner = getSnapshotOwner();
+      if (owner !== null && suid !== null && owner !== suid) {
+        console.warn("[anti-clobber] push abortado: memória de outra conta");
+        return;
+      }
+    } catch {
+      /* sem sessão verificável: segue o fluxo normal */
+    }
     if (inFlightRef.current) { pendingRef.current = true; return; }
     inFlightRef.current = true;
     try {
@@ -130,17 +145,9 @@ export function useServerSync(opts: {
     }
   }, [syncFn]);
 
-  // Loop de push a cada 6s enquanto a aba estiver ativa.
-  useEffect(() => {
-    const iv = setInterval(() => {
-      if (document.visibilityState === "visible") doPush();
-    }, 20000);
-
-    const onHide = () => { if (document.visibilityState === "hidden") doPush(); };
-    document.addEventListener("visibilitychange", onHide);
-    window.addEventListener("beforeunload", () => { doPush(); });
-    return () => { clearInterval(iv); document.removeEventListener("visibilitychange", onHide); };
-  }, [doPush]);
+  // NOTE: O push periódico foi removido. O SaveManager (lib/saveManager.ts) já
+  // gerencia a persistência com debounce de 6s, leader election e fila durável.
+  // Manter apenas a hidratação inicial via bootstrap + fetchFull.
 
   return { status, error, pushNow: doPush };
 }

@@ -28,7 +28,7 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6";
+  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral";
 }
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
@@ -47,6 +47,11 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
       const whitePath = r > 200 && g > 200 && b > 200;
       const orangeDoor = r > 220 && g > 120 && g < 230 && b < 90;
       return whitePath || orangeDoor;
+    }
+    // ---- Esfera Ancestral (Mapa Banido) com máscara exata ----
+    // REGRA: BRANCO = pode andar; PRETO/QUALQUER COR = bloqueado.
+    case "esfera_ancestral": {
+      return r > 200 && g > 200 && b > 200;
     }
     case "village":
     case "town": {

@@ -136,17 +136,23 @@ export async function pingPresence(playerId: string, mapId: string, level: numbe
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export type PartyBroadcastEvent =
-  | { type: "xp_share"; fromId: string; fromName: string; mapId: string; xpEach: number }
-  | { type: "kill_ping"; fromId: string; fromName: string; mapId: string; speciesId: string };
+  | { type: "xp_share"; fromId: string; fromName: string; mapId: string; xpEach: number; channelId?: number; spawnKey?: string; baseXp?: number; targetLevel?: number; targetRarity?: string }
+  | { type: "kill_ping"; fromId: string; fromName: string; mapId: string; speciesId: string }
+  // Canal 3 coop: o autor do kill/captura avisa a party para despawnar o
+  // spawn compartilhado (sem recompensa para quem não participou via xp_share).
+  | { type: "shared_kill"; fromId: string; fromName: string; mapId: string; channelId: number; spawnKey: string; speciesId: string };
 
-export function subscribePartyChannel(partyId: string, onEvent: (e: PartyBroadcastEvent) => void): RealtimeChannel {
+export function subscribePartyChannel(partyId: string, onEvent: (e: PartyBroadcastEvent) => void): { channel: RealtimeChannel; unsubscribe: () => void } {
   const ch = supabase.channel(`party-bus-${partyId}`, { config: { broadcast: { self: false } } });
   ch.on("broadcast", { event: "msg" }, (payload) => {
     const data = payload.payload as PartyBroadcastEvent;
     if (data) onEvent(data);
   });
   ch.subscribe();
-  return ch;
+  return {
+    channel: ch,
+    unsubscribe: () => { void supabase.removeChannel(ch); },
+  };
 }
 
 export async function broadcastToParty(channel: RealtimeChannel, event: PartyBroadcastEvent) {

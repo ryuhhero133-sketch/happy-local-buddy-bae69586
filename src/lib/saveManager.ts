@@ -152,6 +152,24 @@ export function sanitizeSnapshot(snapshot: unknown): unknown {
 
 // ---------- estado interno ----------
 let memSnapshot: unknown = null;
+// Anti-clobber (isolamento de contas): uid dono do snapshot em memória.
+// Só hidratações legítimas (bootstrap/fetch, confirm de onboarding) podem
+// reivindicá-lo via claimSnapshotOwner(). Push com sessão divergente é
+// abortado — nunca sobrescreve B com memória de A.
+let snapshotOwnerUid: string | null = null;
+export function claimSnapshotOwner(uid: string | null) {
+  if (uid !== snapshotOwnerUid) memSnapshot = null;
+  snapshotOwnerUid = uid;
+}
+export function getSnapshotOwner(): string | null {
+  return snapshotOwnerUid;
+}
+/** Solta o dono (ex.: wipe local na troca de conta). O próximo flush
+ * exige nova reivindicação via claimSnapshotOwner(). */
+export function clearSnapshotOwner() {
+  snapshotOwnerUid = null;
+  memSnapshot = null;
+}
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let pushing = false;
@@ -463,6 +481,12 @@ async function rebaseOnLeadership() {
 
 async function flushInternal(uid: string, immediate = false): Promise<boolean> {
   bindGlobalListeners(currentUid);
+  if (snapshotOwnerUid !== null && uid !== snapshotOwnerUid) {
+    // Sessão trocou sem nova hidratação: ABORTA. Conteúdo da memória
+    // pertence a outra conta — empurrar seria sobrescrever B com dados de A.
+    setStatus("conflict", "conta trocada — aguardando nova hidratação");
+    return false;
+  }
   if (needsRebase) {
     // Base defasada + servidor à frente: não empurra nada até recarregar.
     setStatus("conflict", "outra aba atualizou o save — recarregue para sincronizar");

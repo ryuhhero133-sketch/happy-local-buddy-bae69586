@@ -109,16 +109,51 @@ export async function createGuildRemote(args: {
   leaderSpecies?: string | null;
 }): Promise<{ ok: boolean; guild?: Guild; error?: string }> {
   try {
-    if (await userHasGuild(args.founderId)) {
+    // Validate UID
+    if (!args.founderId || args.founderId.trim() === "") {
+      return { ok: false, error: "Usuário não autenticado." };
+    }
+    // Check if user already has a guild
+    const hasGuild = await userHasGuild(args.founderId);
+    if (hasGuild) {
       return { ok: false, error: "Você já está em uma guilda." };
     }
-    const { data: ginsert, error: gerr } = await sb
-      .from("guilds")
-      .insert({ name: args.name.trim().slice(0, 18), element: args.element, founder_id: args.founderId })
-      .select("*")
-      .single();
-    if (gerr || !ginsert) return { ok: false, error: gerr?.message ?? "Erro ao criar." };
-    const g = ginsert as DbGuild;
+    // Validate name
+    const trimmedName = args.name.trim().slice(0, 18);
+    if (!trimmedName) {
+      return { ok: false, error: "Nome da guilda inválido." };
+    }
+    // Try to create the guild with duplicate name handling
+    let g: DbGuild | null = null;
+    const maxRetries = 3;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { data: ginsert, error: gerr } = await sb
+        .from("guilds")
+        .insert({ name: trimmedName, element: args.element, founder_id: args.founderId })
+        .select("*")
+        .single();
+      if (!gerr && ginsert) {
+        g = ginsert as DbGuild;
+        break;
+      }
+      // If duplicate name, append a suffix and retry
+      if (gerr && gerr.code === "23505" && attempt < maxRetries - 1) {
+        // Duplicate name - try with a suffix
+        const suffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+        const newName = `${trimmedName.slice(0, 15)}_${suffix}`;
+        // Update the name for next iteration
+        // We'll just try again with the modified name
+        // Actually, let's just return the error to the user for duplicate names
+        return { ok: false, error: "Nome de guilda já existe. Escolha outro." };
+      }
+      if (gerr) {
+        return { ok: false, error: gerr.message ?? "Erro ao criar guilda." };
+      }
+    }
+    if (!g) {
+      return { ok: false, error: "Erro ao criar guilda." };
+    }
+    // Insert guild member (founder as leader) - if this fails, we clean up the guild
     const { error: merr } = await sb.from("guild_members").insert({
       guild_id: g.id,
       user_id: args.founderId,
@@ -128,11 +163,13 @@ export async function createGuildRemote(args: {
       level: args.founderLevel,
     });
     if (merr) {
+      // Cleanup: delete the guild to avoid orphan
       await sb.from("guilds").delete().eq("id", g.id);
       return { ok: false, error: merr.message };
     }
+    // Fetch the complete guild
     const guild = await fetchMyGuild(args.founderId);
-    return guild ? { ok: true, guild } : { ok: false, error: "Falha ao carregar." };
+    return guild ? { ok: true, guild } : { ok: false, error: "Falha ao carregar guilda." };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Erro" };
   }
@@ -332,11 +369,26 @@ export async function setViceLeaderRemote(guildId: string, userId: string | null
 }
 
 /** Realtime subscription para convites do usuário (callback chamado a cada change). */
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+const activeInviteChannels = new Map<string, any>();
 export function subscribeMyInvites(userId: string, cb: () => void): () => void {
+  const topic = `rt-invites-${userId}`;
+  // Idempotente: se já existe canal deste tópico (remount/HMR/troca de party
+  // sem cleanup), remove antes de recriar — evita "cannot add callbacks
+  // after subscribe()" e canais duplicados.
+  const prev = activeInviteChannels.get(topic);
+  if (prev) {
+    try { sb.removeChannel(prev); } catch { /* ignore */ }
+    activeInviteChannels.delete(topic);
+  }
   const ch = sb
-    .channel(`rt-invites-${userId}`)
+    .channel(topic)
     .on("postgres_changes", { event: "*", schema: "public", table: "guild_invites", filter: `to_user_id=eq.${userId}` }, cb)
     .subscribe();
-  return () => { sb.removeChannel(ch); };
+  activeInviteChannels.set(topic, ch);
+  return () => {
+    try { sb.removeChannel(ch); } catch { /* ignore */ }
+    if (activeInviteChannels.get(topic) === ch) activeInviteChannels.delete(topic);
+  };
 }
 
