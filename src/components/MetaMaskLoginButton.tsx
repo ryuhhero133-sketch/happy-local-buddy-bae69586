@@ -17,10 +17,18 @@ export default function MetaMaskLoginButton() {
         setStatus("Carteira rejeitada ou desconectada.");
         return;
       }
-      // Usa Supabase Auth Web3 nativo (EIP-4361 / SIWE via janela do navegador)
+      // Usa Supabase Auth Web3 nativo (EIP-4361 / SIWE via janela do navegador).
+      // A lib monta domain = host e uri = url usada. Sem `options.url`, ela usa
+      // window.location.href (COM path, ex. /idle) e o servidor rejeita a URI
+      // ("signed for another app"). Com origin, domain e URI batem com o Site URL:
+      // domain = revo-emerald.ryuhhero133.workers.dev
+      // uri    = https://revo-emerald.ryuhhero133.workers.dev
       const { error } = await supabase.auth.signInWithWeb3({
         chain: 'ethereum',
         statement: 'Sign in to IDLE MON REVO.',
+        options: {
+          url: window.location.origin,
+        },
       });
       if (error) {
         setStatus("Erro de autenticação: " + error.message);
