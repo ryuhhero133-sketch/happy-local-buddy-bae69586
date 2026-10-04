@@ -100,6 +100,8 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   fearow: ["voador","normal"], butterfree: ["inseto","voador"], butterfree_shiny: ["inseto","voador"],
   // Inseto
   caterpie: ["inseto"], metapod: ["inseto"], metapod_shiny: ["inseto"], pinsir: ["inseto"],
+  pinsir_shiny: ["inseto"], tauros: ["normal"], tauros_shiny: ["normal"],
+  farfetchd: ["voador", "normal"], farfetchd_shiny: ["voador", "normal"],
   caterpie_shiny: ["inseto"], butterfree_shiny_plus: ["inseto","voador"],
   // Lutador
   machop: ["lutador"], machoke: ["lutador"], machamp: ["lutador"],

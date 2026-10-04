@@ -14,7 +14,7 @@ import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 export type NpcThemeKind =
   | "boby" | "san" | "nanizinha" | "payka" | "pan"
   | "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower"
-  | "pokemarktClerk" | "gatoancy" | "default";
+  | "pokemarktClerk" | "gatoancy" | "barney" | "florzinha" | "default";
 
 export type NpcTheme = {
   label: string;
@@ -38,6 +38,8 @@ export const NPC_THEMES: Record<NpcThemeKind, NpcTheme> = {
   bulbaFlower:  { label: "BULBASAUR · Florido",               name: "BULBASAUR", frame: "#6bd66b", inner: "#1f6b2a", bg: "linear-gradient(180deg, #12351f 0%, #081c0e 100%)", accent: "#6bd66b", glow: "rgba(107,214,107,0.30)" },
   pokemarktClerk:{ label: "ATENDENTE · Pokémarkt",            name: "LOJA",      frame: "#7fd8ff", inner: "#1d5f86", bg: "linear-gradient(180deg, #10294d 0%, #0a1830 100%)", accent: "#7fd8ff", glow: "rgba(127,216,255,0.30)" },
   gatoancy:     { label: "LUA NEGRA · O Gato Misterioso",      name: "LUA NEGRA", frame: "#8b5cf6", inner: "#2e1065", bg: "linear-gradient(180deg, #17102e 0%, #0a0616 100%)", accent: "#c4b5fd", glow: "rgba(139,92,246,0.35)" },
+  barney:       { label: "BARNEY · Mercador de Revoland",      name: "BARNEY",    frame: "#f59e0b", inner: "#7a4a10", bg: "linear-gradient(180deg, #2e1f08 0%, #171006 100%)", accent: "#fbbf24", glow: "rgba(245,158,11,0.35)" },
+  florzinha:    { label: "FLORZINHA · Amante das Flores",      name: "FLORZINHA", frame: "#f9a8d4", inner: "#8f2b5f", bg: "linear-gradient(180deg, #33131f 0%, #1c0a12 100%)", accent: "#f9a8d4", glow: "rgba(249,168,212,0.35)" },
   default:      { label: "NPC",                                name: "???",       frame: "#e9d5ff", inner: "#4a3560", bg: "linear-gradient(180deg, #241536 0%, #120818 100%)", accent: "#e9d5ff", glow: "rgba(233,213,255,0.25)" },
 };
 

@@ -28,7 +28,9 @@ export type MaterialId =
   | "lenha" | "ouro" | "pedra" | "bronze" | "ferro" | "fibra" | "sucata" | "oleo"
   | "perola" | "morango" | "chicote" | "escamas" | "agua"
   | "cr_prisma" | "cr_red" | "cr_blue" | "cr_yellow" | "cr_green" | "cr_purple"
-  | "cog_red" | "cog_brown" | "cog_blue";
+  | "cog_red" | "cog_brown" | "cog_blue"
+  | "laranja" | "banana" // frutos das Lands (colheita; fora da venda do mercador)
+  | "buque" | "flor" | "pepita" | "cog_orange"; // quest/recursos de drop (fora da venda)
 
 export type MaterialsStore = Record<MaterialId, number>;
 
@@ -37,6 +39,8 @@ const DEFAULT_STORE: MaterialsStore = {
   perola: 0, morango: 0, chicote: 0, escamas: 0, agua: 0,
   cr_prisma: 0, cr_red: 0, cr_blue: 0, cr_yellow: 0, cr_green: 0, cr_purple: 0,
   cog_red: 0, cog_brown: 0, cog_blue: 0,
+  laranja: 0, banana: 0,
+  buque: 0, flor: 0, pepita: 0, cog_orange: 0,
 };
 
 export function loadMaterialsStore(): MaterialsStore {

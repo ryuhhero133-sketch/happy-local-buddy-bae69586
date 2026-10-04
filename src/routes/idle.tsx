@@ -30,7 +30,7 @@ import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createPortal } from "react-dom";
-import { FlaskConical, Sparkles } from "lucide-react";
+import { FlaskConical, Sparkles, Home } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
@@ -51,6 +51,22 @@ import hudMelhoriasPng from "@/CHAR/Melhorias.png";
 import hudMissoesPng from "@/CHAR/Missoes.png";
 import skinBoxPng from "@/CHAR/skinbox.png";
 import bottanPng from "@/CHAR/bottan.png";
+import taurosSheetPng from "@/CHAR/Taurus.png";
+import taurosShinySheetPng from "@/CHAR/Tauros Shiny.png";
+import farfetchdSheetPng from "@/CHAR/Farfetch.png";
+import farfetchdShinySheetPng from "@/CHAR/Farfetch Shiny.png";
+import pinsirSheetPng from "@/CHAR/Pinsir.png";
+import pinsirShinySheetPng from "@/CHAR/Pinsir Shiny.png";
+// Recortes 1:1 do 1º frame (painéis/coleção/HUD) — arte original intacta.
+import taurosIconPng from "@/CHAR/Taurus_icon.png";
+import taurosShinyIconPng from "@/CHAR/Tauros Shiny_icon.png";
+import farfetchdIconPng from "@/CHAR/Farfetch_icon.png";
+import farfetchdShinyIconPng from "@/CHAR/Farfetch Shiny_icon.png";
+import pinsirShinyIconPng from "@/CHAR/Pinsir Shiny_icon.png";
+import ligaPng from "@/CHAR/Liga.png";
+import ligaElementalBg from "@/CHAR/kg/Liga Elemental.png";
+import barneyPng from "@/CHAR/Barney Mercador.png";
+import florzinhaPng from "@/CHAR/Florzinha.png";
 import gatoancyPng from "@/CHAR/gatoancy.png";
 import aspectroPng from "@/CHAR/aspectro.png";
 import aspecLoadImg from "@/load/aspec.png";
@@ -166,7 +182,7 @@ import {
   type CaredPet,
 } from "@/game/resources";
 import { TYPE_COLOR } from "@/game/movesets";
-import { computeTeamSynergies, computePower, statusResistFor } from "@/game/synergies";
+import { computeTeamSynergies, computePower, statusResistFor, elementsOf } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
@@ -237,6 +253,10 @@ import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
 import sfxBonusAsset from "@/assets/audio/bonus.mp3.asset.json";
 import sfxChestOpenAsset from "@/assets/audio/chest-open.mp3.asset.json";
+import sfxTreeChopAsset from "@/assets/sfx/tree-chop.mp3.asset.json";
+import treeFullAsset from "@/assets/harvest/tree-full.png.asset.json";
+import treeChopAsset from "@/assets/harvest/tree-chop.png.asset.json";
+import treeStumpAsset from "@/assets/harvest/tree-stump.png.asset.json";
 import eggTransitusAsset from "@/assets/egg-transitus.mp3.asset.json";
 
 // Sprite constants (mesmo layout do modo Explorar)
@@ -337,6 +357,18 @@ import mapinha9Url from "@/assets/mapinha9.png";
 import mapinha11Url from "@/assets/revoland.png";
 import cold6MaskUrl from "@/assets/colidir/COLD6.png";
 import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
+import { loadMaterialsStore, saveMaterialsStore, type MaterialId } from "@/components/MercadorMateriaisOverlay";
+import {
+  DROP_GROUND_TTL_MS, DROP_COLLECT_PX, DROP_IMG_BY_MAT, DROP_LABEL_BY_MAT,
+  rollDropsFor, speciesBaseOf,
+} from "@/game/drops";
+import type { PlacedLand, LandLevel, PlantKind } from "@/game/lands";
+import {
+  LAND_LEVELS, LAND_SLOTS, LAND_BUILD_MS, LAND_COLLECT_MS, LAND_MAX, LAND_MIN_SPACING,
+  PLANT_DEFS, landLevelDef, plantDef, plantScaleFor, plantStageAt, plantFruitReady,
+  landReqsFor, landReqsMet, consumeLandReqs, grantFruit, fruitYieldFor,
+  newLandId, newPlantId,
+} from "@/game/lands";
 import mapinha12Url from "@/assets/bidril e kakuna.png";
 import mapinha13Url from "@/assets/mp plus.png";
 import cave01Url from "@/assets/Cave 01.png";
@@ -772,6 +804,10 @@ const sfxLevelUpUrl = assetUrlFromJson(sfxLevelUpAsset);
 const sfxClickUrl = assetUrlFromJson(sfxClickAsset);
 const sfxBonusUrl = assetUrlFromJson(sfxBonusAsset);
 const sfxChestOpenUrl = assetUrlFromJson(sfxChestOpenAsset);
+const sfxTreeChopUrl = assetUrlFromJson(sfxTreeChopAsset);
+const treeFullUrl = assetUrlFromJson(treeFullAsset);
+const treeChopUrl = assetUrlFromJson(treeChopAsset);
+const treeStumpUrl = assetUrlFromJson(treeStumpAsset);
 
 type IdleMapId = string;
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
@@ -906,7 +942,10 @@ const GIF: Partial<Record<Species, string>> = {
   meowth: meowthUrl, psyduck: psyduckUrl,
   lucario: lucarioAuraUrl, mew: mewAuraUrl,
   beedrill: beedrillGif, butterfree: butterfreeGif,
-  pinsir: pinsirGif, golem: golemGif, jolteon: jolteonGif, lapras: laprasGif,
+  pinsir: pinsirGif, pinsir_shiny: pinsirShinyIconPng,
+  tauros: taurosIconPng, tauros_shiny: taurosShinyIconPng,
+  farfetchd: farfetchdIconPng, farfetchd_shiny: farfetchdShinyIconPng,
+  golem: golemGif, jolteon: jolteonGif, lapras: laprasGif,
   blaziken: blazikenGif,
   virizion: assetUrlFromJson(virizionAsset), raikou: assetUrlFromJson(raikouAsset),
   suicune: assetUrlFromJson(suicuneAsset), suicune_shiny: assetUrlFromJson(suicuneShinyAsset),
@@ -1005,6 +1044,13 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   marowak_plus: marowakPlusPng,
   rhyhorn: rhyhornPng,
   rhyhorn_shiny: rhyhornShinyPng,
+  // Rota do Pinsir — sheets 4x4 (movimento + direção no mapa).
+  pinsir: pinsirSheetPng,
+  pinsir_shiny: pinsirShinySheetPng,
+  tauros: taurosSheetPng,
+  tauros_shiny: taurosShinySheetPng,
+  farfetchd: farfetchdSheetPng,
+  farfetchd_shiny: farfetchdShinySheetPng,
   oddish: oddishSheetPng,
   oddish_shiny: oddishShinySheetPng,
   gloom: gloomSheetPng,
@@ -1151,7 +1197,9 @@ const SPECIES_ELEMENT: Partial<Record<Species, ElementFx>> = {
   // Fighting
   machop: "fighting", machoke: "fighting", machamp: "fighting",
   mankey: "fighting", primeape: "fighting",
-  lucario: "fighting", pinsir: "fighting", riolu: "fighting",
+  lucario: "fighting", pinsir: "fighting", pinsir_shiny: "fighting", riolu: "fighting",
+  tauros: "normal", tauros_shiny: "normal",
+  farfetchd: "flying", farfetchd_shiny: "flying",
   // Flying
   pidgey: "flying", pidgeotto: "flying", pidgeot: "flying",
   fearow: "flying", spearow: "flying", rayquaza: "flying",
@@ -1654,6 +1702,18 @@ type IdleState = {
   timezone?: string;
   /** Último instante confiável visto (anti-manipulação de relógio). */
   lastSeenTs?: number;
+  /** Lands construídas na Land Revo (persistido; vazio em saves antigos). */
+  lands?: PlacedLand[];
+  /** Quests de Revoland (Barney/Florzinha): buquê + flores + alternância de recompensa. */
+  revoQuests?: {
+    bouquetStarted?: boolean;
+    bouquetDone?: boolean;
+    flowersGiven?: number;
+    rewardStep?: number;
+  };
+  /** Evento (Liga): entradas grátis do dia + passe de permanência (timestamp). */
+  eventEntries?: { day: string; free: number };
+  eventPassUntil?: number;
 };
 
 
@@ -2803,7 +2863,7 @@ const confirmName = () => {
   const isFirstSpawnRef = useRef(true);
   const lastSpawnAtRef = useRef(0);
   const orbIdRef = useRef(1);
-  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "guilda">("pokemon");
+  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("pokemon");
 
   // ===== Guilda & Livro de Missões (painéis externos religados) =====
   const myId = (identity as any)?.id ?? "local";
@@ -3139,6 +3199,688 @@ const confirmName = () => {
   const [mapLoot, setMapLoot] = useState<MapLoot>(emptyMapLoot);
   // Troca de mapa = resumo novo (cada mapa separa o seu loot)
   useEffect(() => { setMapLoot(() => emptyMapLoot()); }, [idle.currentMap]);
+  // ===== Lands na Land Revo (construção + plantações; salvo em idle.lands) =====
+  const [placingLand, setPlacingLand] = useState(false);
+  const [placePreview, setPlacePreview] = useState<{ x: number; y: number } | null>(null);
+  const [landPanel, setLandPanel] = useState<{ mode: "build" } | { mode: "manage"; id: string } | null>(null);
+  const [plantSlot, setPlantSlot] = useState<number | null>(null);
+  // Sair da Land Revo cancela o modo de posicionamento.
+  useEffect(() => {
+    if (idle.currentMap !== "land_revo") {
+      setPlacingLand(false);
+      setPlacePreview(null);
+    }
+  }, [idle.currentMap]);
+  // ===== Drops de recurso no CHÃO (não entram na mochila; coletar depois) =====
+  type GroundDrop = { uid: string; mat: MaterialId; qty: number; x: number; y: number; droppedAt: number };
+  const [groundDrops, setGroundDrops] = useState<GroundDrop[]>([]);
+  // Trocar de mapa limpa os drops do chão (são da sessão do mapa atual).
+  useEffect(() => { setGroundDrops([]); }, [idle.currentMap]);
+  const collectGroundDrop = (uid: string) => {
+    const d = groundDrops.find((o) => o.uid === uid);
+    if (!d) return;
+    const distT = Math.hypot(trainerPos.x - d.x, trainerPos.y - d.y);
+    if (distT > DROP_COLLECT_PX) {
+      pushChat("Chegue mais perto para coletar.", "info");
+      return;
+    }
+    const ms = loadMaterialsStore();
+    (ms as Record<string, number>)[d.mat] = ((ms as Record<string, number>)[d.mat] ?? 0) + d.qty;
+    saveMaterialsStore(ms);
+    setGroundDrops((prev) => prev.filter((o) => o.uid !== uid));
+    const label = DROP_LABEL_BY_MAT[d.mat] ?? d.mat;
+    pushFxAt(d.x, d.y - 30, `+${d.qty} ${label}`, "gold");
+    pushChat(`🧺 Coletou: +${d.qty} ${label}!`, "cap");
+    playClick();
+  };
+  const renderGroundDrops = () => {
+    const nowG = now;
+    return (
+      <>
+        {groundDrops.map((d) => {
+          if (nowG - d.droppedAt > DROP_GROUND_TTL_MS) return null;
+          const img = DROP_IMG_BY_MAT[d.mat];
+          const label = DROP_LABEL_BY_MAT[d.mat] ?? d.mat;
+          const quest = d.mat === "buque";
+          return (
+            <div
+              key={d.uid}
+              onClick={(e) => { e.stopPropagation(); collectGroundDrop(d.uid); }}
+              style={{
+                position: "absolute", left: d.x, top: d.y,
+                transform: "translate(-50%, -80%)", width: 40,
+                zIndex: Math.round(d.y) + 2, cursor: "pointer",
+                animation: "float 1.8s ease-in-out infinite",
+              }}
+              title={`${label} ×${d.qty} — clique para coletar`}
+            >
+              {img ? (
+                <img src={img} alt={label} draggable={false} style={{ width: "100%", imageRendering: "auto", display: "block", filter: quest ? "drop-shadow(0 0 6px gold)" : "drop-shadow(0 2px 2px rgba(0,0,0,0.4))" }} />
+              ) : (
+                <div style={{ fontSize: 26, textAlign: "center" }}>📦</div>
+              )}
+              {d.qty > 1 && (
+                <div style={{ fontSize: 9, fontWeight: 900, color: "#fff", textAlign: "center", background: "rgba(0,0,0,0.6)", borderRadius: 6 }}>
+                  ×{d.qty}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+  // Tick das Lands (1s): conclui construções/ coletas e anima as barras.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const lands = idleRef.current?.lands;
+      if (!lands || lands.length === 0) return;
+      setNow(Date.now());
+      const now = Date.now();
+      let changed = false;
+      const doneNames: string[] = [];
+      const gotFruits: string[] = [];
+      const next = lands.map((l) => {
+        let nl = l;
+        if (nl.status === "building" && now >= nl.readyAt) {
+          nl = { ...nl, status: "ready" as const };
+          changed = true;
+          doneNames.push(landLevelDef(nl.level).name);
+        }
+        let pc = false;
+        const plants = nl.plants.map((p) => {
+          if (p.collectingUntil != null && now >= p.collectingUntil) {
+            pc = true;
+            const qty = grantFruit(p.kind, fruitYieldFor(p.kind, nl.level));
+            gotFruits.push(`+${qty} ${plantDef(p.kind).fruitName}`);
+            return { ...p, plantedAt: now, collectingUntil: undefined };
+          }
+          return p;
+        });
+        if (pc) { nl = { ...nl, plants, totalCollected: (nl.totalCollected ?? 0) + 1 }; changed = true; }
+        return nl;
+      });
+      if (changed) {
+        setIdle((s) => ({ ...s, lands: next }));
+        for (const n of doneNames) pushChat(`✓ ${n} pronta!`, "cap");
+        for (const g of gotFruits) pushChat(`🧺 Coleta concluída: ${g}!`, "cap");
+      }
+      // Despawn de drops do chão expirados (90s).
+      setGroundDrops((prev) => {
+        if (!prev.some((d) => now - d.droppedAt > DROP_GROUND_TTL_MS)) return prev;
+        return prev.filter((d) => now - d.droppedAt <= DROP_GROUND_TTL_MS);
+      });
+      // Evento: passe expirou (20 min) → volta p/ Revoland automaticamente.
+      if (EVENT_MAPS.includes(idleRef.current?.currentMap as string)) {
+        const pass = idleRef.current?.eventPassUntil ?? 0;
+        if (Date.now() > pass) {
+          setIdle((s) => ({ ...s, currentMap: "mapinha6", eventPassUntil: undefined }));
+          setTrainerPos({ x: Math.round(WORLD_W / 2), y: Math.round(WORLD_H / 2) });
+          setEnemies([]);
+          setChests([]);
+          pushChat("⏱️ Tempo de evento esgotado (20 min)! De volta a Revoland.", "info");
+        }
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // ===== EVENTO (Liga Elemental): Deserto de Alaka + Rota do Pinsir =====
+  // Entrada: 2× grátis/dia ou 10 cristais. Permanência: 20 min (passe com timestamp).
+  const EVENT_MAPS = ["rota_pinsir", "deserto_alaka"];
+  const EVENT_FREE_PER_DAY = 2;
+  const EVENT_CRYSTAL_COST = 10;
+  const EVENT_STAY_MS = 20 * 60 * 1000;
+  const eventDayStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const enterEvent = (mapId: string, paid: boolean) => {
+    if (!EVENT_MAPS.includes(mapId)) return;
+    const day = eventDayStr();
+    const used = idle.eventEntries?.day === day ? (idle.eventEntries.free ?? 0) : 0;
+    if (!paid && used >= EVENT_FREE_PER_DAY) {
+      pushChat("⚠️ Entradas grátis esgotadas hoje. Entre com 10 💎.", "info");
+      return;
+    }
+    if (paid && (idle.bank.crystals ?? 0) < EVENT_CRYSTAL_COST) {
+      pushChat("💎 Cristais insuficientes (precisa 10).", "info");
+      return;
+    }
+    const nowE = Date.now();
+    const mapName = mapId === "rota_pinsir" ? "Rota do Pinsir" : "Deserto de Alaka";
+    setIdle((s) => {
+      const dayNow = eventDayStr();
+      const usedNow = s.eventEntries?.day === dayNow ? (s.eventEntries.free ?? 0) : 0;
+      if (!paid && usedNow >= EVENT_FREE_PER_DAY) return s;
+      let bank = s.bank;
+      if (paid) {
+        if ((s.bank.crystals ?? 0) < EVENT_CRYSTAL_COST) return s;
+        bank = { ...s.bank, crystals: s.bank.crystals - EVENT_CRYSTAL_COST };
+      }
+      return {
+        ...s,
+        bank,
+        currentMap: mapId as IdleMapId,
+        eventEntries: { day: dayNow, free: paid ? usedNow : usedNow + 1 },
+        eventPassUntil: nowE + EVENT_STAY_MS,
+      };
+    });
+    setTrainerPos({ x: Math.round(WORLD_W / 2), y: Math.round(WORLD_H / 2) });
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setEnemies([]);
+    setChests([]);
+    setNpcDialog(null);
+    setTab("pokemon");
+    playClick();
+    pushChat(
+      paid
+        ? `🎟️ Entrada no evento com 10 💎! 20 minutos em ${mapName}!`
+        : `🎟️ Entrada grátis no evento (${Math.min(used + 1, EVENT_FREE_PER_DAY)}/${EVENT_FREE_PER_DAY} hoje)! 20 minutos em ${mapName}!`,
+      "cap",
+    );
+  };
+  // Chegou num mapa de evento sem passe válido (ex.: teleporte direto):
+  // volta p/ Revoland — a entrada é pela aba EVENTO.
+  useEffect(() => {
+    if (!EVENT_MAPS.includes(idle.currentMap)) return;
+    if (Date.now() > (idle.eventPassUntil ?? 0)) {
+      setIdle((s) => ({ ...s, currentMap: "mapinha6", eventPassUntil: undefined }));
+      setTrainerPos({ x: Math.round(WORLD_W / 2), y: Math.round(WORLD_H / 2) });
+      setEnemies([]);
+      setChests([]);
+      pushChat("🎟️ Entre no evento pela aba EVENTO (2 grátis/dia ou 10 💎).", "info");
+    }
+  }, [idle.currentMap]);
+
+  // ===== Lands: ações =====
+  const confirmPlacement = () => {
+    if (!placePreview || idle.currentMap !== "land_revo") return;
+    // Certificado obrigatório (Pokémarkt, 10 gold) — sem ele, sem casa.
+    if ((idle.items.certificado ?? 0) < 1) {
+      pushChat("❌ Você precisa de 1 Certificado (Pokémarkt, 10 gold) para construir.", "info");
+      return;
+    }
+    const pb = getPlayableBounds(curWorldW, curWorldH, "land_revo");
+    const m = 90;
+    const { x, y } = placePreview;
+    if (x < pb.minX + m || x > pb.maxX - m || y < pb.minY + m || y > pb.maxY - m) {
+      pushChat("❌ Posição fora da área válida da Land Revo.", "info");
+      return;
+    }
+    try { if (!isWalkable("land_revo", x, y)) { pushChat("❌ Não dá para construir aí (colisão).", "info"); return; } } catch { /* sem grid: libera */ }
+    const lands = idle.lands ?? [];
+    if (lands.length >= LAND_MAX) { pushChat(`❌ Limite de ${LAND_MAX} Lands atingido.`, "info"); return; }
+    if (lands.some((l) => Math.hypot(l.x - x, l.y - y) < LAND_MIN_SPACING)) {
+      pushChat("❌ Muito perto de outra Land.", "info");
+      return;
+    }
+    const nowC = Date.now();
+    const land: PlacedLand = {
+      id: newLandId(), level: 1, x, y,
+      status: "building", startedAt: nowC, readyAt: nowC + LAND_BUILD_MS,
+      plants: [], totalCollected: 0,
+    };
+    setIdle((s) => {
+      if ((s.items.certificado ?? 0) < 1) return s;
+      return {
+        ...s,
+        items: { ...s.items, certificado: s.items.certificado - 1 },
+        lands: [...(s.lands ?? []), land],
+      };
+    });
+    setPlacingLand(false);
+    setPlacePreview(null);
+    setLandPanel(null);
+    playClick();
+    pushChat(`🏠 LAND FRUTO 1 em construção! Pronta em 1 minuto.`, "cap");
+  };
+
+  const evolveLand = (id: string) => {
+    const l = (idle.lands ?? []).find((o) => o.id === id);
+    if (!l || l.level >= 3 || l.status !== "ready") return;
+    const target = (l.level + 1) as LandLevel;
+    if (!consumeLandReqs(target, idle.caughtSpecies ?? [])) {
+      pushChat("❌ Requisitos incompletos para evoluir.", "info");
+      return;
+    }
+    setIdle((s) => ({ ...s, lands: (s.lands ?? []).map((o) => (o.id === id ? { ...o, level: target } : o)) }));
+    pushFxAt(l.x, l.y - 130, "EVOLUIU!", "capture");
+    playBonus();
+    pushChat(`✨ Land evoluída para ${landLevelDef(target).name}!`, "cap");
+  };
+
+  const plantInSlot = (landId: string, slot: number, kind: PlantKind) => {
+    setIdle((s) => ({
+      ...s,
+      lands: (s.lands ?? []).map((o) => (o.id === landId
+        ? { ...o, plants: [...o.plants, { id: newPlantId(), kind, slot, plantedAt: Date.now() }] }
+        : o)),
+    }));
+    setPlantSlot(null);
+    playClick();
+    pushChat(`🌱 ${plantDef(kind).name} plantada!`, "info");
+  };
+
+  const startCollect = (landId: string, plantId: string) => {
+    setIdle((s) => ({
+      ...s,
+      lands: (s.lands ?? []).map((o) => (o.id === landId
+        ? { ...o, plants: o.plants.map((p) => (p.id === plantId ? { ...p, collectingUntil: Date.now() + LAND_COLLECT_MS } : p)) }
+        : o)),
+    }));
+    playClick();
+  };
+
+  // ===== Árvores cortáveis (teste na Land Revo): -1 energia, +1 lenha, respawn 45s =====
+  // Posições em FRAÇÃO do mundo (a Land Revo usa imagem custom — mundo menor que 1920).
+  type ChopTree = { id: number; fx: number; fy: number; choppingUntil?: number; stumpAt?: number };
+  const [chopTrees, setChopTrees] = useState<ChopTree[]>([
+    { id: 1, fx: 0.50, fy: 0.50 },
+    { id: 2, fx: 0.36, fy: 0.40 },
+    { id: 3, fx: 0.64, fy: 0.40 },
+    { id: 4, fx: 0.38, fy: 0.62 },
+    { id: 5, fx: 0.62, fy: 0.62 },
+  ]);
+  const treePos = (t: ChopTree) => ({ x: Math.round(t.fx * curWorldW), y: Math.round(t.fy * curWorldH) });
+  const chopTree = (id: number) => {
+    const t = chopTrees.find((o) => o.id === id);
+    if (!t || t.choppingUntil != null || t.stumpAt != null) return;
+    if ((trainerEnergy ?? 0) < 1) { pushChat("⚡ Sem energia para cortar (precisa 1).", "info"); return; }
+    const { x, y } = treePos(t);
+    setTrainerEnergy((e) => Math.max(0, (e ?? 0) - 1));
+    playSfx(sfxTreeChopUrl);
+    pushFxAt(x, y - 110, "🪓", "xp");
+    setChopTrees((prev) => prev.map((o) => (o.id === id ? { ...o, choppingUntil: Date.now() + 900 } : o)));
+    setTimeout(() => {
+      setChopTrees((prev) => prev.map((o) => (o.id === id ? { ...o, choppingUntil: undefined, stumpAt: Date.now() } : o)));
+      const ms = loadMaterialsStore();
+      ms.lenha = (ms.lenha ?? 0) + 1;
+      // Flor raríssima cortando árvore (3% — não vira fonte abundante).
+      const gotTreeFlower = Math.random() < 0.03;
+      if (gotTreeFlower) ms.flor = (ms.flor ?? 0) + 1;
+      saveMaterialsStore(ms);
+      pushFxAt(x, y - 80, "+1 Lenha 🪵", "gold");
+      pushChat("🪵 +1 Lenha! (-1 ⚡)", "info");
+      if (gotTreeFlower) pushChat("🌸 Que sorte! Uma FLOR caiu da árvore!", "cap");
+      setTimeout(() => {
+        setChopTrees((prev) => prev.map((o) => (o.id === id ? { id: o.id, fx: o.fx, fy: o.fy } : o)));
+      }, 30 * 60_000);
+    }, 900);
+  };
+  const renderChopTrees = () => {
+    if (idle.currentMap !== "land_revo") return null;
+    return (
+      <>
+        {chopTrees.map((t) => {
+          const { x, y } = treePos(t);
+          const chopping = t.choppingUntil != null && t.choppingUntil > now;
+          const stump = t.stumpAt != null;
+          const img = stump ? treeStumpUrl : chopping ? treeChopUrl : treeFullUrl;
+          return (
+            <div
+              key={`choptree-${t.id}`}
+              onClick={(e) => { e.stopPropagation(); chopTree(t.id); }}
+              style={{
+                position: "absolute", left: x, top: y,
+                transform: "translate(-50%, -95%)", width: stump ? 70 : 110,
+                zIndex: Math.round(y), cursor: stump ? "default" : "pointer",
+              }}
+              title={stump ? "Toco — volta em 30 min" : "Árvore — clique para cortar (-1 ⚡, +1 🪵)"}
+            >
+              <img src={img} alt="" draggable={false} style={{ width: "100%", imageRendering: "auto", display: "block" }} />
+              {!stump && (
+                <div style={{ fontSize: 8, fontWeight: 900, color: "#fef08a", textAlign: "center", textShadow: "0 1px 2px #000" }}>
+                  🪓 -1⚡
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  // ===== Lands: render no mundo =====
+  const renderLands = () => {
+    if (idle.currentMap !== "land_revo") return null;
+    const lands = idle.lands ?? [];
+    return (
+      <>
+        {lands.map((l) => {
+          const def = landLevelDef(l.level);
+          const building = l.status === "building";
+          const pct = building ? Math.min(100, Math.max(0, ((now - l.startedAt) / LAND_BUILD_MS) * 100)) : 100;
+          const secsLeft = building ? Math.max(0, Math.ceil((l.readyAt - now) / 1000)) : 0;
+          return (
+            <div
+              key={l.id}
+              onClick={(e) => { e.stopPropagation(); setPlantSlot(null); setLandPanel({ mode: "manage", id: l.id }); playClick(); }}
+              style={{
+                position: "absolute", left: l.x, top: l.y,
+                transform: "translate(-50%, -92%)", width: 190,
+                zIndex: Math.round(l.y), cursor: "pointer",
+              }}
+              title={building ? `${def.name} — construindo` : def.name}
+            >
+              <img
+                src={def.img} alt={def.name} draggable={false}
+                style={{
+                  width: "100%", imageRendering: "auto", display: "block",
+                  filter: building ? "grayscale(0.65) brightness(0.85)" : "none",
+                  opacity: building ? 0.9 : 1,
+                }}
+              />
+              {building ? (
+                <div style={{ marginTop: 4, background: "rgba(0,0,0,0.65)", borderRadius: 6, padding: "3px 6px", border: "1px solid #d97706" }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, color: "#fde68a", textAlign: "center", marginBottom: 2 }}>
+                    Construindo… {secsLeft}s / 60s
+                  </div>
+                  <div style={{ height: 6, background: "#3f2a12", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg,#f59e0b,#fbbf24)" }} />
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  marginTop: 2, fontSize: 9, fontWeight: 900, color: "#fff", textAlign: "center",
+                  textShadow: "0 1px 2px #000", background: "rgba(0,0,0,0.45)", borderRadius: 6, padding: "1px 4px",
+                }}>
+                  {def.name}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {/* Plantas (slots ao redor da base de cada Land pronta) */}
+        {lands.map((l) => (l.status === "ready" ? l.plants.map((p) => {
+          const pd = plantDef(p.kind);
+          const stage = plantStageAt(p, now);
+          const collecting = p.collectingUntil != null && p.collectingUntil > now;
+          const ready = stage >= 3 && !collecting;
+          const img = stage >= 2 ? pd.grownImg : pd.growingImg;
+          const sc = plantScaleFor(l.level) * (stage === 0 ? 0.55 : stage === 1 ? 0.8 : 1);
+          const slot = LAND_SLOTS[p.slot] ?? LAND_SLOTS[0];
+          const px = l.x + slot.x, py = l.y + slot.y;
+          const collectPct = collecting && p.collectingUntil
+            ? Math.min(100, ((LAND_COLLECT_MS - (p.collectingUntil - now)) / LAND_COLLECT_MS) * 100) : 0;
+          return (
+            <div
+              key={p.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (ready) startCollect(l.id, p.id);
+                else { setPlantSlot(null); setLandPanel({ mode: "manage", id: l.id }); playClick(); }
+              }}
+              style={{
+                position: "absolute", left: px, top: py,
+                transform: "translate(-50%, -95%)", width: Math.round(64 * sc),
+                zIndex: Math.round(py) + 1, cursor: ready ? "pointer" : "default",
+              }}
+              title={ready ? `${pd.fruitName} pronta — clique para coletar` : `${pd.name} — estágio ${stage + 1}/4`}
+            >
+              <img src={img} alt={pd.name} draggable={false} style={{ width: "100%", imageRendering: "auto", display: "block" }} />
+              {ready && (
+                <>
+                  <img
+                    src={pd.fruitImg} alt={pd.fruitName} draggable={false}
+                    style={{ position: "absolute", left: "50%", top: -14, transform: "translateX(-50%)", width: 26, animation: "float 1.6s ease-in-out infinite" }}
+                  />
+                  <div style={{ fontSize: 8, fontWeight: 900, color: "#fef08a", textAlign: "center", textShadow: "0 1px 2px #000" }}>
+                    PRONTA!
+                  </div>
+                </>
+              )}
+              {collecting && (
+                <div style={{ marginTop: 2, background: "rgba(0,0,0,0.65)", borderRadius: 4, padding: 2 }}>
+                  <div style={{ fontSize: 7, fontWeight: 900, color: "#bbf7d0", textAlign: "center" }}>Coletando…</div>
+                  <div style={{ height: 4, background: "#12351f", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ width: `${collectPct}%`, height: "100%", background: "#4ade80" }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }) : null))}
+        {/* Fantasma do posicionamento */}
+        {placingLand && placePreview && (
+          <div
+            style={{
+              position: "absolute", left: placePreview.x, top: placePreview.y,
+              transform: "translate(-50%, -92%)", width: 190,
+              opacity: 0.6, pointerEvents: "none", zIndex: 9999,
+            }}
+          >
+            <img src={LAND_LEVELS[0].img} alt="Prévia" draggable={false} style={{ width: "100%", display: "block" }} />
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // ===== Lands: painel (construir / gerenciar) =====
+  const renderLandPanel = () => {
+    const confirmBar = placingLand && placePreview && idle.currentMap === "land_revo" ? (
+      <div style={{
+        position: "fixed", left: "50%", bottom: 18, transform: "translateX(-50%)",
+        zIndex: 4600, display: "flex", alignItems: "center", gap: 10,
+        background: "rgba(20,12,4,0.92)", border: "2px solid #d97706", borderRadius: 12,
+        padding: "10px 14px", color: "#fff", boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 900 }}>
+          🏠 LAND FRUTO 1 aqui? <span style={{ opacity: 0.7 }}>({placePreview.x}, {placePreview.y})</span>
+        </div>
+        <button
+          onClick={confirmPlacement}
+          style={{ background: "#059669", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 8, fontWeight: 900, fontSize: 11, cursor: "pointer" }}
+        >
+          CONFIRMAR
+        </button>
+        <button
+          onClick={() => { setPlacingLand(false); setPlacePreview(null); playClick(); }}
+          style={{ background: "#475569", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 8, fontWeight: 900, fontSize: 11, cursor: "pointer" }}
+        >
+          CANCELAR
+        </button>
+      </div>
+    ) : null;
+
+    if (!landPanel) return confirmBar;
+
+    const closePanel = () => { setLandPanel(null); setPlantSlot(null); playClick(); };
+    const box: React.CSSProperties = {
+      position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)",
+      zIndex: 4600, width: 340, maxHeight: "86vh", overflowY: "auto",
+      background: "#fdfbf7", border: "4px solid #d97706", borderRadius: 16,
+      boxShadow: "0 15px 50px rgba(0,0,0,0.5)", padding: 16,
+    };
+    const title = (txt: string) => (
+      <div style={{ fontSize: 13, color: "#92400e", marginBottom: 10, fontWeight: 900, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {txt}
+      </div>
+    );
+    const backBtn = (fn: () => void, label: string) => (
+      <button
+        onClick={fn}
+        style={{ marginTop: 12, width: "100%", background: "#d97706", color: "#fff", border: "none", padding: "8px", borderRadius: 8, fontWeight: 900, fontSize: 10, cursor: "pointer" }}
+      >
+        {label}
+      </button>
+    );
+
+    if (landPanel.mode === "build") {
+      const count = (idle.lands ?? []).length;
+      const inRevo = idle.currentMap === "land_revo";
+      return (
+        <>
+          {confirmBar}
+          <div style={box}>
+            {title("🏠 Construir Land")}
+            <div style={{ display: "flex", gap: 10, alignItems: "center", background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 12, padding: 10 }}>
+              <img src={LAND_LEVELS[0].img} alt="LAND FRUTO 1" style={{ width: 84, imageRendering: "auto" }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: "#78350f" }}>LAND FRUTO 1</div>
+                <div style={{ fontSize: 9, color: "#92400e", marginTop: 2 }}>Colocação exige 1 Certificado (Pokémarkt, 10 gold) · construção de 1 min · evolui até o nível 3.</div>
+                <div style={{ fontSize: 9, color: "#92400e", marginTop: 2 }}>Suas Lands: {count}/{LAND_MAX} · 📜 Certificados: {idle.items.certificado ?? 0}</div>
+              </div>
+            </div>
+            {!inRevo && (
+              <div style={{ fontSize: 10, color: "#b91c1c", textAlign: "center", marginTop: 10, fontWeight: 800 }}>
+                Vá até o mapa Land Revo para posicionar.
+              </div>
+            )}
+            <button
+              disabled={!inRevo}
+              onClick={() => { setPlacingLand(true); setPlacePreview(null); setLandPanel(null); playClick(); pushChat("📍 Clique numa área válida da Land Revo.", "info"); }}
+              style={{
+                marginTop: 12, width: "100%", background: inRevo ? "#065f46" : "#9ca3af",
+                color: "#fff", border: "none", padding: "10px", borderRadius: 10,
+                fontWeight: 900, fontSize: 12, cursor: inRevo ? "pointer" : "default",
+              }}
+            >
+              📍 POSICIONAR NO MAPA
+            </button>
+            {backBtn(closePanel, "FECHAR")}
+          </div>
+        </>
+      );
+    }
+
+    const land = (idle.lands ?? []).find((o) => o.id === (landPanel as { id: string }).id);
+    if (!land) return confirmBar;
+    const def = landLevelDef(land.level);
+    const building = land.status === "building";
+    const pct = building ? Math.min(100, Math.max(0, ((now - land.startedAt) / LAND_BUILD_MS) * 100)) : 100;
+    const secsLeft = building ? Math.max(0, Math.ceil((land.readyAt - now) / 1000)) : 0;
+    const reqs = land.level < 3 && !building
+      ? landReqsFor((land.level + 1) as LandLevel, loadMaterialsStore(), idle.caughtSpecies ?? [])
+      : [];
+    return (
+      <>
+        {confirmBar}
+        <div style={box}>
+          {title(`🏠 ${def.name}`)}
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <img
+              src={def.img} alt={def.name}
+              style={{ width: 96, imageRendering: "auto", filter: building ? "grayscale(0.65) brightness(0.85)" : "none" }}
+            />
+            <div style={{ flex: 1, fontSize: 10, color: "#78350f", fontWeight: 700 }}>
+              {building ? (
+                <>
+                  <div>Construindo… {secsLeft}s / 60s</div>
+                  <div style={{ height: 8, background: "#e5e7eb", borderRadius: 4, overflow: "hidden", marginTop: 4 }}>
+                    <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg,#f59e0b,#fbbf24)" }} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>Nível {land.level} · pronta ✓</div>
+                  <div style={{ marginTop: 4 }}>🧺 Frutos coletados: {land.totalCollected ?? 0}</div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {!building && (
+            <>
+              <div style={{ fontSize: 11, color: "#92400e", fontWeight: 900, textAlign: "center", margin: "12px 0 8px", textTransform: "uppercase" }}>
+                Plantações
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {LAND_SLOTS.map((_, si) => {
+                  const p = land.plants.find((o) => o.slot === si);
+                  if (!p) {
+                    return plantSlot === si ? (
+                      <div key={si} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 10, padding: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                        {PLANT_DEFS.map((pd) => (
+                          <button
+                            key={pd.kind}
+                            onClick={() => plantInSlot(land.id, si, pd.kind)}
+                            style={{ background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: 6, padding: "3px 2px", fontSize: 8, fontWeight: 900, color: "#065f46", cursor: "pointer" }}
+                          >
+                            {pd.name}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => setPlantSlot(null)}
+                          style={{ background: "none", border: "none", fontSize: 8, color: "#92400e", cursor: "pointer" }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        key={si}
+                        onClick={() => { setPlantSlot(si); playClick(); }}
+                        style={{ background: "#fff9eb", border: "2px dashed #fde68a", borderRadius: 10, padding: 10, fontSize: 9, fontWeight: 900, color: "#92400e", cursor: "pointer" }}
+                      >
+                        +<br />PLANTAR
+                      </button>
+                    );
+                  }
+                  const pd = plantDef(p.kind);
+                  const stage = plantStageAt(p, now);
+                  const collecting = p.collectingUntil != null && p.collectingUntil > now;
+                  const ready = stage >= 3 && !collecting;
+                  return (
+                    <div key={si} style={{ background: "#fff9eb", border: "2px solid #fde68a", borderRadius: 10, padding: 6, textAlign: "center" }}>
+                      <img src={stage >= 2 ? pd.grownImg : pd.growingImg} alt={pd.name} style={{ width: 34, imageRendering: "auto" }} />
+                      <div style={{ fontSize: 7, fontWeight: 900, color: "#78350f" }}>{pd.name}</div>
+                      {ready ? (
+                        <button
+                          onClick={() => startCollect(land.id, p.id)}
+                          style={{ marginTop: 2, background: "#059669", color: "#fff", border: "none", borderRadius: 6, padding: "3px 6px", fontSize: 8, fontWeight: 900, cursor: "pointer" }}
+                        >
+                          COLETAR +{fruitYieldFor(p.kind, land.level)}
+                        </button>
+                      ) : (
+                        <div style={{ fontSize: 7, color: "#92400e", fontWeight: 800 }}>
+                          {collecting ? "Coletando…" : `Estágio ${stage + 1}/4`}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ fontSize: 11, color: "#92400e", fontWeight: 900, textAlign: "center", margin: "12px 0 8px", textTransform: "uppercase" }}>
+                Evolução
+              </div>
+              {land.level >= 3 ? (
+                <div style={{ fontSize: 10, color: "#78350f", textAlign: "center", fontWeight: 800 }}>
+                  ★ NÍVEL MÁXIMO ★
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {reqs.map((r) => (
+                      <div key={r.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 800, color: r.ok ? "#065f46" : "#b91c1c", background: "#fff9eb", border: "1px solid #fde68a", borderRadius: 6, padding: "4px 8px" }}>
+                        <span>{r.ok ? "✓" : "✗"} {r.label}</span>
+                        <span>{r.have}/{r.need}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    disabled={!landReqsMet(reqs)}
+                    onClick={() => evolveLand(land.id)}
+                    style={{
+                      marginTop: 8, width: "100%", background: landReqsMet(reqs) ? "#7c3aed" : "#9ca3af",
+                      color: "#fff", border: "none", padding: "10px", borderRadius: 10,
+                      fontWeight: 900, fontSize: 11, cursor: landReqsMet(reqs) ? "pointer" : "default",
+                    }}
+                  >
+                    ⬆ EVOLUIR PARA {landLevelDef(((land.level + 1) as LandLevel)).name}
+                  </button>
+                </>
+              )}
+            </>
+          )}
+          {backBtn(closePanel, "FECHAR")}
+        </div>
+      </>
+    );
+  };
   const [auraEggDetails, setAuraEggDetails] = useState<{ stonesUsed: Record<string, number>; extraChance: number }>({ stonesUsed: {}, extraChance: 0 });
 
   useEffect(() => {
@@ -3900,6 +4642,9 @@ const confirmName = () => {
   const florestBoneShinyKillsRef = useRef(0);
   const florestBoneShinyAtRef = useRef(100 + Math.floor(Math.random() * 201));
   const florestBoneShinyDueRef = useRef(false);
+  // Rota do Pinsir (evento): 1 Pinsir a cada ~20 farfetch'd nascidos (às vezes 2 seguidos).
+  const rotaFarfetchRef = useRef(0);
+  const rotaPinsirDueRef = useRef(false);
   const florestBonePlusKillsRef = useRef(0);
   const florestBonePlusAtRef = useRef(400 + Math.floor(Math.random() * 301));
   const florestBonePlusDueRef = useRef(false);
@@ -3930,12 +4675,13 @@ const confirmName = () => {
       setTrainerEnergy(Math.max(0, Math.min(100, v)));
     }
   }, [idle.trainerEnergy]);
-  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan" | "bottan" | "aspectro" | "gatoancy";
+  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan" | "bottan" | "aspectro" | "gatoancy" | "barney" | "florzinha";
   const NPC_IMG: Partial<Record<NpcKind, string>> = {
     gordin: gordinPng, luluzinha: luluzinhaFrontPng, pokemarktClerk: pokemarktClerkUrl,
     bottan: bottanPng, aspectro: aspectroPng, gatoancy: gatoancyPng,
     boby: bobyPng, san: sanPng, nanizinha: nanizinhaPng, payka: paykaPng, pan: panPng,
     bulbaOrange: bulbasaurOrangeUrl, bulbaFlower: bulbasaurFlowerUrl,
+    barney: barneyPng, florzinha: florzinhaPng,
   };
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const npcsRef = useRef<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
@@ -4152,6 +4898,12 @@ const confirmName = () => {
         { id: 22, kind: "nanizinha", x: 1000, y: 960, dir: "down", frame: 0 },
         { id: 25, kind: "bottan", x: 700, y: 850, dir: "down", frame: 0 },
       ]);
+    } else if (idle.currentMap === "land_revo") {
+      // Barney (mercador) e Florzinha — parados na Land Revo (1402x1122).
+      setNpcs([
+        { id: 28, kind: "barney", x: 470, y: 560, dir: "down", frame: 0 },
+        { id: 29, kind: "florzinha", x: 980, y: 600, dir: "down", frame: 0 },
+      ]);
     } else if (idle.currentMap === "esfera_ancestral") {
       // Aspectro no topo do corredor caminhável (máscara branca).
       // LUA NEGRA (gatoancy): nasce ao lado do treinador ao entrar no mapa
@@ -4196,7 +4948,9 @@ const confirmName = () => {
     if (npcs.length === 0) return;
     const NPC_HOME_RADIUS: Partial<Record<string, number>> = {
       boby: 42, pokemarktClerk: 42, san: 42, nanizinha: 42, payka: 42, pan: 42,
-      gordin: 84, luluzinha: 42, bottan: 42, aspectro: 0,
+      gordin: 84, luluzinha: 42, bottan: 42, aspecto: 0,
+      // Barney e Florzinha ficam parados (só animam o sprite).
+      barney: 0, florzinha: 0,
     };
     const npcHomeRef = new Map<number, { x: number; y: number }>();
     const iv = setInterval(() => {
@@ -7822,6 +8576,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.map = idle.currentMap;
           // 📋 Loot do Mapa (resumo na Forja): ouro concedido neste abate
           setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) }));
+          // 📦 Drops de recurso no CHÃO (config central; não entram na mochila).
+          const rdrops = rollDropsFor(target.sp, idle.currentMap);
+          if (rdrops.length > 0) {
+            const nowG = Date.now();
+            setGroundDrops((prev) => {
+              const fresh = rdrops.map((r, i) => ({
+                uid: `gd_${nowG.toString(36)}_${i.toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`,
+                mat: r.mat as MaterialId,
+                qty: r.qty,
+                x: Math.round(target.x + (Math.random() * 56 - 28)),
+                y: Math.round(target.y + (Math.random() * 40 - 20)),
+                droppedAt: nowG,
+              }));
+              return [...prev.slice(-24), ...fresh];
+            });
+          }
           // 📖 Saga: progresso de abates do objetivo ativo
           bumpSagaCounter("kill");
           try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "kill", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
@@ -9552,7 +10322,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       return null;
     }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") {
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -9949,6 +10719,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             }
           }
         }
+        // 🪲 ROTA DO PINSIR (evento): farfetch'd comum, tauros médio, shinys raros.
+        // Pinsir RARO: 1 a cada ~20 farfetch'd (às vezes 2 seguidos). Nv 10–30.
+        if (idle.currentMap === "rota_pinsir") {
+          if (rotaPinsirDueRef.current && !enemies.some((e) => e.hp > 0 && speciesBaseOf(e.sp) === "pinsir")) {
+            const shinyRoll = Math.random() < 0.15;
+            pool = [(shinyRoll ? "pinsir_shiny" : "pinsir") as Species];
+            rotaPinsirDueRef.current = false;
+            forcedRarity = "epic";
+          } else {
+            pool = ["farfetchd", "farfetchd", "farfetchd", "farfetchd", "farfetchd", "farfetchd", "tauros", "tauros", "tauros", "farfetchd_shiny", "tauros_shiny"] as Species[];
+          }
+          mapLvRange = [10, 30];
+        }
         // 🌑 MAPAS BÔNUS DARK — roster sombrio e nível escalado pelo treinador + time.
         if (isDarkBonusMap(idle.currentMap)) {
           const dpool = (DARK_BONUS_POOLS[idle.currentMap as DarkBonusMapId] as Species[]).filter(hasGif);
@@ -9992,6 +10775,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
         }
         sp = pool[Math.floor(Math.random() * pool.length)];
+        // Rota do Pinsir: conta farfetch'd nascidos; a cada ~20, libera 1 Pinsir
+        // (25% de chance de emendar outro logo em seguida = às vezes 2).
+        if (idle.currentMap === "rota_pinsir" && speciesBaseOf(sp) === "farfetchd") {
+          rotaFarfetchRef.current += 1;
+          if (rotaFarfetchRef.current >= 20) {
+            rotaFarfetchRef.current = 0;
+            rotaPinsirDueRef.current = true;
+            if (Math.random() < 0.25) rotaFarfetchRef.current = 19;
+          }
+        }
         // Wave: trava de flood de Shiny — sorteio aleatório raramente mantém o
         // shiny (marco de 100 kills garante o evento de verdade). Só vale para
         // spawns normais: com forcedRarity (eventos/contadores) não mexe.
@@ -10928,6 +11721,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         ...s,
         bank: { ...s.bank, gold: s.bank.gold - totalCost },
         items: { ...s.items, [id]: (s.items[id] ?? 0) + n },
+      };
+    });
+  };
+  // Certificado p/ construir casa na Land — 10 gold (Pokémarkt). Não é grátis.
+  const buyCertificado = (qty = 1) => {
+    const n = Math.max(1, Math.floor(qty || 1));
+    setIdle((s) => {
+      const totalCost = 10 * n;
+      if (s.bank.gold < totalCost) {
+        pushChat(`Ouro insuficiente para ${n}× Certificado (precisa ${totalCost}).`, "info");
+        return s;
+      }
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Certificado`, "capture");
+      pushChat(`Comprou ${n}× Certificado por ${totalCost} ouro.`, "cap");
+      return {
+        ...s,
+        bank: { ...s.bank, gold: s.bank.gold - totalCost },
+        items: { ...s.items, certificado: (s.items.certificado ?? 0) + n },
       };
     });
   };
@@ -12691,6 +13502,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const sy = e.clientY - rect.top;
             const wx = renderCamX + (sx - centerOffX) / zoom;
             const wy = renderCamY + (sy - centerOffY) / zoom;
+            // Lands: em modo de posicionamento na Land Revo, o clique marca o
+            // ponto da construção (não anda até lá).
+            if (placingLand && idle.currentMap === "land_revo") {
+              playClick();
+              setPlacePreview({ x: Math.round(wx), y: Math.round(wy) });
+              return;
+            }
             // Pesca: clicou na água do MP Plus → abre a aba de pescaria (sem andar até lá)
             if (idle.currentMap === "mapinha13") {
               const ex = (wx - 325) / 175, ey = (wy - 215) / 115;
@@ -12835,6 +13653,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }));
               pushChat("�x}� Gordin te deu +10 Pokébolas e +2 Great Balls!", "cap");
             };
+            // Leitura fresca do cofre de materiais p/ diálogos da Revoland (só leitura).
+            const revoMats = loadMaterialsStore();
+            const hasBouquet = (revoMats.buque ?? 0) > 0;
+            const flowerCount = revoMats.flor ?? 0;
             const simple: Record<string, string[]> = {
               gordin: [
                 "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um Shiny de cor diferente, que ninguém nunca viu!",
@@ -12849,6 +13671,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               bottan: [
                 "Olá, viajante! Eu sou Bottan. Conheço o caminho para a Esfera Ancestral... um lugar envolto em aurora e neve negra. �S�",
                 "Cada travessia tem um preço, e ele alterna: 5 de energia... depois 1000 de ouro... depois 2 cristais... e recomeça!",
+                ],
+                barney: !(idle.revoQuests?.bouquetStarted ?? false) ? [
+                  "OPA! Cliente! Quer dizer... HERÓI! Sou o BARNEY, o mercador mais honesto da Land Revo! (Honestidade questionável, preços imbatíveis!)",
+                  "Preciso de um favor GIGANTE: perdi meu BUQUÊ! Era pra minha... ehm... 'cliente especial'. Um Pokémon passou correndo e LEVOU ele!",
+                  "Não vi direito qual foi... era verde, com um bulbo nas costas? Bulbasaur? Ivysaur? Sei lá! Tudo que é verde com bulbo parece igual pra mim! Derrota esses dois por aí e traz meu buquê que te pago BEM! (Aceita a quest aqui embaixo!)",
+                ] : (idle.revoQuests?.bouquetDone ?? false) ? [
+                  "Meu buquê tá a salvo graças a você! A 'cliente especial' amou! ...Entre nós: era pra minha mãe. Não espalha!",
+                  "Se precisar de mercadoria... brincadeira! Eu é que preciso de você. Volte sempre, herói da flora!",
+                ] : hasBouquet ? [
+                  "ESSE É ELE! MEU BUQUÊ! Tá um pouco amassado e com cheiro de batalha Pokémon, mas o amor supera! Aperta o botão aí embaixo pra entregar!",
+                ] : [
+                  "Nada do buquê ainda? Foca nos Bulbasaur e Ivysaur — um deles tá com ele, EU ACHO. Quebra tudo por aí que uma hora aparece!",
+                ],
+                florzinha: [
+                  "Oiii! Eu sou a Florzinha! 🌸 Amo flores MAIS que tudo! Se você me trouxer uma FLOR de verdade, te dou um presentinho em troca!",
+                  "Dica de amiga: Pokémon de planta e de inseto costumam derrubar flores... e dizem que até cortando árvore aparece uma, mas é BEM raro, viu?",
+                  `Você já me deu ${idle.revoQuests?.flowersGiven ?? 0} flor(es)! Minha coleção tá cada dia mais linda!`,
                 ],
                 aspectro: [
                   "Olá...",
@@ -12892,6 +13731,49 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               setChests([]);
               setNpcDialog(null);
               pushChat(`✨ Bottan te levou à Esfera Ancestral! (custo: ${bottanCostLabel})`, "cap");
+            };
+            // ===== Revoland: Barney (quest do Buquê) + Florzinha (troca flores) =====
+            // Recompensa alternada: comida ↔ pokebola (só esses dois tipos, 1 unidade).
+            const grantRevoReward = (why: string) => {
+              const step = idle.revoQuests?.rewardStep ?? 0;
+              const food = step % 2 === 0;
+              const fid = food
+                ? (Math.floor(step / 2) % 2 === 0 ? "cafe" : "picole")
+                : (Math.floor(step / 2) % 2 === 0 ? "pokeball" : "greatball");
+              const label = fid === "cafe" ? "1 Café Expresso" : fid === "picole" ? "1 Picolé" : fid === "pokeball" ? "1 Pokébola" : "1 Great Ball";
+              setIdle((s) => {
+                const items = { ...s.items, [fid]: (s.items[fid] ?? 0) + 1 };
+                return { ...s, items, revoQuests: { ...(s.revoQuests ?? {}), rewardStep: (s.revoQuests?.rewardStep ?? 0) + 1 } };
+              });
+              playBonus();
+              pushChat(`🎁 Recompensa (${why}): ${label}!`, "cap");
+            };
+            const acceptBouquetQuest = () => {
+              setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), bouquetStarted: true } }));
+              playClick();
+              pushChat("🌸 Quest aceita: O Buquê Perdido! Derrote Bulbasaur e Ivysaur.", "cap");
+              setNpcDialog(null);
+            };
+            const turnInBouquet = () => {
+              const ms = loadMaterialsStore();
+              if ((ms.buque ?? 0) < 1) { pushChat("❌ Você não tem o Buquê.", "info"); return; }
+              ms.buque -= 1;
+              saveMaterialsStore(ms);
+              setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), bouquetStarted: true, bouquetDone: true } }));
+              setNpcDialog(null);
+              grantRevoReward("O Buquê Perdido");
+            };
+            const giveFlower = () => {
+              const ms = loadMaterialsStore();
+              if ((ms.flor ?? 0) < 1) { pushChat("❌ Você não tem Flor.", "info"); return; }
+              ms.flor -= 1;
+              saveMaterialsStore(ms);
+              setIdle((s) => ({
+                ...s,
+                revoQuests: { ...(s.revoQuests ?? {}), flowersGiven: (s.revoQuests?.flowersGiven ?? 0) + 1 },
+              }));
+              setNpcDialog(null);
+              grantRevoReward("Florzinha");
             };
             const luluLines = [
               "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?",
@@ -12979,10 +13861,35 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     <button
                       onClick={(e) => { e.stopPropagation(); travelWithBottan(); }}
                       style={{ textAlign: "left", background: "rgba(139,92,246,0.25)", border: "1px solid rgba(139,92,246,0.6)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                    >�S� Viajar para a Esfera Ancestral ({bottanCostLabel})</button>
+                    >✈️ Viajar para a Esfera Ancestral ({bottanCostLabel})</button>
                   </div>
-                ) : null)))}
-              />
+                ) : (npcDialog.kind === "barney" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                    {!(idle.revoQuests?.bouquetStarted ?? false) && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); acceptBouquetQuest(); }}
+                        style={{ textAlign: "left", background: "rgba(34,197,94,0.25)", border: "1px solid #22c55e", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >🌸 ACEITAR QUEST: O BUQUÊ PERDIDO</button>
+                    )}
+                    {(idle.revoQuests?.bouquetStarted ?? false) && !(idle.revoQuests?.bouquetDone ?? false) && hasBouquet && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); turnInBouquet(); }}
+                        style={{ textAlign: "left", background: "rgba(245,158,11,0.3)", border: "1px solid #f59e0b", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >💐 ENTREGAR BUQUÊ (recompensa alternada!)</button>
+                    )}
+                  </div>
+                ) : (npcDialog.kind === "florzinha" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                    <div style={{ fontSize: 10, color: "#f9a8d4", fontWeight: 800 }}>Flores com você: {flowerCount} · já deu: {idle.revoQuests?.flowersGiven ?? 0}</div>
+                    {flowerCount > 0 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); giveFlower(); }}
+                        style={{ textAlign: "left", background: "rgba(249,168,212,0.25)", border: "1px solid #f9a8d4", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >🌸 DAR 1 FLOR (presentinho alternado!)</button>
+                    )}
+                  </div>
+                ) : null)))))}
+               />
             );
           })()}
 
@@ -13425,6 +14332,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onBuyPotion={buyPotion}
               onBuyRevive={buyRevive}
               onBuyFood={buyFood}
+              onBuyCertificado={buyCertificado}
               onBuyBook={(id, quantity) => {
                 const book = SHOP_BOOKS.find((entry) => entry.id === id);
                 if (book) buyBook(book, quantity);
@@ -13919,6 +14827,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             />
 
             {/* Render de orbs de energia removido — só mapOrbs abaixo */}
+            {/* ===== LANDS do jogador (Land Revo) ===== */}
+            {renderLands()}
+            {/* ===== Árvores cortáveis (teste) ===== */}
+            {renderChopTrees()}
+            {/* ===== Drops de recurso no chão ===== */}
+            {renderGroundDrops()}
             {mapOrbs.map((o) => {
               const elapsed = Date.now() - o.spawnAt;
               const pct = Math.min(100, (elapsed / o.duration) * 100);
@@ -14097,7 +15011,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               // o restringe, mas double-check p/ nunca aparecer em 0,0).
               if (n.kind === "gatoancy" && idle.currentMap !== "esfera_ancestral") return null;
               const isSagaNpc = n.kind === "boby" || n.kind === "san" || n.kind === "nanizinha" || n.kind === "payka" || n.kind === "pan";
-              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || n.kind === "bottan" || n.kind === "aspectro" || n.kind === "gatoancy" || isSagaNpc;
+              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || n.kind === "bottan" || n.kind === "aspectro" || n.kind === "gatoancy" || n.kind === "barney" || n.kind === "florzinha" || isSagaNpc;
               const url = NPC_IMG[n.kind] ?? bulbasaurFlowerUrl;
               const singlePortrait = n.kind === "luluzinha";
               // Lua Negra: a esquerda é o reflexo da direita (o sheet não tem
@@ -17432,8 +18346,44 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { id: "melhorias",label: "Melhorias",img: navMelhorias },
               { id: "market",   label: "Marketplace", img: navMarket, disabled: true },
+              { id: "eventoLiga", label: "EVENTO", img: ligaPng, shiny: true },
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
             ] as const).map((t) => {
+              const isShiny = (t as { shiny?: boolean }).shiny === true;
+              if (isShiny) {
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+                    title="EVENTO — Liga Elemental"
+                    className="bottomnav-btn"
+                    style={{
+                      flex: 1, maxWidth: 120, minWidth: 0,
+                      background: "radial-gradient(ellipse at 50% 0%, rgba(245,207,107,0.35), rgba(245,207,107,0.05) 70%, transparent 100%)",
+                      border: "1px solid #f5cf6b", padding: "3px 2px 2px", cursor: "pointer",
+                      borderRadius: 10, display: "flex", flexDirection: "column",
+                      alignItems: "center", gap: 2, position: "relative",
+                      boxShadow: "0 0 14px rgba(245,207,107,0.55), inset 0 0 8px rgba(245,207,107,0.25)",
+                      animation: "orbGlow 2s infinite ease-in-out",
+                    }}
+                  >
+                    <img
+                      src={t.img}
+                      alt=""
+                      width={26}
+                      height={26}
+                      draggable={false}
+                      style={{
+                        width: 26, height: 26, imageRendering: "pixelated",
+                        filter: "drop-shadow(0 0 6px rgba(245,207,107,0.9))",
+                      }}
+                    />
+                    <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5, color: "#ffe9a8", textShadow: "0 1px 2px #000" }}>
+                      {t.label}
+                    </span>
+                  </button>
+                );
+              }
               const isDisabled = (t as { disabled?: boolean }).disabled === true;
               const active = tab === t.id;
               if (!isDisabled) {
@@ -17519,6 +18469,85 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           </button>
         </div>
       </div>
+
+      {/* LIGA ELEMENTAL — aba do EVENTO (conteúdo/imagens finais vêm depois) */}
+      {tab === "eventoLiga" && (() => {
+        const day = eventDayStr();
+        const freeUsed = idle.eventEntries?.day === day ? (idle.eventEntries.free ?? 0) : 0;
+        const freeLeft = Math.max(0, EVENT_FREE_PER_DAY - freeUsed);
+        const inEvent = EVENT_MAPS.includes(idle.currentMap);
+        const remainMs = Math.max(0, (idle.eventPassUntil ?? 0) - now);
+        const remainTxt = inEvent
+          ? `${Math.floor(remainMs / 60000)}m ${Math.floor((remainMs % 60000) / 1000)}s restantes`
+          : null;
+        const maps = [
+          { id: "rota_pinsir", name: "Rota do Pinsir", desc: "Farfetch'd · Tauros · Pinsir raro (Nv 10–30)" },
+          { id: "deserto_alaka", name: "Deserto de Alaka", desc: "Em breve · Nv 10–30" },
+        ];
+        return (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 10000,
+            background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)",
+            display: "grid", placeItems: "center", padding: "20px 0",
+          }}>
+            <div style={{
+              width: "min(720px, 96vw)", maxHeight: "92vh", overflowY: "auto",
+              border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
+              boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
+              backgroundImage: `url(${ligaElementalBg})`,
+              backgroundSize: "cover", backgroundPosition: "center",
+            }}>
+              <div style={{ position: "absolute", inset: 0, background: "rgba(10,5,20,0.72)", zIndex: 0 }} />
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTab("pokemon"); playClick(); }}
+                style={{ position: "absolute", top: 12, right: 16, background: "rgba(0,0,0,0.4)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 32, height: 32, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 18, cursor: "pointer", fontWeight: 900, zIndex: 2 }}
+              >
+                ✕
+              </button>
+              <div style={{ textAlign: "center", marginBottom: 12, position: "relative", zIndex: 1 }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 12px rgba(245,207,107,0.6)" }}>⚡ LIGA ELEMENTAL ⚡</div>
+                <div style={{ fontSize: 11, color: "#ffe9a8", marginTop: 4, fontWeight: 700 }}>
+                  2 entradas grátis por dia · ou 10 💎 por entrada · Nv 10–30 · 20 min por visita
+                </div>
+                <div style={{ fontSize: 12, color: freeLeft > 0 ? "#4ade80" : "#f87171", marginTop: 6, fontWeight: 900 }}>
+                  Grátis hoje: {EVENT_FREE_PER_DAY - freeLeft}/{EVENT_FREE_PER_DAY} usadas
+                  {inEvent && remainTxt ? ` · ⏱️ ${remainTxt}` : ""}
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, position: "relative", zIndex: 1 }}>
+                {maps.map((m) => (
+                  <div key={m.id} style={{ background: "rgba(255,255,255,0.07)", border: "2px solid rgba(245,207,107,0.5)", borderRadius: 12, padding: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{m.name}</div>
+                    <div style={{ fontSize: 10, color: "#ffe9a8", marginTop: 2 }}>{m.desc}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <button
+                        disabled={freeLeft <= 0}
+                        onClick={() => enterEvent(m.id, false)}
+                        style={{
+                          flex: 1, padding: "9px", borderRadius: 8, fontWeight: 900, fontSize: 11, cursor: freeLeft > 0 ? "pointer" : "not-allowed",
+                          background: freeLeft > 0 ? "linear-gradient(180deg,#22c55e,#15803d)" : "#3a2a4a",
+                          color: freeLeft > 0 ? "#fff" : "#8a7a9c", border: "none",
+                        }}
+                      >
+                        {freeLeft > 0 ? "🎟️ ENTRAR GRÁTIS" : "GRÁTIS ESGOTADAS"}
+                      </button>
+                      <button
+                        onClick={() => enterEvent(m.id, true)}
+                        style={{
+                          flex: 1, padding: "9px", borderRadius: 8, fontWeight: 900, fontSize: 11, cursor: "pointer",
+                          background: "linear-gradient(180deg,#38bdf8,#0369a1)", color: "#fff", border: "none",
+                        }}
+                      >
+                        ENTRAR · 10 💎
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* CALENDÁRIO DIÁRIO */}
       {tab === "evento" && (
@@ -17848,6 +18877,8 @@ onClick={(e) => {
           </div>
         </div>
       )}
+      {/* ===== Painel das Lands (construir/gerenciar + barra de confirmação) ===== */}
+      {renderLandPanel()}
       <div
         onMouseDown={(e) => {
           forgeDragRef.current = {
@@ -17920,7 +18951,20 @@ onClick={(e) => {
                 </div>
 
 
-                <div 
+                <div
+                  onClick={(e) => { e.stopPropagation(); setLandPanel({ mode: "build" }); setForgeShowOrbit(false); playClick(); }}
+                  style={{
+                    position: "absolute", width: 44, height: 44, background: "#ecfdf5", border: "2px solid #059669", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    left: -58, top: -52, boxShadow: "0 4px 10px rgba(0,0,0,0.3)", transform: "scale(1)", transition: "all 0.2s",
+                    animation: "orbPop 0.3s 0.05s ease-out forwards", zIndex: 1
+                  }}
+                  title="Construir Land (Land Revo)"
+                >
+                  <Home size={22} color="#065f46" />
+                </div>
+
+                <div
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(false); setShowForgeLoot(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
                   style={{
                     position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",

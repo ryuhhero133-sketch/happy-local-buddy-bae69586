@@ -15,6 +15,8 @@ import imgBronze from "@/assets/materials/bronze.png";
 import imgOleo from "@/assets/materials/oleo.png";
 import imgChicote from "@/assets/materials/chicote.png";
 import imgSucata from "@/assets/materials/sucata.png";
+import imgLaranja from "@/lands/land01/Laranjinha.png";
+import imgBanana from "@/lands/land01/bananas.png";
 
 import {
   loadMaterialsStore,
@@ -105,6 +107,8 @@ const MAT_META: Record<MaterialId, { label: string; img?: string }> = {
   cr_prisma: { label: "Cristal" }, cr_red: { label: "Cristal" }, cr_blue: { label: "Cristal" },
   cr_yellow: { label: "Cristal" }, cr_green: { label: "Cristal" }, cr_purple: { label: "Cristal" },
   cog_red: { label: "Cogumelo" }, cog_brown: { label: "Cogumelo" }, cog_blue: { label: "Cogumelo" },
+  laranja: { label: "Laranja", img: imgLaranja }, banana: { label: "Banana", img: imgBanana },
+  buque: { label: "Buquê" }, flor: { label: "Flor" }, pepita: { label: "Pepita" }, cog_orange: { label: "Cogumelo" },
 };
 
 // Materiais mostrados na coluna "RECURSOS" (somente os que aparecem nas receitas)

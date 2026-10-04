@@ -112,6 +112,7 @@ export type Species =
   | "charmander" | "squirtle" | "charizard" | "ivysaur" | "venusaur"
   | "butterfree" | "bulbasaur_hat"
   | "pikachu" | "sandslash" | "mewtwo" | "onix" | "pinsir"
+  | "tauros" | "tauros_shiny" | "farfetchd" | "farfetchd_shiny" | "pinsir_shiny"
   | "magmar" | "hitmonchan" | "golem" | "aerodactyl"
   | "arbok" | "charizard_shiny" | "charizard_alt"
   | "moltres" | "zapdos" | "articuno"
@@ -344,6 +345,11 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   mewtwo:     { hp: 106, atk: 110, def: 90, spa: 154, spd: 90, spe: 130, rarity: "mythic", goldRange: [40, 70], crystalChance: 0.25, catchMod: 2.0, minLv: 90 },
   onix:       { hp: 35, atk: 45, def: 160, spa: 30, spd: 45, spe: 70, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.3, minLv: 12 },
   pinsir:     { hp: 65, atk: 125, def: 100, spa: 55, spd: 70, spe: 85, rarity: "epic", goldRange: [17, 30], crystalChance: 0.09, catchMod: 1.5, minLv: 22 },
+  pinsir_shiny: { hp: 65, atk: 125, def: 100, spa: 55, spd: 70, spe: 85, rarity: "legendary", goldRange: [20, 35], crystalChance: 0.12, catchMod: 1.2, minLv: 22 },
+  tauros:    { hp: 75, atk: 100, def: 95, spa: 40, spd: 70, spe: 110, rarity: "uncommon", goldRange: [8, 14], crystalChance: 0.03, catchMod: 1.0, minLv: 10 },
+  tauros_shiny: { hp: 75, atk: 100, def: 95, spa: 40, spd: 70, spe: 110, rarity: "rare", goldRange: [10, 16], crystalChance: 0.04, catchMod: 0.9, minLv: 10 },
+  farfetchd: { hp: 52, atk: 90, def: 55, spa: 58, spd: 62, spe: 60, rarity: "uncommon", goldRange: [6, 10], crystalChance: 0.02, catchMod: 1.0, minLv: 10 },
+  farfetchd_shiny: { hp: 52, atk: 90, def: 55, spa: 58, spd: 62, spe: 60, rarity: "rare", goldRange: [8, 12], crystalChance: 0.03, catchMod: 0.9, minLv: 10 },
   magmar:     { hp: 65, atk: 95, def: 57, spa: 100, spd: 85, spe: 93, rarity: "rare", goldRange: [11, 19], crystalChance: 0.06, catchMod: 1.35, minLv: 18 },
   hitmonchan: { hp: 50, atk: 105, def: 79, spa: 35, spd: 110, spe: 76, rarity: "rare", goldRange: [10, 17], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
   golem:      { hp: 80, atk: 120, def: 130, spa: 55, spd: 65, spe: 45, rarity: "epic", goldRange: [19, 32], crystalChance: 0.1, catchMod: 1.55, minLv: 25 },
