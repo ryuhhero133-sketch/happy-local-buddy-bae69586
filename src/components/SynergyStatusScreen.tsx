@@ -157,7 +157,7 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
         ))}
       </div>
       {activePanel==="pokemon" && (
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 6, border: "4px solid #1a0f2a", borderTop: "none", borderBottom: "none", background: "#1a0f2a", padding: "0 6px" }}>
+      <div className="mob-syn-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 6, border: "4px solid #1a0f2a", borderTop: "none", borderBottom: "none", background: "#1a0f2a", padding: "0 6px" }}>
         {/* Left Pokemon card */}
         <div style={{
           background: "#b8a8e8", borderRight: "4px solid #1a0f2a",
