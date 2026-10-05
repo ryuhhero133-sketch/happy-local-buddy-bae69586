@@ -2438,8 +2438,10 @@ function IdlePage() {
         return {
           ...prev,
           bank: {
-            gold: full.trainer.gold,
-            crystals: full.trainer.crystal,
+            // Nunca diminuir ouro/cristais por hidratação: servidor defasado
+            // não pode apagar farm local (mesma regra de level/XP/kills).
+            gold: Math.max(prev.bank?.gold ?? 0, full.trainer.gold ?? 0),
+            crystals: Math.max(prev.bank?.crystals ?? 0, full.trainer.crystal ?? 0),
           },
           trainerLevel: nextLevel,
           trainerXp: nextXp,
@@ -3969,6 +3971,27 @@ const confirmName = () => {
       setForgePos({ x: window.innerWidth - 380, y: window.innerHeight - 250 });
     }
   }, []); // eslint-disable-line
+
+  // ===== MOBILE: painel aberto como drawer (só tem efeito visual ≤768px via CSS) =====
+  // Desktop ignora: a barra de ações fica escondida e as colunas seguem normais.
+  const [mobPanel, setMobPanel] = useState<null | "equipe" | "chat" | "quests" | "mapa" | "shop" | "menu">(null);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const cls = ["mob-show-equipe", "mob-show-chat", "mob-show-quests", "mob-show-mapa", "mob-show-shop", "mob-show-menu"];
+    document.body.classList.remove(...cls);
+    if (mobPanel) document.body.classList.add(`mob-show-${mobPanel}`);
+    return () => { document.body.classList.remove(...cls); };
+  }, [mobPanel]);
+  const mobToggle = (k: NonNullable<typeof mobPanel>) => {
+    playClick();
+    setMobPanel((cur) => (cur === k ? null : k));
+  };
+  // Mobile: marca quando uma aba está aberta (HUD limpo + abas fullscreen via CSS).
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.classList.toggle("mob-tabopen", tab !== "batalha");
+    return () => { document.body.classList.remove("mob-tabopen"); };
+  }, [tab]);
 
   useEffect(() => {
     const mm = (e: MouseEvent | TouchEvent) => {
@@ -6326,8 +6349,7 @@ const confirmName = () => {
   const skinUrlRef = useRef<string | null>(null);
   useEffect(() => { skinUrlRef.current = skinUrl; }, [skinUrl]);
   useEffect(() => {
-    // Jogadores só se veem em Revoland (mapinha6) — nos outros mapas, sem presença.
-    if (idle.currentMap !== "mapinha6") { setRemotePlayers([]); return; }
+    // Presença multiplayer ativa em QUALQUER mapa.
     if (!identity?.id) return;
     const mapId = idle.currentMap;
     const meUserId = identity.id;
@@ -6475,8 +6497,7 @@ const confirmName = () => {
 
   const visibleMapPlayers = useMemo(() => {
     // Remove fakeMapPlayers do jogo conforme pedido.
-    // Só mostra jogadores em Revoland (presença restrita a mapinha6).
-    if (idle.currentMap !== "mapinha6") return [];
+    // Jogadores se veem em qualquer mapa (filtro por mapa já vem do banco).
     return remotePlayers;
   }, [remotePlayers, idle.currentMap]);
 
@@ -9074,8 +9095,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               queueMicrotask(() => {
                 pushChat(`🎓 TREINADOR subiu para o nível ${applied.leveledTo}!`, "lv");
                 setLevelToast({ level: applied.leveledTo || 0, ts: Date.now(), type: "trainer" });
-                // Salva imediatamente no banco — nível de treinador não pode dar rollback
+                // Salva imediatamente no banco — nível de treinador não pode dar rollback.
+                // Push duplo (normalizado + blob completo) igual ao botão Salvar.
                 void serverSync.pushNow();
+                void pushCloudSaveNow(buildFullBlob());
               });
             }
             queueMicrotask(() => {
@@ -13037,7 +13060,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
         {/* ============ TOPBAR (treinador + moedas + atalhos + relógio) ============ */}
         {/* TEMP-REVERSIVEL-TOPO-FLUXO: topbar visível com painel fino em fluxo normal */}
-        <div style={{
+        <div className="mob-hud" style={{
           gridColumn: "1 / -1",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap",
           background: "linear-gradient(180deg, rgba(10,17,32,0.96) 0%, rgba(6,10,20,0.96) 100%)",
@@ -13194,7 +13217,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   {Math.round(Math.max(0, Math.min(100, ((idle.trainerXp ?? 0) / Math.max(1, trainerXpToNext(idle.trainerLevel ?? 1))) * 100)))}%
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+              <div className="mob-bar-energy" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
                 <span style={{
                   width: 18, height: 18, borderRadius: "50%", display: "grid", placeItems: "center",
                   fontSize: 11, background: "linear-gradient(180deg,#d8ffe2,#8fe3a8)",
@@ -13206,7 +13229,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 </div>
                 <span style={{ fontSize: 9, color: trainerEnergy > 15 ? "#4ade80" : "#f87171", fontWeight: 800 }}>{Math.round(trainerEnergy)}%</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+              <div className="mob-bar-hunger" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
                 <span style={{
                   width: 18, height: 18, borderRadius: "50%", display: "grid", placeItems: "center",
                   fontSize: 11, background: "linear-gradient(180deg,#fff3d9,#ffd98f)",
@@ -13218,7 +13241,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 </div>
                 <span style={{ fontSize: 9, color: (idle.trainerHunger ?? 100) > 30 ? "#f5cf6b" : "#f87171", fontWeight: 800 }}>{Math.round(idle.trainerHunger ?? 100)}%</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+              <div className="mob-bar-throws" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
                 <img src={ballPokeImg} alt="Arremessos" width={18} height={18} style={{
                   imageRendering: "pixelated",
                   filter: (idle.throwsLeft ?? MAX_THROW_COUNT) > 10 ? "drop-shadow(0 0 4px rgba(255,255,255,0.5))" : "grayscale(0.6) brightness(0.7)",
@@ -13245,7 +13268,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             }} />
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div className="mob-coins" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {([
               { el: <GoldCoin size={18} />, val: Math.floor(idle.bank.gold).toLocaleString("pt-BR") },
               { el: <CrystalGem size={18} />, val: Math.floor(idle.bank.crystals).toLocaleString("pt-BR") },
@@ -13310,13 +13333,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
         {/* ============ COLUNA ESQUERDA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
+        <div className="mob-col mob-col-left" style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, overflow: "hidden" }}>
 
 
 
 
           {/* EQUIPE — GBA azul estilosa */}
-          <div style={{
+          <div className="mob-panel-equipe" style={{
             background: "#d8c99a",
             border: "3px solid #2c2c2c",
             borderRadius: 6, overflow: "hidden",
@@ -13464,7 +13487,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
           {/* Chat ocupa todo o espaço restante — sem rolagem externa */}
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <div className="mob-panel-chat" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
             <div style={{
               background: "linear-gradient(180deg, rgba(12,20,36,0.96), rgba(8,13,26,0.96))",
               border: "1px solid rgba(100,160,255,0.35)",
@@ -13584,6 +13607,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         {/* ============ CENTRO — ARENA (viewport com câmera) ============ */}
         <div
           ref={viewportRef}
+          className="mob-center"
           onDoubleClick={(e) => e.preventDefault()}
           onDragStart={(e) => e.preventDefault()}
           onClick={(e) => {
@@ -16956,6 +16980,15 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
+          {/* Mobile: botão VOLTAR (visível só ≤768px; bottom-nav fica oculta) */}
+          {tab !== "batalha" && (
+            <button
+              className="mob-tabback"
+              onClick={() => { playClick(); setTab("batalha"); }}
+            >
+              ← VOLTAR
+            </button>
+          )}
           {tab !== "batalha" && (
             <TabOverlay
               tab={tab}
@@ -17119,8 +17152,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
         {/* ============ COLUNA DIREITA ============ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflowY: "auto" }}>
-          <Panel title="MAPA ATUAL" accent="#3d2b52">
+        <div className="mob-col mob-col-right" style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0, overflowY: "auto" }}>
+          <Panel title="MAPA ATUAL" accent="#3d2b52" className="mob-panel-map">
             {(() => {
               const leaderLv = team[0]?.level ?? 1;
               const goTo = (label: string, x: number, y: number, onArrive?: () => void) => {
@@ -18127,7 +18160,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             })()}
 
           {/* QUESTS — luzes neon, 9 bolas */}
-          <div style={{
+          <div className="mob-panel-quests" style={{
             background: "linear-gradient(180deg, #0f2a5a, #14366e)",
             border: "1.5px solid #4a7ad0",
             borderRadius: 10, overflow: "visible",
@@ -18211,6 +18244,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
           {/* PACOTES ESPECIAIS — fino, limpo e minimizável */}
           <div
+            className="mob-panel-shop"
             style={{
               background: "rgba(22,16,48,0.92)",
               border: "1px solid rgba(245,207,107,0.30)",
@@ -19946,6 +19980,90 @@ onClick={(e) => {
 
 
 
+      {/* ===== MOBILE: barra de ações (visível só ≤768px via CSS) ===== */}
+      <div className="mob-backdrop" onClick={() => setMobPanel(null)} />
+      <div className="mob-actionbar">
+        {([
+          { k: "equipe", icon: "👤", label: "Equipe" },
+          { k: "chat", icon: "💬", label: "Chat" },
+          { k: "quests", icon: "◆", label: "Quests" },
+          { k: "mapa", icon: "🗺️", label: "Mapa" },
+          { k: "shop", icon: "🎁", label: "Loja" },
+          { k: "menu", icon: "☰", label: "Menu" },
+        ] as const).map((b) => (
+          <button
+            key={b.k}
+            onClick={() => mobToggle(b.k)}
+            className={mobPanel === b.k ? "mob-actionbtn mob-actionbtn-active" : "mob-actionbtn"}
+          >
+            <span className="mob-actionbtn-icon">{b.icon}</span>
+            <span className="mob-actionbtn-label">{b.label}</span>
+          </button>
+        ))}
+        {/* Menu ☰ com as opções da barra inferior */}
+        <div className="mob-panel-menu">
+          {([
+            { id: "pokemon", icon: "🔥", label: "Pokémon" },
+            { id: "mochila", icon: "🎒", label: "Mochila" },
+            { id: "colecao", icon: "📖", label: "Coleção" },
+            { id: "pokedex", icon: "📕", label: "Pokédex" },
+            { id: "melhorias", icon: "⚙️", label: "Melhorias" },
+            { id: "wallet", icon: "🏦", label: "Banco" },
+          ] as const).map((m) => (
+            <button
+              key={m.id}
+              className="mob-menuopt"
+              onClick={() => { playClick(); setTab(m.id as typeof tab); setMobPanel(null); }}
+            >
+              <span className="mob-menuopt-icon">{m.icon}</span>
+              <span>{m.label}</span>
+            </button>
+          ))}
+          <button
+            className="mob-menuopt"
+            onClick={() => { playClick(); setMapTeleportOpen(true); setMobPanel(null); }}
+          >
+            <span className="mob-menuopt-icon">🗺️</span>
+            <span>Viajar (mapa)</span>
+          </button>
+          <button
+            className="mob-menuopt"
+            onClick={async () => {
+              playClick();
+              if (!cloudBlobReady) {
+                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
+                return;
+              }
+              try {
+                const ok = await pushCloudSaveNow(buildFullBlob());
+                await serverSync.pushNow();
+                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
+              } catch (e) {
+                pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
+              }
+              setMobPanel(null);
+            }}
+          >
+            <span className="mob-menuopt-icon">☁️</span>
+            <span>Salvar na nuvem</span>
+          </button>
+          <button
+            className="mob-menuopt mob-menuopt-off"
+            onClick={() => { playClick(); pushChat("🛒 Mercado temporariamente bloqueado.", "info"); }}
+          >
+            <span className="mob-menuopt-icon">🏪</span>
+            <span>Marketplace (em breve)</span>
+          </button>
+          <button
+            className="mob-menuopt mob-menuopt-off"
+            onClick={() => { playClick(); pushChat("🎟️ Evento em breve!", "info"); }}
+          >
+            <span className="mob-menuopt-icon">⚡</span>
+            <span>EVENTO (em breve)</span>
+          </button>
+        </div>
+      </div>
+
       <style>{`
         /* ===== Layout responsivo ===== */
         @media (max-width: 1400px) {
@@ -19956,6 +20074,186 @@ onClick={(e) => {
         }
         @media (max-width: 1024px) {
           .idle-grid { grid-template-columns: 170px 1fr 170px !important; }
+        }
+
+        /* ===== MOBILE (≤768px): mapa em destaque, painéis viram drawers ===== */
+        /* Tudo aqui dentro só afeta telas estreitas. Desktop permanece intacto. */
+        .mob-actionbar, .mob-backdrop, .mob-tabback { display: none; }
+        @media (max-width: 768px) {
+          html, body { overflow-x: hidden; }
+          .idle-grid {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto 1fr auto !important;
+            gap: 4px !important;
+            padding: 4px 4px 74px 4px !important;
+            height: 100dvh !important;
+            overflow: hidden;
+          }
+          /* Colunas saem do fluxo; mapa ocupa a largura total */
+          .mob-col-left, .mob-col-right { display: contents !important; }
+          .mob-center {
+            width: 100% !important;
+            min-height: 380px !important;
+            height: calc(100dvh - 250px) !important;
+          }
+          /* Painéis escondidos por padrão no mobile */
+          .mob-panel-equipe, .mob-panel-chat, .mob-panel-map,
+          .mob-panel-quests, .mob-panel-shop, .mob-panel-menu { display: none !important; }
+          /* Drawer aberto: bottom-sheet sobre o mapa (nada é destruído) */
+          body.mob-show-equipe .mob-panel-equipe,
+          body.mob-show-chat .mob-panel-chat,
+          body.mob-show-mapa .mob-panel-map,
+          body.mob-show-quests .mob-panel-quests,
+          body.mob-show-shop .mob-panel-shop {
+            display: flex !important;
+            flex-direction: column;
+            position: fixed !important;
+            left: 0 !important; right: 0 !important; bottom: 0 !important; top: auto !important;
+            width: 100% !important; max-width: 100vw !important;
+            height: 62dvh !important; max-height: 62dvh !important;
+            min-height: 0 !important; margin: 0 !important;
+            z-index: 9000 !important;
+            overflow-y: auto !important;
+            border-radius: 14px 14px 0 0 !important;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.6) !important;
+          }
+          /* Menu ☰: folha menor, lista de opções */
+          body.mob-show-menu .mob-panel-menu {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+            position: fixed !important;
+            left: 8px !important; right: 8px !important;
+            bottom: 76px !important; top: auto !important;
+            width: auto !important; max-width: 100vw !important;
+            max-height: 56dvh !important;
+            min-height: 0 !important; margin: 0 !important; padding: 10px !important;
+            z-index: 9000 !important;
+            overflow-y: auto !important;
+            background: rgba(10,16,32,0.98) !important;
+            border: 2px solid rgba(245,207,107,0.45) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.6) !important;
+          }
+          .mob-menuopt {
+            display: flex !important; align-items: center !important; gap: 10px !important;
+            width: 100% !important; min-height: 46px !important;
+            background: rgba(255,255,255,0.07) !important; color: #fff !important;
+            border: 1px solid rgba(255,255,255,0.16) !important; border-radius: 10px !important;
+            padding: 8px 12px !important; font-size: 13px !important; font-weight: 800 !important;
+            cursor: pointer !important; text-align: left !important;
+          }
+          .mob-menuopt-icon { font-size: 20px !important; width: 28px !important; text-align: center !important; }
+          .mob-menuopt-off { opacity: 0.55 !important; }
+          /* Barra inferior original recolhida no mobile (vira o menu ☰) */
+          .bottom-nav-bar { display: none !important; }
+          /* Fundo escuro para fechar tocando fora */
+          body[class*="mob-show-"] .mob-backdrop {
+            display: block !important;
+            position: fixed !important; inset: 0 !important;
+            background: rgba(0,0,0,0.55) !important;
+            z-index: 8999 !important;
+          }
+          /* Barra de ações mobile (botões 48px+) */
+          .mob-actionbar {
+            display: flex !important;
+            position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            z-index: 9001 !important;
+            background: rgba(8,12,24,0.96) !important;
+            border-top: 2px solid rgba(245,207,107,0.4) !important;
+            padding: 6px 6px calc(6px + env(safe-area-inset-bottom)) !important;
+            gap: 4px !important;
+          }
+          .mob-actionbtn {
+            flex: 1 !important; min-width: 0 !important; min-height: 52px !important;
+            display: flex !important; flex-direction: column !important;
+            align-items: center !important; justify-content: center !important; gap: 1px !important;
+            background: rgba(255,255,255,0.06) !important; color: #fff !important;
+            border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 10px !important;
+            cursor: pointer !important; font-size: 10px !important; font-weight: 800 !important;
+          }
+          .mob-actionbtn-icon { font-size: 20px !important; line-height: 1 !important; }
+          .mob-actionbtn-label { font-size: 9px !important; letter-spacing: 0.3px !important; }
+          .mob-actionbtn-active {
+            background: rgba(245,207,107,0.25) !important;
+            border-color: #f5cf6b !important; color: #ffe9a8 !important;
+          }
+          /* HUD compacto: rola horizontal em vez de espremer */
+          .mob-hud { overflow-x: auto !important; scrollbar-width: none !important; }
+          .mob-hud::-webkit-scrollbar { display: none !important; }
+          /* Alvos de toque maiores na navegação inferior */
+          .bottom-nav-bar .bottomnav-btn { min-width: 52px !important; min-height: 50px !important; }
+          .bottom-nav-bar { overflow-x: auto !important; scrollbar-width: none !important; }
+          .bottom-nav-bar::-webkit-scrollbar { display: none !important; }
+          /* Abas em TELA CHEIA no mobile */
+          .mob-taboverlay {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 9400 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            padding: 10px 8px calc(86px + env(safe-area-inset-bottom)) !important;
+            overflow-y: auto !important;
+          }
+          /* Com aba aberta: HUD limpo — esconde moedas e barras, mostra só o level */
+          body.mob-tabopen .mob-coins,
+          body.mob-tabopen .mob-bar-energy,
+          body.mob-tabopen .mob-bar-hunger,
+          body.mob-tabopen .mob-bar-throws { display: none !important; }
+          /* Ícones da barra mobile mais atraentes */
+          .mob-actionbtn {
+            background: linear-gradient(180deg, rgba(38,28,68,0.95), rgba(14,10,28,0.95)) !important;
+            border: 1px solid rgba(245,207,107,0.35) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+          }
+          .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(245,207,107,0.65)) !important; }
+          .mob-actionbtn:nth-child(1) .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(110,175,255,0.8)) !important; }
+          .mob-actionbtn:nth-child(2) .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(94,224,122,0.8)) !important; }
+          .mob-actionbtn:nth-child(3) .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(245,207,107,0.8)) !important; }
+          .mob-actionbtn:nth-child(4) .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(103,199,245,0.8)) !important; }
+          .mob-actionbtn:nth-child(5) .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(255,139,208,0.8)) !important; }
+          .mob-actionbtn:nth-child(6) .mob-actionbtn-icon { filter: drop-shadow(0 0 5px rgba(192,132,252,0.8)) !important; }
+          .mob-actionbtn-active {
+            background: linear-gradient(180deg, rgba(90,64,20,0.95), rgba(40,26,8,0.95)) !important;
+            border-color: #f5cf6b !important; color: #ffe9a8 !important;
+            box-shadow: 0 0 14px rgba(245,207,107,0.45), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+          }
+          /* Card do alvo (inimigo): compacto no mobile */
+          .mob-targetcard {
+            transform: translateX(-50%) scale(0.82) !important;
+            transform-origin: top center !important;
+            max-width: 94vw !important;
+            top: 56px !important;
+          }
+          /* Botão VOLTAR das abas (bottom-nav oculta no mobile) */
+          .mob-tabback {
+            display: flex !important;
+            align-items: center !important; justify-content: center !important;
+            position: fixed !important; top: 10px !important; left: 10px !important;
+            z-index: 9600 !important;
+            min-height: 44px !important; padding: 8px 14px !important;
+            background: rgba(8,12,24,0.95) !important; color: #ffe9a8 !important;
+            border: 2px solid rgba(245,207,107,0.6) !important; border-radius: 10px !important;
+            font-size: 12px !important; font-weight: 900 !important; letter-spacing: 0.5px !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+          }
+          /* Aba Pokémon: compacta para caber sem rolar */
+          .mob-tab-pokemon { padding: 8px 6px 12px !important; }
+          .mob-tab-pokemon .mob-syn-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .mob-center { min-height: 320px !important; height: calc(100dvh - 230px) !important; }
+          body.mob-show-equipe .mob-panel-equipe,
+          body.mob-show-chat .mob-panel-chat,
+          body.mob-show-mapa .mob-panel-map,
+          body.mob-show-quests .mob-panel-quests,
+          body.mob-show-shop .mob-panel-shop { height: 68dvh !important; max-height: 68dvh !important; }
+          .mob-actionbtn { min-height: 48px !important; font-size: 9px !important; }
+        }
+        @media (max-width: 360px) {
+          .mob-actionbtn-label { display: none !important; }
+          .mob-actionbtn-icon { font-size: 22px !important; }
         }
 
         @keyframes float {
@@ -21555,7 +21853,7 @@ onClick={(e) => {
         const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
         const gif = GIF[tgt.sp];
         return (
-          <div key={tgt.id} style={{
+          <div key={tgt.id} className="mob-targetcard" style={{
             position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)",
             zIndex: 9997, pointerEvents: "none",
             display: "flex", alignItems: "center", gap: 8,
@@ -21962,9 +22260,9 @@ onClick={(e) => {
 
 
 // ============ Componentes visuais ============
-function Panel({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+function Panel({ title, accent, children, className }: { title: string; accent: string; children: React.ReactNode; className?: string }) {
   return (
-    <div style={{
+    <div className={className} style={{
       background: "#1a0f26",
       border: "1px solid rgba(245,207,107,0.2)",
       borderRadius: 10, overflow: "hidden",
@@ -22648,6 +22946,7 @@ function TabOverlay({
   };
   return (
     <div
+      className="mob-taboverlay"
       onClick={(e) => e.stopPropagation()}
       style={{
       position: "absolute", inset: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? 6 : 12,
@@ -22666,7 +22965,9 @@ function TabOverlay({
       )}
 
       {tab === "pokemon" && leader && (
-        <div style={{
+        <div
+          className="mob-tab-pokemon"
+          style={{
           position: "relative",
           padding: "14px 12px 18px",
           borderRadius: 18,
