@@ -5415,6 +5415,21 @@ const confirmName = () => {
     msg: "+5 Pokébolas e +3 Great Balls entregues!",
     chat: "Código pré-registro 05: +5 Pokébolas e +3 Great Balls!",
   },
+  CERTCASA01: {
+    items: { certificado: 3 },
+    msg: "+3 Certificados de casa entregues!",
+    chat: "Código: +3 Certificados (casa na Land)!",
+  },
+  CERTCASA02: {
+    items: { certificado: 3 },
+    msg: "+3 Certificados de casa entregues!",
+    chat: "Código: +3 Certificados (casa na Land)!",
+  },
+  CERTCASA03: {
+    items: { certificado: 3 },
+    msg: "+3 Certificados de casa entregues!",
+    chat: "Código: +3 Certificados (casa na Land)!",
+  },
 };
     const prereg = PREREG_CODES[raw];
     if (prereg) {
@@ -6308,7 +6323,11 @@ const confirmName = () => {
   useEffect(() => { walkStepRef.current = walkStep; }, [walkStep]);
   const leaderSpRef = useRef<Species | undefined>(team[0]?.species);
   useEffect(() => { leaderSpRef.current = team[0]?.species; }, [team]);
+  const skinUrlRef = useRef<string | null>(null);
+  useEffect(() => { skinUrlRef.current = skinUrl; }, [skinUrl]);
   useEffect(() => {
+    // Jogadores só se veem em Revoland (mapinha6) — nos outros mapas, sem presença.
+    if (idle.currentMap !== "mapinha6") { setRemotePlayers([]); return; }
     if (!identity?.id) return;
     const mapId = idle.currentMap;
     const meUserId = identity.id;
@@ -6318,34 +6337,51 @@ const confirmName = () => {
       id: meId, userId: meUserId, name: meName,
       x: trainerPosRef.current.x, y: trainerPosRef.current.y,
       dir: walkDirRef.current, step: walkStepRef.current,
-      leaderSp: leaderSpRef.current, ts: Date.now(),
+      leaderSp: leaderSpRef.current, skinUrl: skinUrlRef.current ?? undefined, ts: Date.now(),
     });
     const savePresence = async (payload: RemotePlayer) => {
+      const row = {
+        id: payload.id,
+        name: payload.name,
+        map: mapId,
+        x: Math.round(payload.x),
+        y: Math.round(payload.y),
+        dir: payload.dir,
+        leader_species: payload.leaderSp ?? null,
+        leader_rarity: null,
+        level: team[0]?.level ?? 1,
+        trainer_level: idle.trainerLevel ?? 1,
+        craft_points: idle.craftPoints ?? 0,
+        updated_at: new Date().toISOString(),
+      };
       try {
-        await gameDb.from("players").upsert({
-          id: payload.id,
-          name: payload.name,
-          map: mapId,
-          x: Math.round(payload.x),
-          y: Math.round(payload.y),
-          dir: payload.dir,
-          leader_species: payload.leaderSp ?? null,
-          leader_rarity: null,
-          level: team[0]?.level ?? 1,
-          trainer_level: idle.trainerLevel ?? 1,
-          craft_points: idle.craftPoints ?? 0,
-          updated_at: new Date().toISOString(),
-        });
-      } catch { /* multiplayer via DB polling */ }
+        // Tenta com skin_url (precisa da coluna no banco; SQL no relatório).
+        await gameDb.from("players").upsert({ ...row, skin_url: payload.skinUrl ?? null });
+      } catch {
+        try {
+          await gameDb.from("players").upsert(row);
+        } catch { /* multiplayer via DB polling */ }
+      }
     };
     const loadPresence = async () => {
       try {
         const since = new Date(Date.now() - 20_000).toISOString();
-        const { data } = await gameDb
-          .from("players")
-          .select("id,name,map,x,y,dir,leader_species,updated_at")
-          .eq("map", mapId)
-          .gte("updated_at", since);
+        let data: any[] | null = null;
+        try {
+          const res = await gameDb
+            .from("players")
+            .select("id,name,map,x,y,dir,leader_species,skin_url,updated_at")
+            .eq("map", mapId)
+            .gte("updated_at", since);
+          data = res.data as any[] | null;
+        } catch {
+          const res = await gameDb
+            .from("players")
+            .select("id,name,map,x,y,dir,leader_species,updated_at")
+            .eq("map", mapId)
+            .gte("updated_at", since);
+          data = res.data as any[] | null;
+        }
         if (!data) return;
         setRemotePlayers((prev) => {
           const byId = new Map(prev.map((p) => [p.id, p]));
@@ -6360,6 +6396,7 @@ const confirmName = () => {
               dir: (["down", "left", "right", "up"].includes(row.dir) ? row.dir : "down") as Dir,
               step: byId.get(row.id)?.step ?? 0,
               leaderSp: row.leader_species || undefined,
+              skinUrl: (row as any).skin_url || undefined,
               ts: new Date(row.updated_at || Date.now()).getTime(),
             });
           }
@@ -6437,7 +6474,9 @@ const confirmName = () => {
   }, [idle.currentMap, energyTick]);
 
   const visibleMapPlayers = useMemo(() => {
-    // Remove fakeMapPlayers do jogo conforme pedido
+    // Remove fakeMapPlayers do jogo conforme pedido.
+    // Só mostra jogadores em Revoland (presença restrita a mapinha6).
+    if (idle.currentMap !== "mapinha6") return [];
     return remotePlayers;
   }, [remotePlayers, idle.currentMap]);
 
@@ -19043,40 +19082,8 @@ onClick={(e) => {
                   <FlaskConical size={22} color="#d97706" />
                 </div>
 
-                {/* Troca Black Mitic Plus */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setBmpSwapOpen(true);
-                    setBmpSwapMsg(null);
-                    setForgeShowOrbit(false);
-                    playClick();
-                  }}
-                  style={{
-                    position: "absolute", width: 48, height: 48,
-                    background: "linear-gradient(180deg,#2a0d45,#12061f)",
-                    border: "3px solid #a25bff", borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: -60, top: 6, boxShadow: "0 0 16px rgba(162,91,255,0.65)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.15s ease-out forwards", zIndex: 1,
-                  }}
-                  title="Troca Black Mitic Plus (1 troca por Pokémon · 7 traits)"
-                >
-                  <div style={{ fontSize: 22 }}>🔄</div>
-                </div>
-
-                <div 
-                  onClick={(e) => { e.stopPropagation(); setTab("evento"); playClick(); }}
-                  style={{
-                    position: "absolute", width: 44, height: 44, background: "#fef3c7", border: "2px solid #d97706", borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 92, top: 6, boxShadow: "0 4px 12px rgba(217,119,6,0.5)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.2s ease-out forwards, orbGlow 2s infinite ease-in-out", zIndex: 1
-                  }}
-                  title="Calendário de Eventos"
-                >
-                  <Calendar size={22} color="#d97706" />
-                </div>
+                {/* Troca Black Mitic Plus — removida a pedido do usuário */}
+                {/* Calendário de Eventos — removido a pedido do usuário */}
 
                 <div 
                   onClick={(e) => { e.stopPropagation(); setForgeMinimized(false); setShowForgeQuests(true); setShowForgeLoot(false); setShowAuraEggDetails(false); setForgeShowOrbit(false); playClick(); }}
@@ -19098,41 +19105,7 @@ onClick={(e) => {
                 </div>
 
 
-                <div 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    setForgeMinimized(false);
-                    setShowForgeQuests(false);
-                    setShowForgeLoot(false);
-                    setShowAuraEggDetails(true);
-                    setForgeShowOrbit(false);
-                    playClick();
-                  }}
-                  style={{
-                    position: "absolute", width: 52, height: 52, background: "#0f172a", border: "3px solid #4ade80", borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    left: 6, top: 90, boxShadow: "0 0 15px rgba(74,222,128,0.5)", transform: "scale(1)", transition: "all 0.2s",
-                    animation: "orbPop 0.3s 0.4s ease-out forwards, eggGlowTri 3s linear infinite", zIndex: 1
-                  }}
-                  title="Forja de Aura Egg"
-                >
-                  <div style={{ fontSize: 26 }}>🥚</div>
-                  {auraEggCrafting?.active && (
-                    <div style={{
-                      position: "absolute", bottom: -12, width: "100%", height: 5, background: "#334155", borderRadius: 3, overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)"
-                    }}>
-                      <div style={{ width: `${auraEggCrafting.progress}%`, height: "100%", background: "linear-gradient(90deg, #4ade80, #60a5fa, #a855f7)" }} />
-                    </div>
-                  )}
-                  {forgeNotifications.egg && (
-                    <div style={{
-                      position: "absolute", top: -2, right: -2, width: 14, height: 14, background: "#ef4444", border: "2px solid #fff", borderRadius: "50%",
-                      boxShadow: "0 0 8px rgba(239,68,68,0.7)", animation: "pulse 1.5s infinite",
-                      display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 8, fontWeight: 900
-                    }}>!</div>
-                  )}
-                </div>
-
+                {/* Forja de Aura Egg — removida a pedido do usuário */}
 
 
               </>
