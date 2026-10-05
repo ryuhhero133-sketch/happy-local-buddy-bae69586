@@ -249,6 +249,13 @@ import { EquipmentSlot, EquipmentItem, TRAINER_EQUIPMENT_DATA, RARITY_COLOR } fr
 
 
 import bgmAsset from "@/assets/audio/bgm.mp3.asset.json";
+// Músicas ambiente por mapa (src/ambiente) — trocam sozinhas ao trocar de mapa.
+import bgmCasasNpcUrl from "@/ambiente/Casas dos NPC.mp3";
+import bgmCidadeInicialUrl from "@/ambiente/cidade inicial de revoland.mp3";
+import bgmFlorestBoneUrl from "@/ambiente/Florest Bone.mp3";
+import bgmMapaRandomUrl from "@/ambiente/Mapa random.mp3";
+import bgmMapasAleatorioUrl from "@/ambiente/Mapas aleatorio.mp3";
+import bgmPokemarktUrl from "@/ambiente/Pokemarkt.mp3";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
 import sfxBonusAsset from "@/assets/audio/bonus.mp3.asset.json";
@@ -356,6 +363,10 @@ import mapinha8Url from "@/assets/mapinha8.png";
 import mapinha9Url from "@/assets/mapinha9.png";
 import mapinha11Url from "@/assets/revoland.png";
 import cold6MaskUrl from "@/assets/colidir/COLD6.png";
+import casa1MaskUrl from "@/ambiente/mascara colisao/casa1 mascara.png";
+import casa2MaskUrl from "@/ambiente/mascara colisao/casa2 mascara.png";
+import landRevoMaskUrl from "@/ambiente/mascara colisao/land revo colisao.png";
+import pokemarktMaskUrl from "@/ambiente/mascara colisao/Pokemarkt mascara.png";
 import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
 import { loadMaterialsStore, saveMaterialsStore, type MaterialId } from "@/components/MercadorMateriaisOverlay";
 import {
@@ -3399,9 +3410,9 @@ const confirmName = () => {
   // ===== Lands: ações =====
   const confirmPlacement = () => {
     if (!placePreview || idle.currentMap !== "land_revo") return;
-    // Certificado obrigatório (Pokémarkt, 10 gold) — sem ele, sem casa.
+    // Certificado obrigatório (Pokémarkt, 10k cristais) — sem ele, sem casa.
     if ((idle.items.certificado ?? 0) < 1) {
-      pushChat("❌ Você precisa de 1 Certificado (Pokémarkt, 10 gold) para construir.", "info");
+      pushChat("❌ Você precisa de 1 Certificado (Pokémarkt, 10k cristais) para construir.", "info");
       return;
     }
     const pb = getPlayableBounds(curWorldW, curWorldH, "land_revo");
@@ -3727,7 +3738,7 @@ const confirmName = () => {
               <img src={LAND_LEVELS[0].img} alt="LAND FRUTO 1" style={{ width: 84, imageRendering: "auto" }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 12, fontWeight: 900, color: "#78350f" }}>LAND FRUTO 1</div>
-                <div style={{ fontSize: 9, color: "#92400e", marginTop: 2 }}>Colocação exige 1 Certificado (Pokémarkt, 10 gold) · construção de 1 min · evolui até o nível 3.</div>
+                <div style={{ fontSize: 9, color: "#92400e", marginTop: 2 }}>Colocação exige 1 Certificado (Pokémarkt, 10k cristais) · construção de 1 min · evolui até o nível 3.</div>
                 <div style={{ fontSize: 9, color: "#92400e", marginTop: 2 }}>Suas Lands: {count}/{LAND_MAX} · 📜 Certificados: {idle.items.certificado ?? 0}</div>
               </div>
             </div>
@@ -4017,11 +4028,25 @@ const confirmName = () => {
     try { localStorage.setItem("rubym.idle.audio", JSON.stringify(audioSettings)); } catch { /* ignore */ }
   }, [audioSettings]);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
+  // Música ambiente por mapa (nomes da pasta src/ambiente).
+  const BGM_BY_MAP: Record<string, string> = {
+    mapinha6: bgmCidadeInicialUrl,
+    casa1: bgmCasasNpcUrl,
+    casa2: bgmCasasNpcUrl,
+    florest_bone: bgmFlorestBoneUrl,
+    mapinha10: bgmPokemarktUrl,
+    rota_pinsir: bgmMapaRandomUrl,
+    deserto_alaka: bgmMapaRandomUrl,
+  };
+  const bgmDefaultUrl = bgmMapasAleatorioUrl;
+  const bgmForMap = (mapId: string): string => BGM_BY_MAP[mapId] ?? bgmDefaultUrl;
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const a = new Audio(bgmUrl);
+    const firstUrl = bgmForMap(idle.currentMap);
+    const a = new Audio(firstUrl);
     a.loop = true;
     a.volume = audioSettings.musicVol;
+    try { (a as HTMLAudioElement & { dataset: DOMStringMap }).dataset.track = firstUrl; } catch { /* ignore */ }
     bgmRef.current = a;
     // autoplay policy: só toca após primeira interação
     const start = () => {
@@ -4043,6 +4068,21 @@ const confirmName = () => {
     a.volume = audioSettings.musicVol;
     if (blackEggHudOpen || !audioSettings.music) { a.pause(); } else { a.play().catch(() => {}); }
   }, [audioSettings.music, audioSettings.musicVol, blackEggHudOpen]);
+  // Troca a música ambiente ao trocar de mapa (mantém volume/mudo/loop).
+  useEffect(() => {
+    const a = bgmRef.current; if (!a) return;
+    const url = bgmForMap(idle.currentMap);
+    let cur = "";
+    try { cur = (a as HTMLAudioElement & { dataset: DOMStringMap }).dataset.track ?? ""; } catch { /* ignore */ }
+    if (cur === url) return;
+    try { (a as HTMLAudioElement & { dataset: DOMStringMap }).dataset.track = url; } catch { /* ignore */ }
+    try {
+      a.src = url;
+      a.load();
+      a.volume = audioSettings.musicVol;
+      if (audioSettings.music && !blackEggHudOpen) a.play().catch(() => {});
+    } catch { /* ignore */ }
+  }, [idle.currentMap]); // eslint-disable-line
   const eggMusicRef = useRef<HTMLAudioElement | null>(null);
   const openBlackEggHud = useCallback(() => {
     const bgm = bgmRef.current;
@@ -4457,6 +4497,10 @@ const confirmName = () => {
       );
       if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, width, height);
       if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, width, height);
+      if (idle.currentMap === "casa1") ensureCollision("casa1", casa1MaskUrl, width, height);
+      if (idle.currentMap === "casa2") ensureCollision("casa2", casa2MaskUrl, width, height);
+      if (idle.currentMap === "land_revo") ensureCollision("land_revo", landRevoMaskUrl, width, height);
+      if (idle.currentMap === "mapinha10") ensureCollision("mapinha10", pokemarktMaskUrl, width, height);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
@@ -11732,20 +11776,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       };
     });
   };
-  // Certificado p/ construir casa na Land — 10 gold (Pokémarkt). Não é grátis.
+  // Certificado p/ construir casa na Land — 10k cristais (Pokémarkt). Não é grátis.
   const buyCertificado = (qty = 1) => {
     const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
-      const totalCost = 10 * n;
-      if (s.bank.gold < totalCost) {
-        pushChat(`Ouro insuficiente para ${n}× Certificado (precisa ${totalCost}).`, "info");
+      const totalCost = 10000 * n;
+      if (s.bank.crystals < totalCost) {
+        pushChat(`Cristais insuficientes para ${n}× Certificado (precisa ${totalCost}).`, "info");
         return s;
       }
       pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Certificado`, "capture");
-      pushChat(`Comprou ${n}× Certificado por ${totalCost} ouro.`, "cap");
+      pushChat(`Comprou ${n}× Certificado por ${totalCost} cristais.`, "cap");
       return {
         ...s,
-        bank: { ...s.bank, gold: s.bank.gold - totalCost },
+        bank: { ...s.bank, crystals: s.bank.crystals - totalCost },
         items: { ...s.items, certificado: (s.items.certificado ?? 0) + n },
       };
     });

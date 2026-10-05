@@ -244,6 +244,13 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
       // Resto (chão, escadas, pedras, areia clara) libera.
       return true;
     }
+    // ---- Máscaras branco/preto (só o branco anda): casa1/casa2/land_revo/pokemarkt ----
+    case "casa1":
+    case "casa2":
+    case "land_revo":
+    case "mapinha10": {
+      return l > 0.5;
+    }
     default:
       return true;
   }
