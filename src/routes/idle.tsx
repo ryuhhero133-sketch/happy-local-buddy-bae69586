@@ -2568,6 +2568,29 @@ function IdlePage() {
     scheduleCloudSync(buildFullBlob());
   }, [idle, team, restingBench, buildFullBlob, cloudBlobReady]);
 
+  // Cooldown do SALVAR manual na nuvem (20s): evita spam de save manual.
+  const lastManualSaveRef = useRef(0);
+  const tryManualCloudSave = async () => {
+    playClick();
+    const waitMs = 20_000 - (Date.now() - lastManualSaveRef.current);
+    if (waitMs > 0) {
+      pushChat(`⏳ Aguarde ${Math.ceil(waitMs / 1000)}s para salvar de novo.`, "info");
+      return;
+    }
+    if (!cloudBlobReady) {
+      pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
+      return;
+    }
+    lastManualSaveRef.current = Date.now();
+    try {
+      const ok = await pushCloudSaveNow(buildFullBlob());
+      await serverSync.pushNow();
+      pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
+    } catch (e) {
+      pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
+    }
+  };
+
   // Push imediato ao fechar aba / trocar aba (evita perder últimos segundos).
   useEffect(() => {
     const flush = () => {
@@ -5452,6 +5475,16 @@ const confirmName = () => {
     items: { certificado: 3 },
     msg: "+3 Certificados de casa entregues!",
     chat: "Código: +3 Certificados (casa na Land)!",
+  },
+  IDLM4L4USAFH: {
+    items: { emerald_egg: 1, pokeball: 20, potion: 20, greatball: 20, cafe: 3, picole: 3 },
+    msg: "+1 EGG Emerald, +20 Pokébolas, +20 Poções, +20 Great Balls, +3 Cafés e +3 Picolés entregues!",
+    chat: "Código pré-registro 01: EGG Emerald + itens!",
+  },
+  IDLMWZNHZFJT: {
+    items: { emerald_egg: 1, pokeball: 20, potion: 20, greatball: 20, cafe: 3, picole: 3 },
+    msg: "+1 EGG Emerald, +20 Pokébolas, +20 Poções, +20 Great Balls, +3 Cafés e +3 Picolés entregues!",
+    chat: "Código pré-registro 02: EGG Emerald + itens!",
   },
 };
     const prereg = PREREG_CODES[raw];
@@ -18574,20 +18607,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           </div>
           {/* ===== BOTÒO SALVAR NA NUVEM ===== */}
           <button
-            onClick={async () => {
-              playClick();
-              if (!cloudBlobReady) {
-                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
-                return;
-              }
-              try {
-                const ok = await pushCloudSaveNow(buildFullBlob());
-                await serverSync.pushNow();
-                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
-              } catch (e) {
-                pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
-              }
-            }}
+            onClick={() => { void tryManualCloudSave(); }}
             title="Salvar progresso na nuvem"
             className="bottomnav-btn"
             style={{
@@ -20028,21 +20048,7 @@ onClick={(e) => {
           </button>
           <button
             className="mob-menuopt"
-            onClick={async () => {
-              playClick();
-              if (!cloudBlobReady) {
-                pushChat("⏳ Aguarde carregar o save da nuvem antes de salvar.", "info");
-                return;
-              }
-              try {
-                const ok = await pushCloudSaveNow(buildFullBlob());
-                await serverSync.pushNow();
-                pushChat(ok ? "☁️ Progresso salvo na nuvem!" : `⚠️ Não salvou na nuvem: ${getCloudSaveLastError() ?? "verifique a tabela game_saves"}.`, "info");
-              } catch (e) {
-                pushChat("⚠️ Falha ao salvar. Tente de novo.", "info");
-              }
-              setMobPanel(null);
-            }}
+            onClick={() => { void tryManualCloudSave(); setMobPanel(null); }}
           >
             <span className="mob-menuopt-icon">☁️</span>
             <span>Salvar na nuvem</span>
