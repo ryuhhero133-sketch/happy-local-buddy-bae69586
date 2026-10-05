@@ -16,6 +16,8 @@ import chaVerdePng from "@/assets/comida/coffee_greentea.png";
 import boloMorangoPng from "@/assets/comida/cake_strawberry.png";
 import leiteMangaPng from "@/assets/comida/soymilk_mango.png";
 import limaPng from "@/assets/comida/fruit_lime.png";
+import morangoMatPng from "@/assets/materials/morango.png";
+import bananaLandPng from "@/lands/land01/bananas.png";
 
 // Overrides que renderizam uma imagem bitmap ao invés do glyph SVG.
 const BITMAP_OVERRIDES: Record<string, string> = {
@@ -32,6 +34,9 @@ const BITMAP_OVERRIDES: Record<string, string> = {
   bolo_morango: boloMorangoPng,
   leite_manga: leiteMangaPng,
   limao: limaPng,
+  morango: morangoMatPng,
+  banana: bananaLandPng,
+  certificado: assetUrlFromJson(cartaGovernanteAsset),
 };
 
 type Cell = [number, number, string]; // x, y, color

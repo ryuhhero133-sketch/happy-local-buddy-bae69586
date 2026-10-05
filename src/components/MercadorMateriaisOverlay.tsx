@@ -21,6 +21,8 @@ import imgCrPurple from "@/assets/materials/cristal-purple.png";
 import imgCogRed from "@/assets/materials/cogumelo-red.png";
 import imgCogBrown from "@/assets/materials/cogumelo-brown.png";
 import imgCogBlue from "@/assets/materials/cogumelo-blue.png";
+import imgLaranjaHarv from "@/lands/land01/Laranjinha.png";
+import imgBananaHarv from "@/lands/land01/bananas.png";
 
 export const MATERIALS_STORE_KEY = "rubymon.materials.v1";
 
@@ -68,7 +70,9 @@ export const MATERIALS: Mat[] = [
   { id: "sucata",    name: "Caixa de Sucata",  img: imgSucata,  desc: "Engrenagens e parafusos prontos para reuso." },
   { id: "oleo",      name: "Óleo (Oil)",       img: imgOleo,    desc: "Combustível bruto. Queima limpa, alimenta forjas." },
   { id: "perola",    name: "Pérola",           img: imgPerola,  desc: "Pérola marinha rara — brilho de lua submersa." },
-  { id: "morango",   name: "Morango",          img: imgMorango, desc: "Fruta doce e suculenta, ótima em poções." },
+  { id: "morango",   name: "Morango", img: imgMorango, desc: "Fruta doce e suculenta, ótima em poções." },
+  { id: "laranja",   name: "Laranja (colheita)", img: imgLaranjaHarv, desc: "Colhida nos pés de laranja das Lands." },
+  { id: "banana",    name: "Banana (colheita)", img: imgBananaHarv, desc: "Colhida nas bananeiras das Lands." },
   { id: "chicote",   name: "Chicote Verde",    img: imgChicote, desc: "Liana firme e flexível — corda viva da floresta." },
   { id: "escamas",   name: "Escamas",          img: imgEscamas, desc: "Escamas reluzentes de criaturas aquáticas." },
   { id: "agua",      name: "Água Purificada",  img: imgAgua,    desc: "Água destilada, base de elixires e poções." },

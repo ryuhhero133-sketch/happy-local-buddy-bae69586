@@ -48,6 +48,35 @@ export const BIRD_BY_ELEMENT: Partial<Record<ElementId, string>> = {
 };
 export const BIRD_CHANCE = 0.35;
 
+// ===== Pool do ovo BLACK MITIC PLUS — separada por elemento =====
+// Só ovos Plus usam esta lista (ovos normais mantêm espécie do elemento + pássaro).
+// Base pesa 10, shiny pesa 2 (mais raro).
+type PlusEntry = { sp: string; w: number };
+// Bases sem shiny existente (não gerar _shiny para elas).
+const PLUS_NO_SHINY = new Set(["eevee"]);
+const P = (sp: string): PlusEntry[] =>
+  PLUS_NO_SHINY.has(sp) ? [{ sp, w: 10 }] : [{ sp, w: 10 }, { sp: `${sp}_shiny`, w: 2 }];
+const FLAT = (list: string[]): PlusEntry[] => list.flatMap((sp) => P(sp));
+export const PLUS_POOL_BY_ELEMENT: Record<ElementId, PlusEntry[]> = {
+  grass: FLAT(["oddish", "gloom", "vileplume", "paras", "parasect", "venusaur", "bulbasaur", "ivysaur", "bellsprout", "weepinbell", "victreebel", "exeggcute", "sprigatito", "caterpie", "butterfree"]),
+  fire: FLAT(["growlithe", "arcanine"]),
+  water: FLAT(["vaporeon"]),
+  electric: FLAT(["voltorb", "electrode"]),
+  dark: FLAT(["ekans", "grimer", "gastly", "haunter", "muk", "arbok", "swalot", "zubat", "golbat"]),
+  // Sem dragões na lista: terra/pedra, voadores e normal caem aqui.
+  dragon: FLAT(["pidgey", "pidgeotto", "pidgeot", "spearow", "fearow", "eevee", "cubone", "marowak", "rhyhorn", "sandshrew", "sandslash", "geodude", "graveler", "golem"]),
+};
+function pickPlusSpecies(elId: ElementId): string {
+  const pool = PLUS_POOL_BY_ELEMENT[elId] ?? PLUS_POOL_BY_ELEMENT.dragon;
+  const total = pool.reduce((s, e) => s + e.w, 0);
+  let r = Math.random() * total;
+  for (const e of pool) {
+    r -= e.w;
+    if (r <= 0) return e.sp;
+  }
+  return pool[0].sp;
+}
+
 type FeedHistoryItem = { ts: number; element: ElementId; amount: number };
 
 export type JournalMood =
@@ -1436,9 +1465,15 @@ export function BlackMiticEggHud(props: {
     const traits = rollBlackMiticTraits(selected, arch, 7);
     // 35% de chance do pássaro lendário do elemento (só Fogo/Elétrico/Água têm).
     // Sem lendários fora desses 3 — nasce o Pokémon do elemento.
-    let species: string = el.species;
-    const bird = BIRD_BY_ELEMENT[el.id];
-    if (bird && Math.random() < BIRD_CHANCE) species = bird;
+    // PLUS: usa a pool própria por elemento (sem pássaro).
+    let species: string;
+    if (isPlus) {
+      species = pickPlusSpecies(el.id);
+    } else {
+      species = el.species;
+      const bird = BIRD_BY_ELEMENT[el.id];
+      if (bird && Math.random() < BIRD_CHANCE) species = bird;
+    }
     onHatched(species, el.id, traits, isPlus);
     if (isPlusFromQueue) onConsumePlus?.(1);
     persist((s) => {
@@ -1446,7 +1481,7 @@ export function BlackMiticEggHud(props: {
       const hist = [...(s.hatchedHistory ?? []), species].slice(-10);
       return { eggs, selectedId: eggs[0]?.id ?? null, hatchedHistory: hist };
     });
-    const birdTag = species !== el.species ? " 🦅 LENDÁRIO (35%)!" : "";
+    const birdTag = !isPlus && species !== el.species ? " 🦅 LENDÁRIO (35%)!" : "";
     const rupTag = isPlus ? " ✦ PLUS (7 traits)" : (selected.ruptured ? " ✦ ROMPIDO (7 traits)" : " (7 traits)");
     onNotify?.(`✦ Nasceu ${species.toUpperCase()} (${el.label}) — ${ARCHETYPE_META[arch].label} · Cuidado ${care}/100${birdTag}${rupTag}!`);
   };

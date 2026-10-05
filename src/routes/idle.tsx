@@ -449,6 +449,7 @@ import charmanderGif from "@/assets/charmander.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import rattataFAsset from "@/assets/rattata-f.gif.asset.json";
 import vaporeonAsset from "@/assets/vaporeon.gif.asset.json";
+import vaporeonShinyAsset from "@/assets/vaporeon-shiny.gif.asset.json";
 import vaporeonPng from "@/assets/Vaporeon.png";
 import pidgeyGif from "@/assets/pidgey.gif";
 import beedrillGif from "@/assets/beedrill.gif";
@@ -1014,6 +1015,7 @@ const GIF: Partial<Record<Species, string>> = {
   squirtle_shiny: squirtleGif,
   charmander_shiny: charmanderGif,
   vaporeon: vaporeonPng,
+  vaporeon_shiny: assetUrlFromJson(vaporeonShinyAsset),
 };
 
 
@@ -3487,6 +3489,11 @@ const confirmName = () => {
   const chopTree = (id: number) => {
     const t = chopTrees.find((o) => o.id === id);
     if (!t || t.choppingUntil != null || t.stumpAt != null) return;
+    // Só com Pinsir (no time ou já capturado) dá para cortar madeira.
+    const hasPinsir =
+      (teamRef.current ?? []).some((p) => speciesBaseOf(p.species) === "pinsir") ||
+      (idle.caughtSpecies ?? []).some((sp) => speciesBaseOf(sp as Species) === "pinsir");
+    if (!hasPinsir) { pushChat("🪓 Você precisa de um Pinsir para cortar madeira! (Rota do Pinsir, evento)", "info"); return; }
     if ((trainerEnergy ?? 0) < 1) { pushChat("⚡ Sem energia para cortar (precisa 1).", "info"); return; }
     const { x, y } = treePos(t);
     setTrainerEnergy((e) => Math.max(0, (e ?? 0) - 1));
@@ -3527,7 +3534,7 @@ const confirmName = () => {
                 transform: "translate(-50%, -95%)", width: stump ? 70 : 110,
                 zIndex: Math.round(y), cursor: stump ? "default" : "pointer",
               }}
-              title={stump ? "Toco — volta em 30 min" : "Árvore — clique para cortar (-1 ⚡, +1 🪵)"}
+              title={stump ? "Toco — volta em 30 min" : "Árvore — precisa de Pinsir! Clique para cortar (-1 ⚡, +1 🪵)"}
             >
               <img src={img} alt="" draggable={false} style={{ width: "100%", imageRendering: "auto", display: "block" }} />
               {!stump && (
@@ -5282,10 +5289,11 @@ const confirmName = () => {
     }
 
     // ===== Códigos únicos: ovos Black Mítico PLUS JÁ PRONTOS na incubadora (7 traits) =====
-    // 5 códigos entregam 6 ovos · 5 códigos entregam 1 ovo. Cada código só pode
+    // 10 códigos entregam 6 ovos · 5 códigos entregam 1 ovo. Cada código só pode
     // ser usado UMA vez por conta (redeemedCodes é validado no save da nuvem).
     const BLACK_EGG_READY_6 = [
       "BLACKPLUS6X01", "BLACKPLUS6X02", "BLACKPLUS6X03", "BLACKPLUS6X04", "BLACKPLUS6X05",
+      "BLACKPLUS6B01", "BLACKPLUS6B02", "BLACKPLUS6B03", "BLACKPLUS6B04", "BLACKPLUS6B05",
     ];
     const BLACK_EGG_READY_1 = [
       "BLACKPLUS1X01", "BLACKPLUS1X02", "BLACKPLUS1X03", "BLACKPLUS1X04", "BLACKPLUS1X05",
@@ -5349,19 +5357,19 @@ const confirmName = () => {
     // 01 �  1� EGG Emerald �xa · 02 �  50� cada Stone · 03 �  300 �x} · 04 �  3� Livro EXP + 3� Orb XP · 05 �  30.000 �x�"
     const PREREG_CODES: Record<string, { crystals?: number; gold?: number; items?: Record<string, number>; msg: string; chat: string }> = {
   IDLMZMMGAMDV: {
-    crystals: 300,
-    msg: "+300 Cristais entregues!",
-    chat: "Código prê-registro 03: +300 Cristais!",
+    items: { cafe: 3, picole: 3 },
+    msg: "+3 Cafés e +3 Picolés entregues!",
+    chat: "Código pré-registro 03: +3 Café e +3 Picolé!",
   },
   IDLMGKPAHVTZ: {
     items: { book_exp: 3, orb_xp_minor: 3 },
     msg: "+3 Livros de EXP e +3 Orbs de XP entregues!",
-    chat: "Código prê-registro 04: +3 Livro EXP e +3 Orb XP!",
+    chat: "Código pré-registro 04: +3 Livro EXP e +3 Orb XP!",
   },
   IDLMZKPX2HW4: {
-    gold: 30000,
-    msg: "+30.000 Ouro entregue!",
-    chat: "Código prê-registro 05: +30.000 Ouro!",
+    items: { pokeball: 5, greatball: 3 },
+    msg: "+5 Pokébolas e +3 Great Balls entregues!",
+    chat: "Código pré-registro 05: +5 Pokébolas e +3 Great Balls!",
   },
 };
     const prereg = PREREG_CODES[raw];
@@ -13031,17 +13039,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { label: "Missões", img: hudMissoesPng, badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
               { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
-              { label: "Amigos", img: hudAmigosPng, badge: guildInvites.length, onClick: () => { playClick(); setTab("guilda"); } },
+              { label: "Amigos", img: hudAmigosPng, badge: 0, disabled: true, onClick: () => { pushChat("👥 Amigos em breve!", "info"); } },
               { label: "Config.", img: hudConfigPng, badge: 0, onClick: () => setShowAutoSettings(true) },
             ] as const).map((b) => (
               <button
                 key={b.label}
-                onClick={() => { playClick(); b.onClick(); }}
+                onClick={() => { playClick(); if ((b as { disabled?: boolean }).disabled) { pushChat("👥 Amigos em breve!", "info"); return; } b.onClick(); }}
                 title={b.label}
                 style={{
                   position: "relative", background: "transparent", border: "none", cursor: "pointer",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
                   padding: "1px 4px", borderRadius: 6, color: "#1a0f26", fontSize: 8, fontWeight: 700,
+                  opacity: (b as { disabled?: boolean }).disabled ? 0.45 : 1,
+                  filter: (b as { disabled?: boolean }).disabled ? "grayscale(1)" : "none",
                 }}
               >
                 {"img" in b && (b as { img?: string }).img
@@ -13173,18 +13183,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { label: "Missões", img: hudMissoesPng, badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
               { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
-              { label: "Amigos", img: hudAmigosPng, badge: guildInvites.length, onClick: () => { playClick(); setTab("guilda"); } },
+              { label: "Amigos", img: hudAmigosPng, badge: 0, disabled: true, onClick: () => { pushChat("👥 Amigos em breve!", "info"); } },
               { label: "Config.", img: hudConfigPng, badge: 0, onClick: () => setShowAutoSettings(true) },
             ] as const).map((b) => (
               <button
                 key={b.label}
-                onClick={() => { playClick(); b.onClick(); }}
-                title={b.label === "Amigos" ? "Ver treinadores no mapa" : b.label}
+                onClick={() => { playClick(); if ((b as { disabled?: boolean }).disabled) { pushChat("👥 Amigos em breve!", "info"); return; } b.onClick(); }}
+                title={b.label}
                 className="bottomnav-btn"
                 style={{
                   position: "relative", background: "transparent", border: "none", cursor: "pointer",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
                   padding: "4px 9px", borderRadius: 10, color: "#dbe6fa", fontSize: 10, fontWeight: 600,
+                  opacity: (b as { disabled?: boolean }).disabled ? 0.45 : 1,
+                  filter: (b as { disabled?: boolean }).disabled ? "grayscale(1)" : "none",
                 }}
               >
                 {"img" in b && (b as { img?: string }).img
@@ -18248,17 +18260,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { label: "Missões", img: hudMissoesPng, badge: (idle.sideQuests?.accepted.length ?? 0) + idle.tasks.filter((t) => t.done).length, onClick: () => setTab("tarefas") },
               { label: "Mapa", icon: "🗺️", badge: 0, onClick: () => setMapTeleportOpen(true) },
-              { label: "Amigos", img: hudAmigosPng, badge: guildInvites.length, onClick: () => { playClick(); setTab("guilda"); } },
+              { label: "Amigos", img: hudAmigosPng, badge: 0, disabled: true, onClick: () => { pushChat("👥 Amigos em breve!", "info"); } },
               { label: "Config.", img: hudConfigPng, badge: 0, onClick: () => setShowAutoSettings(true) },
             ] as const).map((b) => (
               <button
                 key={b.label}
-                onClick={() => { playClick(); b.onClick(); }}
+                onClick={() => { playClick(); if ((b as { disabled?: boolean }).disabled) { pushChat("👥 Amigos em breve!", "info"); return; } b.onClick(); }}
                 title={b.label}
                 style={{
                   position: "relative", background: "transparent", border: "none", cursor: "pointer",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
                   padding: "1px 4px", borderRadius: 6, color: "#1a0f26", fontSize: 8, fontWeight: 700,
+                  opacity: (b as { disabled?: boolean }).disabled ? 0.45 : 1,
+                  filter: (b as { disabled?: boolean }).disabled ? "grayscale(1)" : "none",
                 }}
               >
                 {"img" in b && (b as { img?: string }).img
@@ -18350,21 +18364,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
             ] as const).map((t) => {
               const isShiny = (t as { shiny?: boolean }).shiny === true;
+              // EVENTO temporariamente bloqueado (botão apagado + sem acesso).
+              const isEventoBlocked = isShiny;
               if (isShiny) {
                 return (
                   <button
                     key={t.id}
-                    onClick={() => { playClick(); setTab(t.id as typeof tab); }}
-                    title="EVENTO — Liga Elemental"
+                    onClick={() => { playClick(); if (isEventoBlocked) { pushChat("🎟️ Evento em breve!", "info"); return; } setTab(t.id as typeof tab); }}
+                    title={isEventoBlocked ? "EVENTO (em breve)" : "EVENTO — Liga Elemental"}
                     className="bottomnav-btn"
                     style={{
                       flex: 1, maxWidth: 120, minWidth: 0,
                       background: "radial-gradient(ellipse at 50% 0%, rgba(245,207,107,0.35), rgba(245,207,107,0.05) 70%, transparent 100%)",
-                      border: "1px solid #f5cf6b", padding: "3px 2px 2px", cursor: "pointer",
+                      border: "1px solid #f5cf6b", padding: "3px 2px 2px", cursor: "not-allowed",
                       borderRadius: 10, display: "flex", flexDirection: "column",
                       alignItems: "center", gap: 2, position: "relative",
                       boxShadow: "0 0 14px rgba(245,207,107,0.55), inset 0 0 8px rgba(245,207,107,0.25)",
-                      animation: "orbGlow 2s infinite ease-in-out",
+                      opacity: 0.55, filter: "grayscale(1)",
                     }}
                   >
                     <img
@@ -18381,6 +18397,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5, color: "#ffe9a8", textShadow: "0 1px 2px #000" }}>
                       {t.label}
                     </span>
+                    <span style={{
+                      position: "absolute", top: 2, right: 4,
+                      fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
+                      color: "#ffd66b", background: "rgba(0,0,0,0.55)",
+                      padding: "1px 4px", borderRadius: 4, border: "1px solid #ffd66b55",
+                    }}>EM BREVE</span>
                   </button>
                 );
               }
@@ -22516,7 +22538,7 @@ function TabOverlay({
       const entriesNow = Object.entries(items).filter(([id, n]) => (n as number) > 0 && !id.startsWith("_")) as [string, number][];
       const catOfKey = (id: string): string => {
         if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
-        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
+        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
         if (id.startsWith("book_")) return "books";
         if (id.startsWith("egg_")) return "eggs";
         return "other";
@@ -23014,6 +23036,8 @@ function TabOverlay({
           refrigerante: "Refrigerante 🥤", cafe: "Café Expresso ☕",
           cha_verde: "Chá Verde 🍵", bolo_morango: "Bolo de Morango 🍰",
           leite_manga: "Leite de Manga 🧋",
+          morango: "Morango 🍓", banana: "Banana 🍌",
+          certificado: "Certificado 📜",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -23070,7 +23094,7 @@ function TabOverlay({
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
-        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
+        if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
           if (id.startsWith("book_")) return "books";
           if (id.startsWith("egg_")) return "eggs";
           return "other";
