@@ -221,6 +221,7 @@ export const TRAINER_FOOD_VALUES: Record<string, { hunger: number; energy: numbe
   refeicao:  { hunger: 100, energy: 100, label: "🍱 Refeição Completa" },
   // ===== Doces & bebidas da Nanizinha (sprites em src/assets/comida) =====
   maca:        { hunger: 25, energy: 15, label: "🍎 Maçã" },
+  banana:      { hunger: 25, energy: 15, label: "🍌 Banana" },
   laranja:     { hunger: 25, energy: 15, label: "🍊 Laranja" },
   picole:      { hunger: 25, energy: 20, label: "🍧 Picolé" },
   refrigerante:{ hunger: 20, energy: 35, label: "🥤 Refrigerante" },

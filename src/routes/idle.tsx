@@ -109,6 +109,19 @@ import bagIconImg from "@/assets/items/icon-bag.png";
 import reviveIconImg from "@/assets/items/icon-revive.png";
 import berryIconImg from "@/assets/items/icon-berry.png";
 import keyIconImg from "@/assets/items/icon-key.png";
+// Comidas / colheita / certificado (ícones da mochila).
+import macaBagImg from "@/assets/comida/fruit_apple.png";
+import laranjaBagImg from "@/assets/comida/fruit_orange.png";
+import picoleBagImg from "@/assets/comida/popsicle_pink.png";
+import refrigeranteBagImg from "@/assets/comida/soda_coke.png";
+import cafeBagImg from "@/assets/comida/coffee_espresso.png";
+import chaVerdeBagImg from "@/assets/comida/coffee_greentea.png";
+import boloMorangoBagImg from "@/assets/comida/cake_strawberry.png";
+import leiteMangaBagImg from "@/assets/comida/soymilk_mango.png";
+import limaBagImg from "@/assets/comida/fruit_lime.png";
+import morangoBagImg from "@/assets/materials/morango.png";
+import bananaBagImg from "@/lands/land01/bananas.png";
+import certificadoBagAsset from "@/assets/carta-governante.png.asset.json";
 import fxSlashImg from "@/assets/items/fx-slash.png";
 import skillAguaImg from "@/skill/agua.png";
 import skillFadaImg from "@/skill/fada.png";
@@ -368,7 +381,7 @@ import casa2MaskUrl from "@/ambiente/mascara colisao/casa2 mascara.png";
 import landRevoMaskUrl from "@/ambiente/mascara colisao/land revo colisao.png";
 import pokemarktMaskUrl from "@/ambiente/mascara colisao/Pokemarkt mascara.png";
 import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
-import { loadMaterialsStore, saveMaterialsStore, type MaterialId } from "@/components/MercadorMateriaisOverlay";
+import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
   DROP_GROUND_TTL_MS, DROP_COLLECT_PX, DROP_IMG_BY_MAT, DROP_LABEL_BY_MAT,
   rollDropsFor, speciesBaseOf,
@@ -377,7 +390,7 @@ import type { PlacedLand, LandLevel, PlantKind } from "@/game/lands";
 import {
   LAND_LEVELS, LAND_SLOTS, LAND_BUILD_MS, LAND_COLLECT_MS, LAND_MAX, LAND_MIN_SPACING,
   PLANT_DEFS, landLevelDef, plantDef, plantScaleFor, plantStageAt, plantFruitReady,
-  landReqsFor, landReqsMet, consumeLandReqs, grantFruit, fruitYieldFor,
+  landReqsFor, landReqsMet, takeLandReqs, combinedMats, fruitGains, fruitYieldFor,
   newLandId, newPlantId,
 } from "@/game/lands";
 import mapinha12Url from "@/assets/bidril e kakuna.png";
@@ -1808,6 +1821,11 @@ const ITEM_IMG: Record<string, string> = {
   orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
   incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
+  maca: macaBagImg, laranja: laranjaBagImg, picole: picoleBagImg,
+  refrigerante: refrigeranteBagImg, cafe: cafeBagImg, cha_verde: chaVerdeBagImg,
+  bolo_morango: boloMorangoBagImg, leite_manga: leiteMangaBagImg, limao: limaBagImg,
+  morango: morangoBagImg, banana: bananaBagImg,
+  certificado: assetUrlFromJson(certificadoBagAsset),
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -3262,11 +3280,10 @@ const confirmName = () => {
       pushChat("Chegue mais perto para coletar.", "info");
       return;
     }
-    const ms = loadMaterialsStore();
-    (ms as Record<string, number>)[d.mat] = ((ms as Record<string, number>)[d.mat] ?? 0) + d.qty;
-    saveMaterialsStore(ms);
+    // Recursos caem na MOCHILA (idle.items), igual comidas e bolas.
+    setIdle((s) => ({ ...s, items: { ...s.items, [d.mat]: (s.items[d.mat] ?? 0) + d.qty } }));
     setGroundDrops((prev) => prev.filter((o) => o.uid !== uid));
-    const label = DROP_LABEL_BY_MAT[d.mat] ?? d.mat;
+    const label = (DROP_LABEL_BY_MAT as Record<string, string>)[d.mat] ?? d.mat;
     pushFxAt(d.x, d.y - 30, `+${d.qty} ${label}`, "gold");
     pushChat(`🧺 Coletou: +${d.qty} ${label}!`, "cap");
     playClick();
@@ -3318,6 +3335,7 @@ const confirmName = () => {
       let changed = false;
       const doneNames: string[] = [];
       const gotFruits: string[] = [];
+      const fruitBag: Record<string, number> = {};
       const next = lands.map((l) => {
         let nl = l;
         if (nl.status === "building" && now >= nl.readyAt) {
@@ -3329,7 +3347,9 @@ const confirmName = () => {
         const plants = nl.plants.map((p) => {
           if (p.collectingUntil != null && now >= p.collectingUntil) {
             pc = true;
-            const qty = grantFruit(p.kind, fruitYieldFor(p.kind, nl.level));
+            const qty = fruitYieldFor(p.kind, nl.level);
+            const gains = fruitGains(p.kind, qty);
+            for (const [k, v] of Object.entries(gains)) fruitBag[k] = (fruitBag[k] ?? 0) + v;
             gotFruits.push(`+${qty} ${plantDef(p.kind).fruitName}`);
             return { ...p, plantedAt: now, collectingUntil: undefined };
           }
@@ -3339,7 +3359,11 @@ const confirmName = () => {
         return nl;
       });
       if (changed) {
-        setIdle((s) => ({ ...s, lands: next }));
+        setIdle((s) => {
+          const items = { ...s.items };
+          for (const [k, v] of Object.entries(fruitBag)) items[k] = (items[k] ?? 0) + v;
+          return { ...s, lands: next, items };
+        });
         for (const n of doneNames) pushChat(`✓ ${n} pronta!`, "cap");
         for (const g of gotFruits) pushChat(`🧺 Coleta concluída: ${g}!`, "cap");
       }
@@ -3479,11 +3503,16 @@ const confirmName = () => {
     const l = (idle.lands ?? []).find((o) => o.id === id);
     if (!l || l.level >= 3 || l.status !== "ready") return;
     const target = (l.level + 1) as LandLevel;
-    if (!consumeLandReqs(target, idle.caughtSpecies ?? [])) {
+    const res = takeLandReqs(target, idle.caughtSpecies ?? [], idle.items ?? {});
+    if (!res.ok) {
       pushChat("❌ Requisitos incompletos para evoluir.", "info");
       return;
     }
-    setIdle((s) => ({ ...s, lands: (s.lands ?? []).map((o) => (o.id === id ? { ...o, level: target } : o)) }));
+    setIdle((s) => {
+      const items = { ...s.items };
+      for (const [k, v] of Object.entries(res.taken)) items[k] = Math.max(0, (items[k] ?? 0) - v);
+      return { ...s, items, lands: (s.lands ?? []).map((o) => (o.id === id ? { ...o, level: target } : o)) };
+    });
     pushFxAt(l.x, l.y - 130, "EVOLUIU!", "capture");
     playBonus();
     pushChat(`✨ Land evoluída para ${landLevelDef(target).name}!`, "cap");
@@ -3538,12 +3567,16 @@ const confirmName = () => {
     setChopTrees((prev) => prev.map((o) => (o.id === id ? { ...o, choppingUntil: Date.now() + 900 } : o)));
     setTimeout(() => {
       setChopTrees((prev) => prev.map((o) => (o.id === id ? { ...o, choppingUntil: undefined, stumpAt: Date.now() } : o)));
-      const ms = loadMaterialsStore();
-      ms.lenha = (ms.lenha ?? 0) + 1;
-      // Flor raríssima cortando árvore (3% — não vira fonte abundante).
+      // Madeira e flor rara vão para a MOCHILA (igual comidas e bolas).
       const gotTreeFlower = Math.random() < 0.03;
-      if (gotTreeFlower) ms.flor = (ms.flor ?? 0) + 1;
-      saveMaterialsStore(ms);
+      setIdle((s) => ({
+        ...s,
+        items: {
+          ...s.items,
+          lenha: (s.items.lenha ?? 0) + 1,
+          ...(gotTreeFlower ? { flor: (s.items.flor ?? 0) + 1 } : {}),
+        },
+      }));
       pushFxAt(x, y - 80, "+1 Lenha 🪵", "gold");
       pushChat("🪵 +1 Lenha! (-1 ⚡)", "info");
       if (gotTreeFlower) pushChat("🌸 Que sorte! Uma FLOR caiu da árvore!", "cap");
@@ -3796,7 +3829,7 @@ const confirmName = () => {
     const pct = building ? Math.min(100, Math.max(0, ((now - land.startedAt) / LAND_BUILD_MS) * 100)) : 100;
     const secsLeft = building ? Math.max(0, Math.ceil((land.readyAt - now) / 1000)) : 0;
     const reqs = land.level < 3 && !building
-      ? landReqsFor((land.level + 1) as LandLevel, loadMaterialsStore(), idle.caughtSpecies ?? [])
+      ? landReqsFor((land.level + 1) as LandLevel, combinedMats(idle.items ?? {}), idle.caughtSpecies ?? [])
       : [];
     return (
       <>
@@ -4610,6 +4643,10 @@ const confirmName = () => {
     }
     if (idle.currentMap === "esfera_ancestral") {
       return !isWalkable("esfera_ancestral", x, y);
+    }
+    // Mapas com máscara branco/preto: o grid manda (igual Revoland).
+    if (idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10") {
+      return !isWalkable(idle.currentMap, x, y);
     }
     for (const o of obstacles) {
       if (!o.blocks) continue;
@@ -9985,7 +10022,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `HP CHEIO!`, "gold");
       pushChat(`Você usou Berry (HP totalmente restaurado).`, "info");
-    } else if (id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") {
+    } else if (id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "maca" || id === "banana" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") {
       // 🍖 Alimentação do treinador: registra o momento real (atende o ciclo).
       const fv = TRAINER_FOOD_VALUES[id];
       if (!fv) { pushChat(`Alimento desconhecido.`, "info"); return; }
@@ -13806,9 +13843,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               pushChat("�x}� Gordin te deu +10 Pokébolas e +2 Great Balls!", "cap");
             };
             // Leitura fresca do cofre de materiais p/ diálogos da Revoland (só leitura).
-            const revoMats = loadMaterialsStore();
-            const hasBouquet = (revoMats.buque ?? 0) > 0;
-            const flowerCount = revoMats.flor ?? 0;
+            // Leitura fresca dos recursos (mochila + cofre somados).
+            const matTotal = (id: string): number =>
+              (idle.items[id] ?? 0) + ((loadMaterialsStore() as unknown as Record<string, number>)[id] ?? 0);
+            const hasBouquet = matTotal("buque") > 0;
+            const flowerCount = matTotal("flor");
             const simple: Record<string, string[]> = {
               gordin: [
                 "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um Shiny de cor diferente, que ninguém nunca viu!",
@@ -13885,7 +13924,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               pushChat(`✨ Bottan te levou à Esfera Ancestral! (custo: ${bottanCostLabel})`, "cap");
             };
             // ===== Revoland: Barney (quest do Buquê) + Florzinha (troca flores) =====
-            // Recompensa alternada: comida ↔ pokebola (só esses dois tipos, 1 unidade).
+            // Consome recurso (mochila primeiro, resto do cofre). false = faltava.
+            const takeResource = (id: string, qty: number): boolean => {
+              const fromItems = Math.min(idle.items[id] ?? 0, qty);
+              const rest = qty - fromItems;
+              if (rest > 0) {
+                const ms = loadMaterialsStore() as unknown as Record<string, number>;
+                if ((ms[id] ?? 0) < rest) return false;
+                ms[id] -= rest;
+                saveMaterialsStore(ms as unknown as MaterialsStore);
+              }
+              if (fromItems > 0) {
+                const f = fromItems;
+                setIdle((s) => ({ ...s, items: { ...s.items, [id]: Math.max(0, (s.items[id] ?? 0) - f) } }));
+              }
+              return true;
+            };
             const grantRevoReward = (why: string) => {
               const step = idle.revoQuests?.rewardStep ?? 0;
               const food = step % 2 === 0;
@@ -13907,19 +13961,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               setNpcDialog(null);
             };
             const turnInBouquet = () => {
-              const ms = loadMaterialsStore();
-              if ((ms.buque ?? 0) < 1) { pushChat("❌ Você não tem o Buquê.", "info"); return; }
-              ms.buque -= 1;
-              saveMaterialsStore(ms);
+              if (!takeResource("buque", 1)) { pushChat("❌ Você não tem o Buquê.", "info"); return; }
               setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), bouquetStarted: true, bouquetDone: true } }));
               setNpcDialog(null);
               grantRevoReward("O Buquê Perdido");
             };
             const giveFlower = () => {
-              const ms = loadMaterialsStore();
-              if ((ms.flor ?? 0) < 1) { pushChat("❌ Você não tem Flor.", "info"); return; }
-              ms.flor -= 1;
-              saveMaterialsStore(ms);
+              if (!takeResource("flor", 1)) { pushChat("❌ Você não tem Flor.", "info"); return; }
               setIdle((s) => ({
                 ...s,
                 revoQuests: { ...(s.revoQuests ?? {}), flowersGiven: (s.revoQuests?.flowersGiven ?? 0) + 1 },
@@ -23362,6 +23410,16 @@ function TabOverlay({
           leite_manga: "Leite de Manga 🧋",
           morango: "Morango 🍓", banana: "Banana 🍌",
           certificado: "Certificado 📜",
+          fibra: "Fibra 🪵", ferro: "Ferro ⛓️", agua: "Água 💧",
+          bronze: "Bronze 🟤", buque: "Buquê 💐", chicote: "Chicote 🌿",
+          escamas: "Escamas ✨", perola: "Pérola 🦪", pepita: "Pepita de Ouro 🌟",
+          flor: "Flor 🌸",
+          cog_red: "Cogumelo Vermelho 🍄", cog_blue: "Cogumelo Azul 🍄",
+          cog_orange: "Cogumelo Laranja 🍄", cog_brown: "Cogumelo Marrom 🍄",
+          lenha: "Lenha 🪵", pedra: "Pedra 🪨", sucata: "Sucata ⚙️", oleo: "Óleo 🛢️",
+          cr_prisma: "Cristal Prismático 💠", cr_red: "Cristal Vermelho 🔴",
+          cr_blue: "Cristal Azul 🔵", cr_yellow: "Cristal Amarelo 🟡",
+          cr_green: "Cristal Verde 🟢", cr_purple: "Cristal Roxo 🟣",
         };
         const ITEM_DESC: Record<string, string> = {
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
@@ -23414,6 +23472,25 @@ function TabOverlay({
           emerald_egg: "EGG Emerald 💚 · 5 Elemental Stones DO MESMO TIPO desbloqueiam e choca em 1 hora. Nasce pokémon Comum (65%), Raro (25%) ou Épico (10%) do elemento, sempre com 3 traits.",
           egg_boost_69: "Cristal do Despertar ✦ · use para abrir o painel do Black Mitic Egg e escolher qual ovo terá o progresso adiantado para 69% (só funciona em ovos ativados e com menos de 69%).",
           stone_pack_all: "Pacote das Seis Stones 💠 · use para receber 4 000 de cada Stone Elemental (🌿 🔥 💧 ⚡ 🌑 🐉).",
+          fibra: "Fibra · recurso de planta (evolução de Lands).",
+          ferro: "Ferro · metal de Pokémon de aço.",
+          agua: "Água · recurso de coleta.",
+          bronze: "Bronze · metal de Pokémon terrestres.",
+          buque: "Buquê · item da quest do Barney. Entregue a ele!",
+          chicote: "Chicote · fibra vegetal de planta.",
+          escamas: "Escamas · de Pokémon aquáticos e de gelo.",
+          perola: "Pérola · só de Pokémon aquáticos.",
+          pepita: "Pepita de Ouro · de Pokémon de pedra.",
+          flor: "Flor · abra a Florzinha em Revoland para trocar!",
+          cog_red: "Cogumelo Vermelho · raro, de qualquer mapa.",
+          cog_blue: "Cogumelo Azul · raro, de qualquer mapa.",
+          cog_orange: "Cogumelo Laranja · raro, de qualquer mapa.",
+          cog_brown: "Cogumelo Marrom · raro, de qualquer mapa.",
+          lenha: "Lenha · corte árvores (precisa de Pinsir).",
+          pedra: "Pedra · material de construção.",
+          sucata: "Sucata · peça metálica rara.",
+          oleo: "Óleo · combustível bruto.",
+          certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
         const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
@@ -23704,7 +23781,7 @@ function TabOverlay({
                     filtered.map(([id, n]) => {
                       const sel = selId === id;
                       const eq = eqInfo(id);
-                      const rowImg = eq ? null : ITEM_IMG[id];
+                      const rowImg = eq ? null : ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id];
                       const rowColor = eq ? (RARITY_COLOR[eq.rarity] ?? "#8a7a4a") : ((id.startsWith("egg_") ? EGG_COLORS[id] : ITEM_COLORS[id]) ?? "#8a7a4a");
                       return (
                         <div
@@ -23738,6 +23815,31 @@ function TabOverlay({
                     })
                   )}
                 </div>
+                {/* Cofre de materiais (recursos de coleta/drops/lands) — só leitura */}
+                {(() => {
+                  const mats = loadMaterialsStore();
+                  const have = MATERIALS.filter((m) => (mats[m.id] ?? 0) > 0);
+                  if (have.length === 0) return null;
+                  return (
+                    <div style={{ marginTop: 6, background: "#f5f0dc", borderTop: "2px solid #060d18", padding: "6px 8px" }}>
+                      <div style={{ fontSize: 10, fontWeight: 900, color: "#1e3a5e", letterSpacing: 1, marginBottom: 4 }}>
+                        📦 MATERIAIS (cofre de recursos)
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {have.map((m) => (
+                          <div
+                            key={m.id}
+                            title={`${m.name} ×${mats[m.id]}`}
+                            style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", border: "1px solid #c9b896", borderRadius: 8, padding: "2px 6px 2px 2px" }}
+                          >
+                            <img src={m.img} alt={m.name} width={22} height={22} style={{ imageRendering: "pixelated" }} />
+                            <span style={{ fontSize: 11, fontWeight: 900, color: "#1e3a5e" }}>×{mats[m.id]}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {selId ? (() => {
                   const id = selId;
                   const eq = eqInfo(id);
@@ -23772,7 +23874,7 @@ function TabOverlay({
                   const n = items[id] ?? 0;
                   const isEgg = id.startsWith("egg_");
                   const color = isEgg ? (EGG_COLORS[id] ?? "#8a7a4a") : (ITEM_COLORS[id] ?? "#8a7a4a");
-                  const img = ITEM_IMG[id];
+                  const img = ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id];
                   const sellPrice = marketSellPrices[id] ?? 0;
                   const UP: Record<string, { to: string; cost: number; trainerLv: number; label: string }> = {
                     book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "EXP Raro" },
@@ -23872,7 +23974,7 @@ function TabOverlay({
               const id = itemDetail;
               const isEgg = id.startsWith("egg_");
               const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
-              const img = ITEM_IMG[id];
+              const img = ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id];
               const name = NAMES[id] ?? id;
               const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
               const count = items[id] ?? 0;

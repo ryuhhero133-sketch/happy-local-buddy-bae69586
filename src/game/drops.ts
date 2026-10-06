@@ -12,6 +12,15 @@ import cogOrangeUrl from "@/material land/cogumelo-orange.png";
 import cogRedUrl from "@/material land/cogumelo-red.png";
 import cogBrownUrl from "@/assets/materials/cogumelo-brown.png";
 import sucataUrl from "@/assets/materials/sucata.png";
+import lenhaUrl from "@/assets/materials/lenha.png";
+import pedraUrl from "@/assets/materials/pedra.png";
+import oleoUrl from "@/assets/materials/oleo.png";
+import crPrismaUrl from "@/assets/materials/cristal-prisma.png";
+import crRedUrl from "@/assets/materials/cristal-red.png";
+import crBlueUrl from "@/assets/materials/cristal-blue.png";
+import crYellowUrl from "@/assets/materials/cristal-yellow.png";
+import crGreenUrl from "@/assets/materials/cristal-green.png";
+import crPurpleUrl from "@/assets/materials/cristal-purple.png";
 import escamasUrl from "@/material land/escamas.png";
 import ferroUrl from "@/material land/ferro.png";
 import fibraUrl from "@/material land/fibra.png";
@@ -137,6 +146,9 @@ export const DROP_IMG_BY_MAT: Partial<Record<MaterialId, string>> = {
   perola: perolaUrl, pepita: pepitaUrl, flor: florRedUrl,
   cog_blue: cogBlueUrl, cog_orange: cogOrangeUrl, cog_red: cogRedUrl,
   cog_brown: cogBrownUrl, sucata: sucataUrl,
+  lenha: lenhaUrl, pedra: pedraUrl, oleo: oleoUrl,
+  cr_prisma: crPrismaUrl, cr_red: crRedUrl, cr_blue: crBlueUrl,
+  cr_yellow: crYellowUrl, cr_green: crGreenUrl, cr_purple: crPurpleUrl,
 };
 export const DROP_LABEL_BY_MAT: Partial<Record<MaterialId, string>> = {
   fibra: "Fibra", ferro: "Ferro", agua: "Água", bronze: "Bronze",

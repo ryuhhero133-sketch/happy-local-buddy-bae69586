@@ -52,7 +52,7 @@ function GenderIcon({ p }: { p: PetInstance }) {
   return <span style={{ color: isFemale ? "#ff4d6d" : "#4ea8ff", fontSize: 18, lineHeight: 1 }}>{isFemale ? "♀" : "♂"}</span>;
 }
 
-export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, gifMap, onViewCard, onClose }: Props) {
+export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, gifMap, onReorderTeam, onViewCard, onClose }: Props) {
   const [bonusFilter, setBonusFilter] = useState<string | null>(null);
   const [activePanel, setActivePanel] = useState<"pokemon" | "sinergia" | "bonus" | "discos">("pokemon");
   if (team.length === 0) {

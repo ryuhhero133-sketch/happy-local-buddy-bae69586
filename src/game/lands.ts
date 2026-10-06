@@ -195,19 +195,42 @@ export function landReqsFor(
 export const landReqsMet = (reqs: LandReq[]): boolean =>
   reqs.length > 0 && reqs.every((r) => r.ok);
 
-// Consome os materiais dos requisitos (capturas só verificadas). false = faltava algo.
-export function consumeLandReqs(targetLevel: LandLevel, caught: Species[]): boolean {
-  const mats = loadMaterialsStore();
-  const reqs = landReqsFor(targetLevel, mats, caught);
-  if (!landReqsMet(reqs)) return false;
-  const next = { ...mats };
-  for (const r of reqs) {
-    if (r.kind === "material" && r.mat) {
-      next[r.mat] = Math.max(0, (next[r.mat] ?? 0) - r.need);
-    }
+// Cofre + mochila somados (recursos valem dos dois lugares).
+export function combinedMats(items: Record<string, number>): MaterialsStore {
+  const sRec = loadMaterialsStore() as unknown as Record<string, number>;
+  const out: Record<string, number> = { ...sRec };
+  for (const [k, v] of Object.entries(items ?? {})) {
+    if (typeof v === "number" && v > 0) out[k] = (out[k] ?? 0) + v;
   }
-  saveMaterialsStore(next);
-  return true;
+  return out as unknown as MaterialsStore;
+}
+
+// Consome os materiais dos requisitos (mochila primeiro, resto do cofre).
+// Retorna { ok, taken } — taken = o que saiu da MOCHILA (aplicar via setIdle).
+export function takeLandReqs(
+  targetLevel: LandLevel,
+  caught: Species[],
+  items: Record<string, number>,
+): { ok: boolean; taken: Record<string, number> } {
+  const reqs = landReqsFor(targetLevel, combinedMats(items), caught);
+  if (!landReqsMet(reqs)) return { ok: false, taken: {} };
+  const taken: Record<string, number> = {};
+  const availItems = { ...(items ?? {}) };
+  const store = loadMaterialsStore() as unknown as Record<string, number>;
+  const nextStore = { ...store };
+  for (const r of reqs) {
+    if (r.kind !== "material" || !r.mat) continue;
+    let need = r.need;
+    const fromItems = Math.min(availItems[r.mat] ?? 0, need);
+    if (fromItems > 0) {
+      taken[r.mat] = (taken[r.mat] ?? 0) + fromItems;
+      availItems[r.mat] = (availItems[r.mat] ?? 0) - fromItems;
+      need -= fromItems;
+    }
+    if (need > 0) nextStore[r.mat] = Math.max(0, (nextStore[r.mat] ?? 0) - need);
+  }
+  saveMaterialsStore(nextStore as unknown as MaterialsStore);
+  return { ok: true, taken };
 }
 
 // ===== Plantas: estágios e frutos =====
@@ -220,14 +243,9 @@ export function plantStageAt(plant: LandPlant, now: number): PlantStage {
 export const plantFruitReady = (plant: LandPlant, now: number): boolean =>
   plantStageAt(plant, now) >= 3 && !(plant.collectingUntil != null && plant.collectingUntil > now);
 
-// Adiciona frutos ao recurso do jogador (materials store). Retorna a qtd.
-export function grantFruit(kind: PlantKind, qty: number): number {
-  const def = plantDef(kind);
-  const store = loadMaterialsStore();
-  (store as Record<string, number>)[def.fruitMat] =
-    ((store as Record<string, number>)[def.fruitMat] ?? 0) + qty;
-  saveMaterialsStore(store);
-  return qty;
+// Adiciona frutos à MOCHILA (idle.items). Retorna o mapa de ganhos p/ setIdle.
+export function fruitGains(kind: PlantKind, qty: number): Record<string, number> {
+  return { [plantDef(kind).fruitMat]: qty };
 }
 
 export const fruitYieldFor = (kind: PlantKind, level: LandLevel): number =>

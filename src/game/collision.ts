@@ -28,7 +28,7 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral";
+  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10";
 }
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
@@ -244,12 +244,13 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
       // Resto (chão, escadas, pedras, areia clara) libera.
       return true;
     }
-    // ---- Máscaras branco/preto (só o branco anda): casa1/casa2/land_revo/pokemarkt ----
+    // ---- Máscaras branco/preto (SÓ o branco anda — igual Revoland) ----
+    // casa1/casa2/land_revo/mapinha10: branco puro = caminhável; resto bloqueia.
     case "casa1":
     case "casa2":
     case "land_revo":
     case "mapinha10": {
-      return l > 0.5;
+      return r > 200 && g > 200 && b > 200;
     }
     default:
       return true;
