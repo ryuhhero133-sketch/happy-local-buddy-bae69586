@@ -6920,6 +6920,8 @@ const confirmName = () => {
   };
   type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
+  // Card do treinador (abre clicando na foto de perfil do HUD)
+  const [trainerCardOpen, setTrainerCardOpen] = useState(false);
   const [rankRows, setRankRows] = useState<RankRow[]>([]);
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
@@ -6934,6 +6936,7 @@ const confirmName = () => {
         if (selectedMapInfo) { setSelectedMapInfo(null); return; }
         if (worldMapOpen) { setWorldMapOpen(false); return; }
         if (rankOpen) { setRankOpen(false); return; }
+        if (trainerCardOpen) { setTrainerCardOpen(false); return; }
         return;
       }
 
@@ -6945,7 +6948,7 @@ const confirmName = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [worldMapOpen, rankOpen]);
+  }, [worldMapOpen, rankOpen, trainerCardOpen]);
 
   // ===== TAB: alterna a TRAVA de alvo entre os inimigos próximos =====
   // Ordem = mais perto primeiro (pelo pokémon ou pelo treinador). Segurar Tab
@@ -13532,9 +13535,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               boxShadow: "inset 0 0 0 1px rgba(180,255,205,0.3)",
               fontFamily: "'Courier New', monospace", imageRendering: "pixelated",
             }}>
-              <div style={{ width: 26, height: 26, borderRadius: 6, overflow: "hidden", flexShrink: 0, border: "2px solid #2c2c2c", background: "#0a1322" }}>
+              <button
+                onClick={() => { playClick(); setTrainerCardOpen(true); }}
+                title="Ver informações do treinador"
+                style={{ width: 26, height: 26, borderRadius: 6, overflow: "hidden", flexShrink: 0, border: "2px solid #2c2c2c", background: "#0a1322", padding: 0, cursor: "pointer" }}
+              >
                 <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </div>
+              </button>
               <div style={{ color: "#fff", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>
                 {identity?.name ?? "Treinador"} <span style={{ fontSize: 9, color: "#7ef2a2" }}>Lv. {idle.trainerLevel ?? 1}</span>
               </div>
@@ -13550,17 +13557,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             backdropFilter: "blur(6px)",
             fontFamily: "'Courier New', monospace", imageRendering: "pixelated",
           }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: 6, overflow: "hidden", flexShrink: 0,
-              border: "2px solid #2c2c2c", background: "#0a1322",
-            }}>
+            <button
+              onClick={() => { playClick(); setTrainerCardOpen(true); }}
+              title="Ver informações do treinador"
+              style={{
+                width: 30, height: 30, borderRadius: 6, overflow: "hidden", flexShrink: 0,
+                border: "2px solid #2c2c2c", background: "#0a1322", padding: 0, cursor: "pointer",
+              }}
+            >
               <div style={{
                 width: "100%", height: "100%",
                 backgroundImage: `url(${skinPhotoOf(skinId) ?? trainerSheet})`,
                 backgroundSize: "cover", backgroundPosition: "center",
                 imageRendering: "pixelated",
               }} />
-            </div>
+            </button>
             <div style={{ minWidth: 0 }}>
               <div style={{ color: "#1a0f26", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>
                 {identity?.name ?? "Treinador"} <span style={{ fontSize: 9 }}>Lv. {idle.trainerLevel ?? 1}</span>
@@ -16430,7 +16441,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
-                  {/* MIRA do alvo travado — identifica VISUALMENTE quem o pokémon está atacando */}
+                  {/* MIRA do alvo travado — só o anel dourado girando */}
                   {!dead && attackTargetId === e.id && (
                     <div style={{ position: "absolute", inset: -10, pointerEvents: "none", zIndex: 3 }}>
                       <div style={{
@@ -16439,19 +16450,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                         boxShadow: "0 0 12px rgba(255,217,77,0.85), inset 0 0 10px rgba(255,217,77,0.35)",
                         animation: "targetReticleSpin 3s linear infinite",
                       }} />
-                      <div style={{
-                        position: "absolute", inset: 6, borderRadius: "50%",
-                        border: "1px solid rgba(255,90,90,0.9)",
-                        animation: "targetReticlePulse 1.1s ease-in-out infinite",
-                      }} />
-                      <div style={{
-                        position: "absolute", left: "50%", bottom: -26,
-                        transform: "translateX(-50%)",
-                        background: "linear-gradient(180deg,#ffe9a8,#f5b301)",
-                        color: "#241536", fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                        padding: "2px 7px", borderRadius: 8, whiteSpace: "nowrap",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(255,217,77,0.7)",
-                      }}>🎯 ALVO</div>
                     </div>
                   )}
                   {(showAura && !e.menace) && (
@@ -21076,7 +21074,6 @@ onClick={(e) => {
 
         /* ===== Miria / trava de alvo (TAB) ===== */
         @keyframes targetReticleSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes targetReticlePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
         .targetlist-row { transition: background 120ms ease, border-color 120ms ease; }
         .targetlist-row:hover { background: rgba(255,214,80,0.14) !important; }
         @media (max-width: 640px) {
@@ -22653,6 +22650,114 @@ onClick={(e) => {
             })}
             <div style={{ fontSize: 7.5, color: "#8fa3c8", textAlign: "center", paddingTop: 2 }}>
               Clique = travar · TAB = trocar
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ===== Card do TREINADOR (abre clicando na foto de perfil do HUD) ===== */}
+      {trainerCardOpen && (() => {
+        const lv = idle.trainerLevel ?? 1;
+        const xp = Math.floor(idle.trainerXp ?? 0);
+        const need = trainerXpToNext(lv);
+        const pct = Math.max(0, Math.min(100, (xp / Math.max(1, need)) * 100));
+        const missing = Math.max(0, need - xp);
+        return (
+          <div
+            onClick={(e) => { if (e.target === e.currentTarget) setTrainerCardOpen(false); }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 9999,
+              background: "rgba(2,6,16,0.72)", backdropFilter: "blur(3px)",
+              display: "grid", placeItems: "center", padding: 16,
+            }}
+          >
+            <div style={{
+              width: "min(430px, 94vw)",
+              background: "linear-gradient(180deg, #0d1830 0%, #070d1d 100%)",
+              border: "2px solid rgba(255,214,80,0.55)", borderRadius: 14,
+              boxShadow: "0 18px 50px rgba(0,0,0,0.7), 0 0 26px rgba(255,214,80,0.22)",
+              overflow: "hidden",
+              animation: "evt-slide 220ms cubic-bezier(.2,.9,.3,1.2)",
+            }}>
+              {/* Cabeçalho */}
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "10px 14px",
+                background: "linear-gradient(180deg, rgba(255,214,80,0.16), rgba(255,214,80,0.02))",
+                borderBottom: "1px solid rgba(255,214,80,0.4)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>🎖️</span>
+                  <span style={{ fontWeight: 900, fontSize: 14, letterSpacing: 2, color: "#ffe9a8" }}>TREINADOR</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <img src={ballPokeImg} alt="" width={18} height={18} style={{ imageRendering: "pixelated" }} />
+                  <span style={{ fontWeight: 900, fontSize: 11, letterSpacing: 1.5, color: "#9fd8ff" }}>IDLEMON REVO</span>
+                </div>
+                <button
+                  onClick={() => { playClick(); setTrainerCardOpen(false); }}
+                  title="Fechar (Esc)"
+                  style={{
+                    background: "rgba(255,214,80,0.12)", border: "1px solid rgba(255,214,80,0.4)",
+                    color: "#ffe9a8", cursor: "pointer", fontSize: 15, width: 30, height: 30,
+                    borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >✕</button>
+              </div>
+              {/* Corpo */}
+              <div style={{ display: "grid", gridTemplateColumns: "104px 1fr", gap: 12, padding: 14, alignItems: "center" }}>
+                <div style={{
+                  width: 104, height: 104, borderRadius: 12, overflow: "hidden",
+                  border: "2px solid rgba(255,214,80,0.7)", background: "#0a1322",
+                  boxShadow: "0 0 14px rgba(255,214,80,0.35)",
+                }}>
+                  <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="Treinador" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 900, fontSize: 18, color: "#fff", textShadow: "1px 1px 0 #000", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {identity?.name ?? "Treinador"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#9fb4ff", fontWeight: 700, marginTop: 1 }}>
+                    {guild?.name ? `★ ${guild.name}` : "Viajante de Revo Emerald"}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 900, color: "#0d1830",
+                      background: "linear-gradient(180deg,#ffe9a8,#f5b301)",
+                      borderRadius: 8, padding: "3px 8px", whiteSpace: "nowrap",
+                      boxShadow: "0 0 10px rgba(255,214,80,0.5)",
+                    }}>Nível {lv}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 800, color: "#dbe6fa", whiteSpace: "nowrap" }}>
+                        XP {xp.toLocaleString("pt-BR")} / {need.toLocaleString("pt-BR")}
+                      </div>
+                      <div style={{
+                        height: 10, marginTop: 3, borderRadius: 999, overflow: "hidden",
+                        background: "rgba(0,0,0,0.6)", border: "1px solid rgba(110,175,255,0.4)",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
+                      }}>
+                        <div style={{
+                          width: `${pct}%`, height: "100%",
+                          background: "linear-gradient(90deg, #3b82f6, #67c7f5)",
+                          boxShadow: "0 0 10px rgba(90,160,255,0.9)",
+                          transition: "width 300ms",
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Rodapé */}
+              <div style={{ padding: "0 14px 14px", textAlign: "center" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#ffd94d", textShadow: "1px 1px 0 #000" }}>
+                  {missing > 0
+                    ? `Faltam ${missing.toLocaleString("pt-BR")} XP para o Nv. ${lv + 1} (${Math.round(pct)}%)`
+                    : "Pronto para subir de nível!"}
+                </div>
+                <div style={{ fontSize: 11.5, color: "#c8d6f2", fontStyle: "italic", marginTop: 6, lineHeight: 1.4 }}>
+                  "Cada batalha é um passo a mais para o seu sonho!"
+                </div>
+              </div>
             </div>
           </div>
         );
