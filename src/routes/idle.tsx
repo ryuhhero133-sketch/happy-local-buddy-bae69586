@@ -6941,24 +6941,48 @@ const confirmName = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
-  const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v4_live_level_${mode}_top20`;
+  // ===== SNAPSHOT DIÁRIO DO RANKED =====
+  // Os dados REAIS (nível de treinador + pontos de craft) são capturados UMA vez por dia,
+  // quando o dia do ranked vira às 17h. Depois disso a tabela fica CONGELADA até o próximo
+  // reset às 17h — NÃO refaz consulta toda hora.
+  const RANKED_RESET_HOUR = 17;
+  const rankedDayStr = () => new Date(Date.now() - RANKED_RESET_HOUR * 3_600_000).toISOString().slice(0, 10);
+  const rankSnapshotKey = () => `rank_snapshot_v1_${rankedDayStr()}`;
+  const [rankSnapshotAt, setRankSnapshotAt] = useState<number | null>(null);
+
+  // Monta o Top 20 a partir de uma base (snapshot ou dados recém-capturados), no modo da aba.
+  const toRankTop20 = (base: RankRow[]): RankRow[] => {
+    const meId = identity?.id ?? "local-trainer";
+    const sorted = [...base].sort((a, b) => {
+      const av = rankMode === "craft" ? a.craft_points : a.trainer_level;
+      const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
+      return bv - av;
+    });
+    const myIdx = sorted.findIndex((r) => r.id === meId);
+    const top20: RankRow[] = sorted.slice(0, 20).map((r, i) => ({ ...r, myRank: i + 1 }));
+    // Fora do Top 20? Mostra sua linha no final com a posição real.
+    if (myIdx >= 20) top20.push({ ...sorted[myIdx], myRank: myIdx + 1 });
+    return top20;
+  };
+
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
-    const key = rankCacheKey(rankMode);
-    // Serve cache local se ainda dentro da janela de 3h
+    const snapKey = rankSnapshotKey();
+    // 1) Snapshot de hoje já existe (capturado no reset das 17h)? Usa ele — SEM consulta na rede.
     try {
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(snapKey);
       if (raw) {
         const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
-        if (parsed && Date.now() - parsed.at < RANK_CACHE_TTL_MS && Array.isArray(parsed.rows)) {
-          setRankRows(parsed.rows);
+        if (parsed && Array.isArray(parsed.rows) && parsed.rows.length) {
+          setRankSnapshotAt(parsed.at);
+          setRankRows(toRankTop20(parsed.rows));
           setRankLoading(false);
           return;
         }
       }
     } catch { /* ignore */ }
+    // 2) Primeira abertura do dia: captura os dados REAIS agora e congela até 17h.
     setRankLoading(true);
     (async () => {
       const collection = idle.collection ?? [];
@@ -6981,7 +7005,7 @@ const confirmName = () => {
       });
       try {
         await recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
-        const top = await fetchTopRanked(200);
+        const top = await fetchTopRanked(300);
         let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
           name: r.username || "Treinador",
@@ -7000,32 +7024,27 @@ const confirmName = () => {
             .from("players")
             .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity")
             .order(orderCol, { ascending: false })
-            .limit(200);
+            .limit(300);
           if (error) console.warn("[idle ranked] players:", error.message);
           rows = (((data as RankRow[] | null) ?? [])).map((r) => ({ ...r, id: String(r.id).split(":")[0] || r.id }));
         }
 
-        rows.sort((a, b) => {
-          const av = rankMode === "craft" ? a.craft_points : a.trainer_level;
-          const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
-          return bv - av;
-        });
         rows = rows.slice(0, 300);
-        // ===== Só o TOP 20 aparece. =====
+        // Mistura VOCÊ na base com os valores reais do momento (fica congelado no snapshot).
         const meId = identity?.id ?? "local-trainer";
         const myIdx = rows.findIndex((r) => r.id === meId);
         if (myIdx >= 0) rows[myIdx] = { ...rows[myIdx], ...meRow() };
-        const top20: RankRow[] = rows.slice(0, 20).map((r, i) => ({ ...r, myRank: i + 1 }));
-        // Fora do Top 20? Mostra sua linha no final com a posição real.
-        if (myIdx < 0) top20.push({ ...meRow(), myRank: 0 });
-        else if (myIdx >= 20) top20.push({ ...meRow(), myRank: myIdx + 1 });
-        rows = top20;
-        if (!cancelled) setRankRows(rows);
-        try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
+        else rows.push(meRow());
+
+        if (!cancelled) {
+          setRankRows(toRankTop20(rows));
+          setRankSnapshotAt(Date.now());
+        }
+        try { localStorage.setItem(snapKey, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
       } catch (e) {
         console.warn("[idle ranked] load:", e);
-        const rows = [meRow()];
-        if (!cancelled) setRankRows(rows);
+        const fallback = [meRow()];
+        if (!cancelled) setRankRows(fallback);
       }
       finally { if (!cancelled) setRankLoading(false); }
     })();
@@ -15718,7 +15737,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       <img src={assetUrlFromJson(trophyIconAsset)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
                       <div>
                         <div style={{ fontWeight: 900, fontSize: 18, color: "#ffd94d", letterSpacing: 0.5 }}>RANKING GLOBAL</div>
-                        <div style={{ fontSize: 10, opacity: 0.7 }}>Top 20 melhores do mundo</div>
+                        <div style={{ fontSize: 10, opacity: 0.7 }}>
+                          Top 20 melhores do mundo · 📸 {rankSnapshotAt ? new Date(rankSnapshotAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"} · atualiza às 17h
+                        </div>
                       </div>
                     </div>
                     <button
