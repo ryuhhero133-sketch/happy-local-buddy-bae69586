@@ -2250,6 +2250,9 @@ function IdlePage() {
   // alvo atual (para virar o pokémon) — id do inimigo que estamos atacando
   const [attackTargetId, setAttackTargetId] = useState<number | null>(null);
   const attackTargetIdRef = useRef<number | null>(null);
+  // Trava de alvo: alvo escolhido manualmente (TAB / painel). A trava automática
+  // (attackTargetId) é a "pega mais próximo" — mantida até o alvo morrer/sair.
+  const manualTargetRef = useRef<number | null>(null);
   const paralyzedUntilRef = useRef<number>(0);
   const [paralyzedUntil, setParalyzedUntil] = useState<number>(0);
   // Rastreia qual inimigo aplicou a paralisia — se ele morrer/fugir,
@@ -4684,6 +4687,8 @@ const confirmName = () => {
         if (cur != null) {
           blacklistRef.current.set(cur, Date.now() + 25000);
         }
+        // Anda na mão = solta a trava automática (a manual — escolha do jogador — continua).
+        if (manualTargetRef.current == null && attackTargetIdRef.current != null) setAttackTargetId(null);
         keysRef.current.add(k);
       }
     };
@@ -6942,6 +6947,38 @@ const confirmName = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [worldMapOpen, rankOpen]);
 
+  // ===== TAB: alterna a TRAVA de alvo entre os inimigos próximos =====
+  // Ordem = mais perto primeiro (pelo pokémon ou pelo treinador). Segurar Tab
+  // continua ciclando (ignora auto-repeat pra não disparar várias vezes).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Tab" || e.repeat) return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+      e.preventDefault();
+      const fpx = followerStateRef.current.x, fpy = followerStateRef.current.y;
+      const tpx = trainerPosRef.current.x, tpy = trainerPosRef.current.y;
+      const near = enemies
+        .filter((en) => en.hp > 0)
+        .map((en) => ({ en, d: Math.min(Math.hypot(en.x - fpx, en.y - fpy), Math.hypot(en.x - tpx, en.y - tpy)) }))
+        .filter((x) => x.d <= 560)
+        .sort((a, b) => a.d - b.d);
+      if (near.length === 0) {
+        pushChat("🎯 Nenhum inimigo por perto para mirar (TAB).", "info");
+        return;
+      }
+      const curId = manualTargetRef.current ?? attackTargetIdRef.current;
+      const idx = near.findIndex((x) => x.en.id === curId);
+      const next = near[(idx + 1) % near.length].en;
+      manualTargetRef.current = next.id;
+      setAttackTargetId(next.id);
+      pushChat(`🎯 Alvo travado: ${next.sp.replace(/_/g, " ")} Lv.${next.level} — derrotar ele primeiro!`, "info");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [enemies]);
+
   // ===== SNAPSHOT DIÁRIO DO RANKED =====
   // Os dados REAIS (nível de treinador + pontos de craft) são capturados UMA vez por dia,
   // quando o dia do ranked vira às 17h. Depois disso a tabela fica CONGELADA até o próximo
@@ -8462,21 +8499,44 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (prev.length === 0) { combatMoveRef.current = null; return spawnEnemies(); }
         const alive = prev.filter((e) => e.hp > 0);
         if (alive.length === 0) { combatMoveRef.current = null; return spawnEnemies(); }
-        // Alvo = inimigo mais próximo do POKÉMON (combatente principal; o treinador fica atrás)
+        // Alvo do pokémon: TRAVA STICKY — uma vez engajado, só troca quando o
+        // alvo morrer/fugir ou sair do alcance. Sem isso o dano ficava dividido
+        // entre vários inimigos próximos (ex.: 4 Vaporeons) e ninguém morria.
         const fpx = followerStateRef.current.x, fpy = followerStateRef.current.y;
+        // Limpa a trava manual se o alvo escolhido não está mais vivo.
+        if (manualTargetRef.current != null && !alive.some((e) => e.id === manualTargetRef.current)) {
+          manualTargetRef.current = null;
+        }
+        const keepId = manualTargetRef.current ?? attackTargetIdRef.current;
+        const keep = keepId != null ? alive.find((e) => e.id === keepId) : undefined;
         let target = alive[0];
         let bestD = Infinity;
-        for (const e of alive) {
-          const d = (e.x - fpx) ** 2 + (e.y - fpy) ** 2;
-          if (d < bestD) { bestD = d; target = e; }
+        if (keep) {
+          const kd = (keep.x - fpx) ** 2 + (keep.y - fpy) ** 2;
+          // Trava manual persegue mais longe (1.6×); automática solta no ENGAGE_RANGE.
+          const leash = manualTargetRef.current != null ? ENGAGE_RANGE * 1.6 : ENGAGE_RANGE;
+          if (kd <= leash * leash) {
+            target = keep;
+            bestD = kd;
+          } else if (manualTargetRef.current != null) {
+            manualTargetRef.current = null; // longe demais → devolve pro automático
+          }
+        }
+        if (bestD === Infinity) {
+          for (const e of alive) {
+            const d = (e.x - fpx) ** 2 + (e.y - fpy) ** 2;
+            if (d < bestD) { bestD = d; target = e; }
+          }
         }
         const fDist = Math.sqrt(bestD);
         // REGRA DO RANGE REAL: a skill do líder define o alcance (com margem de
         // segurança); sem skill com dano, vale o ataque básico (ATTACK_RANGE).
         const pSkill = playerSkillFor(leader.species);
         const pRange = pSkill ? pSkill.range * SKILL_RANGE_MARGIN : ATTACK_RANGE;
-        // Engajamento: só persegue o inimigo que estiver num raio razoável do pokémon
-        if (fDist > ENGAGE_RANGE) {
+        // Engajamento: só persegue o inimigo que estiver num raio razoável do pokémon.
+        // Alvo travado manualmente (TAB/painel) persegue até 1.6× — escolha do jogador.
+        const engageLimit = manualTargetRef.current != null ? ENGAGE_RANGE * 1.6 : ENGAGE_RANGE;
+        if (fDist > engageLimit) {
           // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
           setAttackTargetId((cur) => (cur !== null ? null : cur));
           combatMoveRef.current = null;
@@ -13929,7 +13989,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   const filtered = chat.filter((m) => chatFilter === "all" ? true : classify(m) === chatFilter);
                   return (
                     <div>
-                      {[...filtered].reverse().map((m) => {
+                      {filtered.map((m) => {
                         const color =
                           m.kind === "chest" ? "#ffa64a" :
                           m.kind === "capture" ? "#ff97e1" :
@@ -16370,6 +16430,30 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   zIndex: Math.round(e.y),
                   cursor: dead ? "default" : "pointer",
                 }}>
+                  {/* MIRA do alvo travado — identifica VISUALMENTE quem o pokémon está atacando */}
+                  {!dead && attackTargetId === e.id && (
+                    <div style={{ position: "absolute", inset: -10, pointerEvents: "none", zIndex: 3 }}>
+                      <div style={{
+                        position: "absolute", inset: 0, borderRadius: "50%",
+                        border: "2px dashed #ffd94d",
+                        boxShadow: "0 0 12px rgba(255,217,77,0.85), inset 0 0 10px rgba(255,217,77,0.35)",
+                        animation: "targetReticleSpin 3s linear infinite",
+                      }} />
+                      <div style={{
+                        position: "absolute", inset: 6, borderRadius: "50%",
+                        border: "1px solid rgba(255,90,90,0.9)",
+                        animation: "targetReticlePulse 1.1s ease-in-out infinite",
+                      }} />
+                      <div style={{
+                        position: "absolute", left: "50%", bottom: -26,
+                        transform: "translateX(-50%)",
+                        background: "linear-gradient(180deg,#ffe9a8,#f5b301)",
+                        color: "#241536", fontSize: 9, fontWeight: 900, letterSpacing: 1,
+                        padding: "2px 7px", borderRadius: 8, whiteSpace: "nowrap",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(255,217,77,0.7)",
+                      }}>🎯 ALVO</div>
+                    </div>
+                  )}
                   {(showAura && !e.menace) && (
                     <div style={{ position: "absolute", inset: -14, zIndex: -1, pointerEvents: "none", overflow: "visible" }}>
                       <div style={{
@@ -20990,6 +21074,15 @@ onClick={(e) => {
           100% { opacity: 1; transform: translate(-50%, 0); }
         }
 
+        /* ===== Miria / trava de alvo (TAB) ===== */
+        @keyframes targetReticleSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes targetReticlePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+        .targetlist-row { transition: background 120ms ease, border-color 120ms ease; }
+        .targetlist-row:hover { background: rgba(255,214,80,0.14) !important; }
+        @media (max-width: 640px) {
+          .mob-targetlist { transform: scale(0.78); transform-origin: top right; }
+        }
+
         /* ===== HUD portátil (bottomnav / quests / aura / gps / orbs) ===== */
         .bottomnav-btn { transition: transform 120ms ease, filter 150ms ease; }
         .bottomnav-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
@@ -22467,6 +22560,99 @@ onClick={(e) => {
                 textTransform: "uppercase", fontWeight: 800,
                 textShadow: "1px 1px 0 #000",
               }}>�  {tgt.rarity} �  ALVO</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ===== Painel de ALVOS PRÓXIMOS (retratos pequenos) — clique trava / TAB alterna ===== */}
+      {(() => {
+        const fpx = followerStateRef.current.x, fpy = followerStateRef.current.y;
+        const near = enemies
+          .filter((e) => e.hp > 0)
+          .map((e) => ({ e, d: Math.hypot(e.x - fpx, e.y - fpy) }))
+          .filter((x) => x.d <= 520)
+          .sort((a, b) => a.d - b.d)
+          .slice(0, 6);
+        if (near.length === 0) return null;
+        const lockTarget = (id: number) => {
+          if (manualTargetRef.current === id) {
+            manualTargetRef.current = null;
+            setAttackTargetId(null);
+            pushChat("🎯 Trava de alvo solta — mira automática de volta.", "info");
+          } else {
+            manualTargetRef.current = id;
+            setAttackTargetId(id);
+            const en = enemies.find((x) => x.id === id);
+            if (en) pushChat(`🎯 Alvo travado: ${en.sp.replace(/_/g, " ")} Lv.${en.level} — derrotar ele primeiro!`, "info");
+          }
+        };
+        return (
+          <div className="mob-targetlist" style={{
+            position: "fixed", top: 64, right: 10, zIndex: 9995, width: 158,
+            background: "linear-gradient(180deg, rgba(12,20,36,0.96), rgba(8,13,26,0.96))",
+            border: "1px solid rgba(255,214,80,0.4)", borderRadius: 12,
+            boxShadow: "0 6px 18px rgba(0,0,0,0.55)", overflow: "hidden", padding: 6,
+            pointerEvents: "auto",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 6px" }}>
+              <span style={{ fontSize: 10, fontWeight: 900, color: "#ffd94d", letterSpacing: 1 }}>🎯 ALVOS</span>
+              <span style={{ fontSize: 8, fontWeight: 800, color: "#9fd8ff", border: "1px solid rgba(159,216,255,0.5)", borderRadius: 4, padding: "1px 4px" }}>TAB</span>
+            </div>
+            {near.map(({ e, d }) => {
+              const hpPct = Math.max(0, Math.min(1, e.hp / Math.max(1, e.maxHp)));
+              const isCur = attackTargetId === e.id;
+              const isManual = manualTargetRef.current === e.id;
+              const gif = GIF[e.sp];
+              return (
+                <div
+                  key={e.id}
+                  className="targetlist-row"
+                  onClick={() => lockTarget(e.id)}
+                  title="Clique para travar / soltar o alvo"
+                  style={{
+                    display: "grid", gridTemplateColumns: "34px 1fr", gap: 6, alignItems: "center",
+                    padding: 4, marginBottom: 4, borderRadius: 8, cursor: "pointer",
+                    background: isCur ? "rgba(255,214,80,0.16)" : "rgba(255,255,255,0.04)",
+                    border: `2px solid ${isCur ? "#ffd94d" : "rgba(255,255,255,0.08)"}`,
+                    boxShadow: isCur ? "0 0 10px rgba(255,217,77,0.45)" : "none",
+                  }}
+                >
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 8, overflow: "hidden", background: "#0d1430",
+                    border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {gif
+                      ? <img src={gif} alt="" style={{ width: 30, height: 30, objectFit: "contain", imageRendering: "pixelated" }} draggable={false} />
+                      : <span style={{ fontSize: 14, opacity: 0.5 }}>❓</span>}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 9.5, fontWeight: 800, color: isCur ? "#ffe9a8" : "#dbe6fa",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
+                      {isManual ? "🔒 " : ""}{e.sp.replace(/_/g, " ")}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontSize: 8.5, fontWeight: 900, color: "#9fb4ff" }}>Lv.{e.level}</span>
+                      <span style={{ fontSize: 7.5, color: "#8fa3c8" }}>≈{Math.round(d / 10)}m</span>
+                    </div>
+                    <div style={{
+                      height: 5, background: "#3a1010", borderRadius: 3, overflow: "hidden",
+                      marginTop: 2, border: "1px solid rgba(0,0,0,0.5)",
+                    }}>
+                      <div style={{
+                        width: `${hpPct * 100}%`, height: "100%",
+                        background: hpPct > 0.5 ? "#5ec26a" : hpPct > 0.25 ? "#f5cf6b" : "#e34a4a",
+                        transition: "width 200ms",
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{ fontSize: 7.5, color: "#8fa3c8", textAlign: "center", paddingTop: 2 }}>
+              Clique = travar · TAB = trocar
             </div>
           </div>
         );
