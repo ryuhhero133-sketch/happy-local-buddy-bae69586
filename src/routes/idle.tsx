@@ -17587,6 +17587,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
+                if (["rota_pinsir", "deserto_alaka"].includes(g.target)) {
+                  pushChat(`🔒 ${targetMap.name} está bloqueado no momento!`, "info");
+                  return;
+                }
                 if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"].includes(g.target)) {
                   pushChat(`🔒 ${targetMap.name} está bloqueado — a Torre Elemental só entra pela aba EVENTO!`, "info");
                   return;
@@ -18506,6 +18510,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   onTeleport={(destination) => {
                     const m = IDLE_MAPS[destination.id];
                     if (!m || teleportTransition) return;
+                    if (["rota_pinsir", "deserto_alaka"].includes(destination.id)) {
+                      pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi no momento!`, "info");
+                      playClick();
+                      return;
+                    }
                     if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"].includes(destination.id)) {
                       pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi — entre só pela aba EVENTO!`, "info");
                       return;

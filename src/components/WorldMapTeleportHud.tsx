@@ -54,7 +54,7 @@ const elementIcon = (element?: string) => {
   return "✨";
 };
 
-const LOCKED_MAPS = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"]);
+const LOCKED_MAPS = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12", "rota_pinsir", "deserto_alaka"]);
 const EVENT_LOCKED = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"]);
 
 export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
