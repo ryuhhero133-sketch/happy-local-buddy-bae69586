@@ -10,6 +10,7 @@ export type RankedRow = {
   updated_at: string;
   leader_species?: string | null;
   leader_rarity?: string | null;
+  skin_url?: string | null;
 };
 
 export type RankedSeason = {
@@ -40,6 +41,7 @@ type PlayerRankRow = {
   leader_species?: string | null;
   leader_rarity?: string | null;
   guild_name?: string | null;
+  skin_url?: string | null;
   updated_at?: string | null;
 };
 
@@ -172,6 +174,7 @@ function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
       updated_at: r.updated_at || new Date().toISOString(),
       leader_species: r.leader_species ?? null,
       leader_rarity: r.leader_rarity ?? null,
+      skin_url: r.skin_url ?? null,
     };
   });
 }
@@ -196,7 +199,7 @@ async function fetchPlayersFallback(limit: number): Promise<RankedRow[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("players")
-      .select("id, name, level, trainer_level, craft_points, leader_species, leader_rarity, updated_at")
+      .select("id, name, level, trainer_level, craft_points, leader_species, leader_rarity, skin_url, updated_at")
       .order("trainer_level", { ascending: false })
       .order("level", { ascending: false })
       .limit(Math.max(limit * 4, 200));

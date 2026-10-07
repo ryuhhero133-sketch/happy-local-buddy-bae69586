@@ -6910,7 +6910,8 @@ const confirmName = () => {
     leader_species: string | null;
     leader_rarity: string | null;
     guild_name: string | null;
-    myRank?: number; // posição real quando o jogador está fora do Top 20
+    myRank?: number; // posição real quando o jogador está fora do Top 8
+    skin_url?: string | null;
   };
   type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
@@ -6950,7 +6951,8 @@ const confirmName = () => {
   const rankSnapshotKey = () => `rank_snapshot_v1_${rankedDayStr()}`;
   const [rankSnapshotAt, setRankSnapshotAt] = useState<number | null>(null);
 
-  // Monta o Top 20 a partir de uma base (snapshot ou dados recém-capturados), no modo da aba.
+  // Monta o TOP 8 a partir de uma base (snapshot ou dados recém-capturados), no modo da aba.
+  const RANK_TOP_N = 8;
   const toRankTop20 = (base: RankRow[]): RankRow[] => {
     const meId = identity?.id ?? "local-trainer";
     const sorted = [...base].sort((a, b) => {
@@ -6959,11 +6961,22 @@ const confirmName = () => {
       return bv - av;
     });
     const myIdx = sorted.findIndex((r) => r.id === meId);
-    const top20: RankRow[] = sorted.slice(0, 20).map((r, i) => ({ ...r, myRank: i + 1 }));
-    // Fora do Top 20? Mostra sua linha no final com a posição real.
-    if (myIdx >= 20) top20.push({ ...sorted[myIdx], myRank: myIdx + 1 });
-    return top20;
+    const topN: RankRow[] = sorted.slice(0, RANK_TOP_N).map((r, i) => ({ ...r, myRank: i + 1 }));
+    // Fora do Top 8? Mostra sua linha no final com a posição real.
+    if (myIdx >= RANK_TOP_N) topN.push({ ...sorted[myIdx], myRank: myIdx + 1 });
+    return topN;
   };
+
+  // Foto do treinador no ranking: skin equipada (skin_url = URL do bundle) ou um retrato fixo.
+  const rankAvatarOf = (row: RankRow): string => {
+    const match = row.skin_url ? SKINS.find((s) => s.url === row.skin_url) : null;
+    if (match) return match.photo;
+    const seed = (row.name?.charCodeAt(0) ?? 0) + (row.name?.length ?? 0);
+    return SKINS[seed % SKINS.length]?.photo ?? SKINS[0].photo;
+  };
+  // Sprite do líder no ranking (mesmo GIF usado no jogo).
+  const rankLeaderGif = (row: RankRow): string | null =>
+    row.leader_species ? (GIF[row.leader_species as Species] ?? null) : null;
 
   useEffect(() => {
     if (!rankOpen) return;
@@ -7015,6 +7028,7 @@ const confirmName = () => {
           leader_species: r.leader_species ?? null,
           leader_rarity: r.leader_rarity ?? null,
           guild_name: r.guild_name ?? null,
+          skin_url: r.skin_url ?? null,
         }));
 
         if (rows.length === 0) {
@@ -7022,7 +7036,7 @@ const confirmName = () => {
           // Sem guild_name: a coluna não existe em `players` e derrubava a query (virava Lv 1).
           const { data, error } = await gameDb
             .from("players")
-            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity")
+            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,skin_url")
             .order(orderCol, { ascending: false })
             .limit(300);
           if (error) console.warn("[idle ranked] players:", error.message);
@@ -15726,25 +15740,34 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     overflow: "hidden",
                   }}
                 >
-                  {/* Header */}
+                  {/* Header — banner TOP RANKED */}
                   <div style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    padding: "16px 18px",
-                    background: "linear-gradient(180deg, rgba(255,214,80,0.18), rgba(255,214,80,0.02))",
-                    borderBottom: "1px solid rgba(255,214,80,0.35)",
+                    position: "relative", textAlign: "center",
+                    padding: "14px 18px 13px",
+                    background: "linear-gradient(180deg, rgba(255,214,80,0.20), rgba(255,214,80,0.03))",
+                    borderBottom: "2px solid rgba(255,214,80,0.5)",
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <img src={assetUrlFromJson(trophyIconAsset)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
-                      <div>
-                        <div style={{ fontWeight: 900, fontSize: 18, color: "#ffd94d", letterSpacing: 0.5 }}>RANKING GLOBAL</div>
-                        <div style={{ fontSize: 10, opacity: 0.7 }}>
-                          Top 20 melhores do mundo · 📸 {rankSnapshotAt ? new Date(rankSnapshotAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"} · atualiza às 17h
-                        </div>
-                      </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                      <img src={ballPokeImg} alt="" width={24} height={24} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />
+                      <span style={{ fontSize: 24, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.65))" }}>👑</span>
+                      <img src={ballPokeImg} alt="" width={24} height={24} style={{ imageRendering: "pixelated", transform: "scaleX(-1)", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.6))" }} />
+                    </div>
+                    <div style={{
+                      fontSize: 31, fontWeight: 900, letterSpacing: 4, lineHeight: 1.15, marginTop: 2,
+                      background: "linear-gradient(180deg,#fff7d6 8%,#ffd94d 52%,#f0a51a 92%)",
+                      WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent",
+                      filter: "drop-shadow(0 3px 0 rgba(120,60,0,0.5))",
+                    }}>TOP RANKED</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#9fd8ff", textShadow: "0 1px 3px #000" }}>
+                      Os maiores treinadores do nosso mundo!
+                    </div>
+                    <div style={{ fontSize: 10, opacity: 0.75, marginTop: 2 }}>
+                      Top {RANK_TOP_N} · 📸 {rankSnapshotAt ? new Date(rankSnapshotAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"} · atualiza às 17h
                     </div>
                     <button
                       onClick={() => setRankOpen(false)}
                       style={{
+                        position: "absolute", top: 12, right: 12,
                         background: "rgba(255,214,80,0.12)", border: "1px solid rgba(255,214,80,0.4)",
                         color: "#ffe9a8", cursor: "pointer", fontSize: 18, width: 32, height: 32,
                         borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
@@ -15786,14 +15809,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                         {rankRows.map((r, i) => {
-                           // Posição real: linhas do Top 20 vêm com myRank; fora do Top 20 myRank = posição verdadeira (0 = desconhecida).
+                           // Posição real: linhas do Top 8 vêm com myRank; fora do Top 8 myRank = posição verdadeira (0 = desconhecida).
                            const pos = r.myRank && r.myRank > 0 ? r.myRank : i + 1;
                            const unknownPos = r.myRank === 0;
                            const podium = !unknownPos && pos <= 3;
-                           const medal = unknownPos ? "?" : pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
-                           const topColor = pos === 1 ? "#ffd94d" : pos === 2 ? "#e5e5e5" : pos === 3 ? "#d99b1a" : "#ffe9a8";
+                           const badgeBg = pos === 1
+                             ? "linear-gradient(180deg,#ffe9a8,#f5b301)"
+                             : pos === 2
+                               ? "linear-gradient(180deg,#f2f5ff,#9fb0cf)"
+                               : pos === 3
+                                 ? "linear-gradient(180deg,#f3c08b,#a9601f)"
+                                 : "linear-gradient(180deg,#3a466e,#232c4d)";
+                           const avatar = rankAvatarOf(r);
+                           const leaderGif = rankLeaderGif(r);
                            const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
-                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
+                           const mainLabel = rankMode === "craft" ? "Pontos de Craft" : "Nível do Treinador";
                            const isMe = !!identity?.id && r.id === identity.id;
                             const isTop50 = !unknownPos && pos <= 50;
                             const rubyAmount = pos === 1 ? 15 : pos === 2 ? 13 : pos === 3 ? 11 : pos === 4 ? 7 : 3;
@@ -15830,30 +15860,54 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                           return (
                             <div key={r.id} style={{
                               display: "grid",
-                              gridTemplateColumns: "48px 1fr auto",
+                              gridTemplateColumns: "54px 54px minmax(0,1fr) auto 68px",
                               alignItems: "center",
-                              gap: 12,
-                              padding: "10px 12px",
-                              background: podium
-                                ? "linear-gradient(90deg, rgba(255,214,80,0.15), rgba(255,214,80,0.03))"
-                                : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${podium ? "rgba(255,214,80,0.4)" : "rgba(255,255,255,0.06)"}`,
-                              borderRadius: 10,
-                              boxShadow: podium ? "0 2px 8px rgba(255,214,80,0.1)" : "none",
+                              gap: 10,
+                              padding: "8px 12px",
+                              background: pos === 1
+                                ? "linear-gradient(90deg, rgba(255,214,80,0.22), rgba(16,22,48,0.95) 45%)"
+                                : "linear-gradient(90deg, rgba(255,255,255,0.06), rgba(16,22,48,0.92))",
+                              border: `2px solid ${pos === 1 ? "#ffd94d" : pos === 2 ? "#c9d1e0" : pos === 3 ? "#d98a4a" : "rgba(120,145,215,0.3)"}`,
+                              borderRadius: 14,
+                              boxShadow: pos === 1 ? "0 0 20px rgba(255,217,77,0.45)" : "0 2px 8px rgba(0,0,0,0.4)",
                             }}>
-                              <div style={{ fontWeight: 800, color: topColor, fontSize: podium ? 22 : 15, textAlign: "center" }}>{medal}</div>
+                              {/* Selo da posição (hexágono) */}
+                              <div style={{
+                                justifySelf: "center", width: 46, height: 52,
+                                clipPath: "polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)",
+                                background: badgeBg,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontWeight: 900, fontSize: pos <= 3 ? 20 : 15,
+                                color: pos <= 3 ? "#241536" : "#dfe6ff",
+                                textShadow: pos <= 3 ? "0 1px 0 rgba(255,255,255,0.4)" : "none",
+                              }}>
+                                {pos === 1 ? "👑" : unknownPos ? "?" : pos}
+                              </div>
+                              {/* Foto do treinador */}
+                              <img
+                                src={avatar}
+                                alt=""
+                                width={52}
+                                height={52}
+                                style={{
+                                  width: 52, height: 52, borderRadius: 12, objectFit: "cover",
+                                  border: `2px solid ${pos <= 3 ? "rgba(255,214,80,0.8)" : "rgba(255,255,255,0.3)"}`,
+                                  background: "#0d1430", justifySelf: "center",
+                                }}
+                                draggable={false}
+                              />
+                              {/* Nome + nível + guilda/líder */}
                               <div style={{ overflow: "hidden", minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                <div style={{ fontWeight: 900, fontSize: 15, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {r.name}
-                                  {isMe && <span style={{ marginLeft: 6, fontSize: 10, color: "#7dff9b" }}>(você)</span>}
-                                  {r.guild_name && <span style={{ marginLeft: 6, fontSize: 10, opacity: 0.75, color: "#a5d0ff" }}>[{r.guild_name}]</span>}
+                                  {isMe && <span style={{ marginLeft: 6, fontSize: 10, color: "#7dff9b", fontWeight: 800 }}>(você)</span>}
                                 </div>
-                                <div style={{ fontSize: 10, opacity: 0.7, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                  <span style={{ textTransform: "capitalize" }}>
-                                    ⭐ {(r.leader_species ?? "—").replace(/_/g, " ")}
-                                  </span>
-                                  <span>🎓 Tr {r.trainer_level}</span>
-                                  <span>⚒️ {r.craft_points}</span>
+                                <div style={{ fontSize: 11, color: "#9fb4ff", fontWeight: 700 }}>
+                                  Lv. {r.trainer_level}
+                                  {r.guild_name ? <span style={{ color: "#a5d0ff" }}> · ★ {r.guild_name}</span> : null}
+                                </div>
+                                <div style={{ fontSize: 10, opacity: 0.7, textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  ⭐ {(r.leader_species ?? "—").replace(/_/g, " ")}
                                 </div>
                                 {isTop50 && isMe && (
                                   <div style={{ marginTop: 6 }}>
@@ -15876,14 +15930,26 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                                         opacity: canClaim ? 1 : 0.7,
                                       }}
                                     >
-                                      {alreadyClaimed ? `🔴 Chave Ruby (${rubyModeLabel}) coletada` : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${i + 1} · ${rubyModeLabel})`}
+                                      {alreadyClaimed ? `🔴 Chave Ruby (${rubyModeLabel}) coletada` : `🔴 Coletar ${rubyAmount}× Chave Ruby (Top ${pos} · ${rubyModeLabel})`}
                                     </button>
                                   </div>
                                 )}
                               </div>
-                              <div style={{ textAlign: "right" }}>
-                                <div style={{ fontSize: 9, opacity: 0.6, textTransform: "uppercase", letterSpacing: 0.5 }}>{mainLabel}</div>
-                                <div style={{ fontWeight: 900, fontSize: 20, color: topColor, lineHeight: 1 }}>{mainVal}</div>
+                              {/* Valor (nível / craft) */}
+                              <div style={{ textAlign: "right", minWidth: 88 }}>
+                                <div style={{ fontWeight: 900, fontSize: 20, color: pos <= 3 ? "#ffd94d" : "#fff", lineHeight: 1 }}>{mainVal}</div>
+                                <div style={{ fontSize: 9, opacity: 0.65, textTransform: "uppercase", letterSpacing: 0.5 }}>{mainLabel}</div>
+                              </div>
+                              {/* Sprite do Pokémon líder */}
+                              <div style={{
+                                width: 64, height: 64, borderRadius: 12, justifySelf: "end",
+                                border: "2px solid rgba(120,150,255,0.35)",
+                                background: "linear-gradient(180deg,#182248,#0d1430)",
+                                display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
+                              }}>
+                                {leaderGif
+                                  ? <img src={leaderGif} alt="" style={{ width: 54, height: 54, objectFit: "contain" }} draggable={false} />
+                                  : <span style={{ fontSize: 18, opacity: 0.35 }}>?</span>}
                               </div>
                             </div>
                           );
