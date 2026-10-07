@@ -6910,6 +6910,7 @@ const confirmName = () => {
     leader_species: string | null;
     leader_rarity: string | null;
     guild_name: string | null;
+    myRank?: number; // posição real quando o jogador está fora do Top 20
   };
   type RankMode = "trainer" | "craft";
   const [rankOpen, setRankOpen] = useState(false);
@@ -6932,7 +6933,7 @@ const confirmName = () => {
 
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setMapTeleportOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); pushChat("�x�  Ranked temporariamente bloqueado.", "info"); return; }
+      if (k === "r") { e.preventDefault(); setRankOpen(true); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
@@ -6941,7 +6942,7 @@ const confirmName = () => {
   }, [worldMapOpen, rankOpen]);
 
   const RANK_CACHE_TTL_MS = 60 * 1000; // 1 minuto — mostra o nível atual da galera
-  const rankCacheKey = (mode: RankMode) => `rank_cache_v3_live_level_${mode}`;
+  const rankCacheKey = (mode: RankMode) => `rank_cache_v4_live_level_${mode}_top20`;
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
@@ -7003,17 +7004,21 @@ const confirmName = () => {
           rows = (data as RankRow[] | null) ?? [];
         }
 
-        if (!rows.some((r) => r.id === (identity?.id ?? "local-trainer"))) rows.push(meRow());
-        else {
-          // Atualiza a linha do usuário local com os valores reais (max nv poke + craft total).
-          rows = rows.map((r) => (r.id === (identity?.id ?? "local-trainer") ? { ...r, ...meRow() } : r));
-        }
         rows.sort((a, b) => {
           const av = rankMode === "craft" ? a.craft_points : a.trainer_level;
           const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
           return bv - av;
         });
-        rows = rows.slice(0, 200);
+        rows = rows.slice(0, 300);
+        // ===== Só o TOP 20 aparece. =====
+        const meId = identity?.id ?? "local-trainer";
+        const myIdx = rows.findIndex((r) => r.id === meId);
+        if (myIdx >= 0) rows[myIdx] = { ...rows[myIdx], ...meRow() };
+        const top20: RankRow[] = rows.slice(0, 20).map((r, i) => ({ ...r, myRank: i + 1 }));
+        // Fora do Top 20? Mostra sua linha no final com a posição real.
+        if (myIdx < 0) top20.push({ ...meRow(), myRank: 0 });
+        else if (myIdx >= 20) top20.push({ ...meRow(), myRank: myIdx + 1 });
+        rows = top20;
         if (!cancelled) setRankRows(rows);
         try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
       } catch (e) {
@@ -14911,7 +14916,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); pushChat("�x�  Ranked temporariamente bloqueado.", "info"); }}
+              onClick={() => { playClick(); setRankOpen(true); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -14921,10 +14926,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                opacity: 0.45,
-                cursor: "not-allowed",
+                cursor: "pointer",
               }}
-              title="Ranked bloqueado"
+              title="Ranked (tecla R)"
             >
               <img
                 src={assetUrlFromJson(trophyIconAsset)}
@@ -15713,7 +15717,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       <img src={assetUrlFromJson(trophyIconAsset)} alt="" style={{ width: 32, height: 32, imageRendering: "pixelated", filter: "drop-shadow(0 0 6px rgba(255,214,80,0.7))" }} />
                       <div>
                         <div style={{ fontWeight: 900, fontSize: 18, color: "#ffd94d", letterSpacing: 0.5 }}>RANKING GLOBAL</div>
-                        <div style={{ fontSize: 10, opacity: 0.7 }}>Top 50 treinadores do mundo</div>
+                        <div style={{ fontSize: 10, opacity: 0.7 }}>Top 20 melhores do mundo</div>
                       </div>
                     </div>
                     <button
@@ -15760,13 +15764,17 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                         {rankRows.map((r, i) => {
-                          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
-                          const topColor = i === 0 ? "#ffd94d" : i === 1 ? "#e5e5e5" : i === 2 ? "#d99b1a" : "#ffe9a8";
-                          const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
-                          const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
-                          const isMe = !!identity?.id && r.id === identity.id;
-                           const isTop50 = i < 50;
-                           const rubyAmount = i === 0 ? 15 : i === 1 ? 13 : i === 2 ? 11 : i === 3 ? 7 : 3;
+                           // Posição real: linhas do Top 20 vêm com myRank; fora do Top 20 myRank = posição verdadeira (0 = desconhecida).
+                           const pos = r.myRank && r.myRank > 0 ? r.myRank : i + 1;
+                           const unknownPos = r.myRank === 0;
+                           const podium = !unknownPos && pos <= 3;
+                           const medal = unknownPos ? "?" : pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
+                           const topColor = pos === 1 ? "#ffd94d" : pos === 2 ? "#e5e5e5" : pos === 3 ? "#d99b1a" : "#ffe9a8";
+                           const mainVal = rankMode === "craft" ? r.craft_points : r.trainer_level;
+                           const mainLabel = rankMode === "craft" ? "Craft" : "Treinador Lv";
+                           const isMe = !!identity?.id && r.id === identity.id;
+                            const isTop50 = !unknownPos && pos <= 50;
+                            const rubyAmount = pos === 1 ? 15 : pos === 2 ? 13 : pos === 3 ? 11 : pos === 4 ? 7 : 3;
                            const rubyFlag = `RANKED_RUBY_KEY_${rankMode.toUpperCase()}`;
                            const rubyModeLabel = rankMode === "craft" ? "Craft" : "Treinador";
                            const alreadyClaimed = !!idle.redeemedCodes?.[rubyFlag];
@@ -15793,7 +15801,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                              };
                              setIdle(next);
                              try { persistCodeReward(next); } catch { /* ignore */ }
-                             pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${i + 1} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
+                              pushChat(`🔴 +${rubyAmount} Chave(s) Ruby coletada(s) por estar no Top ${pos} do Ranked ${rubyModeLabel}! (coleta única por ranking)`, "cap");
                            };
 
 
@@ -15804,14 +15812,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                               alignItems: "center",
                               gap: 12,
                               padding: "10px 12px",
-                              background: i < 3
+                              background: podium
                                 ? "linear-gradient(90deg, rgba(255,214,80,0.15), rgba(255,214,80,0.03))"
                                 : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${i < 3 ? "rgba(255,214,80,0.4)" : "rgba(255,255,255,0.06)"}`,
+                              border: `1px solid ${podium ? "rgba(255,214,80,0.4)" : "rgba(255,255,255,0.06)"}`,
                               borderRadius: 10,
-                              boxShadow: i < 3 ? "0 2px 8px rgba(255,214,80,0.1)" : "none",
+                              boxShadow: podium ? "0 2px 8px rgba(255,214,80,0.1)" : "none",
                             }}>
-                              <div style={{ fontWeight: 800, color: topColor, fontSize: i < 3 ? 22 : 15, textAlign: "center" }}>{medal}</div>
+                              <div style={{ fontWeight: 800, color: topColor, fontSize: podium ? 22 : 15, textAlign: "center" }}>{medal}</div>
                               <div style={{ overflow: "hidden", minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {r.name}
