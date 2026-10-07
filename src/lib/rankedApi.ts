@@ -8,6 +8,8 @@ export type RankedRow = {
   guild_name: string | null;
   score: number;
   updated_at: string;
+  leader_species?: string | null;
+  leader_rarity?: string | null;
 };
 
 export type RankedSeason = {
@@ -160,28 +162,48 @@ function mapPlayersRows(rows: PlayerRankRow[]): RankedRow[] {
     const trainerLevel = Math.max(1, Math.min(10000, safeInt(r.trainer_level ?? 1, 1)));
     const craftPoints = Math.max(0, safeInt(r.craft_points ?? 0, 0));
     return {
-      user_id: String(r.id || crypto.randomUUID()),
+      // `players.id` é "userId:sessionId" — normaliza pro userId (igual identity.id).
+      user_id: String(r.id || crypto.randomUUID()).split(":")[0] || String(r.id || crypto.randomUUID()),
       username: r.name || "Treinador",
       trainer_level: trainerLevel,
       craft_points: craftPoints,
       guild_name: r.guild_name ?? null,
       score: trainerLevel * 100 + craftPoints,
       updated_at: r.updated_at || new Date().toISOString(),
+      leader_species: r.leader_species ?? null,
+      leader_rarity: r.leader_rarity ?? null,
     };
   });
+}
+
+/** Uma linha por usuário — a tabela `players` guarda várias sessões da mesma conta. */
+function dedupeByUser(rows: RankedRow[]): RankedRow[] {
+  const byUser = new Map<string, RankedRow>();
+  for (const r of rows) {
+    const prev = byUser.get(r.user_id);
+    if (!prev || r.score > prev.score || (r.score === prev.score && rowTime(r) > rowTime(prev))) {
+      byUser.set(r.user_id, r);
+    }
+  }
+  return [...byUser.values()];
 }
 
 async function fetchPlayersFallback(limit: number): Promise<RankedRow[]> {
   try {
     // Fallback visual: usa a tabela de presença quando o ranked ainda não foi populado.
+    // ⚠️ NÃO select `guild_name`: a coluna NÃO existe em `players` e derrubava a query inteira
+    // (caía no select simples e todo mundo aparecia como Treinador Lv 1 / craft 0).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("players")
-      .select("id, name, level, trainer_level, craft_points, guild_name, updated_at")
+      .select("id, name, level, trainer_level, craft_points, leader_species, leader_rarity, updated_at")
       .order("trainer_level", { ascending: false })
       .order("level", { ascending: false })
-      .limit(limit);
-    if (!error) return mapPlayersRows((data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
+      .limit(Math.max(limit * 4, 200));
+    if (!error) {
+      const rows = mapPlayersRows((data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
+      return dedupeByUser(rows).slice(0, limit);
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const simple = await (supabase as any)
@@ -193,7 +215,8 @@ async function fetchPlayersFallback(limit: number): Promise<RankedRow[]> {
       console.warn("[ranked] players fallback:", simple.error.message);
       return [];
     }
-    return mapPlayersRows((simple.data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
+    const rows = mapPlayersRows((simple.data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
+    return dedupeByUser(rows).slice(0, limit);
   } catch (e) {
     console.warn("[ranked] players fallback exc:", e);
     return [];

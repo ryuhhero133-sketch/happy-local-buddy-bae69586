@@ -6988,20 +6988,21 @@ const confirmName = () => {
           level: r.trainer_level,
           trainer_level: r.trainer_level,
           craft_points: r.craft_points ?? 0,
-          leader_species: null,
-          leader_rarity: null,
+          leader_species: r.leader_species ?? null,
+          leader_rarity: r.leader_rarity ?? null,
           guild_name: r.guild_name ?? null,
         }));
 
         if (rows.length === 0) {
           const orderCol = rankMode === "craft" ? "craft_points" : "trainer_level";
+          // Sem guild_name: a coluna não existe em `players` e derrubava a query (virava Lv 1).
           const { data, error } = await gameDb
             .from("players")
-            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,guild_name")
+            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity")
             .order(orderCol, { ascending: false })
             .limit(200);
           if (error) console.warn("[idle ranked] players:", error.message);
-          rows = (data as RankRow[] | null) ?? [];
+          rows = (((data as RankRow[] | null) ?? [])).map((r) => ({ ...r, id: String(r.id).split(":")[0] || r.id }));
         }
 
         rows.sort((a, b) => {
