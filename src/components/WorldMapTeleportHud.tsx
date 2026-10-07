@@ -54,6 +54,9 @@ const elementIcon = (element?: string) => {
   return "✨";
 };
 
+const LOCKED_MAPS = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"]);
+const EVENT_LOCKED = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"]);
+
 export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
   const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
   return (
@@ -78,7 +81,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <div className="world-atlas__grid">
           {destinations.map((destination) => {
             const isCurrent = currentMap === destination.id;
-            const isLocked = false;
+            const isLocked = LOCKED_MAPS.has(destination.id);
             const previewImage = imageForDestination(destination);
             return (
               <article className={`world-destination ${isCurrent ? "is-current" : ""}`} key={destination.id}>
@@ -89,14 +92,15 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                   width={992}
                   height={672}
                   className="world-destination__image pixelated"
+                  style={isLocked ? { filter: "grayscale(1) brightness(0.55)" } : undefined}
                 />
                 <div className="world-destination__shade" />
-                <span className="world-destination__element" aria-hidden="true">{elementIcon(destination.element)}</span>
+                <span className="world-destination__element" aria-hidden="true">{isLocked ? "🔒" : elementIcon(destination.element)}</span>
                 {isCurrent && <span className="world-destination__current"><Sparkles aria-hidden="true" /> Você está aqui</span>}
                 <div className="world-destination__content">
                   <div>
-                    <h3>{destination.name}</h3>
-                    <p>{destination.diff} · Lv.{destination.minLevel} · {destination.element || "Normal"}</p>
+                    <h3 style={isLocked ? { filter: "grayscale(1)" } : undefined}>{destination.name}</h3>
+                    <p>{isLocked ? (EVENT_LOCKED.has(destination.id) ? "Só pela aba EVENTO · Torre Elemental" : "Bloqueado") : `${destination.diff} · Lv.${destination.minLevel} · ${destination.element || "Normal"}`}</p>
                   </div>
                   <Button
                     type="button"
@@ -104,8 +108,8 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                     disabled={isLocked}
                     onClick={() => onTeleport({ ...destination, previewImage })}
                   >
-                    {isCurrent ? "Atual" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
-                    {!isCurrent && <span aria-hidden="true">→</span>}
+                    {isCurrent ? "Atual" : isLocked ? "🔒 Bloqueado" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
+                    {!isCurrent && !isLocked && <span aria-hidden="true">→</span>}
                   </Button>
                 </div>
               </article>

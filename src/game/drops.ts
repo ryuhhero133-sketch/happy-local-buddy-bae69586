@@ -62,29 +62,30 @@ const BULBA_IVY = ["bulbasaur", "bulbasaur_shiny", "ivysaur", "ivysaur_shiny"];
 const COG_MATS: MaterialId[] = ["cog_red", "cog_brown", "cog_blue", "cog_orange"];
 
 export const DROP_RULES: DropRule[] = [
-  // Fibra — fonte principal: Venusaur (planta). 35%.
-  { id: "fibra", mat: "fibra", label: "Fibra", img: fibraUrl, chance: 0.35, qty: 1, species: VENUSAUR },
-  // Ferro — Pokémon de aço. 35%.
-  { id: "ferro", mat: "ferro", label: "Ferro", img: ferroUrl, chance: 0.35, qty: 1, species: STEEL_SPECIES },
-  // Especial metálico — aço, raro e independente. 5% sucata.
-  { id: "sucata", mat: "sucata", label: "Sucata", img: sucataUrl, chance: 0.05, qty: 1, species: STEEL_SPECIES },
-  // Buquê — Bulbasaur/Ivysaur, baixo, quest. 4%.
-  { id: "buque", mat: "buque", label: "Buquê", img: buqueUrl, chance: 0.04, qty: 1, species: BULBA_IVY, quest: true },
-  // Chicote — Bulbasaur/Ivysaur 35% + planta 30%.
-  { id: "chicote-sp", mat: "chicote", label: "Chicote", img: chicoteUrl, chance: 0.35, qty: 1, species: BULBA_IVY },
-  { id: "chicote-planta", mat: "chicote", label: "Chicote", img: chicoteUrl, chance: 0.30, qty: 1, elements: ["planta"] },
-  // Cogumelo — qualquer mapa/espécie, raro. 3% (sorteia a cor).
-  { id: "cogumelo", mat: "cog_red", label: "Cogumelo", img: cogRedUrl, chance: 0.03, qty: 1 },
-  // Pérola — só aquáticos, baixa. 12%.
-  { id: "perola", mat: "perola", label: "Pérola", img: perolaUrl, chance: 0.12, qty: 1, elements: ["agua"] },
-  // Escamas — aquático/gelo. 32%.
-  { id: "escamas", mat: "escamas", label: "Escamas", img: escamasUrl, chance: 0.32, qty: 1, elements: ["agua", "gelo"] },
-  // Flor (pokémon) — planta/inseto. 30%.
-  { id: "flor", mat: "flor", label: "Flor", img: florRedUrl, chance: 0.30, qty: 1, elements: ["planta", "inseto"] },
-  // Pepita de ouro — pedra. 32%.
-  { id: "pepita", mat: "pepita", label: "Pepita de Ouro", img: pepitaUrl, chance: 0.32, qty: 1, elements: ["pedra"] },
-  // Bronze — terra. 32%.
-  { id: "bronze", mat: "bronze", label: "Bronze", img: bronzeUrl, chance: 0.32, qty: 1, species: GROUND_SPECIES },
+  // NERF GERAL DE MATERIAIS — antes ficava fácil demais (≈2x mais raro).
+  // Fibra — fonte principal: Venusaur (planta). 15%.
+  { id: "fibra", mat: "fibra", label: "Fibra", img: fibraUrl, chance: 0.15, qty: 1, species: VENUSAUR },
+  // Ferro — Pokémon de aço. 15%.
+  { id: "ferro", mat: "ferro", label: "Ferro", img: ferroUrl, chance: 0.15, qty: 1, species: STEEL_SPECIES },
+  // Especial metálico — aço, raro e independente. 3% sucata.
+  { id: "sucata", mat: "sucata", label: "Sucata", img: sucataUrl, chance: 0.03, qty: 1, species: STEEL_SPECIES },
+  // Buquê — Bulbasaur/Ivysaur, baixo, quest. 3%.
+  { id: "buque", mat: "buque", label: "Buquê", img: buqueUrl, chance: 0.03, qty: 1, species: BULBA_IVY, quest: true },
+  // Chicote — Bulbasaur/Ivysaur 14% + planta 12%.
+  { id: "chicote-sp", mat: "chicote", label: "Chicote", img: chicoteUrl, chance: 0.14, qty: 1, species: BULBA_IVY },
+  { id: "chicote-planta", mat: "chicote", label: "Chicote", img: chicoteUrl, chance: 0.12, qty: 1, elements: ["planta"] },
+  // Cogumelo — qualquer mapa/espécie, raro. 2% (sorteia a cor).
+  { id: "cogumelo", mat: "cog_red", label: "Cogumelo", img: cogRedUrl, chance: 0.02, qty: 1 },
+  // Pérola — só aquáticos, baixa. 5%.
+  { id: "perola", mat: "perola", label: "Pérola", img: perolaUrl, chance: 0.05, qty: 1, elements: ["agua"] },
+  // Escamas — aquático/gelo. 13%.
+  { id: "escamas", mat: "escamas", label: "Escamas", img: escamasUrl, chance: 0.13, qty: 1, elements: ["agua", "gelo"] },
+  // Flor (pokémon) — planta/inseto. 12%.
+  { id: "flor", mat: "flor", label: "Flor", img: florRedUrl, chance: 0.12, qty: 1, elements: ["planta", "inseto"] },
+  // Pepita de ouro — pedra. 12% (era 32%).
+  { id: "pepita", mat: "pepita", label: "Pepita de Ouro", img: pepitaUrl, chance: 0.12, qty: 1, elements: ["pedra"] },
+  // Bronze — terra. 12% (era 32%).
+  { id: "bronze", mat: "bronze", label: "Bronze", img: bronzeUrl, chance: 0.12, qty: 1, species: GROUND_SPECIES },
 ];
 
 // Água — SOMENTE pontos configurados (a definir: quais mapas). Lista vazia = nada ativo.

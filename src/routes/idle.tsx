@@ -64,7 +64,12 @@ import farfetchdIconPng from "@/CHAR/Farfetch_icon.png";
 import farfetchdShinyIconPng from "@/CHAR/Farfetch Shiny_icon.png";
 import pinsirShinyIconPng from "@/CHAR/Pinsir Shiny_icon.png";
 import ligaPng from "@/CHAR/Liga.png";
-import ligaElementalBg from "@/CHAR/kg/Liga Elemental.png";
+import torreElementalBg from "@/CHAR/kg/CP Torre Elemental.png";
+import cardTorreFrenteUrl from "@/CHAR/kg/cartas animadas/card torre frente.png";
+import cardBallUrl from "@/CHAR/kg/Drop card/CARD Ball.png";
+import cardCristalUrl from "@/CHAR/kg/Drop card/CARD Cristal.png";
+import cardEggUrl from "@/CHAR/kg/Drop card/CARD EGG.png";
+import cardOuroUrl from "@/CHAR/kg/Drop card/Card Ouro.png";
 import barneyPng from "@/CHAR/Barney Mercador.png";
 import florzinhaPng from "@/CHAR/Florzinha.png";
 import gatoancyPng from "@/CHAR/gatoancy.png";
@@ -380,6 +385,14 @@ import casa1MaskUrl from "@/ambiente/mascara colisao/casa1 mascara.png";
 import casa2MaskUrl from "@/ambiente/mascara colisao/casa2 mascara.png";
 import landRevoMaskUrl from "@/ambiente/mascara colisao/land revo colisao.png";
 import pokemarktMaskUrl from "@/ambiente/mascara colisao/Pokemarkt mascara.png";
+import areiaAnubisUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis.png";
+import torreVerdejanteUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante.png";
+import torreAncestralUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral.png";
+import elementureUrl from "@/ambiente/mascara colisao/mapa original/Elementure.png";
+import areiaAnubisMaskUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis Colisao.png";
+import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante Colisao.png";
+import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
+import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
 import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
@@ -876,6 +889,10 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   casa2: { name: "Casa 2", diff: "Especial", bg: casa2Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   rota_pinsir: { name: "Rota Pinsir", diff: "Especial", bg: rotaPinsirUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   deserto_alaka: { name: "Deserto de Alaka", diff: "Especial", bg: desertoAlakaUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  areia_de_anubis: { name: "Areia de Anubis", diff: "Evento", bg: areiaAnubisUrl, rate: 1.0, minLevel: 20, maxLevel: 45, element: "Terra", stars: 3 },
+  torre_verdejante: { name: "Torre Verdejante", diff: "Evento", bg: torreVerdejanteUrl, rate: 1.0, minLevel: 8, maxLevel: 28, element: "Planta", stars: 2 },
+  torre_ancestral: { name: "Torre Ancestral", diff: "Evento", bg: torreAncestralUrl, rate: 1.0, minLevel: 35, maxLevel: 70, element: "Fantasma", stars: 4 },
+  elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -1437,8 +1454,8 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       { id: 3, x: 285, y: 355, w: 90, h: 60, src: inv, blocks: true, collideR: 55 },
     ];
   }
-  // Novos mapas grátis: sem colisão, sem objetos
-  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"].includes(mapId)) {
+  // Novos mapas grátis + evento Torre: sem colisão, sem objetos (só máscara).
+  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"].includes(mapId)) {
     return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
@@ -1826,6 +1843,7 @@ const ITEM_IMG: Record<string, string> = {
   bolo_morango: boloMorangoBagImg, leite_manga: leiteMangaBagImg, limao: limaBagImg,
   morango: morangoBagImg, banana: bananaBagImg,
   certificado: assetUrlFromJson(certificadoBagAsset),
+  egg_sprigatito: cardEggUrl,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -3268,16 +3286,74 @@ const confirmName = () => {
     }
   }, [idle.currentMap]);
   // ===== Drops de recurso no CHÃO (não entram na mochila; coletar depois) =====
-  type GroundDrop = { uid: string; mat: MaterialId; qty: number; x: number; y: number; droppedAt: number };
+  type GroundDrop = { uid: string; mat: MaterialId; qty: number; x: number; y: number; droppedAt: number; card?: "ball" | "ouro" | "cristal" | "egg" | "stone"; map: string };
   const [groundDrops, setGroundDrops] = useState<GroundDrop[]>([]);
-  // Trocar de mapa limpa os drops do chão (são da sessão do mapa atual).
-  useEffect(() => { setGroundDrops([]); }, [idle.currentMap]);
+  // Carta girando (animação de coleta).
+  const [cardSpinning, setCardSpinning] = useState<string | null>(null);
+  const CARD_IMG: Record<string, string> = {
+    ball: cardBallUrl, ouro: cardOuroUrl, cristal: cardCristalUrl, egg: cardEggUrl, stone: cardCristalUrl,
+  };
+  const CARD_LABEL: Record<string, string> = {
+    ball: "Carta Ball", ouro: "Carta Ouro", cristal: "Carta Cristal", egg: "Carta Ovo", stone: "Carta Stone",
+  };
+  const CARD_FILTER: Record<string, string> = {
+    stone: "sepia(0.7) saturate(1.6) hue-rotate(-25deg) drop-shadow(0 0 10px rgba(194,150,90,0.9))",
+  };
+  // Trocar de mapa limpa SÓ os drops do mapa antigo (os do mapa atual ficam).
+  useEffect(() => { setGroundDrops((prev) => (prev.some((d) => d.map !== idle.currentMap) ? prev.filter((d) => d.map === idle.currentMap) : prev)); }, [idle.currentMap]);
   const collectGroundDrop = (uid: string) => {
     const d = groundDrops.find((o) => o.uid === uid);
     if (!d) return;
     const distT = Math.hypot(trainerPos.x - d.x, trainerPos.y - d.y);
     if (distT > DROP_COLLECT_PX) {
       pushChat("Chegue mais perto para coletar.", "info");
+      return;
+    }
+    // Cartas do evento: giram ao clicar e depois entregam a recompensa.
+    if (d.card) {
+      if (cardSpinning) return;
+      setCardSpinning(uid);
+      playClick();
+      setTimeout(() => {
+        setCardSpinning(null);
+        setGroundDrops((prev) => prev.filter((o) => o.uid !== uid));
+        if (d.card === "ball") {
+          // 10 pokébolas sorteadas entre great/pokeball/ultra.
+          const opts = ["greatball", "pokeball", "ultraball"];
+          const gains: Record<string, number> = { greatball: 0, pokeball: 0, ultraball: 0 };
+          for (let k = 0; k < 10; k++) gains[opts[Math.floor(Math.random() * opts.length)]] += 1;
+          setIdle((s) => {
+            const items = { ...s.items };
+            for (const [bk, bv] of Object.entries(gains)) items[bk] = (items[bk] ?? 0) + bv;
+            return { ...s, items };
+          });
+          pushFxAt(d.x, d.y - 30, `+${gains.greatball} Great +${gains.pokeball} Poké +${gains.ultraball} Ultra!`, "gold");
+          pushChat(`🃏 Carta Ball! +${gains.greatball} Great Ball, +${gains.pokeball} Pokébola, +${gains.ultraball} Ultra Ball!`, "cap");
+        } else if (d.card === "ouro") {
+          const roll = Math.random();
+          const gold = roll < 0.5 ? 1000 : roll < 0.8 ? 2000 : roll < 0.95 ? 3000 : 5000;
+          setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + gold } }));
+          pushFxAt(d.x, d.y - 30, `+${gold} ouro!`, "gold");
+          pushChat(`🃏 Carta Ouro! +${gold} ouro!`, "cap");
+        } else if (d.card === "stone") {
+          const STONE_ROLL = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+          const STONE_NAMES: Record<string, string> = { stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉" };
+          const s1 = STONE_ROLL[Math.floor(Math.random() * STONE_ROLL.length)];
+          const s2 = STONE_ROLL[Math.floor(Math.random() * STONE_ROLL.length)];
+          setIdle((s) => ({ ...s, items: { ...s.items, [s1]: (s.items[s1] ?? 0) + 1, [s2]: (s.items[s2] ?? 0) + 1 } }));
+          pushFxAt(d.x, d.y - 30, `+2 Stones!`, "gold");
+          pushChat(`🃏 Carta Stone! +1 ${STONE_NAMES[s1] ?? s1} e +1 ${STONE_NAMES[s2] ?? s2}!`, "cap");
+        } else if (d.card === "cristal") {
+          setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + 10 } }));
+          pushFxAt(d.x, d.y - 30, `+10 💎!`, "gold");
+          pushChat(`🃏 Carta Cristal! +10 cristais!`, "cap");
+        } else if (d.card === "egg") {
+          setIdle((s) => ({ ...s, items: { ...s.items, egg_sprigatito: (s.items.egg_sprigatito ?? 0) + 1 } }));
+          pushFxAt(d.x, d.y - 30, `+1 Ovo Sprigatito!`, "gold");
+          pushChat(`🃏 Carta Ovo! +1 Ovo que choca Sprigatito MÍTICO Nv 1! Use na mochila!`, "cap");
+        }
+        playBonus();
+      }, 650);
       return;
     }
     // Recursos caem na MOCHILA (idle.items), igual comidas e bolas.
@@ -3293,7 +3369,32 @@ const confirmName = () => {
     return (
       <>
         {groundDrops.map((d) => {
-          if (nowG - d.droppedAt > DROP_GROUND_TTL_MS) return null;
+          // Recursos somem rápido; cartas do evento ficam os 15 min do passe.
+          if (d.card ? nowG - d.droppedAt > EVENT_STAY_MS : nowG - d.droppedAt > DROP_GROUND_TTL_MS) return null;
+          if (d.card) {
+            const spinning = cardSpinning === d.uid;
+            return (
+              <div
+                key={d.uid}
+                onClick={(e) => { e.stopPropagation(); collectGroundDrop(d.uid); }}
+                style={{
+                  position: "absolute", left: d.x, top: d.y,
+                  transform: "translate(-50%, -85%)", width: 64,
+                  zIndex: Math.round(d.y) + 2, cursor: "pointer",
+                  animation: spinning ? "cardspin 0.65s linear" : "float 1.8s ease-in-out infinite",
+                }}
+                title={`${CARD_LABEL[d.card]} — clique para girar e coletar`}
+              >
+                <img
+                  src={CARD_IMG[d.card]} alt={CARD_LABEL[d.card]} draggable={false}
+                  style={{ width: "100%", imageRendering: "auto", display: "block", filter: CARD_FILTER[d.card] ?? "drop-shadow(0 0 10px rgba(245,207,107,0.8))" }}
+                />
+                {d.card === "stone" && (
+                  <div style={{ position: "absolute", top: -8, right: -6, fontSize: 18, filter: "drop-shadow(0 1px 2px #000)" }}>🪨</div>
+                )}
+              </div>
+            );
+          }
           const img = DROP_IMG_BY_MAT[d.mat];
           const label = DROP_LABEL_BY_MAT[d.mat] ?? d.mat;
           const quest = d.mat === "buque";
@@ -3387,61 +3488,167 @@ const confirmName = () => {
     return () => clearInterval(iv);
   }, []);
 
-  // ===== EVENTO (Liga Elemental): Deserto de Alaka + Rota do Pinsir =====
-  // Entrada: 2× grátis/dia ou 10 cristais. Permanência: 20 min (passe com timestamp).
-  const EVENT_MAPS = ["rota_pinsir", "deserto_alaka"];
+  // ===== EVENTO (Torre Elemental): cartas sorteiam o mapa, 15 min dentro =====
+  // Entrada: 2 grátis/dia + 3ª PAGA (20 💎 + 50 pepitas) — ZERA TODO DIA ÀS 17H.
+  const EVENT_MAPS = ["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"];
   const EVENT_FREE_PER_DAY = 2;
-  const EVENT_CRYSTAL_COST = 10;
-  const EVENT_STAY_MS = 20 * 60 * 1000;
+  const EVENT_MAX_PER_DAY = 3;
+  const EVENT_PAID_CRYSTALS = 20;
+  const EVENT_PAID_PEPITAS = 50;
+  const EVENT_CRYSTAL_COST = 20;
+  const EVENT_STAY_MS = 15 * 60 * 1000;
+  const EVENT_DRAW_MAPS = [
+    { id: "areia_de_anubis", name: "Areia de Anubis" },
+    { id: "torre_verdejante", name: "Torre Verdejante" },
+    { id: "torre_ancestral", name: "Torre Ancestral" },
+  ];
+  // Dia do evento zera às 17:00 (não à meia-noite).
   const eventDayStr = () => {
-    const d = new Date();
+    const d = new Date(Date.now() - 17 * 60 * 60 * 1000);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
-  const enterEvent = (mapId: string, paid: boolean) => {
-    if (!EVENT_MAPS.includes(mapId)) return;
-    const day = eventDayStr();
-    const used = idle.eventEntries?.day === day ? (idle.eventEntries.free ?? 0) : 0;
-    if (!paid && used >= EVENT_FREE_PER_DAY) {
-      pushChat("⚠️ Entradas grátis esgotadas hoje. Entre com 10 💎.", "info");
-      return;
-    }
-    if (paid && (idle.bank.crystals ?? 0) < EVENT_CRYSTAL_COST) {
-      pushChat("💎 Cristais insuficientes (precisa 10).", "info");
-      return;
-    }
-    const nowE = Date.now();
-    const mapName = mapId === "rota_pinsir" ? "Rota do Pinsir" : "Deserto de Alaka";
-    setIdle((s) => {
-      const dayNow = eventDayStr();
-      const usedNow = s.eventEntries?.day === dayNow ? (s.eventEntries.free ?? 0) : 0;
-      if (!paid && usedNow >= EVENT_FREE_PER_DAY) return s;
-      let bank = s.bank;
-      if (paid) {
-        if ((s.bank.crystals ?? 0) < EVENT_CRYSTAL_COST) return s;
-        bank = { ...s.bank, crystals: s.bank.crystals - EVENT_CRYSTAL_COST };
+  const eventEntriesUsed = () => {
+    const e = idleRef.current?.eventEntries;
+    return e && e.day === eventDayStr() ? e.free : 0;
+  };
+  // Dimensões nativas dos mapas do evento (para chegada fora de colisão).
+  const EVENT_MAP_DIMS: Record<string, { w: number; h: number }> = {
+    areia_de_anubis: { w: 1024, h: 1536 },
+    torre_verdejante: { w: 1024, h: 1536 },
+    torre_ancestral: { w: 1024, h: 1536 },
+    elementure: { w: 1312, h: 1199 },
+  };
+  // Acha ponto caminhável perto do centro (nunca cai dentro de colisão).
+  const findEventArrive = (mapId: string): { x: number; y: number } => {
+    const dims = EVENT_MAP_DIMS[mapId];
+    const wW = dims ? dims.w : WORLD_W;
+    const wH = dims ? dims.h : WORLD_H;
+    const cx = Math.round(wW / 2), cy = Math.round(wH / 2);
+    try {
+      for (let r = 40; r <= 460; r += 40) {
+        for (let a = 0; a < 12; a++) {
+          const x = Math.round(cx + Math.cos((a / 12) * Math.PI * 2) * r);
+          const y = Math.round(cy + Math.sin((a / 12) * Math.PI * 2) * r);
+          if (isWalkable(mapId, x, y)) return { x, y };
+        }
       }
-      return {
-        ...s,
-        bank,
-        currentMap: mapId as IdleMapId,
-        eventEntries: { day: dayNow, free: paid ? usedNow : usedNow + 1 },
-        eventPassUntil: nowE + EVENT_STAY_MS,
-      };
-    });
-    setTrainerPos({ x: Math.round(WORLD_W / 2), y: Math.round(WORLD_H / 2) });
+    } catch { /* sem grid: cai no fallback */ }
+    const pb = getPlayableBounds(wW, wH, mapId);
+    return {
+      x: Math.max(pb.minX, Math.min(pb.maxX, cx)),
+      y: Math.max(pb.minY, Math.min(pb.maxY, cy + 200)),
+    };
+  };
+  // Cartas do evento: null = fechado; picked = índice; mapId = sorteado; revealed = frente.
+  const [eventCards, setEventCards] = useState<null | { picked: number; mapId: string; flipping: boolean; revealed: boolean }>(null);
+  // PARTICIPAR: 2 grátis/dia + 3ª paga (20 💎 + 50 pepitas), zera 17h — abre as 5 cartas.
+  const participateEvent = () => {
+    const used = eventEntriesUsed();
+    const st = idleRef.current;
+    if (used >= EVENT_MAX_PER_DAY) {
+      pushChat(`🎟️ As ${EVENT_MAX_PER_DAY} entradas de hoje acabaram — volta às 17h para zerar!`, "info");
+      playClick();
+      return;
+    }
+    const paid = used >= EVENT_FREE_PER_DAY;
+    if (paid) {
+      const cr = st?.bank?.crystals ?? 0;
+      const pe = st?.items?.pepita ?? 0;
+      if (cr < EVENT_PAID_CRYSTALS || pe < EVENT_PAID_PEPITAS) {
+        pushChat(`💎 3ª entrada exige ${EVENT_PAID_CRYSTALS} cristais e ${EVENT_PAID_PEPITAS} Pepitas de Ouro (você: ${cr} 💎 · ${pe} 🥇).`, "info");
+        playClick();
+        return;
+      }
+      setIdle((s) => {
+        const dayNow = eventDayStr();
+        const usedNow = s.eventEntries?.day === dayNow ? (s.eventEntries.free ?? 0) : 0;
+        if (usedNow >= EVENT_MAX_PER_DAY) return s;
+        if ((s.bank.crystals ?? 0) < EVENT_PAID_CRYSTALS || (s.items?.pepita ?? 0) < EVENT_PAID_PEPITAS) return s;
+        return {
+          ...s,
+          bank: { ...s.bank, crystals: s.bank.crystals - EVENT_PAID_CRYSTALS },
+          items: { ...s.items, pepita: (s.items.pepita ?? 0) - EVENT_PAID_PEPITAS },
+          eventEntries: { day: dayNow, free: usedNow + 1 },
+        };
+      });
+      pushChat(`🎟️ 3ª entrada paga: -${EVENT_PAID_CRYSTALS} 💎 e -${EVENT_PAID_PEPITAS} 🥇 Pepitas! Escolha 1 das 5 cartas!`, "cap");
+    } else {
+      setIdle((s) => {
+        const dayNow = eventDayStr();
+        const usedNow = s.eventEntries?.day === dayNow ? (s.eventEntries.free ?? 0) : 0;
+        if (usedNow >= EVENT_FREE_PER_DAY) return s;
+        return { ...s, eventEntries: { day: dayNow, free: usedNow + 1 } };
+      });
+      pushChat(`🎟️ Entrada grátis (${used + 1}/${EVENT_FREE_PER_DAY} hoje · zera 17h)! Escolha 1 das 5 cartas!`, "cap");
+    }
+    setEventCards({ picked: -1, mapId: "", flipping: false, revealed: false });
+    playClick();
+  };
+  // Escolhe 1 carta: sorteia o mapa + animação de abrir.
+  const pickEventCard = (idx: number) => {
+    if (!eventCards || eventCards.picked >= 0) return;
+    const drawn = EVENT_DRAW_MAPS[Math.floor(Math.random() * EVENT_DRAW_MAPS.length)];
+    setEventCards({ picked: idx, mapId: drawn.id, flipping: true, revealed: false });
+    playClick();
+    setTimeout(() => {
+      setEventCards((cur) => (cur ? { ...cur, flipping: false, revealed: true } : cur));
+    }, 900);
+  };
+  // ENTRAR: teleporta para o mapa sorteado com passe de 15 min.
+  const enterDrawnMap = () => {
+    if (!eventCards || !eventCards.revealed || !EVENT_MAPS.includes(eventCards.mapId)) return;
+    const mapId = eventCards.mapId;
+    const mapName = EVENT_DRAW_MAPS.find((m) => m.id === mapId)?.name ?? mapId;
+    const nowE = Date.now();
+    const arrive = findEventArrive(mapId);
+    setIdle((s) => ({ ...s, currentMap: mapId as IdleMapId, eventPassUntil: nowE + EVENT_STAY_MS }));
+    setTrainerPos({ x: arrive.x, y: arrive.y });
     walkTargetRef.current = null;
     setWalkingTo(null);
     setEnemies([]);
     setChests([]);
     setNpcDialog(null);
+    setEventCards(null);
     setTab("pokemon");
     playClick();
-    pushChat(
-      paid
-        ? `🎟️ Entrada no evento com 10 💎! 20 minutos em ${mapName}!`
-        : `🎟️ Entrada grátis no evento (${Math.min(used + 1, EVENT_FREE_PER_DAY)}/${EVENT_FREE_PER_DAY} hoje)! 20 minutos em ${mapName}!`,
-      "cap",
-    );
+    pushChat(`🌀 A carta te levou para ${mapName}! 15 minutos!`, "cap");
+    // (sem cartas de boas-vindas) — só caem pelas CHANCES, espalhadas nos 15 min.
+    // Drops agendados nos 15 min: ouro 1–3, bolas 1–3, SEMPRE 2 stones,
+    // cristal raro, ovo bem raro. Nunca passa de 3 cartas do mesmo tipo.
+    type CardKind = "ball" | "ouro" | "cristal" | "egg" | "stone";
+    const rnd = (n: number) => Math.floor(Math.random() * n);
+    const cardPlan: { kind: CardKind; n: number }[] = [
+      { kind: "ouro", n: 1 + rnd(3) },
+      { kind: "ball", n: 1 + rnd(3) },
+      { kind: "stone", n: 2 },
+      { kind: "cristal", n: Math.random() < 0.2 ? 1 : 0 },
+      { kind: "egg", n: Math.random() < 0.05 ? 1 : 0 },
+    ];
+    let ci = 0;
+    for (const entry of cardPlan) {
+      for (let k = 0; k < entry.n; k++) {
+        const kind = entry.kind;
+        const delay = (2 + Math.random() * 12) * 60 * 1000;
+        const idx = ci++;
+        setTimeout(() => {
+          if (idleRef.current?.currentMap !== mapId) return;
+          const tp = trainerPosRef.current;
+          const useW = customDims && customMapUrls[mapId] ? customDims.w : WORLD_W;
+          const useH = customDims && customMapUrls[mapId] ? customDims.h : WORLD_H;
+          const ang = Math.random() * Math.PI * 2;
+          const rad = 120 + Math.random() * 160;
+          const cx = Math.max(40, Math.min(useW - 40, tp.x + Math.cos(ang) * rad));
+          const cy = Math.max(40, Math.min(useH - 40, tp.y + Math.sin(ang) * rad));
+          const nowC = Date.now();
+          setGroundDrops((prev) => [...prev.slice(-24), {
+            uid: `cd_${nowC.toString(36)}_${idx.toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`,
+            mat: "morango" as MaterialId, qty: 1, x: Math.round(cx), y: Math.round(cy), droppedAt: nowC, card: kind,
+            map: mapId,
+          }]);
+          pushChat(`🃏 Uma carta brilhante caiu por perto... (${CARD_LABEL[kind]})`, "cap");
+        }, delay);
+      }
+    }
   };
   // Chegou num mapa de evento sem passe válido (ex.: teleporte direto):
   // volta p/ Revoland — a entrada é pela aba EVENTO.
@@ -3452,7 +3659,7 @@ const confirmName = () => {
       setTrainerPos({ x: Math.round(WORLD_W / 2), y: Math.round(WORLD_H / 2) });
       setEnemies([]);
       setChests([]);
-      pushChat("🎟️ Entre no evento pela aba EVENTO (2 grátis/dia ou 10 💎).", "info");
+      pushChat("🎟️ Entre no evento pela aba EVENTO (entrada grátis).", "info");
     }
   }, [idle.currentMap]);
 
@@ -4524,13 +4731,17 @@ const confirmName = () => {
     casa2: casa2Url,
     rota_pinsir: rotaPinsirUrl,
     deserto_alaka: desertoAlakaUrl,
+    areia_de_anubis: areiaAnubisUrl,
+    torre_verdejante: torreVerdejanteUrl,
+    torre_ancestral: torreAncestralUrl,
+    elementure: elementureUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"];
+  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"];
+  const NO_HIGH_EVENT_MAPS = ["mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -4580,6 +4791,10 @@ const confirmName = () => {
       if (idle.currentMap === "casa2") ensureCollision("casa2", casa2MaskUrl, width, height);
       if (idle.currentMap === "land_revo") ensureCollision("land_revo", landRevoMaskUrl, width, height);
       if (idle.currentMap === "mapinha10") ensureCollision("mapinha10", pokemarktMaskUrl, width, height);
+      if (idle.currentMap === "areia_de_anubis") ensureCollision("areia_de_anubis", areiaAnubisMaskUrl, width, height);
+      if (idle.currentMap === "torre_verdejante") ensureCollision("torre_verdejante", torreVerdejanteMaskUrl, width, height);
+      if (idle.currentMap === "torre_ancestral") ensureCollision("torre_ancestral", torreAncestralMaskUrl, width, height);
+      if (idle.currentMap === "elementure") ensureCollision("elementure", elementureMaskUrl, width, height);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
@@ -4589,7 +4804,7 @@ const confirmName = () => {
     }
   }, [idle.currentMap, customDims]);
   useEffect(() => {
-    if (customDims && (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8")) {
+    if (customDims && (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8")) {
       setEnemies((prev) => {
         if (prev.filter((e) => e.hp > 0).length > 0) return prev;
         const fresh = spawnEnemies();
@@ -4645,7 +4860,7 @@ const confirmName = () => {
       return !isWalkable("esfera_ancestral", x, y);
     }
     // Mapas com máscara branco/preto: o grid manda (igual Revoland).
-    if (idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10") {
+    if (idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure") {
       return !isWalkable(idle.currentMap, x, y);
     }
     for (const o of obstacles) {
@@ -8770,6 +8985,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 x: Math.round(target.x + (Math.random() * 56 - 28)),
                 y: Math.round(target.y + (Math.random() * 40 - 20)),
                 droppedAt: nowG,
+                map: idle.currentMap,
               }));
               return [...prev.slice(-24), ...fresh];
             });
@@ -8808,8 +9024,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }
             }
           }
-          // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar
-          if (target.sp === "raichu") {
+          // ⚡✦ RAICHU MÍTICO — drop garantido de Stone Elétrica ao derrotar (só nas raridades especiais)
+          if (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny" || target.rarity === "legendary")) {
             drops.push("stone_electric");
             // 60% chance de vir uma stone extra, 25% chance de vir 2 extras
             if (Math.random() < 0.60) drops.push("stone_electric");
@@ -10171,6 +10387,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       }
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
+    } else if (id === "egg_sprigatito") {
+      // Ovo da Carta: choca Sprigatito MÍTICO Nv 1 direto na coleção.
+      const baby = { ...makePet("sprigatito" as Species, 1, "mythic" as Rarity), capturedAt: Date.now() } as CollectionEntry;
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, egg_sprigatito: (s.items.egg_sprigatito ?? 0) - 1 },
+        collection: [...(s.collection ?? []), baby],
+        caughtSpecies: (s.caughtSpecies ?? []).includes("sprigatito" as Species) ? s.caughtSpecies : [...(s.caughtSpecies ?? []), "sprigatito" as Species],
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "SPRIGATITO MÍTICO!", "capture");
+      pushChat("🥚 O ovo chocoou! Sprigatito MÍTICO Nv 1 na coleção!", "cap");
+      playBonus();
     } else if (id === "premium_box") {
       setIdle((s) => ({
         ...s,
@@ -10506,7 +10734,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       return null;
     }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir") {
+    // Mapas do EVENTO (Torre Elemental) SPAWNAM — são zonas de batalha do evento.
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -10924,6 +11153,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const rr = Math.random();
           forcedRarity = rr < 0.45 ? "epic" : rr < 0.80 ? "legendary" : rr < 0.95 ? "mythic" : "mythic_shiny";
         }
+        // 🗼 EVENTO TORRE ELEMENTAL — pools próprias por torre (raridade máx.: ÉPICO).
+        if (EVENT_MAPS.includes(idle.currentMap)) {
+          if (idle.currentMap === "torre_verdejante") {
+            // Planta/Inseto: Bulbasaur/Ivysaur, Oddish/Gloom, Paras, Caterpie, Bellsprout, Exeggcute.
+            pool = ["bulbasaur", "bulbasaur", "ivysaur", "oddish", "oddish", "gloom", "paras", "paras", "caterpie", "bellsprout", "bellsprout", "exeggcute", "oddish_shiny", "bulbasaur_shiny", "paras_shiny"] as Species[];
+            mapLvRange = [8, 28];
+          } else if (idle.currentMap === "areia_de_anubis") {
+            // Terra/Pedra: Cubone/Marowak, Sandshrew/Sandslash, Geodude/Graveler/Golem, Rhyhorn + Raichu.
+            pool = ["cubone", "cubone", "marowak", "sandshrew", "sandshrew", "sandslash", "geodude", "geodude", "graveler", "rhyhorn", "golem", "raichu", "cubone_shiny", "sandshrew_shiny", "geodude_shiny"] as Species[];
+            mapLvRange = [20, 45];
+          } else {
+            // Fantasma/Místico: Gastly/Haunter, Grimer/Muk, Eevee/Vaporeon, Exeggutor, Victreebel + Abra/Raichu.
+            pool = ["gastly", "gastly", "haunter", "grimer", "grimer", "muk", "eevee", "vaporeon", "exeggutor", "victreebel", "abra", "raichu", "gastly_shiny", "eevee_shiny", "muk_shiny"] as Species[];
+            mapLvRange = [35, 70];
+          }
+          pool = pool.filter(hasGif);
+          if (pool.length === 0) pool = ["oddish"] as Species[];
+        }
         // 🚫 Blacklist de spawn — Darkrai e Dragonite (qualquer raridade) removidos dos mapas normais.
         if (!forcedRarity) {
           const BANNED = new Set<Species>(["darkrai", "dragonite", "dragonite_shiny"] as Species[]);
@@ -11003,6 +11250,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // um mon mais comum da pool caso não passe. Deixa os valiosos MUITO mais raros.
         if (!forcedRarity) {
           const baseRar = SPECIES_BASE[sp]?.rarity;
+          // 🗼 EVENTO: teto de raridade ÉPICO — míticos/lendários nascem como ÉPICO.
+          if (EVENT_MAPS.includes(idle.currentMap)) {
+            if (baseRar === "mythic_shiny" || baseRar === "mythic" || baseRar === "legendary") forcedRarity = "epic";
+          } else {
           // Wave: raridades abrem gradualmente (onda 1 mansa, ondas altas variadas).
           const wv = waveOf(totalKillsRef.current ?? 0, idle.currentMap);
           const gate =
@@ -11016,6 +11267,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               return rr !== "mythic" && rr !== "mythic_shiny" && rr !== "legendary" && rr !== "epic";
             });
             if (cheaper.length > 0) sp = cheaper[Math.floor(Math.random() * cheaper.length)];
+          }
           }
         }
       }
@@ -11080,6 +11332,27 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         }
       }
 
+      // 🪲 PINSIR nos mapas do EVENTO — chance BAIXA: normal ~3%, shiny ~0.5%.
+      if (EVENT_MAPS.includes(idle.currentMap) && !isDialgaEvent && !isMythicRoamer && !isMythShinyEvent) {
+        const pr = Math.random();
+        if (pr < 0.005 && hasGif("pinsir_shiny")) {
+          sp = "pinsir_shiny";
+          forcedRarity = Math.random() < 0.6 ? "epic" : "rare";
+        } else if (pr < 0.035 && hasGif("pinsir")) {
+          sp = "pinsir";
+          forcedRarity = Math.random() < 0.5 ? "epic" : "rare";
+        }
+      }
+
+      // 🧠 ABRA em QUALQUER mapa — bem raro (0.7%), não fácil de aparecer.
+      // Respeita pools estritas (florestas fechadas não recebem) e eventos forçados.
+      if (!isDialgaEvent && !isMythicRoamer && !isMythShinyEvent && Math.random() < 0.007) {
+        const strictAbra = allowedSpeciesForMap(idle.currentMap);
+        if ((!strictAbra || strictAbra.length === 0) && hasGif("abra")) {
+          sp = "abra";
+        }
+      }
+
       const rareStrong = Math.random() < 0.05;
       const offset = rareStrong
         ? 5 + Math.floor(Math.random() * 6)
@@ -11100,6 +11373,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       let pet = makePet(sp, lv, forcedRarity);
       if (!isMythicRoamer && (pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
         pet = makePet(sp, lv, "rare");
+      }
+      // 🗼 EVENTO TORRE: teto de raridade ÉPICO — nunca lendário/mítico nos mapas do evento.
+      if (EVENT_MAPS.includes(idle.currentMap) && (pet.rarity === "legendary" || pet.rarity === "mythic" || pet.rarity === "mythic_shiny")) {
+        pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
       // ��& POK�0MON RIDER: 1.2% de chance � muito acima do nível do líder, dá MUITO xp
       const isRider = !noHighEvents && !isMythicRoamer && !isDialgaEvent && Math.random() < 0.005 && !mapLvRange;
@@ -11350,8 +11627,32 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   const getSaga = (): SagaProgress => idle.saga ?? freshSaga();
 
+  /** Pedidos secundários dos NPCs (matar/derrotar/capturar/alimentar):
+   *  conta SEMPRE — mesmo com a saga terminada ou sem etapa de kill ativa. */
+  const bumpSideQuestCounts = (kind: "kill" | "capture" | "feed_pet" | "feed_trainer", n = 1) => {
+    setIdle((s) => {
+      const sq0 = s.sideQuests ?? freshSideQuests();
+      if (sq0.accepted.length === 0) return s;
+      const nextCount = { ...sq0.count };
+      let changed = false;
+      for (const qid of sq0.accepted) {
+        const sq = SIDE_QUESTS.find((x) => x.id === qid);
+        if (!sq || sq.objective.kind !== kind) continue;
+        const ob = sq.objective;
+        if (ob.kind !== "kill" && ob.kind !== "capture" && ob.kind !== "feed_pet" && ob.kind !== "feed_trainer") continue;
+        const before = nextCount[qid] ?? 0;
+        const after = Math.min(ob.count, before + n);
+        if (after !== before) { nextCount[qid] = after; changed = true; }
+      }
+      if (!changed) return s;
+      return { ...s, sideQuests: { ...sq0, count: nextCount } };
+    });
+  };
+
   /** Incrementa o contador do objetivo ativo (kill/capture/feed). */
   const bumpSagaCounter = (kind: "kill" | "capture" | "feed_pet" | "feed_trainer", n = 1) => {
+    // Pedidos do NPC contam primeiro — independem do estado da saga.
+    bumpSideQuestCounts(kind, n);
     const sg = getSaga();
     if (sg.finished) return;
     const st = activeStage(sg);
@@ -11367,26 +11668,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const cur = s.saga ?? freshSaga();
       const cur2 = activeStage(cur);
       if (!cur2 || cur2.id !== st.id) return s;
-      // Progresso também conta nos PEDIDOS aceitos do NPC.
-      const sq0 = s.sideQuests ?? freshSideQuests();
-      let count = sq0.count;
-      if (sq0.accepted.length > 0) {
-        const nextCount = { ...sq0.count };
-        let changed = false;
-        for (const qid of sq0.accepted) {
-          const sq = SIDE_QUESTS.find((x) => x.id === qid);
-          if (!sq || sq.objective.kind !== kind) continue;
-          const ob = sq.objective;
-          if (ob.kind !== "kill" && ob.kind !== "capture" && ob.kind !== "feed_pet" && ob.kind !== "feed_trainer") continue;
-          nextCount[qid] = Math.min(ob.count, (nextCount[qid] ?? 0) + n);
-          changed = true;
-        }
-        if (changed) count = nextCount;
-      }
       return {
         ...s,
         saga: { ...cur, count: cur.count + n },
-        sideQuests: count === sq0.count ? sq0 : { ...sq0, count },
       };
     });
   };
@@ -17272,7 +17556,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   { key: "to-mapinha9", target: "mapinha9", x: 850, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-mapinha10", target: "mapinha10", x: 1000, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
                   { key: "to-mapinha11", target: "mapinha11", x: 1150, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
-                  { key: "to-mapinha12", target: "mapinha12", x: 1300, y: 60, arriveX: WORLD_W / 2, arriveY: WORLD_H - 100, color: "#7ef27a" },
                 ],
                 mapinha7: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha8: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
@@ -17297,9 +17580,17 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 casa2: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
                 rota_pinsir: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
                 deserto_alaka: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                areia_de_anubis: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                torre_verdejante: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                torre_ancestral: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                elementure: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
+                if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"].includes(g.target)) {
+                  pushChat(`🔒 ${targetMap.name} está bloqueado — a Torre Elemental só entra pela aba EVENTO!`, "info");
+                  return;
+                }
                 const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                 if (!unlocked) {
                   pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
@@ -18200,7 +18491,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka"];
+              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -18215,6 +18506,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   onTeleport={(destination) => {
                     const m = IDLE_MAPS[destination.id];
                     if (!m || teleportTransition) return;
+                    if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"].includes(destination.id)) {
+                      pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi — entre só pela aba EVENTO!`, "info");
+                      return;
+                    }
                     if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
                     const tpCost = teleportEnergyCostFor(destination.id);
                     if (trainerEnergy < tpCost) { pushChat(`�a� Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
@@ -18562,23 +18857,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
             ] as const).map((t) => {
               const isShiny = (t as { shiny?: boolean }).shiny === true;
-              // EVENTO temporariamente bloqueado (botão apagado + sem acesso).
-              const isEventoBlocked = isShiny;
+              // EVENTO habilitado (Torre Elemental).
               if (isShiny) {
                 return (
                   <button
                     key={t.id}
-                    onClick={() => { playClick(); if (isEventoBlocked) { pushChat("🎟️ Evento em breve!", "info"); return; } setTab(t.id as typeof tab); }}
-                    title={isEventoBlocked ? "EVENTO (em breve)" : "EVENTO — Liga Elemental"}
+                    onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+                    title="EVENTO — Torre Elemental"
                     className="bottomnav-btn"
                     style={{
                       flex: 1, maxWidth: 120, minWidth: 0,
                       background: "radial-gradient(ellipse at 50% 0%, rgba(245,207,107,0.35), rgba(245,207,107,0.05) 70%, transparent 100%)",
-                      border: "1px solid #f5cf6b", padding: "3px 2px 2px", cursor: "not-allowed",
+                      border: "1px solid #f5cf6b", padding: "3px 2px 2px", cursor: "pointer",
                       borderRadius: 10, display: "flex", flexDirection: "column",
                       alignItems: "center", gap: 2, position: "relative",
                       boxShadow: "0 0 14px rgba(245,207,107,0.55), inset 0 0 8px rgba(245,207,107,0.25)",
-                      opacity: 0.55, filter: "grayscale(1)",
+                      animation: "orbGlow 2s infinite ease-in-out",
                     }}
                   >
                     <img
@@ -18595,12 +18889,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5, color: "#ffe9a8", textShadow: "0 1px 2px #000" }}>
                       {t.label}
                     </span>
-                    <span style={{
-                      position: "absolute", top: 2, right: 4,
-                      fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
-                      color: "#ffd66b", background: "rgba(0,0,0,0.55)",
-                      padding: "1px 4px", borderRadius: 4, border: "1px solid #ffd66b55",
-                    }}>EM BREVE</span>
                   </button>
                 );
               }
@@ -18677,20 +18965,17 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         </div>
       </div>
 
-      {/* LIGA ELEMENTAL — aba do EVENTO (conteúdo/imagens finais vêm depois) */}
+      {/* TORRE ELEMENTAL — aba do EVENTO */}
       {tab === "eventoLiga" && (() => {
-        const day = eventDayStr();
-        const freeUsed = idle.eventEntries?.day === day ? (idle.eventEntries.free ?? 0) : 0;
-        const freeLeft = Math.max(0, EVENT_FREE_PER_DAY - freeUsed);
         const inEvent = EVENT_MAPS.includes(idle.currentMap);
         const remainMs = Math.max(0, (idle.eventPassUntil ?? 0) - now);
         const remainTxt = inEvent
           ? `${Math.floor(remainMs / 60000)}m ${Math.floor((remainMs % 60000) / 1000)}s restantes`
           : null;
-        const maps = [
-          { id: "rota_pinsir", name: "Rota do Pinsir", desc: "Farfetch'd · Tauros · Pinsir raro (Nv 10–30)" },
-          { id: "deserto_alaka", name: "Deserto de Alaka", desc: "Em breve · Nv 10–30" },
-        ];
+        const picking = eventCards && eventCards.picked < 0;
+        const flipping = eventCards && eventCards.picked >= 0 && !eventCards.revealed;
+        const revealed = eventCards && eventCards.revealed;
+        const drawnName = revealed ? (EVENT_DRAW_MAPS.find((m) => m.id === (eventCards as { mapId: string }).mapId)?.name ?? "") : "";
         return (
           <div style={{
             position: "fixed", inset: 0, zIndex: 10000,
@@ -18698,58 +18983,139 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             display: "grid", placeItems: "center", padding: "20px 0",
           }}>
             <div style={{
-              width: "min(720px, 96vw)", maxHeight: "92vh", overflowY: "auto",
-              border: "3px solid #f5cf6b", borderRadius: 20, padding: "24px 20px", position: "relative",
+              width: "min(880px, 96vw)", maxHeight: "94vh", overflowY: "auto",
+              border: "3px solid #f5cf6b", borderRadius: 20, position: "relative",
               boxShadow: "0 0 60px rgba(245,207,107,0.4), 0 0 120px rgba(0,0,0,0.8)",
-              backgroundImage: `url(${ligaElementalBg})`,
-              backgroundSize: "cover", backgroundPosition: "center",
+              backgroundColor: "#000", padding: 0,
             }}>
-              <div style={{ position: "absolute", inset: 0, background: "rgba(10,5,20,0.72)", zIndex: 0 }} />
+              <img
+                src={torreElementalBg} alt="Torre Elemental" draggable={false}
+                style={{ width: "100%", display: "block", imageRendering: "auto" }}
+              />
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTab("pokemon"); playClick(); }}
-                style={{ position: "absolute", top: 12, right: 16, background: "rgba(0,0,0,0.4)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 32, height: 32, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 18, cursor: "pointer", fontWeight: 900, zIndex: 2 }}
+                style={{ position: "absolute", top: 12, right: 16, background: "rgba(0,0,0,0.55)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 36, height: 36, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 18, cursor: "pointer", fontWeight: 900, zIndex: 3 }}
               >
                 ✕
               </button>
-              <div style={{ textAlign: "center", marginBottom: 12, position: "relative", zIndex: 1 }}>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 12px rgba(245,207,107,0.6)" }}>⚡ LIGA ELEMENTAL ⚡</div>
-                <div style={{ fontSize: 11, color: "#ffe9a8", marginTop: 4, fontWeight: 700 }}>
-                  2 entradas grátis por dia · ou 10 💎 por entrada · Nv 10–30 · 20 min por visita
+              <div style={{
+                position: "absolute", inset: 0, zIndex: 2,
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+                padding: "18px 20px 20px", textAlign: "center",
+                background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 30%, transparent 55%, rgba(0,0,0,0.78) 100%)",
+              }}>
+                <div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 14px rgba(245,207,107,0.8), 0 2px 4px #000" }}>🌀 TORRE ELEMENTAL 🌀</div>
+                  <div style={{ fontSize: 11, color: "#ffe9a8", marginTop: 4, fontWeight: 700, textShadow: "0 1px 3px #000" }}>
+                    Entrada grátis 2x/dia + 3ª com 20 💎 + 50 pepitas · zera todo dia às 17h · 15 min no mapa sorteado
+                  </div>
+                  {inEvent && remainTxt ? (
+                    <div style={{ fontSize: 12, color: "#4ade80", marginTop: 4, fontWeight: 900, textShadow: "0 1px 3px #000" }}>
+                      ⏱️ {remainTxt}
+                    </div>
+                  ) : null}
                 </div>
-                <div style={{ fontSize: 12, color: freeLeft > 0 ? "#4ade80" : "#f87171", marginTop: 6, fontWeight: 900 }}>
-                  Grátis hoje: {EVENT_FREE_PER_DAY - freeLeft}/{EVENT_FREE_PER_DAY} usadas
-                  {inEvent && remainTxt ? ` · ⏱️ ${remainTxt}` : ""}
-                </div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, position: "relative", zIndex: 1 }}>
-                {maps.map((m) => (
-                  <div key={m.id} style={{ background: "rgba(255,255,255,0.07)", border: "2px solid rgba(245,207,107,0.5)", borderRadius: 12, padding: 12 }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{m.name}</div>
-                    <div style={{ fontSize: 10, color: "#ffe9a8", marginTop: 2 }}>{m.desc}</div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                      <button
-                        disabled={freeLeft <= 0}
-                        onClick={() => enterEvent(m.id, false)}
-                        style={{
-                          flex: 1, padding: "9px", borderRadius: 8, fontWeight: 900, fontSize: 11, cursor: freeLeft > 0 ? "pointer" : "not-allowed",
-                          background: freeLeft > 0 ? "linear-gradient(180deg,#22c55e,#15803d)" : "#3a2a4a",
-                          color: freeLeft > 0 ? "#fff" : "#8a7a9c", border: "none",
-                        }}
-                      >
-                        {freeLeft > 0 ? "🎟️ ENTRAR GRÁTIS" : "GRÁTIS ESGOTADAS"}
-                      </button>
-                      <button
-                        onClick={() => enterEvent(m.id, true)}
-                        style={{
-                          flex: 1, padding: "9px", borderRadius: 8, fontWeight: 900, fontSize: 11, cursor: "pointer",
-                          background: "linear-gradient(180deg,#38bdf8,#0369a1)", color: "#fff", border: "none",
-                        }}
-                      >
-                        ENTRAR · 10 💎
-                      </button>
+                {!eventCards ? (
+                  <div style={{ textAlign: "center", background: "rgba(0,0,0,0.55)", borderRadius: 12, padding: "12px 10px", border: "1px solid rgba(245,207,107,0.35)" }}>
+                    <div style={{ fontSize: 12, color: "#ffe9a8", fontWeight: 800, marginBottom: 10, textShadow: "0 1px 3px #000" }}>
+                      Participe e escolha 1 de 5 cartas — a carta sorteia seu mapa!
+                    </div>
+                    <button
+                      onClick={participateEvent}
+                      disabled={eventEntriesUsed() >= EVENT_MAX_PER_DAY}
+                      style={{
+                        padding: "14px 52px", borderRadius: 12, fontWeight: 900, fontSize: 17,
+                        letterSpacing: 2, cursor: eventEntriesUsed() >= EVENT_MAX_PER_DAY ? "not-allowed" : "pointer",
+                        color: "#1a0f26",
+                        border: "2px solid #fff3c4",
+                        background: eventEntriesUsed() >= EVENT_MAX_PER_DAY ? "#3a2a2a" : "linear-gradient(180deg,#ffe9a8,#f5cf6b)",
+                        boxShadow: eventEntriesUsed() >= EVENT_MAX_PER_DAY ? "none" : "0 0 28px rgba(245,207,107,1), 0 0 70px rgba(245,207,107,0.5), 0 4px 0 #7a5d15",
+                        animation: eventEntriesUsed() >= EVENT_MAX_PER_DAY ? "none" : "orbGlow 1.6s infinite ease-in-out",
+                        textShadow: "0 1px 0 rgba(255,255,255,0.5)",
+                      }}
+                    >
+                      {eventEntriesUsed() >= EVENT_MAX_PER_DAY
+                        ? "🔒 VOLTA ÀS 17H"
+                        : eventEntriesUsed() >= EVENT_FREE_PER_DAY
+                          ? "💎+🥇 PARTICIPAR (3ª)"
+                          : "✨ PARTICIPAR ✨"}
+                    </button>
+                    <div style={{ fontSize: 11, color: eventEntriesUsed() >= EVENT_MAX_PER_DAY ? "#ff8a8a" : "#ffe9a8", marginTop: 8, fontWeight: 700, textShadow: "0 1px 3px #000" }}>
+                      {eventEntriesUsed() >= EVENT_MAX_PER_DAY
+                        ? `${EVENT_MAX_PER_DAY}/${EVENT_MAX_PER_DAY} entradas usadas hoje — zera às 17h`
+                        : eventEntriesUsed() >= EVENT_FREE_PER_DAY
+                          ? `3ª entrada: ${EVENT_PAID_CRYSTALS} 💎 + ${EVENT_PAID_PEPITAS} 🥇 pepitas (você: ${idleRef.current?.bank?.crystals ?? 0} 💎 · ${idleRef.current?.items?.pepita ?? 0} 🥇) · zera 17h`
+                          : `Entradas grátis: ${eventEntriesUsed()}/${EVENT_FREE_PER_DAY} · 3ª com ${EVENT_PAID_CRYSTALS}💎+${EVENT_PAID_PEPITAS}🥇 · zera às 17h`}
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <div style={{ textAlign: "center", background: "rgba(0,0,0,0.55)", borderRadius: 12, padding: "12px 10px", border: "1px solid rgba(245,207,107,0.35)" }}>
+                    <div style={{ fontSize: 12, color: "#ffe9a8", fontWeight: 900, marginBottom: 10 }}>
+                      {picking ? "Escolha 1 carta!" : flipping ? "Abrindo..." : `Destino: ${drawnName}!`}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+                      {[0, 1, 2, 3, 4].map((i) => {
+                        const isPicked = eventCards.picked === i;
+                        const dimmed = eventCards.picked >= 0 && !isPicked;
+                        const faceUp = revealed && isPicked;
+                        return (
+                          <div
+                            key={i}
+                            onClick={() => pickEventCard(i)}
+                            style={{
+                              width: 104, height: 128, borderRadius: 10, overflow: "hidden",
+                              position: "relative",
+                              cursor: picking ? "pointer" : "default",
+                              border: isPicked ? "3px solid #f5cf6b" : "2px solid rgba(245,207,107,0.4)",
+                              boxShadow: isPicked ? "0 0 22px rgba(245,207,107,0.9)" : "0 4px 10px rgba(0,0,0,0.5)",
+                              opacity: dimmed ? 0.35 : 1,
+                              transform: flipping && isPicked ? "scaleX(0.05)" : "scaleX(1)",
+                              transition: "transform 0.45s ease, opacity 0.3s ease",
+                              animation: picking ? "orbGlow 1.6s infinite ease-in-out" : undefined,
+                              backgroundImage: `url(${cardTorreFrenteUrl})`,
+                              backgroundSize: "cover", backgroundPosition: "center",
+                              filter: faceUp ? "none" : "brightness(0.55)",
+                            }}
+                            title={picking ? "Escolher esta carta" : drawnName}
+                          >
+                            {!faceUp && (
+                              <div style={{
+                                position: "absolute", inset: 0, display: "grid", placeItems: "center",
+                                fontSize: 34, fontWeight: 900, color: "#ffe9a8",
+                                textShadow: "0 2px 6px #000",
+                              }}>?</div>
+                            )}
+                            {faceUp && (
+                              <div style={{
+                                position: "absolute", left: 0, right: 0, bottom: 0,
+                                background: "rgba(0,0,0,0.72)", color: "#ffe9a8",
+                                fontSize: 9, fontWeight: 900, textAlign: "center", padding: "3px 2px",
+                              }}>{drawnName}</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {revealed && (
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ fontSize: 14, color: "#fff", fontWeight: 900, marginBottom: 8 }}>
+                          🗺️ {drawnName} — 15 minutos!
+                        </div>
+                        <button
+                          onClick={enterDrawnMap}
+                          style={{
+                            padding: "12px 40px", borderRadius: 12, fontWeight: 900, fontSize: 14,
+                            letterSpacing: 1, cursor: "pointer", color: "#fff", border: "none",
+                            background: "linear-gradient(180deg,#22c55e,#15803d)",
+                            boxShadow: "0 0 20px rgba(34,197,94,0.7), 0 4px 0 #0d4d24",
+                          }}
+                        >
+                          ➤ ENTRAR NA TORRE
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -20109,11 +20475,11 @@ onClick={(e) => {
             <span>Marketplace (em breve)</span>
           </button>
           <button
-            className="mob-menuopt mob-menuopt-off"
-            onClick={() => { playClick(); pushChat("🎟️ Evento em breve!", "info"); }}
+            className="mob-menuopt"
+            onClick={() => { playClick(); setTab("eventoLiga"); setMobPanel(null); }}
           >
             <span className="mob-menuopt-icon">⚡</span>
-            <span>EVENTO (em breve)</span>
+            <span>EVENTO</span>
           </button>
         </div>
       </div>
@@ -20313,6 +20679,10 @@ onClick={(e) => {
         @keyframes float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
+        }
+        @keyframes cardspin {
+          0% { transform: translate(-50%, -85%) rotateY(0deg); }
+          100% { transform: translate(-50%, -85%) rotateY(360deg); }
         }
         @keyframes orbPop {
           0% { transform: scale(0); opacity: 0; }
@@ -23389,7 +23759,8 @@ function TabOverlay({
           skin_ticket: "Ticket de Skin ✦",
           bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_lugia: "Ovo de Lugia ✦",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",           egg_lugia: "Ovo de Lugia ✦",
+          egg_sprigatito: "Ovo Sprigatito 🌱",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
@@ -23453,6 +23824,7 @@ function TabOverlay({
           egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
           egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
+          egg_sprigatito: "Ovo Sprigatito 🌱 · choca Sprigatito MÍTICO Nv 1 (carta do evento).",
           safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
           berry: "Baga · restaura um pouco de HP em batalha.",
           revive: "Reviver · devolve um pokémon caído com HP parcial.",

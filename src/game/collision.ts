@@ -28,7 +28,7 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10";
+  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure";
 }
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
@@ -245,11 +245,15 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
       return true;
     }
     // ---- Máscaras branco/preto (SÓ o branco anda — igual Revoland) ----
-    // casa1/casa2/land_revo/mapinha10: branco puro = caminhável; resto bloqueia.
+    // casa1/casa2/land_revo/mapinha10 + mapas do evento Torre Elemental.
     case "casa1":
     case "casa2":
     case "land_revo":
-    case "mapinha10": {
+    case "mapinha10":
+    case "areia_de_anubis":
+    case "torre_verdejante":
+    case "torre_ancestral":
+    case "elementure": {
       return r > 200 && g > 200 && b > 200;
     }
     default:
