@@ -17851,7 +17851,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   pushChat(`🔒 ${targetMap.name} está bloqueado no momento!`, "info");
                   return;
                 }
-                if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"].includes(g.target)) {
+                if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"].includes(g.target)) {
                   pushChat(`🔒 ${targetMap.name} está bloqueado — a Torre Elemental só entra pela aba EVENTO!`, "info");
                   return;
                 }
@@ -18775,7 +18775,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       playClick();
                       return;
                     }
-                    if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "mapinha12"].includes(destination.id)) {
+                    if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"].includes(destination.id)) {
                       pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi — entre só pela aba EVENTO!`, "info");
                       return;
                     }
