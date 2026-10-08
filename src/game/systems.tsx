@@ -113,6 +113,7 @@ export type Species =
   | "butterfree" | "bulbasaur_hat"
   | "pikachu" | "sandslash" | "mewtwo" | "onix" | "pinsir"
   | "tauros" | "tauros_shiny" | "farfetchd" | "farfetchd_shiny" | "pinsir_shiny"
+  | "beedrill_shiny" | "mankey_shiny" | "jigglypuff_shiny"
   | "magmar" | "hitmonchan" | "golem" | "aerodactyl"
   | "arbok" | "charizard_shiny" | "charizard_alt"
   | "moltres" | "zapdos" | "articuno"
@@ -325,6 +326,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   bulbasaur:  { hp: 45, atk: 49, def: 49, spa: 65, spd: 65, spe: 45, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 1 },
   vulpix:     { hp: 38, atk: 41, def: 40, spa: 50, spd: 65, spe: 65, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 3 },
   jigglypuff: { hp: 115, atk: 45, def: 20, spa: 45, spd: 25, spe: 20, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.8, minLv: 1 },
+  jigglypuff_shiny: { hp: 125, atk: 52, def: 26, spa: 52, spd: 32, spe: 26, rarity: "uncommon", goldRange: [8, 14], crystalChance: 0.04, catchMod: 1.1, minLv: 8 },
   caterpie:   { hp: 45, atk: 30, def: 35, spa: 20, spd: 20, spe: 45, rarity: "common", goldRange: [1, 4], crystalChance: 0, catchMod: 0.6, minLv: 1 },
   caterpie_shiny: { hp: 50, atk: 35, def: 40, spa: 25, spd: 25, spe: 50, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 1 },
   charmander: { hp: 39, atk: 52, def: 43, spa: 60, spd: 50, spe: 65, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 1 },
@@ -379,6 +381,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   dragonite:       { hp: 91, atk: 134, def: 95, spa: 100, spd: 100, spe: 80, rarity: "mythic", goldRange: [55, 90], crystalChance: 0.325, catchMod: 2.3, minLv: 90 },
   metapod:    { hp: 50, atk: 20, def: 55, spa: 25, spd: 25, spe: 30, rarity: "common", goldRange: [2, 4], crystalChance: 0, catchMod: 0.7, minLv: 4 },
   beedrill:   { hp: 65, atk: 90, def: 40, spa: 45, spd: 80, spe: 75, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.25, minLv: 12 },
+  beedrill_shiny: { hp: 72, atk: 100, def: 46, spa: 52, spd: 88, spe: 82, rarity: "epic", goldRange: [18, 32], crystalChance: 0.10, catchMod: 1.4, minLv: 18 },
   pidgey:     { hp: 40, atk: 45, def: 40, spa: 35, spd: 35, spe: 56, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.85, minLv: 2 },
   pidgey_shiny: { hp: 45, atk: 50, def: 45, spa: 40, spd: 40, spe: 60, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 2 },
   pidgeot:    { hp: 83, atk: 80, def: 75, spa: 70, spd: 70, spe: 101, rarity: "epic", goldRange: [19, 32], crystalChance: 0.1, catchMod: 1.55, minLv: 24 },
@@ -462,6 +465,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   machoke:         { hp: 80, atk: 100, def: 70, spa: 50, spd: 60, spe: 45, rarity: "rare", goldRange: [11, 18], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
   machop:          { hp: 70, atk: 80, def: 50, spa: 35, spd: 35, spe: 35, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.02, catchMod: 1.0, minLv: 6 },
   mankey:          { hp: 40, atk: 80, def: 35, spa: 35, spd: 45, spe: 70, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.02, catchMod: 1.0, minLv: 6 },
+  mankey_shiny:     { hp: 46, atk: 88, def: 40, spa: 40, spd: 50, spe: 76, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 10 },
   primeape:        { hp: 65, atk: 105, def: 60, spa: 60, spd: 70, spe: 95, rarity: "epic", goldRange: [19, 32], crystalChance: 0.1, catchMod: 1.5, minLv: 22 },
   meowth:          { hp: 40, atk: 45, def: 35, spa: 40, spd: 40, spe: 90, rarity: "uncommon", goldRange: [5, 10], crystalChance: 0.025, catchMod: 1.0, minLv: 5 },
   persian:         { hp: 65, atk: 70, def: 60, spa: 65, spd: 65, spe: 115, rarity: "rare", goldRange: [11, 19], crystalChance: 0.06, catchMod: 1.3, minLv: 14 },

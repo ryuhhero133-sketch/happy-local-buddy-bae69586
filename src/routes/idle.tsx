@@ -51,12 +51,21 @@ import hudMelhoriasPng from "@/CHAR/Melhorias.png";
 import hudMissoesPng from "@/CHAR/Missoes.png";
 import skinBoxPng from "@/CHAR/skinbox.png";
 import bottanPng from "@/CHAR/bottan.png";
-import taurosSheetPng from "@/CHAR/Taurus.png";
-import taurosShinySheetPng from "@/CHAR/Tauros Shiny.png";
-import farfetchdSheetPng from "@/CHAR/Farfetch.png";
-import farfetchdShinySheetPng from "@/CHAR/Farfetch Shiny.png";
-import pinsirSheetPng from "@/CHAR/Pinsir.png";
-import pinsirShinySheetPng from "@/CHAR/Pinsir Shiny.png";
+// Bidril e Kakuna (mapinha12) — sheets 4x4 do diretório kg/x (movimento nas 4 direções)
+import kgBeedrillPng from "@/CHAR/kg/x/Beedrill.png";
+import kgBeedrillShinyPng from "@/CHAR/kg/x/Beedrill Shiny.png";
+import kgKakunaPng from "@/CHAR/kg/x/Kakuna.png";
+import kgKakunaShinyPng from "@/CHAR/kg/x/Kakuna Shiny.png";
+import kgFarfetchdPng from "@/CHAR/kg/x/Farfetch.png";
+import kgFarfetchdShinyPng from "@/CHAR/kg/x/Farfetch Shiny.png";
+import kgJigglypuffPng from "@/CHAR/kg/x/jigglypuff.png";
+import kgJigglypuffShinyPng from "@/CHAR/kg/x/jigglypuff Shiny.png";
+import kgMankeyPng from "@/CHAR/kg/x/Mankey.png";
+import kgMankeyShinyPng from "@/CHAR/kg/x/Mankey Shiny.png";
+import kgPinsirPng from "@/CHAR/kg/x/Pinsir.png";
+import kgPinsirShinyPng from "@/CHAR/kg/x/Pinsir Shiny.png";
+import kgTaurosPng from "@/CHAR/kg/x/Taurus.png";
+import kgTaurosShinyPng from "@/CHAR/kg/x/Tauros Shiny.png";
 // Recortes 1:1 do 1º frame (painéis/coleção/HUD) — arte original intacta.
 import taurosIconPng from "@/CHAR/Taurus_icon.png";
 import taurosShinyIconPng from "@/CHAR/Tauros Shiny_icon.png";
@@ -868,7 +877,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 1, maxLevel: 120, element: "Normal", stars: 3 },
   mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
   mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
-  mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 180, element: "Inseto", stars: 3 },
+  mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 70, element: "Inseto", stars: 3 },
   mapinha13: { name: "Verdejante 1",  diff: "Fácil",   bg: mapinha13Url, rate: 1.0, minLevel: 1,  maxLevel: 8, element: "Grama", stars: 1 },
   cave01: { name: "Cave 01", diff: "Inicial", bg: cave01Url, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
   cristal_cave: { name: "Cristal Cave", diff: "Inicial", bg: cristalCaveUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
@@ -907,6 +916,7 @@ const MAP_XP_MULT: Partial<Record<string, number>> = {
   ruinas: 1.4,          // Ruínas (Lv16–24)
   ruinas_de_venus: 1.5, // Ruínas de Vênus (Lv20–28)
   mapinha8: 1.8,        // Mapa Dos Céus (Lv24–33, pool comum)
+  mapinha12: 1.5,       // Bidril e Kakuna (Lv40–70)
   mapinha5: 1.6,        // Rota Flower (Lv30–42)
   terra: 1.2,           // Ninho de Marimbondo (Lv40–55)
   arena: 1.0,
@@ -997,6 +1007,8 @@ const GIF: Partial<Record<Species, string>> = {
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
   clefairy: clefairyUrl, sandshrew: sandshrewUrl, sandslash: sandslashPng,
   sandshrew_shiny: sandsrewShinyPng, sandslash_shiny: sandslashShinyPng, mankey: mankeyUrl,
+  mankey_shiny: kgMankeyShinyPng, beedrill_shiny: kgBeedrillShinyPng,
+  jigglypuff: kgJigglypuffPng, jigglypuff_shiny: kgJigglypuffShinyPng,
   cubone_shiny: cuboneShinyPng,
   marowak: marowakPng, marowak_shiny: marowakShinyPng, marowak_plus: marowakPlusPng,
   rhyhorn: rhyhornPng, rhyhorn_shiny: rhyhornShinyPng,
@@ -1088,12 +1100,21 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   rhyhorn: rhyhornPng,
   rhyhorn_shiny: rhyhornShinyPng,
   // Rota do Pinsir — sheets 4x4 (movimento + direção no mapa).
-  pinsir: pinsirSheetPng,
-  pinsir_shiny: pinsirShinySheetPng,
-  tauros: taurosSheetPng,
-  tauros_shiny: taurosShinySheetPng,
-  farfetchd: farfetchdSheetPng,
-  farfetchd_shiny: farfetchdShinySheetPng,
+  pinsir: kgPinsirPng,
+  pinsir_shiny: kgPinsirShinyPng,
+  tauros: kgTaurosPng,
+  tauros_shiny: kgTaurosShinyPng,
+  farfetchd: kgFarfetchdPng,
+  farfetchd_shiny: kgFarfetchdShinyPng,
+  // Bidril e Kakuna (mapinha12) — sheets 4x4 do diretório kg/x.
+  beedrill: kgBeedrillPng,
+  beedrill_shiny: kgBeedrillShinyPng,
+  kakuna: kgKakunaPng,
+  kakuna_shiny: kgKakunaShinyPng,
+  mankey: kgMankeyPng,
+  mankey_shiny: kgMankeyShinyPng,
+  jigglypuff: kgJigglypuffPng,
+  jigglypuff_shiny: kgJigglypuffShinyPng,
   oddish: oddishSheetPng,
   oddish_shiny: oddishShinySheetPng,
   gloom: gloomSheetPng,
@@ -2921,7 +2942,7 @@ const confirmName = () => {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const enemiesRef = useRef<Enemy[]>([]);
   useEffect(() => { enemiesRef.current = enemies; }, [enemies]);
@@ -4771,7 +4792,8 @@ const confirmName = () => {
     if (mapId === "ruinas") return ["geodude", "graveler", "growlithe", "sprigatito", "arcanine", "golem", "graveler_alola", "geodude_shiny", "graveler_shiny", "growlithe_shiny", "arcanine_shiny", "sprigatito_shiny", "golem_shiny", "golem_plus", "arcanine_shiny_plus"];
     if (mapId === "ruinas_de_venus") return ["ekans", "grimer", "gastly", "haunter", "muk", "arbok", "swalot", "ekans_shiny", "grimer_shiny", "gastly_shiny", "haunter_shiny", "muk_shiny", "swalot_shiny", "arbok_shiny"];
     if (mapId === "mapinha8") return ["zubat", "pidgey", "pidgeotto", "pidgeot", "spearow", "golbat", "fearow", "zubat_shiny", "pidgey_shiny", "pidgeotto_shiny", "pidgeot_shiny", "spearow_shiny", "golbat_shiny", "fearow_shiny"];
-    if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "mapinha12" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
+    if (mapId === "mapinha12") return ["beedrill", "kakuna", "mankey", "pinsir", "tauros", "farfetchd", "jigglypuff", "beedrill_shiny", "kakuna_shiny", "mankey_shiny", "pinsir_shiny", "tauros_shiny", "farfetchd_shiny", "jigglypuff_shiny"];
+    if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
   };
   useEffect(() => {
@@ -5002,6 +5024,13 @@ const confirmName = () => {
   const florestBonePlusKillsRef = useRef(0);
   const florestBonePlusAtRef = useRef(400 + Math.floor(Math.random() * 301));
   const florestBonePlusDueRef = useRef(false);
+  // Bidril e Kakuna oculto: shiny acima de 2000 kills (2000-2400) e Raider a cada 1000 kills (SEM aviso prévio)
+  const bidrilKillsRef = useRef(0);
+  const bidrilShinyAtRef = useRef(2000 + Math.floor(Math.random() * 401));
+  const bidrilShinyDueRef = useRef(false);
+  const bidrilRaiderKillsRef = useRef(0);
+  const bidrilRaiderDueRef = useRef(false);
+  const bidrilRaiderSpawnRef = useRef(false);
   const [orbFlashes, setOrbFlashes] = useState<{ id: number; x: number; y: number; kind: "common" | "epic" }[]>([]);
   const orbFlashIdRef = useRef(1);
   // Partículas suaves de cura (anel + "+" subindo) — substitui o clarão forte
@@ -7993,7 +8022,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     Math.max(2, Math.min(mapSpawnCap(map), waveCfg(wave).maxAlive));
   // Spawner por wave só atua em mapas de batalha (seguras/eventos têm regras próprias).
   const isWaveSpawnMap = (map: string): boolean =>
-    !["esfera_ancestral", "mapinha6", "mapinha9", "mapinha10", "mapinha11", "mapinha12", "arena"].includes(map);
+    !["esfera_ancestral", "mapinha6", "mapinha9", "mapinha10", "mapinha11", "arena"].includes(map);
   // Posição de ataque: ponto walkable à distância preferida (≈ alcance × margem)
   // do alvo, do lado do atacante. Sem preferD, usa o padrão corpo a corpo.
   const getAttackPosition = (ax: number, ay: number, tx: number, ty: number, mapId: string, preferD?: number): { x: number; y: number } => {
@@ -8933,6 +8962,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 ceusShinyDueRef.current = true;
               }
             }
+            // Contadores OCULTOS do Bidril e Kakuna: shiny acima de 2000 kills (2000-2400)
+            // e BIDRIL RAIDER a cada 1000 kills (SEM aviso prévio)
+            if (idle.currentMap === "mapinha12") {
+              bidrilKillsRef.current += 1;
+              if (bidrilKillsRef.current >= bidrilShinyAtRef.current) {
+                bidrilKillsRef.current = 0;
+                bidrilShinyAtRef.current = 2000 + Math.floor(Math.random() * 401);
+                bidrilShinyDueRef.current = true;
+              }
+              bidrilRaiderKillsRef.current += 1;
+              if (bidrilRaiderKillsRef.current >= 1000) {
+                bidrilRaiderKillsRef.current = 0;
+                bidrilRaiderDueRef.current = true;
+              }
+            }
             // Contadores OCULTOS da Florest Bone: shiny (100-300) e Marowak Plus (400-700, mais raro)
             if (idle.currentMap === "florest_bone") {
               florestBoneShinyKillsRef.current += 1;
@@ -9039,7 +9083,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             ruinas: 1.1,        // Ruínas (Lv16–24)
             ruinas_de_venus: 1.12, // Ruínas de Vênus (Lv20–28)
             mapinha5: 1.15,     // Rota Flower (Lv30–42)
-            mapinha12: 1.15,    // Bidril e Kakuna (Lv40–180)
+            mapinha12: 1.15,    // Bidril e Kakuna (Lv40–70)
             cristal_cave: 1.1,  // Cristal Cave
             mapinha8: 1.15,     // Mapa Dos Céus (Lv24–33)
             mapinha10: 1.2,     // Pokemarkt
@@ -9054,6 +9098,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? 0.05 : 1);
           const rawGold = baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult;
           const gold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)));
+          // 🪲 BIDRIL RAIDER gigante: bônus garantido de ouro ao derrotar (fora do cap).
+          const giantGoldBonus = target.giant ? 250 + Math.floor(Math.random() * 151) : 0;
+          if (target.giant) {
+            queueMicrotask(() => {
+              pushChat(`🪲 BIDRIL RAIDER derrotado! +${giantGoldBonus} ouro de recompensa!`, "cap");
+              pushFxAt(target.x, target.y - 60, `+${giantGoldBonus} OURO`, "gold");
+            });
+          }
           if (isRiderKill) {
             pushEvent("✦", "RIDER DERROTADO!", `+${xp} EXP · +${gold} ouro`, "#ff5ec7");
             pushChat(`✦ RIDER DERROTADO! +${xp} EXP · +${gold} ouro`, "cap");
@@ -9074,7 +9126,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.kills += 1;
           xpAccumRef.current.map = idle.currentMap;
           // 📋 Loot do Mapa (resumo na Forja): ouro concedido neste abate
-          setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) }));
+          setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus }));
           // 📦 Drops de recurso no CHÃO (config central; não entram na mochila).
           const rdrops = rollDropsFor(target.sp, idle.currentMap);
           if (rdrops.length > 0) {
@@ -9524,8 +9576,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), crystals: s.pending.crystals + 0 },
-              totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)), captured: s.totals.captured + capturedInc, kills: newKills },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, crystals: s.pending.crystals + 0 },
+              totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
               items: itemsWithDrops,
@@ -10837,7 +10889,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
     // Mapas do EVENTO (Torre Elemental) SPAWNAM — são zonas de batalha do evento.
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir") {
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -11026,6 +11078,27 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           // �a️ Escada de progressão: Mapa Dos Céus = Lv24�33
           mapLvRange = [24, 33];
+        }
+        if (idle.currentMap === "mapinha12") {
+          // Bidril e Kakuna: beedrill/kakuna comuns; pinsir/mankey médios; farfetchd/tauros/jigglypuff raros.
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (2000+).
+          // BIDRIL RAIDER (gigante 2x, dropa ouro): 1 a cada 1000 kills, no máximo 1 por vez.
+          pool = ["beedrill", "beedrill", "beedrill", "beedrill", "kakuna", "kakuna", "kakuna", "kakuna", "pinsir", "pinsir", "mankey", "mankey", "farfetchd", "tauros", "jigglypuff"] as Species[];
+          const bidrilShinies = ["beedrill_shiny", "kakuna_shiny", "pinsir_shiny", "mankey_shiny", "farfetchd_shiny", "tauros_shiny", "jigglypuff_shiny"] as Species[];
+          if (bidrilShinyDueRef.current && !enemies.some((e) => e.hp > 0 && bidrilShinies.includes(e.sp))) {
+            pool = [bidrilShinies[Math.floor(Math.random() * bidrilShinies.length)]] as Species[];
+            bidrilShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          } else if (bidrilRaiderDueRef.current && !enemies.some((e) => e.hp > 0 && e.rider && speciesBaseOf(e.sp) === "beedrill")) {
+            pool = ["beedrill"] as Species[];
+            bidrilRaiderDueRef.current = false;
+            forcedRarity = "epic";
+            bidrilRaiderSpawnRef.current = true;
+            setTimeout(() => pushChat("🪲 Um BIDRIL RAIDER gigante apareceu no mapa! Derrube ele pelo ouro!", "cap"), 60);
+          }
+          // Escada de progressão: Bidril e Kakuna = Lv40–70
+          mapLvRange = [40, 70];
         }
         if (idle.currentMap === "ruinas_de_venus") {
           // Ruínas de Vênus: ekans/grimer/gastly comuns; haunter/muk médios; arbok/swalot raros.
@@ -11488,11 +11561,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (hardCap != null) lv = Math.min(lv, hardCap + 50); // riders podem passar do cap
         pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
+      // 🪲 BIDRIL RAIDER (mapinha12): gigante 2x, nível acima do líder (teto 70), dropa ouro.
+      // Consome a flag do contador (1 a cada 1000 kills); só vale para beedrill do mapa.
+      const bidrilFlag = bidrilRaiderSpawnRef.current === true;
+      bidrilRaiderSpawnRef.current = false;
+      const isBidrilRaider = bidrilFlag && idle.currentMap === "mapinha12" && speciesBaseOf(sp) === "beedrill";
+      if (isBidrilRaider) {
+        lv = Math.min(70, Math.max(40, leaderLv + 8));
+        pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
+      }
       // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
       const GUARDIAN_MONS: Species[] = ["ditto", "ditto_shiny", "scizor", "umbreon"];
-      const guardianEligible = !noHighEvents && !isMythicRoamer && !isDialgaEvent && !isRider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
+      const guardianEligible = !noHighEvents && !isMythicRoamer && !isDialgaEvent && !isRider && !isBidrilRaider && (leaderLv >= 100 || (hardCap != null && hardCap > 100));
       const isGuardian = guardianEligible && Math.random() < 0.003;
       if (isGuardian) {
         sp = GUARDIAN_MONS[Math.floor(Math.random() * GUARDIAN_MONS.length)];
@@ -11519,7 +11601,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         { sp: "skarmory",       minLv: 350, rarityFloor: "legendary" },
       ];
       const apexPool = APEX_MONS.filter((a) => leaderLv >= a.minLv && a.minLv <= 700);
-      const apexEligible = !noHighEvents && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && apexPool.length > 0;
+      const apexEligible = !noHighEvents && !isMythicRoamer && !isDialgaEvent && !isRider && !isBidrilRaider && !isGuardian && apexPool.length > 0;
       // 0.6% chance quando elegível (aparição escassa)
       const isApex = apexEligible && Math.random() < 0.0025;
       if (isApex) {
@@ -11544,7 +11626,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         "kangaskhan","meganium","meganium_shiny","moltres_shiny","onix_shiny",
       ];
       let isMtcBoss = false;
-      if (!noHighEvents && !isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && leaderLv >= 500) {
+      if (!noHighEvents && !isApex && !isMythicRoamer && !isDialgaEvent && !isRider && !isBidrilRaider && !isGuardian && leaderLv >= 500) {
         // ~1% dos spawns em Lv 500+; sobe levemente com o nível do líder
         const chance = Math.min(0.008, 0.003 + (leaderLv - 500) * 0.000008);
         if (Math.random() < chance) {
@@ -11564,7 +11646,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       let isMenace = false;
       try {
         const last = Number(localStorage.getItem("menace_last_spawn_ms") || 0);
-        if (!noHighEvents && !menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isGuardian && !isApex
+        if (!noHighEvents && !menaceOnMap && !isMythicRoamer && !isDialgaEvent && !isRider && !isBidrilRaider && !isGuardian && !isApex
             && leaderLv >= 400
             && Date.now() - last >= MENACE_INTERVAL_MS
             && Math.random() < 0.015) {
@@ -11587,7 +11669,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const apexHpMult = isApex ? 4.5 : 1;
       const menaceHpMult = isMenace ? 18 : 1;
       const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * (isRider ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * ((isRider || isBidrilRaider) ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
       const isAggro = isMenace ? false : true; // menace começa passivo
       const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
 
@@ -11633,7 +11715,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         behavior = "aggressive";
         agg = true;
       }
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: Math.random() < 0.5 ? "left" : "right", aggressive: agg, aggroR: aggroRx, elite, level: lv, rarity: pet.rarity, rider: isRider, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: behavior === "passive" ? "IDLE" : "WANDER", behavior, nextSkillAt: Date.now() + 4000 + Math.random() * 5000 };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: Math.random() < 0.5 ? "left" : "right", aggressive: agg, aggroR: aggroRx, elite, level: lv, rarity: pet.rarity, rider: (isRider || isBidrilRaider), giant: isBidrilRaider || undefined, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: behavior === "passive" ? "IDLE" : "WANDER", behavior, nextSkillAt: Date.now() + 4000 + Math.random() * 5000 };
 
 
     }
@@ -11644,7 +11726,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "mapinha12" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") return [];
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -16390,7 +16472,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const face = e.face ?? "left";
               const sx = SPRITE_SHEET[showSp] ? 1 : (face === "left" ? 1 : -1);
               const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2 : (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
-              const size = Math.round(46 * scale);
+              const size = Math.round(46 * scale * (e.giant ? 2 : 1));
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
