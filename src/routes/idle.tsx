@@ -232,6 +232,8 @@ import { PARTY_MAX } from "@/game/party";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
 import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
+import { AspectroDialog } from "@/components/AspectroDialog";
+import { aspectroSteps } from "@/game/aspectroQuest";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -14328,66 +14330,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               (idle.items[id] ?? 0) + ((loadMaterialsStore() as unknown as Record<string, number>)[id] ?? 0);
             const hasBouquet = matTotal("buque") > 0;
             const flowerCount = matTotal("flor");
-            // ===== QUEST DO ASPECTRO — A Ember da Trinite Desapareceu (8 encontros) =====
-            // Fórmula: 1 revelação + 1 pergunta nova + 1 missão por retorno. Nunca tudo de uma vez.
+            // ===== QUEST DO ASPECTRO — A Ember da Trinite Desapareceu (10 encontros) =====
+            // Roteiro completo em src/game/aspectroQuest.ts. Aqui só o estágio + progressos.
             const aspectroStage = idle.revoQuests?.aspectroStage ?? 0;
             const aspectroKills = (idle.totals?.kills ?? 0) - (idle.revoQuests?.aspectroKillsMark ?? 0);
             const aspectroCaps = (idle.totals?.captured ?? 0) - (idle.revoQuests?.aspectroCapMark ?? 0);
             const aspectroElem = team[0] ? elementOf(team[0].species) : "normal";
-            const ASPECTRO_ELEM_LINE: Record<string, string> = {
-              fire: "Vocês humanos olham para o fogo e veem destruição. Eu vejo transformação. Talvez o problema nunca foi o fogo... foi quem decidiu acendê-lo.",
-              water: "A água não discute com a pedra. Ela espera. E um dia... a pedra cede. O que será que a Trinite está esperando?",
-              grass: "Ela cresce no escuro sem pedir licença. A vida sempre encontra um jeito de continuar. Mesmo quando tentam apagá-la.",
-              electric: "Rápido demais para segurar. Alguém um dia tentou guardar energia assim. E guardar demais... cobra um preço.",
-              poison: "Pequeno, silencioso, paciente. As coisas mais perigosas deste mundo não são as maiores. Lembre disso.",
-              psychic: "Ela vê sem olhos e toca sem mãos. Cuidado: algumas coisas percebem quando são percebidas.",
-              ice: "O gelo preserva o que o tempo quer levar. Talvez a Trinite esteja... preservada. Em algum lugar frio.",
-              rock: "Ela estava aqui antes de você. Estará aqui depois. As pedras guardam memórias mais antigas que qualquer treinador.",
-              fighting: "Força resolve batalhas. Mas me diga... quem decide quais batalhas valem a pena?",
-              flying: "Ver o mundo de cima muda tudo. Um dia você vai entender por que alguns preferem observar de longe.",
-              normal: "O comum. E é exatamente isso que me intriga: o comum esconde o extraordinário melhor que qualquer sombra.",
-            };
-            const aspectroLines: string[] = aspectroStage <= 0 ? [
-              "Você finalmente chegou.",
-              "Quem é você? ...Não. Isso é o que você faz. Eu perguntei QUEM você é.",
-              "Você entrou neste mundo... recebeu um corpo... recebeu Pokémon... recebeu energia... e começou a obedecer às regras. Mas nunca perguntou quem escreveu essas regras.",
-              "Encontre algo para mim: a EMBER DA TRINITE. Ela desapareceu. Se eu soubesse onde está... você acha que ainda estaria aqui?",
-            ] : aspectroStage === 1 ? [
-              "O primeiro vestígio. Traga-me 1 FLOR — plantas e insetos costumam derrubá-las.",
-              "Sem o vestígio, não há próxima verdade. Vá.",
-            ] : aspectroStage === 2 ? [
-              "Você voltou.",
-              ASPECTRO_ELEM_LINE[aspectroElem] ?? ASPECTRO_ELEM_LINE.normal,
-              "O que isso tem a ver com a Trinite? Ainda nada. Você quer respostas rápido demais. Derrote 30 Pokémon, traga 1 CHICOTE, e volte.",
-            ] : aspectroStage === 3 ? [
-              "Eu sei que você voltou. Porque você ainda está aqui.",
-              "Posso lhe mostrar uma memória. Quanto custa? ...Finalmente. Você começou a entender.",
-              "30 de ENERGIA. Pague, e veja.",
-            ] : aspectroStage === 4 ? [
-              "Agora talvez esteja pronto. Então ouça.",
-              "Eu não nasci. Eu fui criado. Por humanos. Não para viver. Para destruir. Universos.",
-              "Mas isso é tudo por hoje. Encontre um vestígio de tecnologia antiga: traga 1 SUCATA.",
-            ] : aspectroStage === 5 ? [
-              "Então você encontrou. A prova de que não pertenço a este tempo.",
-              "Quem me salvou? RYUH. O Mestre dos Elementos. Ele poderia ter me destruído. Mas percebeu: uma criatura não precisa permanecer aquilo para o qual foi criada.",
-              "Investigue a Grande REVO: derrote 50 Pokémon e traga 1 FERRO.",
-            ] : aspectroStage === 6 ? [
-              "Eu não fui o único. Máquinas. Clones. Seres criados para substituir o orgânico. Os que fugiram foram para a Grande REVO — um refúgio para quem não deveria existir.",
-              "Agora observe os outros jogadores. Alguns constroem, outros destroem... e todos acham que as escolhas somem ao fechar o jogo. Mas escolhas revelam pessoas.",
-              "Capture 5 Pokémon e traga 1 BUQUÊ. Escolhas também florescem.",
-            ] : aspectroStage === 7 ? [
-              "Existe uma energia que nenhuma barra mostra: a de uma intenção.",
-              "Não procure a Black Mítica pelo valor. Pergunte o que aconteceu para ela existir. Mewthow existe. O castelo existe. Mas não procure o castelo... talvez o castelo esteja procurando você.",
-              "Derrote 80 Pokémon e traga 1 PEPITA DE OURO.",
-            ] : aspectroStage === 8 ? [
-              "Agora você pode ouvir a resposta. A Ember não desapareceu. Ela foi ESCONDIDA.",
-              "E ela não é apenas poder. É uma CHAVE — para descobrir onde termina este mundo... e onde começa o outro.",
-              "Traga 1 STONE SOMBRIA. Então a verdadeira missão começa.",
-            ] : [
-              "Você ainda chama isso de jogo. Talvez esse seja seu primeiro erro.",
-              "Você entrou procurando uma criatura. Agora procura respostas: quem escondeu a Ember?",
-              "A Ember aguarda. E eu... lembrarei de cada escolha sua até lá.",
-            ];
+            const aspectroStepsArr = aspectroSteps(aspectroStage, aspectroElem);
             const simple: Record<string, string[]> = {
               gordin: [
                 "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um Shiny de cor diferente, que ninguém nunca viu!",
@@ -14420,8 +14369,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   "Dica de amiga: Pokémon de planta e de inseto costumam derrubar flores... e dizem que até cortando árvore aparece uma, mas é BEM raro, viu?",
                   `Você já me deu ${idle.revoQuests?.flowersGiven ?? 0} flor(es)! Minha coleção tá cada dia mais linda!`,
                 ],
-                aspectro: aspectroLines,
-              gatoancy: [
+                gatoancy: [
                 "Não precisa falar...\nEstou falando com ele.",
                 "Lua Negra está se comunicando com seu Pokémon.",
                 "Ué...\nele falou comigo telepaticamente?",
@@ -14546,13 +14494,87 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             };
             const finishAspectro = () => {
               if (matTotal("stone_dark") <= 0) { pushChat("❌ Você não tem: Stone Sombria 🌑.", "info"); return; }
-              deliverAspectro("stone_dark", "Stone Sombria 🌑", 0, 0, 9, "none");
+              deliverAspectro("stone_dark", "Stone Sombria 🌑", 0, 0, 11, "none");
               queueMicrotask(() => {
                 pushChat("🔴 QUEST ATUALIZADA: A Ember da Trinite — Descubra quem escondeu a Ember.", "cap");
                 pushChat("Você entrou procurando uma criatura. Agora está procurando respostas.", "cap");
               });
               grantRevoReward("A Ember da Trinite");
             };
+            // Rodapé da quest (10 encontros): botões SÓ no fim do diálogo.
+            // Item por etapa: 1 flor · 2 chicote (+30 kills) · 3 30 energia · 4 sucata ·
+            // 5 ferro (+50 kills) · 6 bronze (+60 kills) · 7 buque (+5 capturas) ·
+            // 8 pepita (+80 kills) · 9 perola (+100 kills) · 10 stone_dark.
+            const aspectroFooter = (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                {aspectroStage <= 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); acceptAspectro(); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.25)", border: "1px solid #a78bfa", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >OUVIR O ASPECTRO</button>
+                )}
+                {aspectroStage === 1 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("flor", "Flor", 0, 0, 2, "kills"); }}
+                    style={{ textAlign: "left", background: matTotal("flor") > 0 ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 FLOR ({matTotal("flor")})</button>
+                )}
+                {aspectroStage === 2 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("chicote", "Chicote", 30, 0, 3, "none"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 CHICOTE ({matTotal("chicote")}) · {Math.min(30, aspectroKills)}/30 kills</button>
+                )}
+                {aspectroStage === 3 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); payAspectro(); }}
+                    style={{ textAlign: "left", background: "rgba(245,207,107,0.2)", border: "1px solid rgba(245,207,107,0.5)", color: "#ffe9a8", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >PAGAR 30 ENERGIA ({Math.floor(trainerEnergy ?? 0)})</button>
+                )}
+                {aspectroStage === 4 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("sucata", "Sucata", 0, 0, 5, "kills"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 SUCATA ({matTotal("sucata")})</button>
+                )}
+                {aspectroStage === 5 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("ferro", "Ferro", 50, 0, 6, "caps"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 FERRO ({matTotal("ferro")}) · {Math.min(50, aspectroKills)}/50 kills</button>
+                )}
+                {aspectroStage === 6 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("bronze", "Bronze", 60, 0, 7, "kills"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 BRONZE ({matTotal("bronze")}) · {Math.min(60, aspectroKills)}/60 kills</button>
+                )}
+                {aspectroStage === 7 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("buque", "Buque", 0, 5, 8, "kills"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 BUQUE ({matTotal("buque")}) · {Math.min(5, aspectroCaps)}/5 capturas</button>
+                )}
+                {aspectroStage === 8 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("pepita", "Pepita de Ouro", 80, 0, 9, "kills"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 PEPITA ({matTotal("pepita")}) · {Math.min(80, aspectroKills)}/80 kills</button>
+                )}
+                {aspectroStage === 9 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deliverAspectro("perola", "Perola", 100, 0, 10, "none"); }}
+                    style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 PEROLA ({matTotal("perola")}) · {Math.min(100, aspectroKills)}/100 kills</button>
+                )}
+                {aspectroStage === 10 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); finishAspectro(); }}
+                    style={{ textAlign: "left", background: "rgba(220,38,38,0.3)", border: "1px solid #ef4444", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                  >ENTREGAR 1 STONE SOMBRIA ({matTotal("stone_dark")})</button>
+                )}
+              </div>
+            );
             const luluLines = [
               "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?",
               "A Flor de Cristal Violeta tem pétalas que brilham como ametista ao luar! Dizem que ela nasce onde o Bulbasaur Florido cantou... Se você vir um brilho violeta no chão do Mapinha 1, me avise! ✨",
@@ -14568,6 +14590,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               if (page < pages.length - 1) setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
               else setNpcDialog(null);
             };
+            // Diálogo cinematográfico do Aspectro (conversa com botões de pergunta; quest só no fim).
+            if (npcDialog.kind === "aspectro") {
+              const apage = Math.min(npcDialog.page, aspectroStepsArr.length - 1);
+              return (
+                <AspectroDialog
+                  portraitUrl={portraitUrl}
+                  steps={aspectroStepsArr}
+                  page={apage}
+                  questLabel={aspectroStage >= 11 ? "A Ember da Trinite · concluída" : `A Ember da Trinite · etapa ${Math.min(aspectroStage + 1, 11)}/11`}
+                  onAdvance={() => {
+                    if (apage < aspectroStepsArr.length - 1) setNpcDialog({ ...npcDialog, page: npcDialog.page + 1 });
+                    else setNpcDialog(null);
+                  }}
+                  onClose={() => setNpcDialog(null)}
+                  footer={aspectroFooter}
+                />
+              );
+            }
             return (
               <NpcDialog
                 kind={npcDialog.kind}
@@ -14666,65 +14706,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       >🌸 DAR 1 FLOR (presentinho alternado!)</button>
                     )}
                   </div>
-                ) : (npcDialog.kind === "aspectro" ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
-                    <div style={{ fontSize: 10, color: "#c4b5fd", fontWeight: 800 }}>Etapa {Math.min(aspectroStage + 1, 9)}/9 · A Ember da Trinite Desapareceu</div>
-                    {aspectroStage <= 0 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); acceptAspectro(); }}
-                        style={{ textAlign: "left", background: "rgba(139,92,246,0.25)", border: "1px solid #a78bfa", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >OUVIR O ASPECTRO</button>
-                    )}
-                    {aspectroStage === 1 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deliverAspectro("flor", "Flor", 0, 0, 2, "kills"); }}
-                        style={{ textAlign: "left", background: matTotal("flor") > 0 ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 FLOR ({matTotal("flor")})</button>
-                    )}
-                    {aspectroStage === 2 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deliverAspectro("chicote", "Chicote", 30, 0, 3, "none"); }}
-                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 CHICOTE ({matTotal("chicote")}) · {Math.min(30, aspectroKills)}/30 kills</button>
-                    )}
-                    {aspectroStage === 3 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); payAspectro(); }}
-                        style={{ textAlign: "left", background: "rgba(245,207,107,0.2)", border: "1px solid rgba(245,207,107,0.5)", color: "#ffe9a8", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >PAGAR 30 ENERGIA ({Math.floor(trainerEnergy ?? 0)})</button>
-                    )}
-                    {aspectroStage === 4 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deliverAspectro("sucata", "Sucata", 0, 0, 5, "kills"); }}
-                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 SUCATA ({matTotal("sucata")})</button>
-                    )}
-                    {aspectroStage === 5 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deliverAspectro("ferro", "Ferro", 50, 0, 6, "caps"); }}
-                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 FERRO ({matTotal("ferro")}) · {Math.min(50, aspectroKills)}/50 kills</button>
-                    )}
-                    {aspectroStage === 6 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deliverAspectro("buque", "Buque", 0, 5, 7, "kills"); }}
-                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 BUQUE ({matTotal("buque")}) · {Math.min(5, aspectroCaps)}/5 capturas</button>
-                    )}
-                    {aspectroStage === 7 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deliverAspectro("pepita", "Pepita de Ouro", 80, 0, 8, "none"); }}
-                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 PEPITA ({matTotal("pepita")}) · {Math.min(80, aspectroKills)}/80 kills</button>
-                    )}
-                    {aspectroStage === 8 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); finishAspectro(); }}
-                        style={{ textAlign: "left", background: "rgba(220,38,38,0.3)", border: "1px solid #ef4444", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
-                      >ENTREGAR 1 STONE SOMBRIA ({matTotal("stone_dark")})</button>
-                    )}
-                  </div>
-                ) : null))))))}
+                ) : null)))))}
                />
             );
           })()}
