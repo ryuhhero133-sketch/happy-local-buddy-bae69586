@@ -1774,6 +1774,10 @@ type IdleState = {
     bouquetDone?: boolean;
     flowersGiven?: number;
     rewardStep?: number;
+    /** Quest do Aspectro — A Ember da Trinite Desapareceu (0 = nunca falou; 9 = concluída). */
+    aspectroStage?: number;
+    aspectroKillsMark?: number;
+    aspectroCapMark?: number;
   };
   /** Evento (Liga): entradas grátis do dia + passe de permanência (timestamp). */
   eventEntries?: { day: string; free: number };
@@ -14324,6 +14328,66 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               (idle.items[id] ?? 0) + ((loadMaterialsStore() as unknown as Record<string, number>)[id] ?? 0);
             const hasBouquet = matTotal("buque") > 0;
             const flowerCount = matTotal("flor");
+            // ===== QUEST DO ASPECTRO — A Ember da Trinite Desapareceu (8 encontros) =====
+            // Fórmula: 1 revelação + 1 pergunta nova + 1 missão por retorno. Nunca tudo de uma vez.
+            const aspectroStage = idle.revoQuests?.aspectroStage ?? 0;
+            const aspectroKills = (idle.totals?.kills ?? 0) - (idle.revoQuests?.aspectroKillsMark ?? 0);
+            const aspectroCaps = (idle.totals?.captured ?? 0) - (idle.revoQuests?.aspectroCapMark ?? 0);
+            const aspectroElem = team[0] ? elementOf(team[0].species) : "normal";
+            const ASPECTRO_ELEM_LINE: Record<string, string> = {
+              fire: "Vocês humanos olham para o fogo e veem destruição. Eu vejo transformação. Talvez o problema nunca foi o fogo... foi quem decidiu acendê-lo.",
+              water: "A água não discute com a pedra. Ela espera. E um dia... a pedra cede. O que será que a Trinite está esperando?",
+              grass: "Ela cresce no escuro sem pedir licença. A vida sempre encontra um jeito de continuar. Mesmo quando tentam apagá-la.",
+              electric: "Rápido demais para segurar. Alguém um dia tentou guardar energia assim. E guardar demais... cobra um preço.",
+              poison: "Pequeno, silencioso, paciente. As coisas mais perigosas deste mundo não são as maiores. Lembre disso.",
+              psychic: "Ela vê sem olhos e toca sem mãos. Cuidado: algumas coisas percebem quando são percebidas.",
+              ice: "O gelo preserva o que o tempo quer levar. Talvez a Trinite esteja... preservada. Em algum lugar frio.",
+              rock: "Ela estava aqui antes de você. Estará aqui depois. As pedras guardam memórias mais antigas que qualquer treinador.",
+              fighting: "Força resolve batalhas. Mas me diga... quem decide quais batalhas valem a pena?",
+              flying: "Ver o mundo de cima muda tudo. Um dia você vai entender por que alguns preferem observar de longe.",
+              normal: "O comum. E é exatamente isso que me intriga: o comum esconde o extraordinário melhor que qualquer sombra.",
+            };
+            const aspectroLines: string[] = aspectroStage <= 0 ? [
+              "Você finalmente chegou.",
+              "Quem é você? ...Não. Isso é o que você faz. Eu perguntei QUEM você é.",
+              "Você entrou neste mundo... recebeu um corpo... recebeu Pokémon... recebeu energia... e começou a obedecer às regras. Mas nunca perguntou quem escreveu essas regras.",
+              "Encontre algo para mim: a EMBER DA TRINITE. Ela desapareceu. Se eu soubesse onde está... você acha que ainda estaria aqui?",
+            ] : aspectroStage === 1 ? [
+              "O primeiro vestígio. Traga-me 1 FLOR — plantas e insetos costumam derrubá-las.",
+              "Sem o vestígio, não há próxima verdade. Vá.",
+            ] : aspectroStage === 2 ? [
+              "Você voltou.",
+              ASPECTRO_ELEM_LINE[aspectroElem] ?? ASPECTRO_ELEM_LINE.normal,
+              "O que isso tem a ver com a Trinite? Ainda nada. Você quer respostas rápido demais. Derrote 30 Pokémon, traga 1 CHICOTE, e volte.",
+            ] : aspectroStage === 3 ? [
+              "Eu sei que você voltou. Porque você ainda está aqui.",
+              "Posso lhe mostrar uma memória. Quanto custa? ...Finalmente. Você começou a entender.",
+              "30 de ENERGIA. Pague, e veja.",
+            ] : aspectroStage === 4 ? [
+              "Agora talvez esteja pronto. Então ouça.",
+              "Eu não nasci. Eu fui criado. Por humanos. Não para viver. Para destruir. Universos.",
+              "Mas isso é tudo por hoje. Encontre um vestígio de tecnologia antiga: traga 1 SUCATA.",
+            ] : aspectroStage === 5 ? [
+              "Então você encontrou. A prova de que não pertenço a este tempo.",
+              "Quem me salvou? RYUH. O Mestre dos Elementos. Ele poderia ter me destruído. Mas percebeu: uma criatura não precisa permanecer aquilo para o qual foi criada.",
+              "Investigue a Grande REVO: derrote 50 Pokémon e traga 1 FERRO.",
+            ] : aspectroStage === 6 ? [
+              "Eu não fui o único. Máquinas. Clones. Seres criados para substituir o orgânico. Os que fugiram foram para a Grande REVO — um refúgio para quem não deveria existir.",
+              "Agora observe os outros jogadores. Alguns constroem, outros destroem... e todos acham que as escolhas somem ao fechar o jogo. Mas escolhas revelam pessoas.",
+              "Capture 5 Pokémon e traga 1 BUQUÊ. Escolhas também florescem.",
+            ] : aspectroStage === 7 ? [
+              "Existe uma energia que nenhuma barra mostra: a de uma intenção.",
+              "Não procure a Black Mítica pelo valor. Pergunte o que aconteceu para ela existir. Mewthow existe. O castelo existe. Mas não procure o castelo... talvez o castelo esteja procurando você.",
+              "Derrote 80 Pokémon e traga 1 PEPITA DE OURO.",
+            ] : aspectroStage === 8 ? [
+              "Agora você pode ouvir a resposta. A Ember não desapareceu. Ela foi ESCONDIDA.",
+              "E ela não é apenas poder. É uma CHAVE — para descobrir onde termina este mundo... e onde começa o outro.",
+              "Traga 1 STONE SOMBRIA. Então a verdadeira missão começa.",
+            ] : [
+              "Você ainda chama isso de jogo. Talvez esse seja seu primeiro erro.",
+              "Você entrou procurando uma criatura. Agora procura respostas: quem escondeu a Ember?",
+              "A Ember aguarda. E eu... lembrarei de cada escolha sua até lá.",
+            ];
             const simple: Record<string, string[]> = {
               gordin: [
                 "Opa, treinador! Eu sou o Gordin. Tô rodando esses mapinhas atrás de um Bulbasaur ESPECIAL... um Shiny de cor diferente, que ninguém nunca viu!",
@@ -14356,10 +14420,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   "Dica de amiga: Pokémon de planta e de inseto costumam derrubar flores... e dizem que até cortando árvore aparece uma, mas é BEM raro, viu?",
                   `Você já me deu ${idle.revoQuests?.flowersGiven ?? 0} flor(es)! Minha coleção tá cada dia mais linda!`,
                 ],
-                aspectro: [
-                  "Olá...",
-                "...",
-              ],
+                aspectro: aspectroLines,
               gatoancy: [
                 "Não precisa falar...\nEstou falando com ele.",
                 "Lua Negra está se comunicando com seu Pokémon.",
@@ -14450,6 +14511,47 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               }));
               setNpcDialog(null);
               grantRevoReward("Florzinha");
+            };
+            // ===== QUEST DO ASPECTRO — A Ember da Trinite Desapareceu =====
+            // Item por etapa: 1 flor · 2 chicote (+30 kills) · 3 30 energia · 4 sucata ·
+            // 5 ferro (+50 kills) · 6 buquê (+5 capturas) · 7 pepita (+80 kills) · 8 stone_dark.
+            const acceptAspectro = () => {
+              setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), aspectroStage: 1 } }));
+              playClick();
+              pushChat("🌑 Quest aceita: A Ember da Trinite Desapareceu! Traga 1 FLOR ao Aspectro.", "cap");
+              setNpcDialog(null);
+            };
+            const deliverAspectro = (itemId: string, itemLabel: string, needKills: number, needCaps: number, next: number, mark: "kills" | "caps" | "none") => {
+              const killsNow = (idle.totals?.kills ?? 0) - (idle.revoQuests?.aspectroKillsMark ?? 0);
+              const capsNow = (idle.totals?.captured ?? 0) - (idle.revoQuests?.aspectroCapMark ?? 0);
+              if (killsNow < needKills) { pushChat(`🌑 Derrote mais ${needKills - killsNow} Pokémon.`, "info"); return; }
+              if (capsNow < needCaps) { pushChat(`🌑 Capture mais ${needCaps - capsNow} Pokémon.`, "info"); return; }
+              if (!takeResource(itemId, 1)) { pushChat(`❌ Você não tem: ${itemLabel}.`, "info"); return; }
+              const kills = idle.totals?.kills ?? 0;
+              const caps = idle.totals?.captured ?? 0;
+              setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), aspectroStage: next,
+                ...(mark === "kills" ? { aspectroKillsMark: kills } : {}),
+                ...(mark === "caps" ? { aspectroCapMark: caps } : {}) } }));
+              setNpcDialog(null);
+              grantRevoReward("Aspectro");
+            };
+            const payAspectro = () => {
+              if ((trainerEnergy ?? 0) < 30) { pushChat("⚡ Você precisa de 30 de energia.", "info"); return; }
+              setTrainerEnergy((e) => Math.max(0, e - 30));
+              setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), aspectroStage: 4 } }));
+              setNpcDialog(null);
+              playClick();
+              pushChat("🌑 Memória: energia não é uma barra. É o que permite que este mundo continue funcionando. Tudo consome alguma coisa. E na vida... as escolhas também consomem.", "cap");
+              grantRevoReward("Aspectro");
+            };
+            const finishAspectro = () => {
+              if (matTotal("stone_dark") <= 0) { pushChat("❌ Você não tem: Stone Sombria 🌑.", "info"); return; }
+              deliverAspectro("stone_dark", "Stone Sombria 🌑", 0, 0, 9, "none");
+              queueMicrotask(() => {
+                pushChat("🔴 QUEST ATUALIZADA: A Ember da Trinite — Descubra quem escondeu a Ember.", "cap");
+                pushChat("Você entrou procurando uma criatura. Agora está procurando respostas.", "cap");
+              });
+              grantRevoReward("A Ember da Trinite");
             };
             const luluLines = [
               "Olá! Sou a Luluzinha, exploradora! 🌿 Estou numa expedição à procura da Flor de Cristal Violeta... uma flor que muda de cor ao luar! Dizem que só nasce onde um Bulbasaur especial floresceu. Quer me ajudar?",
@@ -14564,7 +14666,65 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       >🌸 DAR 1 FLOR (presentinho alternado!)</button>
                     )}
                   </div>
-                ) : null)))))}
+                ) : (npcDialog.kind === "aspectro" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                    <div style={{ fontSize: 10, color: "#c4b5fd", fontWeight: 800 }}>Etapa {Math.min(aspectroStage + 1, 9)}/9 · A Ember da Trinite Desapareceu</div>
+                    {aspectroStage <= 0 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); acceptAspectro(); }}
+                        style={{ textAlign: "left", background: "rgba(139,92,246,0.25)", border: "1px solid #a78bfa", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >OUVIR O ASPECTRO</button>
+                    )}
+                    {aspectroStage === 1 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deliverAspectro("flor", "Flor", 0, 0, 2, "kills"); }}
+                        style={{ textAlign: "left", background: matTotal("flor") > 0 ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 FLOR ({matTotal("flor")})</button>
+                    )}
+                    {aspectroStage === 2 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deliverAspectro("chicote", "Chicote", 30, 0, 3, "none"); }}
+                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 CHICOTE ({matTotal("chicote")}) · {Math.min(30, aspectroKills)}/30 kills</button>
+                    )}
+                    {aspectroStage === 3 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); payAspectro(); }}
+                        style={{ textAlign: "left", background: "rgba(245,207,107,0.2)", border: "1px solid rgba(245,207,107,0.5)", color: "#ffe9a8", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >PAGAR 30 ENERGIA ({Math.floor(trainerEnergy ?? 0)})</button>
+                    )}
+                    {aspectroStage === 4 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deliverAspectro("sucata", "Sucata", 0, 0, 5, "kills"); }}
+                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 SUCATA ({matTotal("sucata")})</button>
+                    )}
+                    {aspectroStage === 5 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deliverAspectro("ferro", "Ferro", 50, 0, 6, "caps"); }}
+                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 FERRO ({matTotal("ferro")}) · {Math.min(50, aspectroKills)}/50 kills</button>
+                    )}
+                    {aspectroStage === 6 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deliverAspectro("buque", "Buque", 0, 5, 7, "kills"); }}
+                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 BUQUE ({matTotal("buque")}) · {Math.min(5, aspectroCaps)}/5 capturas</button>
+                    )}
+                    {aspectroStage === 7 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deliverAspectro("pepita", "Pepita de Ouro", 80, 0, 8, "none"); }}
+                        style={{ textAlign: "left", background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 PEPITA ({matTotal("pepita")}) · {Math.min(80, aspectroKills)}/80 kills</button>
+                    )}
+                    {aspectroStage === 8 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); finishAspectro(); }}
+                        style={{ textAlign: "left", background: "rgba(220,38,38,0.3)", border: "1px solid #ef4444", color: "#fff", padding: "6px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 }}
+                      >ENTREGAR 1 STONE SOMBRIA ({matTotal("stone_dark")})</button>
+                    )}
+                  </div>
+                ) : null))))))}
                />
             );
           })()}
