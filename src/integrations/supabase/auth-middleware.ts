@@ -33,8 +33,12 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    // Workers (Cloudflare) não têm process.env populado: o wrangler.jsonc não
+    // define `vars` e o .env local não é enviado ao Worker. O Vite substitui
+    // `import.meta.env.VITE_*` estaticamente no build (inclusive no bundle SSR),
+    // com as mesmas credenciais — mesmo mecanismo que o client do jogo já usa.
+    const SUPABASE_URL = process.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       const missing = [
