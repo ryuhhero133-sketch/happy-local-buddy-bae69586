@@ -18029,7 +18029,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 mapinha10: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha11: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha12: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapa_orange: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapa_orange: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha13: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 cave01: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 cristal_cave: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
