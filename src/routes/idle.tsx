@@ -66,6 +66,14 @@ import kgPinsirPng from "@/CHAR/kg/x/Pinsir.png";
 import kgPinsirShinyPng from "@/CHAR/kg/x/Pinsir Shiny.png";
 import kgTaurosPng from "@/CHAR/kg/x/Taurus.png";
 import kgTaurosShinyPng from "@/CHAR/kg/x/Tauros Shiny.png";
+// Mapa Orange — sheets 4x4 do diretório pok-orange (movimento nas 4 direções)
+import orangeCharmanderPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Charmander.png";
+import orangeCharmanderShinyPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Charmander Shiny.png";
+import orangeCharizardPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Charizard.png";
+import orangeMagmarPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Magmar.png";
+import orangeMagmarShinyPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Magmar Shiny.png";
+import orangeVulpixPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Vulpix.png";
+import orangeVulpixShinyPng from "@/ambiente/mascara colisao/mapa original/pok-orange/Vulpix Shiny.png";
 // Recortes 1:1 do 1º frame (painéis/coleção/HUD) — arte original intacta.
 import taurosIconPng from "@/CHAR/Taurus_icon.png";
 import taurosShinyIconPng from "@/CHAR/Tauros Shiny_icon.png";
@@ -399,10 +407,12 @@ import pokemarktMaskUrl from "@/ambiente/mascara colisao/Pokemarkt mascara.png";
 import areiaAnubisUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis.png";
 import torreVerdejanteUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante.png";
 import torreAncestralUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral.png";
+import mapaOrangeUrl from "@/ambiente/mascara colisao/mapa original/Orange.png";
 import elementureUrl from "@/ambiente/mascara colisao/mapa original/Elementure.png";
 import areiaAnubisMaskUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis Colisao.png";
 import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante Colisao.png";
 import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
+import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.png";
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
 import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
@@ -581,8 +591,6 @@ import snolaxSheetPng from "@/assets/Snolax.png";
 // Verdejante 1 � Bulbasaur/Ivysaur/Venusaur + shinys + starters em PNG (sprites 4x4 da pasta plus)
 import bulbasaurPlusSheetPng from "@/assets/plus/Bulbasaur.png";
 import bulbasaurPlusShinySheetPng from "@/assets/plus/Bulbasaur Shiny.png";
-import charmanderPlusSheetPng from "@/assets/plus/Charmander.png";
-import charmanderPlusShinySheetPng from "@/assets/plus/Charmander Shiny.png";
 import squirtlePlusSheetPng from "@/assets/plus/Squirtle.png";
 import squirtlePlusShinySheetPng from "@/assets/plus/Squirtle Shiny.png";
 import ivysaurPlusSheetPng from "@/assets/plus/Ivysaur.png";
@@ -903,6 +911,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   areia_de_anubis: { name: "Areia de Anubis", diff: "Evento", bg: areiaAnubisUrl, rate: 1.0, minLevel: 20, maxLevel: 45, element: "Terra", stars: 3 },
   torre_verdejante: { name: "Torre Verdejante", diff: "Evento", bg: torreVerdejanteUrl, rate: 1.0, minLevel: 8, maxLevel: 28, element: "Planta", stars: 2 },
   torre_ancestral: { name: "Torre Ancestral", diff: "Evento", bg: torreAncestralUrl, rate: 1.0, minLevel: 35, maxLevel: 70, element: "Fantasma", stars: 4 },
+  mapa_orange: { name: "Mapa Orange", diff: "Difícil+", bg: mapaOrangeUrl, rate: 2.2, minLevel: 60, maxLevel: 100, element: "Fogo", stars: 3 },
   elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
 };
 
@@ -919,6 +928,7 @@ const MAP_XP_MULT: Partial<Record<string, number>> = {
   ruinas_de_venus: 1.5, // Ruínas de Vênus (Lv20–28)
   mapinha8: 1.8,        // Mapa Dos Céus (Lv24–33, pool comum)
   mapinha12: 1.5,       // Bidril e Kakuna (Lv40–70)
+  mapa_orange: 1.6,      // Mapa Orange (Lv60–100)
   mapinha5: 1.6,        // Rota Flower (Lv30–42)
   terra: 1.2,           // Ninho de Marimbondo (Lv40–55)
   arena: 1.0,
@@ -1006,6 +1016,7 @@ const GIF: Partial<Record<Species, string>> = {
   luxray_f: assetUrlFromJson(luxrayFAsset),
   oddish: oddishUrl, bellsprout: bellsproutUrl, weedle: weedleUrl, kakuna: kakunaUrl,
   caterpie: caterpieGif, metapod: metapodGif, vulpix: vulpixGif,
+  vulpix_shiny: orangeVulpixShinyPng, magmar: orangeMagmarPng, magmar_shiny: orangeMagmarShinyPng,
   paras: parasUrl, parasect: parasectUrl, venonat: venonatUrl, gloom: gloomUrl,
   clefairy: clefairyUrl, sandshrew: sandshrewUrl, sandslash: sandslashPng,
   sandshrew_shiny: sandsrewShinyPng, sandslash_shiny: sandslashShinyPng, mankey: mankeyUrl,
@@ -1068,7 +1079,7 @@ const GIF: Partial<Record<Species, string>> = {
   ivysaur: bulbasaurGif,
   ivysaur_shiny: bulbasaurGif,
   squirtle_shiny: squirtleGif,
-  charmander_shiny: charmanderGif,
+  charmander_shiny: orangeCharmanderShinyPng,
   vaporeon: vaporeonPng,
   vaporeon_shiny: assetUrlFromJson(vaporeonShinyAsset),
 };
@@ -1085,8 +1096,8 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   bulbasaur_shiny: bulbasaurPlusShinySheetPng,
   squirtle: squirtlePlusSheetPng,
   squirtle_shiny: squirtlePlusShinySheetPng,
-  charmander: charmanderPlusSheetPng,
-  charmander_shiny: charmanderPlusShinySheetPng,
+  charmander: orangeCharmanderPng,
+  charmander_shiny: orangeCharmanderShinyPng,
   ivysaur: ivysaurPlusSheetPng,
   ivysaur_shiny: ivysaurPlusShinySheetPng,
   vaporeon: vaporeonPng,
@@ -1117,6 +1128,12 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   mankey_shiny: kgMankeyShinyPng,
   jigglypuff: kgJigglypuffPng,
   jigglypuff_shiny: kgJigglypuffShinyPng,
+  // Mapa Orange (mapa_orange) — sheets 4x4 do diretório pok-orange.
+  charizard: orangeCharizardPng,
+  magmar: orangeMagmarPng,
+  magmar_shiny: orangeMagmarShinyPng,
+  vulpix: orangeVulpixPng,
+  vulpix_shiny: orangeVulpixShinyPng,
   oddish: oddishSheetPng,
   oddish_shiny: oddishShinySheetPng,
   gloom: gloomSheetPng,
@@ -4766,6 +4783,7 @@ const confirmName = () => {
     areia_de_anubis: areiaAnubisUrl,
     torre_verdejante: torreVerdejanteUrl,
     torre_ancestral: torreAncestralUrl,
+    mapa_orange: mapaOrangeUrl,
     elementure: elementureUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
@@ -4798,6 +4816,7 @@ const confirmName = () => {
     if (mapId === "ruinas") return ["geodude", "graveler", "growlithe", "sprigatito", "arcanine", "golem", "graveler_alola", "geodude_shiny", "graveler_shiny", "growlithe_shiny", "arcanine_shiny", "sprigatito_shiny", "golem_shiny", "golem_plus", "arcanine_shiny_plus"];
     if (mapId === "ruinas_de_venus") return ["ekans", "grimer", "gastly", "haunter", "muk", "arbok", "swalot", "ekans_shiny", "grimer_shiny", "gastly_shiny", "haunter_shiny", "muk_shiny", "swalot_shiny", "arbok_shiny"];
     if (mapId === "mapinha8") return ["zubat", "pidgey", "pidgeotto", "pidgeot", "spearow", "golbat", "fearow", "zubat_shiny", "pidgey_shiny", "pidgeotto_shiny", "pidgeot_shiny", "spearow_shiny", "golbat_shiny", "fearow_shiny"];
+    if (mapId === "mapa_orange") return ["charmander", "vulpix", "magmar", "charizard", "charmander_shiny", "magmar_shiny", "vulpix_shiny"];
     if (mapId === "mapinha12") return ["beedrill", "kakuna", "mankey", "pinsir", "tauros", "farfetchd", "jigglypuff", "beedrill_shiny", "kakuna_shiny", "mankey_shiny", "pinsir_shiny", "tauros_shiny", "farfetchd_shiny", "jigglypuff_shiny"];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
@@ -4827,6 +4846,7 @@ const confirmName = () => {
       if (idle.currentMap === "areia_de_anubis") ensureCollision("areia_de_anubis", areiaAnubisMaskUrl, width, height);
       if (idle.currentMap === "torre_verdejante") ensureCollision("torre_verdejante", torreVerdejanteMaskUrl, width, height);
       if (idle.currentMap === "torre_ancestral") ensureCollision("torre_ancestral", torreAncestralMaskUrl, width, height);
+      if (idle.currentMap === "mapa_orange") ensureCollision("mapa_orange", mapaOrangeMaskUrl, width, height);
       if (idle.currentMap === "elementure") ensureCollision("elementure", elementureMaskUrl, width, height);
     };
     return () => { cancelled = true; };
@@ -5037,6 +5057,12 @@ const confirmName = () => {
   const bidrilRaiderKillsRef = useRef(0);
   const bidrilRaiderDueRef = useRef(false);
   const bidrilRaiderSpawnRef = useRef(false);
+  // Mapa Orange oculto: shiny acima de 5000 kills (5000-5400, SEM aviso) e Charizard raro (1 a cada 150)
+  const orangeKillsRef = useRef(0);
+  const orangeShinyAtRef = useRef(5000 + Math.floor(Math.random() * 401));
+  const orangeShinyDueRef = useRef(false);
+  const orangeZardKillsRef = useRef(0);
+  const orangeZardDueRef = useRef(false);
   const [orbFlashes, setOrbFlashes] = useState<{ id: number; x: number; y: number; kind: "common" | "epic" }[]>([]);
   const orbFlashIdRef = useRef(1);
   // Partículas suaves de cura (anel + "+" subindo) — substitui o clarão forte
@@ -8983,6 +9009,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 bidrilRaiderDueRef.current = true;
               }
             }
+            // Contadores OCULTOS do Mapa Orange: shiny acima de 5000 kills (5000-5400)
+            // e Charizard (não-shiny) raro — 1 a cada 150 kills (SEM aviso prévio)
+            if (idle.currentMap === "mapa_orange") {
+              orangeKillsRef.current += 1;
+              if (orangeKillsRef.current >= orangeShinyAtRef.current) {
+                orangeKillsRef.current = 0;
+                orangeShinyAtRef.current = 5000 + Math.floor(Math.random() * 401);
+                orangeShinyDueRef.current = true;
+              }
+              orangeZardKillsRef.current += 1;
+              if (orangeZardKillsRef.current >= 150) {
+                orangeZardKillsRef.current = 0;
+                orangeZardDueRef.current = true;
+              }
+            }
             // Contadores OCULTOS da Florest Bone: shiny (100-300) e Marowak Plus (400-700, mais raro)
             if (idle.currentMap === "florest_bone") {
               florestBoneShinyKillsRef.current += 1;
@@ -9090,6 +9131,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             ruinas_de_venus: 1.12, // Ruínas de Vênus (Lv20–28)
             mapinha5: 1.15,     // Rota Flower (Lv30–42)
             mapinha12: 1.15,    // Bidril e Kakuna (Lv40–70)
+            mapa_orange: 1.2,    // Mapa Orange (Lv60–100)
             cristal_cave: 1.1,  // Cristal Cave
             mapinha8: 1.15,     // Mapa Dos Céus (Lv24–33)
             mapinha10: 1.2,     // Pokemarkt
@@ -11106,6 +11148,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           // Escada de progressão: Bidril e Kakuna = Lv40–70
           mapLvRange = [40, 70];
         }
+        if (idle.currentMap === "mapa_orange") {
+          // Mapa Orange: charmander/vulpix/magmar comuns; charizard raro (contador 150).
+          // Shiny NÃO entra na pool normal — só via contador oculto de kills (5000+).
+          pool = ["charmander", "charmander", "charmander", "charmander", "vulpix", "vulpix", "vulpix", "vulpix", "magmar", "magmar", "magmar", "magmar"] as Species[];
+          const orangeShinies = ["charmander_shiny", "magmar_shiny", "vulpix_shiny"] as Species[];
+          if (orangeShinyDueRef.current && !enemies.some((e) => e.hp > 0 && orangeShinies.includes(e.sp))) {
+            pool = [orangeShinies[Math.floor(Math.random() * orangeShinies.length)]] as Species[];
+            orangeShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          } else if (orangeZardDueRef.current && !enemies.some((e) => e.hp > 0 && speciesBaseOf(e.sp) === "charizard")) {
+            pool = ["charizard"] as Species[];
+            orangeZardDueRef.current = false;
+            forcedRarity = Math.random() < 0.6 ? "epic" : "rare";
+          }
+          // Níveis discretos do mapa: 60, 70, 80 e 100 (definidos após o clamp abaixo).
+          mapLvRange = [60, 100];
+        }
         if (idle.currentMap === "ruinas_de_venus") {
           // Ruínas de Vênus: ekans/grimer/gastly comuns; haunter/muk médios; arbok/swalot raros.
           // Shiny NÃO entra na pool normal — só via contador oculto de kills (800-1200).
@@ -11363,7 +11423,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // normal vira um Shiny da pool do mapa (1 por vez, sem fila).
         // Contadores ocultos por mapa têm prioridade (não mexe se já forçaram).
         let milestoneForced = false;
-        if (globalShinyDueRef.current && !forcedRarity) {
+        if (globalShinyDueRef.current && !forcedRarity && idle.currentMap !== "mapa_orange") {
           const allowPool = allowedSpeciesForMap(idle.currentMap) ?? pool;
           const shinyCands = allowPool.filter((s) => String(s).includes("shiny") && hasGif(s));
           const shinyAlive = enemiesRef.current.some((e) => e.hp > 0 && String(e.sp).includes("shiny"));
@@ -11546,6 +11606,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       }
       const hardCap = IDLE_MAPS[idle.currentMap].maxLevel;
       if (hardCap != null && !isMythicRoamer && !isDialgaEvent) lv = Math.min(lv, hardCap);
+      // Mapa Orange: níveis discretos 60 / 70 / 80 / 100.
+      if (idle.currentMap === "mapa_orange" && !isMythicRoamer && !isDialgaEvent) {
+        lv = [60, 70, 80, 100][Math.floor(Math.random() * 4)];
+      }
       if (isMythicRoamer) lv = 500;
       if (isDialgaEvent) lv = 800;
       // �0pico só aparece quando o líder chega ao nível 50.
@@ -17965,6 +18029,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 mapinha10: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha11: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha12: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapa_orange: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha13: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 cave01: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 cristal_cave: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
@@ -18897,7 +18962,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapinha8","mapinha10","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
+              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))

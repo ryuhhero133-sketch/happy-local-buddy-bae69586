@@ -114,6 +114,7 @@ export type Species =
   | "pikachu" | "sandslash" | "mewtwo" | "onix" | "pinsir"
   | "tauros" | "tauros_shiny" | "farfetchd" | "farfetchd_shiny" | "pinsir_shiny"
   | "beedrill_shiny" | "mankey_shiny" | "jigglypuff_shiny"
+  | "magmar_shiny" | "vulpix_shiny"
   | "magmar" | "hitmonchan" | "golem" | "aerodactyl"
   | "arbok" | "charizard_shiny" | "charizard_alt"
   | "moltres" | "zapdos" | "articuno"
@@ -325,6 +326,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   charmeleon: { hp: 58, atk: 64, def: 58, spa: 80, spd: 65, spe: 80, rarity: "uncommon", goldRange: [5, 9], crystalChance: 0.02, catchMod: 1.1, minLv: 12 },
   bulbasaur:  { hp: 45, atk: 49, def: 49, spa: 65, spd: 65, spe: 45, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 1 },
   vulpix:     { hp: 38, atk: 41, def: 40, spa: 50, spd: 65, spe: 65, rarity: "uncommon", goldRange: [4, 7], crystalChance: 0.015, catchMod: 1.0, minLv: 3 },
+  vulpix_shiny: { hp: 44, atk: 47, def: 46, spa: 57, spd: 72, spe: 71, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.2, minLv: 8 },
   jigglypuff: { hp: 115, atk: 45, def: 20, spa: 45, spd: 25, spe: 20, rarity: "common", goldRange: [2, 5], crystalChance: 0.005, catchMod: 0.8, minLv: 1 },
   jigglypuff_shiny: { hp: 125, atk: 52, def: 26, spa: 52, spd: 32, spe: 26, rarity: "uncommon", goldRange: [8, 14], crystalChance: 0.04, catchMod: 1.1, minLv: 8 },
   caterpie:   { hp: 45, atk: 30, def: 35, spa: 20, spd: 20, spe: 45, rarity: "common", goldRange: [1, 4], crystalChance: 0, catchMod: 0.6, minLv: 1 },
@@ -353,6 +355,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   farfetchd: { hp: 52, atk: 90, def: 55, spa: 58, spd: 62, spe: 60, rarity: "uncommon", goldRange: [6, 10], crystalChance: 0.02, catchMod: 1.0, minLv: 10 },
   farfetchd_shiny: { hp: 52, atk: 90, def: 55, spa: 58, spd: 62, spe: 60, rarity: "rare", goldRange: [8, 12], crystalChance: 0.03, catchMod: 0.9, minLv: 10 },
   magmar:     { hp: 65, atk: 95, def: 57, spa: 100, spd: 85, spe: 93, rarity: "rare", goldRange: [11, 19], crystalChance: 0.06, catchMod: 1.35, minLv: 18 },
+  magmar_shiny: { hp: 72, atk: 104, def: 63, spa: 110, spd: 93, spe: 100, rarity: "epic", goldRange: [18, 32], crystalChance: 0.10, catchMod: 1.4, minLv: 24 },
   hitmonchan: { hp: 50, atk: 105, def: 79, spa: 35, spd: 110, spe: 76, rarity: "rare", goldRange: [10, 17], crystalChance: 0.05, catchMod: 1.3, minLv: 16 },
   golem:      { hp: 80, atk: 120, def: 130, spa: 55, spd: 65, spe: 45, rarity: "epic", goldRange: [19, 32], crystalChance: 0.1, catchMod: 1.55, minLv: 25 },
   golem_shiny: { hp: 88, atk: 128, def: 138, spa: 60, spd: 70, spe: 50, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 25 },
