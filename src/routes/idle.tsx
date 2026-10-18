@@ -482,6 +482,7 @@ import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laborat
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
 import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
+import { claimPromoCodeOnce } from "@/lib/promoCodes";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
   DROP_GROUND_TTL_MS, DROP_COLLECT_PX, DROP_IMG_BY_MAT, DROP_LABEL_BY_MAT,
@@ -6411,6 +6412,50 @@ const confirmName = () => {
       }
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
+
+    // 🎫 TICKETANC1 — 1× Ticket Ancestral. USO ÚNICO GLOBAL (uma conta só):
+    // a trava fica no SERVIDOR (tabela promo_code_uses), então outra conta
+    // — mesmo no mesmo navegador — é recusada com "já utilizado por outra conta".
+    if (raw === "TICKETANC1" || raw === "TICKETANC" || raw === "ANC1TICKET" || raw === "1TICKETANC" || raw === "ANCESTRAL1") {
+      const grantTicket = () => {
+        const base = idleRef.current;
+        const next: IdleState = {
+          ...base,
+          items: {
+            ...base.items,
+            ticket_ancestral: (base.items.ticket_ancestral ?? 0) + 1,
+          },
+          redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+        };
+        setIdle(next);
+        persistCodeReward(next);
+        try { localStorage.setItem(codeKey, "1"); } catch {}
+        setCodeMsg({ kind: "ok", text: "🎫 1× Ticket Ancestral entregue! Use na aba INCUBADORA (Baú Ancestral)." });
+        setCodeInput("");
+        pushChat(`🎫 Código ${raw}: 1× Ticket Ancestral (uso único).`, "cap");
+      };
+      setCodeMsg({ kind: "ok", text: "… validando o código no servidor." });
+      void claimPromoCodeOnce(raw, identity?.id ?? null, identity?.name ?? null).then((res) => {
+        if (res.ok) {
+          grantTicket();
+          return;
+        }
+        if (res.reason === "already_used") {
+          setCodeMsg({ kind: "err", text: "Este código já foi utilizado por outra conta." });
+          return;
+        }
+        if (res.reason === "not_logged") {
+          // Sem login não há como validar no servidor: libera e avisa que vale só aqui.
+          pushChat("⚠️ Resgate sem login: a trava de conta única não pôde ser validada — o código vale só neste navegador.", "info");
+          grantTicket();
+          return;
+        }
+        // Trava global ainda não aplicada no servidor: libera, mas avisa.
+        pushChat("⚠️ Trava de conta única ainda não aplicada no servidor — o código vale só nesta conta.", "info");
+        grantTicket();
+      });
+      return;
+    }
 
     // CASHADMIN2026 — libera Modo Admin da Lojinha Cash. Uso único global (primeira conta que resgatar).
     if (raw === "CASHADMIN2026") {
