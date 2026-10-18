@@ -995,8 +995,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   // Hallow + Caverna de Brok: com máscara de colisão (só branco anda), viagem
   // grátis e sem Pokémon/objetos. No Hallow o rosa é água e o amarelo é luz de
   // caverna — pisar na luz teleporta para a caverna.
-  hallow: { name: "Hallow", diff: "Especial", bg: PROF_MAP_BY_ID.hallow.bg, rate: 1.0, minLevel: 1, maxLevel: 120, element: "Fantasma", stars: 3 },
-  caverna_brok: { name: "Caverna de Brok", diff: "Especial", bg: PROF_MAP_BY_ID.caverna_brok.bg, rate: 1.0, minLevel: 1, maxLevel: 120, element: "Pedra", stars: 2 },
+  hallow: { name: "Hallow", diff: "Especial", bg: PROF_MAP_BY_ID.hallow.bg, rate: 1.0, minLevel: 60, maxLevel: 120, element: "Fantasma", stars: 3 },
+  caverna_brok: { name: "Caverna de Brok", diff: "Especial", bg: PROF_MAP_BY_ID.caverna_brok.bg, rate: 1.0, minLevel: 60, maxLevel: 120, element: "Pedra", stars: 2 },
   // Jornada dos Navegantes (continente da aba MAPAS): sem máscara de colisão por
   // enquanto — entram em FREE_WALK_MAPS, então isWalkable() libera tudo e o
   // jogador anda livre. Nenhum ensureCollision() é chamado para eles.
@@ -7311,6 +7311,26 @@ const confirmName = () => {
 
 
 
+    // 🔥 CÓDIGO ADMIN — OVO DO CHARIZARD ÉPICO (uso único por código).
+    if (raw === "CHZEPIC1" || raw === "CHARZEPIC" || raw === "CHARIZARDEPIC" || raw === "EPICCHARIZARD" || raw === "OVOCHZEPIC") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          egg_charizard_epic: (base.items.egg_charizard_epic ?? 0) + 1,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch {}
+      setCodeMsg({ kind: "ok", text: "🔥 1× Ovo do Charizard ÉPICO entregue! (choca Charizard Épico Lv 50)" });
+      setCodeInput("");
+      pushChat(`🎉 Código ${raw}: 1× Ovo do Charizard ÉPICO — choca Charizard Épico Lv 50.`, "cap");
+      return;
+    }
+
     if (raw === "CHARIZA1" || raw === "CHARIZA2" || raw === "CHARIZA3") {
       const nowT = Date.now();
       const THIRTY_D = 30 * 24 * 60 * 60 * 1000;
@@ -11469,7 +11489,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       } else {
         pushChat(`Livro VIP usado (+${Math.round(newMult*100)}% ouro e EXP por ${cfg.label}).`, "cap");
       }
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
     } else if (id === "egg_anc_selado" || id === "egg_anc_plus" || id === "egg_anc_luck") {
       // Ovos Ancestrais NÃO chocam na mochila: selam um pokémon ESCOLHIDO
@@ -11619,7 +11639,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_lugia" | "egg_dragonite";
   // Ovos ancestrais: NÃO chocam sozinhos (selam o pokémon escolhido na aba ANCESTRAL).
   type AncEggId = "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
@@ -11629,6 +11649,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     egg_mystic: { weights: { common: 25, uncommon: 25, rare: 22, epic: 16, legendary: 9, mythic: 2, mythic_shiny: 1 } },
     egg_aura:   { weights: { mythic: 100 } },
     egg_charizard: { weights: { mythic: 100 } },
+    egg_charizard_epic: { weights: { epic: 100 } },
     egg_lugia:  { weights: { mythic: 100 } },
     egg_dragonite: { weights: { mythic: 100 } },
   };
@@ -11650,6 +11671,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       sp = (Math.random() < 0.5 ? "lucario" : "mew") as Species;
     } else if (eggId === "egg_charizard") {
       sp = "charizard_shiny" as Species;
+    } else if (eggId === "egg_charizard_epic") {
+      // Ovo do Charizard ÉPICO: Charizard normal (não shiny) com raridade Épica.
+      sp = "charizard" as Species;
     } else if (eggId === "egg_lugia") {
       sp = "lugia" as Species;
     } else if (eggId === "egg_dragonite") {
@@ -11661,7 +11685,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
+    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" || eggId === "egg_charizard_epic" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
     const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
@@ -26822,7 +26846,7 @@ function TabOverlay({
           ticket_ancestral: "Ticket Ancestral 🎫",
           bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",           egg_lugia: "Ovo de Lugia ✦",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico",           egg_lugia: "Ovo de Lugia ✦",
           egg_sprigatito: "Ovo Sprigatito 🌱",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
@@ -26891,6 +26915,7 @@ function TabOverlay({
           egg_mystic: "Ovo Místico · pode chocar espécies míticas.",
           egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
+          egg_charizard_epic: "Ovo do Charizard Épico · choca sempre um Charizard ÉPICO (não shiny) Lv 50.",
           egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
           egg_sprigatito: "Ovo Sprigatito 🌱 · choca Sprigatito MÍTICO Nv 1 (carta do evento).",
           safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
@@ -26932,7 +26957,7 @@ function TabOverlay({
           oleo: "Óleo · combustível bruto.",
           certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
         if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
