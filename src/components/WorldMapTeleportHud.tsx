@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Map, Sparkles, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ballImg from "@/assets/items/icon-pokeball.png";
 import forestImage from "@/assets/worldmap-forest.jpg";
 import iceImage from "@/assets/worldmap-ice.jpg";
 import caveImage from "@/assets/worldmap-cave.jpg";
@@ -57,8 +59,29 @@ const elementIcon = (element?: string) => {
 const LOCKED_MAPS = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "rota_pinsir", "deserto_alaka"]);
 const EVENT_LOCKED = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"]);
 
+// ===== Filtros do Mapa Mundi =====
+// VILLAGE = cidades e hubs (Revoland, Pokemarkt, casas, laboratório...).
+// ROTAS = todo o resto (rotas de caça + eventos, que aparecem bloqueados).
+type MapFilterId = "rotas" | "village";
+const VILLAGE_IDS = new Set([
+  "mapinha6", "mapinha10", "mapinha11", "laboratorio",
+  "land_revo", "land_gelo", "casa1", "casa2",
+]);
+const FILTERS: { id: MapFilterId; label: string }[] = [
+  { id: "rotas", label: "ROTAS" },
+  { id: "village", label: "VILLAGE" },
+];
+
 export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
+  const [filter, setFilter] = useState<MapFilterId>("rotas");
   const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
+  const visible = destinations.filter((d) =>
+    filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id),
+  );
+  const countFor = (id: MapFilterId) =>
+    id === "village"
+      ? destinations.filter((d) => VILLAGE_IDS.has(d.id)).length
+      : destinations.filter((d) => !VILLAGE_IDS.has(d.id)).length;
   return (
     <div className="world-atlas-backdrop" onClick={onClose}>
       <section className="world-atlas" onClick={(event) => event.stopPropagation()} aria-label="Mapa Mundi">
@@ -78,8 +101,24 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
           </div>
         </header>
 
+        <nav className="world-atlas__filters" aria-label="Filtros do mapa">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={`world-atlas__filter ${filter === f.id ? "is-active" : ""}`}
+              onClick={() => { setFilter(f.id); }}
+              aria-pressed={filter === f.id}
+            >
+              <img src={ballImg} alt="" className="world-atlas__filter-ball" />
+              {f.label}
+              <span className="world-atlas__filter-count">{countFor(f.id)}</span>
+            </button>
+          ))}
+        </nav>
+
         <div className="world-atlas__grid">
-          {destinations.map((destination) => {
+          {visible.map((destination) => {
             const isCurrent = currentMap === destination.id;
             const isLocked = LOCKED_MAPS.has(destination.id);
             const previewImage = imageForDestination(destination);

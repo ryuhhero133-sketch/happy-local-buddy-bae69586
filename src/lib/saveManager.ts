@@ -467,7 +467,7 @@ async function rebaseOnLeadership() {
       needsRebase = true;
       try {
         if (memSnapshot && isValidSnapshot(memSnapshot)) {
-          localStorage.setItem(recoveryKey(uid), JSON.stringify({ version: loadVersion(uid), snapshot: memSnapshot, at: Date.now() }));
+          storeRecovery(uid, memSnapshot, loadVersion(uid), "local");
         }
       } catch {
         /* ignore */
@@ -607,9 +607,154 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
   }
 }
 
+/** savedAt raiz do snapshot: número finito ou null (ausente/inválido).
+ * Nunca é usado sozinho para autorizar sobrescrita — apenas junto da
+ * versão e da integridade (clock local não confiável não decide sozinho). */
+function readSnapshotSavedAt(snapshot: unknown): number | null {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const v = (snapshot as { savedAt?: unknown }).savedAt;
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+type LocalProgressMeta = { hasProgress: boolean; newestSavedAt: number | null };
+
+/** Metadados do progresso LOCAL para decidir adoção do servidor:
+ * - há progresso local? (lastGood/pending válidos OU saves de gameplay
+ *   com conteúdo real — rubym.idle.v1 / rubym.save.v2);
+ * - qual o savedAt mais novo conhecido (lastGood/pending, se válido).
+ * Saves sem timestamp contribuem apenas com "tem progresso" — a ausência
+ * de relógio nunca autoriza sobrescrever o local (só bloqueia adoção). */
+function localProgressMeta(uid: string): LocalProgressMeta {
+  let newest: number | null = null;
+  let hasSnapshot = false;
+  const consider = (snap: unknown) => {
+    const t = readSnapshotSavedAt(snap);
+    if (t !== null && (newest === null || t > newest)) newest = t;
+  };
+  const lg = readJson<LastGood>(lastGoodKey(uid));
+  if (lg && isValidSnapshot(lg.snapshot)) {
+    hasSnapshot = true;
+    consider(lg.snapshot);
+  }
+  const pend = readJson<PendingSlot>(pendingKey(uid));
+  if (pend && isValidSnapshot(pend.snapshot) && pend.hash === snapshotHash(pend.snapshot)) {
+    hasSnapshot = true;
+    consider(pend.snapshot);
+  }
+  if (hasSnapshot) return { hasProgress: true, newestSavedAt: newest };
+  // Sem checkpoints do saveManager: considera saves de gameplay apenas se
+  // tiverem conteúdo real (o default recém-salvo por autosave não conta).
+  return { hasProgress: hasGameplayProgress(), newestSavedAt: null };
+}
+
+/** Progresso de gameplay em localStorage sem passar pelo saveManager. */
+function hasGameplayProgress(): boolean {
+  try {
+    const raw = localStorage.getItem("rubym.idle.v1");
+    if (raw) {
+      const o = JSON.parse(raw) as {
+        trainerLevel?: unknown;
+        trainerXp?: unknown;
+        bank?: { gold?: unknown };
+        collection?: unknown[];
+      } | null;
+      if (
+        o &&
+        ((typeof o.trainerLevel === "number" && o.trainerLevel > 1) ||
+          (typeof o.trainerXp === "number" && o.trainerXp > 0) ||
+          (typeof o.bank?.gold === "number" && o.bank.gold > 0) ||
+          (Array.isArray(o.collection) && o.collection.length > 0))
+      ) {
+        return true;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    const raw = localStorage.getItem("rubym.save.v2");
+    if (raw) {
+      const o = JSON.parse(raw) as { party?: unknown[] } | null;
+      if (o && Array.isArray(o.party) && o.party.length > 0) return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+/** Guarda cópia recuperável do save divergente (nunca é aplicada sozinha). */
+function storeRecovery(
+  uid: string,
+  snapshot: unknown,
+  version: number | null,
+  origin: "server" | "local-pending" | "local",
+) {
+  try {
+    localStorage.setItem(
+      recoveryKey(uid),
+      JSON.stringify({ version, snapshot, at: Date.now(), origin }),
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Adoção confirmada: grava versão/lastGood e neutraliza bases locais
+ * de chains antigas (sem apagar: pendente obsoleto vai para recuperação). */
+function commitAdopt(uid: string, data: unknown, sv: number): unknown {
+  storeVersion(uid, sv);
+  try {
+    localStorage.setItem(
+      lastGoodKey(uid),
+      JSON.stringify({
+        version: sv,
+        snapshot: data,
+        hash: snapshotHash(data),
+        at: Date.now(),
+      } satisfies LastGood),
+    );
+  } catch {
+    /* ignore */
+  }
+  // Snapshot em memória de base antiga: servidor confirmado à frente →
+  // solta a memória para o próximo flush não empurrar estado defasado.
+  if (memSnapshot && isValidSnapshot(memSnapshot)) {
+    const memSavedAt = readSnapshotSavedAt(memSnapshot);
+    const srvSavedAt = readSnapshotSavedAt(data);
+    if (
+      memSavedAt !== null &&
+      srvSavedAt !== null &&
+      srvSavedAt >= memSavedAt &&
+      snapshotHash(memSnapshot) !== snapshotHash(data)
+    ) {
+      memSnapshot = null;
+    }
+  }
+  // Fila durável de base anterior à versão adotada: preserva a cópia em
+  // recuperação e retira do slot de push (impede sobrescrita do servidor
+  // com estado defasado sem perder a cópia local).
+  try {
+    const pend = readJson<PendingSlot>(pendingKey(uid));
+    if (pend && isValidSnapshot(pend.snapshot) && pend.expectedVersion < sv) {
+      storeRecovery(uid, pend.snapshot, pend.expectedVersion, "local-pending");
+      localStorage.removeItem(pendingKey(uid));
+    }
+  } catch {
+    /* ignore */
+  }
+  return data;
+}
+
 /**
- * Busca o snapshot oficial e adota SOMENTE se válido e mais novo que o local.
- * Nunca sobrescreve estado válido com estado antigo/inválido.
+ * Busca o snapshot oficial e adota SOMENTE quando é seguro:
+ * - integridade válida (isValidSnapshot) e conta igual (uid do select);
+ * - sem progresso local → servidor é a única cópia (adota);
+ * - com progresso local → exige versão + savedAt confirmando que o
+ *   servidor não é mais antigo; relógio ausente/inválido, versão ausente
+ *   ou conflito NÃO autorizam sobrescrita.
+ * Em qualquer conflito: preserva as duas versões (cópia do divergente vai
+ * para rubym.checkpoint.recovery.${uid}) e retorna null (local prevalece).
  */
 export async function adoptServerIfNewer(uid: string): Promise<unknown | null> {
   try {
@@ -621,24 +766,51 @@ export async function adoptServerIfNewer(uid: string): Promise<unknown | null> {
     if (error) return null;
     const row = data as { data?: unknown; save_version?: unknown } | null;
     if (!row || !isValidSnapshot(row.data)) return null;
-    const sv = typeof row.save_version === "number" ? row.save_version : 0;
-    const local = loadVersion(uid);
-    if (sv < local) {
-      // Servidor mais antigo: NÃO adota. Guarda cópia como recuperação.
-      try {
-        localStorage.setItem(recoveryKey(uid), JSON.stringify({ version: sv, snapshot: row.data, at: Date.now() }));
-      } catch {
-        /* ignore */
-      }
+    const svNum =
+      typeof row.save_version === "number" && Number.isFinite(row.save_version)
+        ? Math.floor(row.save_version)
+        : null;
+    const serverSavedAt = readSnapshotSavedAt(row.data);
+    const localVersion = loadVersion(uid);
+    const local = localProgressMeta(uid);
+
+    // A) Sem progresso local conhecido: nada a perder, servidor adota.
+    if (!local.hasProgress) return commitAdopt(uid, row.data, svNum ?? 0);
+
+    // B) Versão do servidor ausente/inválida: não autoriza sobrescrita.
+    if (svNum === null) {
+      storeRecovery(uid, row.data, null, "server");
       return null;
     }
-    storeVersion(uid, sv);
-    try {
-      localStorage.setItem(lastGoodKey(uid), JSON.stringify({ version: sv, snapshot: row.data, hash: snapshotHash(row.data), at: Date.now() } satisfies LastGood));
-    } catch {
-      /* ignore */
+    // C) Servidor com versão menor: cadeia local vencedora; guarda cópia.
+    if (svNum < localVersion) {
+      storeRecovery(uid, row.data, svNum, "server");
+      return null;
     }
-    return row.data;
+    // D) Mesma versão = mesma cadeia; salvo conflito de relógio local.
+    if (svNum === localVersion) {
+      if (
+        serverSavedAt !== null &&
+        local.newestSavedAt !== null &&
+        serverSavedAt < local.newestSavedAt
+      ) {
+        storeRecovery(uid, row.data, svNum, "server");
+        return null;
+      }
+      return commitAdopt(uid, row.data, svNum);
+    }
+    // E) Servidor à frente (svNum > localVersion): só adota com evidência
+    //    de que o save do servidor não é mais antigo que o local.
+    if (
+      local.newestSavedAt !== null &&
+      serverSavedAt !== null &&
+      serverSavedAt >= local.newestSavedAt
+    ) {
+      return commitAdopt(uid, row.data, svNum);
+    }
+    // F) Impossível determinar com segurança: preserva as duas versões.
+    storeRecovery(uid, row.data, svNum, "server");
+    return null;
   } catch {
     return null;
   }

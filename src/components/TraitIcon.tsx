@@ -6,10 +6,12 @@ const TIER_GRADIENT: Record<TraitTier, string> = {
   uncommon: "radial-gradient(circle at 30% 25%, #d9ffe8 0%, #7ef2a2 55%, #1e6b3a 100%)",
   rare:     "radial-gradient(circle at 30% 25%, #e0f4ff 0%, #6bd4ff 55%, #1a5b8a 100%)",
   epic:     "radial-gradient(circle at 30% 25%, #f2e0ff 0%, #c084fc 55%, #5b21b6 100%)",
+  purple:   "radial-gradient(circle at 30% 25%, #f3e2ff 0%, #b14bff 55%, #3b0764 100%)",
+  gold:     "radial-gradient(circle at 30% 25%, #fff8d6 0%, #ffd94d 55%, #7a5200 100%)",
 };
 
 const TIER_LABEL: Record<TraitTier, string> = {
-  common: "C", uncommon: "U", rare: "R", epic: "E",
+  common: "C", uncommon: "U", rare: "R", epic: "E", purple: "P", gold: "G",
 };
 
 // SVG originais — cada trait tem símbolo próprio (viewBox 0 0 24 24).
@@ -188,6 +190,126 @@ function TraitGlyph({ id, color }: { id: string; color: string }) {
           <circle cx="12" cy="12" r="6.5" fill="none" stroke="#fff" strokeWidth={sw}/>
           <path d="M12 7 V17 M9.5 9.5 C9.5 8 10.5 7.5 12 7.5 C14 7.5 14.5 9 13 10.5 C11.5 12 9.5 12.5 9.5 14 C9.5 15.5 10.5 16.5 12 16.5 C13.5 16.5 14.5 15.5 14.5 14.5"
                 stroke={stroke} strokeWidth={sw+0.4} fill="none" strokeLinecap="round"/>
+        </svg>
+      );
+    // ===== ROXO (ancestral) =====
+    case "titanico": // colosso/monólito
+      return (
+        <svg {...common}>
+          <path d="M6 21 L8 7 H16 L18 21 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <path d="M9 7 L10 3 H14 L15 7" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <path d="M7 15 H17" stroke="#fff" strokeWidth={sw*0.9}/>
+        </svg>
+      );
+    case "predador": // garra
+      return (
+        <svg {...common}>
+          <path d="M4 3 C6 9 8 14 8 21 M10 2 C11 8 12 14 12 21 M16 3 C15 9 14 14 14 21 M21 6 C18 10 17 15 17 21"
+                fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round"/>
+        </svg>
+      );
+    case "tempestade": // nuvem com raio
+      return (
+        <svg {...common}>
+          <path d="M6 13 C4 13 3 11 4 9 C5 7 7 7 8 8 C9 5 13 5 14 8 C17 7 19 9 19 11 C20 13 18 15 16 15 Z" fill="#e8e8f5" stroke={stroke} strokeWidth={sw*0.7}/>
+          <path d="M12 13 L9 21 H12 L10 26" fill="none" stroke={color} strokeWidth={2.6} strokeLinejoin="round"/>
+        </svg>
+      );
+    case "sombra": // lua cheia sombria
+      return (
+        <svg {...common}>
+          <path d="M15 3 A9 9 0 1 0 15 21 A7 7 0 1 1 15 3 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <circle cx="7" cy="7" r="1" fill={color}/><circle cx="5" cy="17" r="0.9" fill={color}/><circle cx="19" cy="6" r="0.8" fill={color}/>
+        </svg>
+      );
+    case "arcane": // rune em losango
+      return (
+        <svg {...common}>
+          <path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke={color} strokeWidth={2}/>
+          <path d="M8 16 C10 10 14 10 16 8 M9 9 L15 15" stroke="#fff" strokeWidth={sw+0.4} strokeLinecap="round"/>
+        </svg>
+      );
+    case "abissal": // onda dupla
+      return (
+        <svg {...common}>
+          <path d="M2 10 C6 6 8 14 12 10 C16 6 18 14 22 10" fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round"/>
+          <path d="M2 17 C6 13 8 21 12 17 C16 13 18 21 22 17" fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round"/>
+        </svg>
+      );
+    case "fulgurante": // raio grosso
+      return (
+        <svg {...common}>
+          <path d="M13 1 L4 14 H11 L8 23 L20 9 H13 L16 1 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+        </svg>
+      );
+    case "vitalicio": // cruz de vida/hoja pulsante
+      return (
+        <svg {...common}>
+          <path d="M12 21 C4 15 3 8 7 5 C10 3 12 6 12 6 C12 6 14 3 17 5 C21 8 20 15 12 21 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <path d="M6 12 H10 L12 9 L14 15 L16 12 H19" fill="none" stroke="#fff" strokeWidth={sw*0.9} strokeLinecap="round"/>
+        </svg>
+      );
+
+    // ===== DOURADO (ancestral) =====
+    case "soberano": // coroa real dupla
+      return (
+        <svg {...common}>
+          <path d="M3 19 L4 7 L9 12 L12 4 L15 12 L20 7 L21 19 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <rect x="3" y="19" width="18" height="3" fill={color} stroke={stroke} strokeWidth={sw*0.7}/>
+          <circle cx="12" cy="4" r="1.6" fill="#fff"/>
+        </svg>
+      );
+    case "aniquilador": // caveira dourada
+      return (
+        <svg {...common}>
+          <path d="M12 2 C6 2 3 6 3 11 C3 14 5 16 7 17 V21 H17 V17 C19 16 21 14 21 11 C21 6 18 2 12 2 Z" fill={color} stroke={stroke} strokeWidth={sw}/>
+          <circle cx="9" cy="11" r="2" fill={stroke}/><circle cx="15" cy="11" r="2" fill={stroke}/>
+          <path d="M10 16 L12 13 L14 16" stroke={stroke} strokeWidth={sw} fill="none"/>
+        </svg>
+      );
+    case "primordial": // espiral
+      return (
+        <svg {...common}>
+          <path d="M12 12 C12 9 15 9 15 12 C15 16 10 17 9 12 C8 6 15 4 19 8 C23 13 19 21 12 21 C5 21 2 15 3 10"
+                fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round"/>
+        </svg>
+      );
+    case "temporal": // ampulheta
+      return (
+        <svg {...common}>
+          <path d="M6 3 H18 M6 21 H18" stroke={stroke} strokeWidth={2} strokeLinecap="round"/>
+          <path d="M7 3 C7 9 11 10 12 12 C13 14 17 15 17 21 M17 3 C17 9 13 10 12 12 C11 14 7 15 7 21"
+                fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round"/>
+          <path d="M9 19 C10 16 14 16 15 19 Z" fill={color}/>
+        </svg>
+      );
+    case "astral": // cometa
+      return (
+        <svg {...common}>
+          <circle cx="16" cy="8" r="5" fill={color} stroke={stroke} strokeWidth={sw}/>
+          <path d="M11 13 L3 21 M13 15 L7 21 M9 11 L3 17" stroke={color} strokeWidth={2} strokeLinecap="round"/>
+          <circle cx="14.5" cy="6.5" r="1.4" fill="#fff"/>
+        </svg>
+      );
+    case "perpetuo": // brilho/estrela de 4 pontas
+      return (
+        <svg {...common}>
+          <path d="M12 2 C13 8 16 11 22 12 C16 13 13 16 12 22 C11 16 8 13 2 12 C8 11 11 8 12 2 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+        </svg>
+      );
+    case "ourobranco": // lingote duplo
+      return (
+        <svg {...common}>
+          <path d="M4 14 L7 9 H17 L20 14 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <path d="M6 20 L8 16 H16 L18 20 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <path d="M8 11 L16 11" stroke="#fff" strokeWidth={sw*0.8}/>
+        </svg>
+      );
+    case "divino": // estrela com halo
+      return (
+        <svg {...common}>
+          <path d="M12 4 L14 10 L20 12 L14 14 L12 20 L10 14 L4 12 L10 10 Z" fill={color} stroke={stroke} strokeWidth={sw} strokeLinejoin="round"/>
+          <ellipse cx="12" cy="5" rx="8" ry="2.4" fill="none" stroke="#fff" strokeWidth={sw*0.8} transform="rotate(-15 12 5)"/>
         </svg>
       );
     default:

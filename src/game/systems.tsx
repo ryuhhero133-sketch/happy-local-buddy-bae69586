@@ -185,7 +185,14 @@ export type Species =
   | "grimer" | "grimer_shiny" | "muk" | "muk_shiny" | "swalot" | "swalot_shiny"
   // Mapa Dos Céus — zubat/pidgey/pidgeotto/pidgeot/spearow/golbat/fearow + shinys (sprites 4x4)
   | "zubat_shiny" | "pidgey_shiny" | "pidgeotto_shiny" | "pidgeot_shiny" | "spearow" | "spearow_shiny"
-  | "golbat" | "golbat_shiny" | "fearow_shiny";
+  | "golbat" | "golbat_shiny" | "fearow_shiny"
+  // ═══ ANCESTRAIS — exclusivos do EGG SELADO ANCESTRAL (aba ANCESTRAL do Prof.)
+  // Nunca entram em LEVEL_UNLOCKS nem nos pools de spawn/ovos aleatórios.
+  | "giratina" | "cresselia" | "kyurem" | "reshiram" | "zekrom"
+  | "groudon_shiny" | "rayquaza_shiny" | "dragonite_mg"
+  | "latias_ancestral" | "latios_ancestral"
+  | "lugia_m_shiny" | "lugia_shiny_ancestral" | "mega_lugia_ancestral"
+  | "mega_charizard" | "charizard_mega_x";
 
 
 
@@ -557,6 +564,23 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   oddish_shiny:     { hp: 55,  atk: 55,  def: 60,  spa: 85,  spd: 75,  spe: 45,  rarity: "legendary",    goldRange: [140, 230],  crystalChance: 0.35, catchMod: 3.2, minLv: 1 },
   riolu:            { hp: 95,  atk: 130, def: 90,  spa: 125, spd: 90,  spe: 110, rarity: "mythic_shiny", goldRange: [200, 350], crystalChance: 0.475, catchMod: 3.0, minLv: 500 },
   rayquaza:         { hp: 105, atk: 150, def: 90,  spa: 150, spd: 90,  spe: 95,  rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 1.0,  catchMod: 4.0, minLv: 500 },
+  // ═══ ANCESTRAIS (Egg Selado) — stats clonados dos lendários canônicos.
+  // minLv 500 = fora de LEVEL_UNLOCKS/ovos aleatórios (mesmo padrão de darkrai/rayquaza).
+  giratina:        { hp: 150, atk: 100, def: 120, spa: 100, spd: 120, spe: 90,  rarity: "mythic_shiny", goldRange: [300, 500], crystalChance: 0.6, catchMod: 4.5, minLv: 500 },
+  cresselia:       { hp: 120, atk: 70,  def: 115, spa: 75,  spd: 130, spe: 85,  rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.5, minLv: 500 },
+  kyurem:          { hp: 125, atk: 130, def: 90,  spa: 130, spd: 95,  spe: 95,  rarity: "mythic_shiny", goldRange: [300, 500], crystalChance: 0.6, catchMod: 4.5, minLv: 500 },
+  reshiram:        { hp: 100, atk: 120, def: 100, spa: 150, spd: 120, spe: 90,  rarity: "mythic_shiny", goldRange: [300, 500], crystalChance: 0.6, catchMod: 4.5, minLv: 500 },
+  zekrom:          { hp: 100, atk: 150, def: 120, spa: 120, spd: 100, spe: 90,  rarity: "mythic_shiny", goldRange: [300, 500], crystalChance: 0.6, catchMod: 4.5, minLv: 500 },
+  groudon_shiny:   { hp: 110, atk: 160, def: 140, spa: 100, spd: 100, spe: 90,  rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 0.8, catchMod: 5.0, minLv: 500 },
+  rayquaza_shiny:  { hp: 110, atk: 160, def: 100, spa: 160, spd: 100, spe: 105, rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 1.0, catchMod: 4.5, minLv: 500 },
+  dragonite_mg:    { hp: 91,  atk: 134, def: 95,  spa: 100, spd: 100, spe: 80,  rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.0, minLv: 500 },
+  latias_ancestral:{ hp: 80,  atk: 80,  def: 90,  spa: 110, spd: 150, spe: 110, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.5, minLv: 500 },
+  latios_ancestral:{ hp: 80,  atk: 90,  def: 80,  spa: 150, spd: 120, spe: 110, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.5, minLv: 500 },
+  lugia_m_shiny:   { hp: 106, atk: 90,  def: 160, spa: 90,  spd: 160, spe: 110, rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 0.7, catchMod: 5.0, minLv: 500 },
+  lugia_shiny_ancestral:{ hp: 106, atk: 95, def: 154, spa: 95, spd: 154, spe: 115, rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 0.7, catchMod: 5.0, minLv: 500 },
+  mega_lugia_ancestral:{ hp: 106, atk: 90, def: 170, spa: 90, spd: 170, spe: 110, rarity: "mythic_shiny", goldRange: [400, 650], crystalChance: 0.8, catchMod: 5.5, minLv: 500 },
+  mega_charizard:  { hp: 78,  atk: 104, def: 78,  spa: 160, spd: 115, spe: 110, rarity: "mythic_shiny", goldRange: [300, 500], crystalChance: 0.6, catchMod: 4.5, minLv: 500 },
+  charizard_mega_x:{ hp: 78,  atk: 130, def: 111, spa: 150, spd: 95,  spe: 100, rarity: "mythic_shiny", goldRange: [300, 500], crystalChance: 0.6, catchMod: 4.5, minLv: 500 },
 };
 
 const RARITY_WEIGHT: Record<Rarity, number> = {

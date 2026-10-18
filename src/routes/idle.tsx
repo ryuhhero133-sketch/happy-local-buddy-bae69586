@@ -51,6 +51,8 @@ import hudMelhoriasPng from "@/CHAR/Melhorias.png";
 import hudMissoesPng from "@/CHAR/Missoes.png";
 import skinBoxPng from "@/CHAR/skinbox.png";
 import bottanPng from "@/CHAR/bottan.png";
+import barbaBrancaPng from "@/CHAR/Barba Branca.png";
+import bonnyBiPng from "@/CHAR/Bonny bi.png";
 // Bidril e Kakuna (mapinha12) — sheets 4x4 do diretório kg/x (movimento nas 4 direções)
 import kgBeedrillPng from "@/CHAR/kg/x/Beedrill.png";
 import kgBeedrillShinyPng from "@/CHAR/kg/x/Beedrill Shiny.png";
@@ -88,6 +90,7 @@ import cardCristalUrl from "@/CHAR/kg/Drop card/CARD Cristal.png";
 import cardEggUrl from "@/CHAR/kg/Drop card/CARD EGG.png";
 import cardOuroUrl from "@/CHAR/kg/Drop card/Card Ouro.png";
 import barneyPng from "@/CHAR/Barney Mercador.png";
+import professorPng from "@/CHAR/kg/Professor.png";
 import florzinhaPng from "@/CHAR/Florzinha.png";
 import gatoancyPng from "@/CHAR/gatoancy.png";
 import aspectroPng from "@/CHAR/aspectro.png";
@@ -204,13 +207,14 @@ import { loadLatestValid, saveNow } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
 import {
   detectTimezone, trustedNow, processMealCycles,
-  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS,
+  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS, LAB_MAP_ENERGY_COST,
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
   processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
@@ -242,6 +246,66 @@ import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
 import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
 import { AspectroDialog } from "@/components/AspectroDialog";
 import { aspectroSteps } from "@/game/aspectroQuest";
+import { ProfessorLabPanel } from "@/components/ProfessorLabPanel";
+import {
+  PROF_QUESTS,
+  PROF_FX,
+  PROF_MAP_BY_ID,
+  PROF_SPAWNS,
+  profQuestDone,
+  type ProfQuestId,
+  type ProfQuestState,
+} from "@/components/professorLabData";
+import {
+  BOAT_BY_TIER,
+  BOAT_TIER_META,
+  BOAT_DIR_ROW,
+  BOAT_DIR_FLIP_Y,
+  BOAT_FRAMES,
+  BOAT_SHEET_URL,
+  BOAT_SHOP_ICON,
+  OIL_ICON,
+  OIL_ITEM,
+  OIL_PRICE_GOLD,
+  WHIRLPOOLS,
+  WHIRL_BIG,
+  WHIRL_BIG_URL,
+  RAIN_CYCLE_MS,
+  RAIN_ON_MS,
+  REFUEL_STATIONS,
+  WATER_PATCHES,
+  WATER_FX,
+  WATER_FX_URL,
+  WATER_SKILL,
+  WATER_SKILL_URL,
+  TENTACOOLS,
+  SCRAP_CRATES,
+  RAIN_TENTACOOLS,
+  rollScrap,
+  rollRainScrap,
+  SCRAP_META,
+  SCRAP_PICKUP_R,
+  SUCATA_URL,
+  FX_WATER_URL,
+  type ScrapRarity,
+  TENTA_SHEET,
+  TENTACOOL_URL,
+  TENTACOOL_SHINY_URL,
+  TENTA_CAPTURE_TRAINER_LEVEL,
+  tentFrameStylePx,
+  WHIRL_FX,
+  WHIRL_FX_URL,
+  rainState,
+  stripStylePx,
+  boatFrameStylePx,
+  isWaterMap,
+  maxFuelOf,
+  maxHpOf,
+  stripStyle,
+  type BoatTier,
+  type ShipState,
+} from "@/game/ships";
+import { applySpiritEvent, spiritEventId, patenteOf, patentePrizeReady } from "@/game/trainerProfile";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -413,8 +477,11 @@ import areiaAnubisMaskUrl from "@/ambiente/mascara colisao/mapa original/Areia d
 import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante Colisao.png";
 import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
 import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.png";
+import laboratorioUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio.png";
+import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.png";
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
-import { ensureCollision, isRevolandOrangeDoor, isWalkable } from "@/game/collision";
+import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt } from "@/game/collision";
+import { getMaskFx, loadMaskFx } from "@/game/maskFx";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
   DROP_GROUND_TTL_MS, DROP_COLLECT_PX, DROP_IMG_BY_MAT, DROP_LABEL_BY_MAT,
@@ -748,6 +815,10 @@ import meganiumGif from "@/assets/meganium.gif";
 import meganiumShinyGif from "@/assets/meganium-shiny.gif";
 import moltresShinyGif from "@/assets/moltres-shiny.gif";
 import onixShinyGif from "@/assets/onix-shiny.gif";
+import onixGif from "@/assets/onix.gif";
+// Venusaur de Hallow: arte exclusiva do mapa (normal + shiny).
+import venusaurHallowPng from "@/ambiente/mascara colisao/Venusaur de Hallow.png";
+import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow Shiny.png";
 
 
 
@@ -886,7 +957,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha8: { name: "Mapa Dos Céus",   diff: "Fácil+", bg: mapinha8Url,  rate: 1.1, minLevel: 24, maxLevel: 33, element: "Água",   stars: 1 },
   mapinha10: { name: "Pokemarkt",       diff: "Difícil+", bg: pokemarktUrl, rate: 2.2, minLevel: 1, maxLevel: 120, element: "Normal", stars: 3 },
   mapinha9: { name: "Mapinha 9",        diff: "Difícil+", bg: mapinha9Url,  rate: 2.2, minLevel: 30, maxLevel: 130, element: "Planta", stars: 3 },
-  mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 35, maxLevel: 150, element: "Terra",  stars: 3 },
+  mapinha11: { name: "Revoland",        diff: "Difícil+", bg: mapinha11Url, rate: 2.4, minLevel: 1, maxLevel: 150, element: "Terra",  stars: 3 },
   mapinha12: { name: "Bidril e Kakuna", diff: "Difícil+", bg: mapinha12Url, rate: 2.6, minLevel: 40, maxLevel: 70, element: "Inseto", stars: 3 },
   mapinha13: { name: "Verdejante 1",  diff: "Fácil",   bg: mapinha13Url, rate: 1.0, minLevel: 1,  maxLevel: 8, element: "Grama", stars: 1 },
   cave01: { name: "Cave 01", diff: "Inicial", bg: cave01Url, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
@@ -897,7 +968,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   ruinas_de_venus: { name: "Ruinas De Venus", diff: "Inicial", bg: ruinasDeVenusUrl, rate: 1.0, minLevel: 20, maxLevel: 28, element: "Normal", stars: 1 },
   ruinas: { name: "Ruinas", diff: "Inicial", bg: ruinasUrl, rate: 1.0, minLevel: 16, maxLevel: 24, element: "Normal", stars: 1 },
   valley_plume: { name: "Valley Plume", diff: "Inicial", bg: valleyPlumeUrl, rate: 1.0, minLevel: 9, maxLevel: 15, element: "Normal", stars: 1 },
-  revo_rout: { name: "Revo Rout", diff: "Inicial", bg: revoRoutUrl, rate: 1.0, minLevel: 50, maxLevel: 65, element: "Normal", stars: 1 },
+  revo_rout: { name: "Revo Rout", diff: "Inicial", bg: revoRoutUrl, rate: 1.0, minLevel: 1, maxLevel: 65, element: "Normal", stars: 1 },
   cidade_principal: { name: "Cidade Principal", diff: "Inicial", bg: cidadePrincipalUrl, rate: 1.0, minLevel: 1, maxLevel: 30, element: "Normal", stars: 1 },
   // Esfera Ancestral: mapa especial, só via NPC Bottan (arte real do Mapa Banido).
   esfera_ancestral: { name: "Esfera Ancestral", diff: "Especial", bg: mapaBanidoUrl, rate: 1.5, minLevel: 1, maxLevel: 100, element: "psychic", stars: 4 },
@@ -913,6 +984,25 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   torre_ancestral: { name: "Torre Ancestral", diff: "Evento", bg: torreAncestralUrl, rate: 1.0, minLevel: 35, maxLevel: 70, element: "Fantasma", stars: 4 },
   mapa_orange: { name: "Mapa Orange", diff: "Difícil+", bg: mapaOrangeUrl, rate: 2.2, minLevel: 60, maxLevel: 100, element: "Fogo", stars: 3 },
   elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  laboratorio: { name: "Laboratório", diff: "Especial", bg: laboratorioUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
+  // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
+  iceblow: { name: "Iceblow", diff: "Especial", bg: PROF_MAP_BY_ID.iceblow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 2 },
+  monte_floreto: { name: "Monte Floreto", diff: "Especial", bg: PROF_MAP_BY_ID.monte_floreto.bg, rate: 1.0, minLevel: 130, maxLevel: 140, element: "Planta", stars: 1 },
+  rayow: { name: "Rayow", diff: "Especial", bg: PROF_MAP_BY_ID.rayow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Fogo", stars: 2 },
+  sakura_city: { name: "Sakura City", diff: "Especial", bg: PROF_MAP_BY_ID.sakura_city.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Fada", stars: 3 },
+  venenot: { name: "Venenot", diff: "Especial", bg: PROF_MAP_BY_ID.venenot.bg, rate: 1.0, minLevel: 120, maxLevel: 150, element: "Veneno", stars: 2 },
+  // Hallow + Caverna de Brok: com máscara de colisão (só branco anda), viagem
+  // grátis e sem Pokémon/objetos. No Hallow o rosa é água e o amarelo é luz de
+  // caverna — pisar na luz teleporta para a caverna.
+  hallow: { name: "Hallow", diff: "Especial", bg: PROF_MAP_BY_ID.hallow.bg, rate: 1.0, minLevel: 1, maxLevel: 120, element: "Fantasma", stars: 3 },
+  caverna_brok: { name: "Caverna de Brok", diff: "Especial", bg: PROF_MAP_BY_ID.caverna_brok.bg, rate: 1.0, minLevel: 1, maxLevel: 120, element: "Pedra", stars: 2 },
+  // Jornada dos Navegantes (continente da aba MAPAS): sem máscara de colisão por
+  // enquanto — entram em FREE_WALK_MAPS, então isWalkable() libera tudo e o
+  // jogador anda livre. Nenhum ensureCollision() é chamado para eles.
+  azulante: { name: "Azulante", diff: "Especial", bg: PROF_MAP_BY_ID.azulante.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Água", stars: 1 },
+  margrande: { name: "Mar Grande", diff: "Especial", bg: PROF_MAP_BY_ID.margrande.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Água", stars: 2 },
+  navegante: { name: "Navegante", diff: "Especial", bg: PROF_MAP_BY_ID.navegante.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Água", stars: 3 },
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -997,6 +1087,39 @@ function eventualMapWindow(now: number = Date.now()): { open: boolean; msUntilCh
   return { open: false, msUntilChange: CYCLE - t };
 }
 
+// ═══ Sprites dos ANCESTRAIS (Egg Selado) — PNGs de src/ambiente/ANCESTRAIS ═══
+import ancGiratinaPng from "@/ambiente/ANCESTRAIS/Giratina.png";
+import ancCresseliaPng from "@/ambiente/ANCESTRAIS/Cresselia.png";
+import ancKyuremPng from "@/ambiente/ANCESTRAIS/Kyurem.png";
+import ancReshiramPng from "@/ambiente/ANCESTRAIS/Reshiram.png";
+import ancZekromPng from "@/ambiente/ANCESTRAIS/Zekrom.png";
+import ancGroudonShinyPng from "@/ambiente/ANCESTRAIS/Groudon Shiny.png";
+import ancRayquazaShinyPng from "@/ambiente/ANCESTRAIS/Rayquaza Shiny.png";
+import ancDragoniteMgPng from "@/ambiente/ANCESTRAIS/Dragonite MG.png";
+import ancLatiasAncestralPng from "@/ambiente/ANCESTRAIS/Latias Ancestral.png";
+import ancLatiosAncestralPng from "@/ambiente/ANCESTRAIS/Latios Ancestral.png";
+import ancLugiaShinyPng from "@/ambiente/ANCESTRAIS/Lugia Shiny.png";
+import ancLugiaAncestralShinyPng from "@/ambiente/ANCESTRAIS/Lugia Ancestral Shiny.png";
+import ancLugiaAncestralPng from "@/ambiente/ANCESTRAIS/Lugia Ancestral.png";
+import ancMegaCharizardPng from "@/ambiente/ANCESTRAIS/Mega Charizard.png";
+import ancCharizardMegaXPng from "@/ambiente/ANCESTRAIS/Charizard Mega x.png";
+// ═══ EGG SELADO ANCESTRAL — arte dos 3 ovos (aba ANCESTRAL do Professor) ═══
+import eggSeladoAncPng from "@/ambiente/Egg selado ancestral.png";
+import eggAncPlusPng from "@/ambiente/Egg Ancestral Plus.png";
+import eggAncLuckPng from "@/ambiente/Egg Ancestral Luck.png";
+import esferaSafiraImg from "@/ambiente/Esfera de Safira.png";
+// ═══ Regras puras do ovo selado (selar/alimentar/3 dias/liberar) ═══
+import {
+  seal as sealAncestralEgg,
+  feed as feedAncestralEggState,
+  hatchTraits as hatchAncestralTraits,
+  readyToHatch as isAncestralEggReady,
+  remainingMs as ancestralEggRemaining,
+  FED_CAP,
+  type SealedEgg,
+} from "@/game/ancestralEggs";
+import type { AncestralEggKind } from "@/game/traits";
+
 const GIF: Partial<Record<Species, string>> = {
   charizard: charizardGif, pikachu: pikachuGif,
   dragonite: dragoniteGif,
@@ -1066,6 +1189,7 @@ const GIF: Partial<Record<Species, string>> = {
   hitmonchan_shiny: hitmonchanShinyGif, kangaskhan: kangaskhanGif,
   meganium: meganiumGif, meganium_shiny: meganiumShinyGif,
   moltres_shiny: moltresShinyGif, onix_shiny: onixShinyGif,
+  onix: onixGif,
   lickitung: assetUrlFromJson(lickitungGifAsset),
   lickitung_shiny: assetUrlFromJson(lickitungShinyGifAsset),
   mewtwo_event: assetUrlFromJson(mewtwoEventGifAsset),
@@ -1073,6 +1197,15 @@ const GIF: Partial<Record<Species, string>> = {
   riolu: rioluUrl,
   raichu: raichuUrl,
   rayquaza: rayquazaUrl,
+  // Ancestrais (Egg Selado) — sprites dos PNGs src/ambiente/ANCESTRAIS
+  giratina: ancGiratinaPng, cresselia: ancCresseliaPng, kyurem: ancKyuremPng,
+  reshiram: ancReshiramPng, zekrom: ancZekromPng,
+  groudon_shiny: ancGroudonShinyPng, rayquaza_shiny: ancRayquazaShinyPng,
+  dragonite_mg: ancDragoniteMgPng,
+  latias_ancestral: ancLatiasAncestralPng, latios_ancestral: ancLatiosAncestralPng,
+  lugia_m_shiny: ancLugiaShinyPng, lugia_shiny_ancestral: ancLugiaAncestralShinyPng,
+  mega_lugia_ancestral: ancLugiaAncestralPng,
+  mega_charizard: ancMegaCharizardPng, charizard_mega_x: ancCharizardMegaXPng,
   venusaur: bulbasaurFlowerPng,
   venusaur_shiny: bulbasaurOrangePng,
   bulbasaur_shiny: bulbasaurGif,
@@ -1215,6 +1348,50 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
 
 
 const ENEMY_POOL: Species[] = ["rattata_f", "pidgey", "zubat", "ekans", "machop", "diglett", "meowth", "psyduck"];
+
+// Sprite por mapa: o Venusaur do Hallow tem arte exclusiva (normal + shiny).
+const MAP_SPRITE: Record<string, Partial<Record<Species, string>>> = {
+  hallow: { venusaur: venusaurHallowPng, venusaur_shiny: venusaurHallowShinyPng },
+};
+
+// ============ Mapas do Professor: pools de spawn (Venenot + Monte Floreto) ============
+// [espécie, peso] no sorteio aleatório — Arbok bem fácil; alguns bem raros (Gengar etc.).
+// Shiny e RAID NUNCA entram nestas pools (só via contadores ocultos de kills).
+const VENENOT_POOL: [Species, number][] = [
+  ["arbok", 16], ["ekans", 10], ["grimer", 9], ["zubat", 9], ["gastly", 8],
+  ["oddish", 7], ["bellsprout", 7], ["weedle", 6], ["kakuna", 6], ["beedrill", 6],
+  ["venonat", 5], ["nidoran_f", 5], ["gloom", 4], ["weepinbell", 4], ["haunter", 3],
+  ["golbat", 3], ["muk", 3], ["bulbasaur", 3], ["ivysaur", 2], ["victreebel", 2],
+  ["vileplume", 2], ["swalot", 2], ["gengar", 1],
+];
+// Monte Floreto: mesmos venenosos + alguns Golem.
+const MONTE_FLORETO_POOL: [Species, number][] = [...VENENOT_POOL, ["golem", 7]];
+// HALLOW: o Venusaur de Hallow (arte própria), Ivysaur, Gastly, Gengar e Bulbasaur (Nv99–120).
+// O Venusaur SHINY NÃO entra na pool normal — só pelo contador de Venusaur derrotados (1 a cada 300).
+const HALLOW_POOL: [Species, number][] = [
+  ["venusaur", 10], ["ivysaur", 12], ["bulbasaur", 12], ["gastly", 7], ["gengar", 2],
+];
+// CAVERNA DE BROK: Onix e Golem (Nv99–120) + Onix Shiny (peso baixo — bem raro).
+const CAVERNA_BROK_POOL: [Species, number][] = [
+  ["onix", 14], ["golem", 10], ["onix_shiny", 1],
+];
+// Shinies dos dois mapas — só nascem pelo contador oculto (1º aos 1000, depois a cada 2000).
+const POISON_SHINIES: Species[] = [
+  "ekans_shiny", "arbok_shiny", "grimer_shiny", "muk_shiny", "swalot_shiny",
+  "zubat_shiny", "golbat_shiny", "gastly_shiny", "haunter_shiny", "beedrill_shiny",
+  "kakuna_shiny", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "bellsprout_shiny",
+  "weepinbell_shiny", "victreebel_shiny", "bulbasaur_shiny", "ivysaur_shiny", "venusaur_shiny",
+];
+const pickWeighted = (entries: [Species, number][]): Species => {
+  let total = 0;
+  for (const [, w] of entries) total += w;
+  let r = Math.random() * total;
+  for (const [sp2, w] of entries) {
+    r -= w;
+    if (r <= 0) return sp2;
+  }
+  return entries[0][0];
+};
 
 // ============ Elemento por espécie (para FX de ataque) ============
 type ElementFx = "grass" | "fire" | "water" | "electric" | "poison" | "psychic" | "ice" | "rock" | "fighting" | "flying" | "normal";
@@ -1495,7 +1672,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     ];
   }
   // Novos mapas grátis + evento Torre: sem colisão, sem objetos (só máscara).
-  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"].includes(mapId)) {
+  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok"].includes(mapId)) {
     return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
@@ -1748,6 +1925,16 @@ type IdleState = {
   redeemedCodes?: Record<string, boolean>;
   totalKills?: number;
   gordinQuest?: { shinyDone?: boolean; venusaurDone?: boolean; killRuns?: number; killStart?: number; killActive?: boolean };
+  /** Missões do Professor (Laboratório) — progresso por marcas startKills/startCaps. */
+  profQuest?: ProfQuestState;
+  /** Barco da Jornada dos Navegantes: tier, casco (hp) e combustível. */
+  ship?: ShipState;
+  /** Sucata coletada (id -> raridade). Persiste no save: Ctrl+F5 não reseta. */
+  scrap?: Record<string, ScrapRarity>;
+  /** Pontos já entregues ao Professor (banco permanente — nunca se perde). */
+  scrapBank?: number;
+  /** Penalidade antiga por naufrágio (legada, não é mais usada no cálculo). */
+  scrapPenalty?: number;
   bottanTrips?: number;
   lastQuestReset?: number;
   lastDailyReward?: number;
@@ -1768,6 +1955,17 @@ type IdleState = {
   saga?: SagaProgress;
   // ===== Pedidos secundários dos NPCs (estrelas + missões) =====
   sideQuests?: SideQuestProgress;
+  // ===== PERFIL DE TREINADOR — espiritualidade (só eventos registrados) =====
+  /** Pontuação -100..+100 (LUZ ≥ +20 · SOMBRAS ≤ -20). Regra: src/game/trainerProfile.ts */
+  spiritScore?: number;
+  /** Ids de eventos espirituais já aplicados (anti-duplicação por evento). */
+  spiritDone?: string[];
+  /** Histórico recente de variações (máx. 10 entradas, mais nova primeiro). */
+  spiritLog?: { at: number; delta: number; label: string }[];
+  // ===== EGG SELADO ANCESTRAL — ovo escolhido pelo jogador (3 dias p/ liberar) =====
+  sealedEgg?: SealedEgg | null;
+  /** Último prêmio de 7 dias da patente resgatado (0/nulo = pode resgatar). */
+  patentePrizeAt?: number;
   /** Timestamp até quando o bônus de boas-vindas (+100% ATK/DEF) está ativo. */
   welcomeBonusUntil?: number;
   // ===== Sistema de Recursos (fome/energia/arremessos — horário local real) =====
@@ -1868,6 +2066,7 @@ const ITEM_COLORS: Record<string, string> = {
   book_atk_purple: "#a066ff", book_def_purple: "#a066ff",
   book_atk_gold: "#ffd94d", book_def_gold: "#ffd94d",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
+  ticket_ancestral: "#ffd94d",
 };
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
@@ -1876,6 +2075,9 @@ const ITEM_IMG: Record<string, string> = {
   revive: reviveIconImg, berry: berryIconImg, key: keyIconImg,
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
+  // ═══ Ovos ancestrais + Esfera de Safira ═══
+  egg_anc_selado: eggSeladoAncPng, egg_anc_plus: eggAncPlusPng, egg_anc_luck: eggAncLuckPng,
+  esfera_safira: esferaSafiraImg,
   premium_box: premiumBoxImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
@@ -1929,8 +2131,8 @@ const SHOP_BOOKS: ShopBook[] = [
 
   { id: "book_exp", name: "Livro de EXP",    desc: "+30% EXP em batalhas por 1 hora",   price: 30, img: bookExpImg },
 
-  { id: "book_vip_30", name: "Livro VIP 30d ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
-  { id: "book_vip_60", name: "Livro VIP 60d ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
+  { id: "book_vip_30", name: "Livro VIP CRISTAL ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
+  { id: "book_vip_60", name: "Livro VIP GOLD ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
   // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo, stack com livro)", price: 100,  img: orbXpMinorUrl,   currency: "crystals", priceGold: 50000 },
   // ═══ ORB DE TIME — distribui EXP para todos os pokémons do time por 1 hora ═══
@@ -2648,7 +2850,11 @@ function IdlePage() {
   }), [restingBench]);
   useEffect(() => {
     if (!cloudBlobReady) return;
-    scheduleCloudSync(buildFullBlob());
+    const blob = buildFullBlob();
+    scheduleCloudSync(blob);
+    // Cofre de emergência (IndexedDB): cópia local em segundo plano,
+    // sem interferir no sync com a nuvem nem no save local atual.
+    vaultPut(blob);
   }, [idle, team, restingBench, buildFullBlob, cloudBlobReady]);
 
   // Cooldown do SALVAR manual na nuvem (20s): evita spam de save manual.
@@ -3333,19 +3539,60 @@ const confirmName = () => {
     }
   }, [idle.currentMap]);
   // ===== Drops de recurso no CHÃO (não entram na mochila; coletar depois) =====
-  type GroundDrop = { uid: string; mat: MaterialId; qty: number; x: number; y: number; droppedAt: number; card?: "ball" | "ouro" | "cristal" | "egg" | "stone"; map: string };
+  type GroundDrop = { uid: string; mat: MaterialId; qty: number; x: number; y: number; droppedAt: number; card?: "ball" | "ouro" | "ouro500" | "cristal" | "egg" | "stone"; itemId?: string; map: string };
   const [groundDrops, setGroundDrops] = useState<GroundDrop[]>([]);
   // Carta girando (animação de coleta).
   const [cardSpinning, setCardSpinning] = useState<string | null>(null);
+  // ===== Painel de ALVOS: arrastável + maximizável (posição/tamanho salvos no navegador) =====
+  const [alvosPos, setAlvosPos] = useState<{ x: number; y: number } | null>(null);
+  const [alvosMax, setAlvosMax] = useState(false);
+  const alvosPanelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("idle_alvos_panel");
+      if (raw) {
+        const o = JSON.parse(raw) as { x?: number; y?: number; max?: boolean };
+        if (typeof o.x === "number" && typeof o.y === "number") setAlvosPos({ x: o.x, y: o.y });
+        if (o.max) setAlvosMax(true);
+      }
+    } catch { /* localStorage indisponível */ }
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("idle_alvos_panel", JSON.stringify({ x: alvosPos?.x ?? null, y: alvosPos?.y ?? null, max: alvosMax }));
+    } catch { /* localStorage indisponível */ }
+  }, [alvosPos, alvosMax]);
+  const startAlvosDrag = (ev: React.PointerEvent) => {
+    const el = alvosPanelRef.current;
+    if (!el) return;
+    if ((ev.target as HTMLElement | null)?.closest?.("button")) return;
+    ev.preventDefault();
+    const dx = ev.clientX - el.offsetLeft;
+    const dy = ev.clientY - el.offsetTop;
+    const move = (e2: PointerEvent) => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const nx = Math.max(4, Math.min(window.innerWidth - w - 4, e2.clientX - dx));
+      const ny = Math.max(4, Math.min(window.innerHeight - h - 4, e2.clientY - dy));
+      setAlvosPos({ x: nx, y: ny });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
   const CARD_IMG: Record<string, string> = {
-    ball: cardBallUrl, ouro: cardOuroUrl, cristal: cardCristalUrl, egg: cardEggUrl, stone: cardCristalUrl,
+    ball: cardBallUrl, ouro: cardOuroUrl, ouro500: cardOuroUrl, cristal: cardCristalUrl, egg: cardEggUrl, stone: cardCristalUrl,
   };
   const CARD_LABEL: Record<string, string> = {
-    ball: "Carta Ball", ouro: "Carta Ouro", cristal: "Carta Cristal", egg: "Carta Ovo", stone: "Carta Stone",
+    ball: "Carta Ball", ouro: "Carta Ouro", ouro500: "Carta Ouro (500)", cristal: "Carta Cristal", egg: "Carta Ovo", stone: "Carta Stone",
   };
   const CARD_FILTER: Record<string, string> = {
     stone: "sepia(0.7) saturate(1.6) hue-rotate(-25deg) drop-shadow(0 0 10px rgba(194,150,90,0.9))",
   };
+  const GROUND_ITEM_LABEL: Record<string, string> = { pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball" };
   // Trocar de mapa limpa SÓ os drops do mapa antigo (os do mapa atual ficam).
   useEffect(() => { setGroundDrops((prev) => (prev.some((d) => d.map !== idle.currentMap) ? prev.filter((d) => d.map === idle.currentMap) : prev)); }, [idle.currentMap]);
   const collectGroundDrop = (uid: string) => {
@@ -3382,6 +3629,10 @@ const confirmName = () => {
           setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + gold } }));
           pushFxAt(d.x, d.y - 30, `+${gold} ouro!`, "gold");
           pushChat(`🃏 Carta Ouro! +${gold} ouro!`, "cap");
+        } else if (d.card === "ouro500") {
+          setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + 500 } }));
+          pushFxAt(d.x, d.y - 30, "+500 ouro!", "gold");
+          pushChat("🃏 Carta de Ouro do Hallow! +500 ouro!", "cap");
         } else if (d.card === "stone") {
           const STONE_ROLL = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
           const STONE_NAMES: Record<string, string> = { stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉" };
@@ -3401,6 +3652,17 @@ const confirmName = () => {
         }
         playBonus();
       }, 650);
+      return;
+    }
+    // Item direto no chão (ex.: pokébolas do Venusaur de Hallow).
+    if (d.itemId) {
+      const id = d.itemId;
+      setIdle((s) => ({ ...s, items: { ...s.items, [id]: (s.items[id] ?? 0) + d.qty } }));
+      setGroundDrops((prev) => prev.filter((o) => o.uid !== uid));
+      const label = GROUND_ITEM_LABEL[id] ?? id;
+      pushFxAt(d.x, d.y - 30, `+${d.qty} ${label}`, "gold");
+      pushChat(`🧺 Coletou do chão: +${d.qty} ${label}!`, "cap");
+      playClick();
       return;
     }
     // Recursos caem na MOCHILA (idle.items), igual comidas e bolas.
@@ -3442,8 +3704,8 @@ const confirmName = () => {
               </div>
             );
           }
-          const img = DROP_IMG_BY_MAT[d.mat];
-          const label = DROP_LABEL_BY_MAT[d.mat] ?? d.mat;
+          const img = d.itemId ? ITEM_IMG[d.itemId] : DROP_IMG_BY_MAT[d.mat];
+          const label = d.itemId ? (GROUND_ITEM_LABEL[d.itemId] ?? d.itemId) : (DROP_LABEL_BY_MAT[d.mat] ?? d.mat);
           const quest = d.mat === "buque";
           return (
             <div
@@ -4750,6 +5012,7 @@ const confirmName = () => {
     mapinha10: 0.65,
     casa1: 0.65,
     casa2: 0.65,
+    laboratorio: 0.65,
   };
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
@@ -4785,13 +5048,46 @@ const confirmName = () => {
     torre_ancestral: torreAncestralUrl,
     mapa_orange: mapaOrangeUrl,
     elementure: elementureUrl,
+    laboratorio: laboratorioUrl,
+    iceblow: PROF_MAP_BY_ID.iceblow.bg,
+    monte_floreto: PROF_MAP_BY_ID.monte_floreto.bg,
+    rayow: PROF_MAP_BY_ID.rayow.bg,
+    sakura_city: PROF_MAP_BY_ID.sakura_city.bg,
+    venenot: PROF_MAP_BY_ID.venenot.bg,
+    hallow: PROF_MAP_BY_ID.hallow.bg,
+    caverna_brok: PROF_MAP_BY_ID.caverna_brok.bg,
+    azulante: PROF_MAP_BY_ID.azulante.bg,
+    margrande: PROF_MAP_BY_ID.margrande.bg,
+    navegante: PROF_MAP_BY_ID.navegante.bg,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
+  // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
+  const [hallowFx, setHallowFx] = useState<{ agua: string; luz: string } | null>(null);
+  const brokTeleportRef = useRef(0);
+  // Onde o jogador entrou na caverna (posição + luz) — usado para voltar na
+  // mesma porta, mas um pouco mais afastado da luz.
+  const brokEntryRef = useRef<{ x: number; y: number; lx: number; ly: number } | null>(null);
+  useEffect(() => {
+    if (idle.currentMap !== "hallow") {
+      setHallowFx(null);
+      return;
+    }
+    const mask = PROF_MAP_BY_ID.hallow.mask;
+    const cachedFx = getMaskFx(mask);
+    if (cachedFx) {
+      setHallowFx(cachedFx);
+      return;
+    }
+    const dispose = loadMaskFx(mask, (fx) => {
+      if (fx) setHallowFx(fx);
+    });
+    return dispose;
+  }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
+  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
+  const NO_HIGH_EVENT_MAPS = ["mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -4818,6 +5114,13 @@ const confirmName = () => {
     if (mapId === "mapinha8") return ["zubat", "pidgey", "pidgeotto", "pidgeot", "spearow", "golbat", "fearow", "zubat_shiny", "pidgey_shiny", "pidgeotto_shiny", "pidgeot_shiny", "spearow_shiny", "golbat_shiny", "fearow_shiny"];
     if (mapId === "mapa_orange") return ["charmander", "vulpix", "magmar", "charizard", "charmander_shiny", "magmar_shiny", "vulpix_shiny"];
     if (mapId === "mapinha12") return ["beedrill", "kakuna", "mankey", "pinsir", "tauros", "farfetchd", "jigglypuff", "beedrill_shiny", "kakuna_shiny", "mankey_shiny", "pinsir_shiny", "tauros_shiny", "farfetchd_shiny", "jigglypuff_shiny"];
+    // Mapas do Professor com spawn: pools fechadas (venenosos + Golem no Monte Floreto).
+    if (mapId === "venenot") return [...VENENOT_POOL.map((e) => e[0]), ...POISON_SHINIES];
+    if (mapId === "monte_floreto") return [...MONTE_FLORETO_POOL.map((e) => e[0]), ...POISON_SHINIES];
+    // Hallow + Caverna de Brok (Nv99–120): Venusaur de Hallow, Ivysaur, Bulbasaur,
+    // Gastly, Gengar no Hallow; Onix, Onix Shiny e Golem na caverna.
+    if (mapId === "hallow") return [...HALLOW_POOL.map((e) => e[0]), "venusaur_shiny"];
+    if (mapId === "caverna_brok") return [...CAVERNA_BROK_POOL.map((e) => e[0])];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
   };
@@ -4837,23 +5140,42 @@ const confirmName = () => {
       setCustomDims((previous) =>
         previous?.w === width && previous.h === height ? previous : { w: width, h: height }
       );
-      if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, width, height);
-      if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, width, height);
-      if (idle.currentMap === "casa1") ensureCollision("casa1", casa1MaskUrl, width, height);
-      if (idle.currentMap === "casa2") ensureCollision("casa2", casa2MaskUrl, width, height);
-      if (idle.currentMap === "land_revo") ensureCollision("land_revo", landRevoMaskUrl, width, height);
-      if (idle.currentMap === "mapinha10") ensureCollision("mapinha10", pokemarktMaskUrl, width, height);
-      if (idle.currentMap === "areia_de_anubis") ensureCollision("areia_de_anubis", areiaAnubisMaskUrl, width, height);
-      if (idle.currentMap === "torre_verdejante") ensureCollision("torre_verdejante", torreVerdejanteMaskUrl, width, height);
-      if (idle.currentMap === "torre_ancestral") ensureCollision("torre_ancestral", torreAncestralMaskUrl, width, height);
-      if (idle.currentMap === "mapa_orange") ensureCollision("mapa_orange", mapaOrangeMaskUrl, width, height);
-      if (idle.currentMap === "elementure") ensureCollision("elementure", elementureMaskUrl, width, height);
+      // Mapas com MAP_DISPLAY_SCALE < 1 têm o MUNDO menor que a imagem.
+      // A grade de colisão precisa ser construída em pixels de MUNDO, senão
+      // isWalkable consulta a máscara no ponto errado (parede invisível no
+      // chão aberto e buracos por cima dos móveis).
+      const s = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
+      const cw = Math.round(width * s);
+      const chh = Math.round(height * s);
+      if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, cw, chh);
+      if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, cw, chh);
+      if (idle.currentMap === "casa1") ensureCollision("casa1", casa1MaskUrl, cw, chh);
+      if (idle.currentMap === "casa2") ensureCollision("casa2", casa2MaskUrl, cw, chh);
+      if (idle.currentMap === "land_revo") ensureCollision("land_revo", landRevoMaskUrl, cw, chh);
+      if (idle.currentMap === "mapinha10") ensureCollision("mapinha10", pokemarktMaskUrl, cw, chh);
+      if (idle.currentMap === "areia_de_anubis") ensureCollision("areia_de_anubis", areiaAnubisMaskUrl, cw, chh);
+      if (idle.currentMap === "torre_verdejante") ensureCollision("torre_verdejante", torreVerdejanteMaskUrl, cw, chh);
+      if (idle.currentMap === "torre_ancestral") ensureCollision("torre_ancestral", torreAncestralMaskUrl, cw, chh);
+      if (idle.currentMap === "laboratorio") ensureCollision("laboratorio", laboratorioMaskUrl, cw, chh);
+      if (idle.currentMap === "mapa_orange") ensureCollision("mapa_orange", mapaOrangeMaskUrl, cw, chh);
+      if (idle.currentMap === "elementure") ensureCollision("elementure", elementureMaskUrl, cw, chh);
+      if (idle.currentMap === "iceblow") ensureCollision("iceblow", PROF_MAP_BY_ID.iceblow.mask, cw, chh);
+      if (idle.currentMap === "monte_floreto") ensureCollision("monte_floreto", PROF_MAP_BY_ID.monte_floreto.mask, cw, chh);
+      if (idle.currentMap === "rayow") ensureCollision("rayow", PROF_MAP_BY_ID.rayow.mask, cw, chh);
+      if (idle.currentMap === "sakura_city") ensureCollision("sakura_city", PROF_MAP_BY_ID.sakura_city.mask, cw, chh);
+      if (idle.currentMap === "venenot") ensureCollision("venenot", PROF_MAP_BY_ID.venenot.mask, cw, chh);
+      if (idle.currentMap === "hallow") ensureCollision("hallow", PROF_MAP_BY_ID.hallow.mask, cw, chh);
+      if (idle.currentMap === "caverna_brok") ensureCollision("caverna_brok", PROF_MAP_BY_ID.caverna_brok.mask, cw, chh);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
   useEffect(() => {
     if (customDims && customMapUrls[idle.currentMap]) {
-      setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
+      // Laboratório: nasce fora da máquina central (ponto andável verificado na máscara).
+      if (idle.currentMap === "laboratorio") setTrainerPos({ x: 499, y: 416 });
+      // Mapas do Professor: nasce no ponto andável verificado (maior região branca conectada).
+      else if (PROF_SPAWNS[idle.currentMap]) setTrainerPos(PROF_SPAWNS[idle.currentMap]);
+      else setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
     }
   }, [idle.currentMap, customDims]);
   useEffect(() => {
@@ -4870,7 +5192,7 @@ const confirmName = () => {
     }
   }, [customDims]);
   useEffect(() => {
-    if (idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8") {
+    if (idle.currentMap === "mapinha13" || idle.currentMap === "florest_ice" || idle.currentMap === "valley_plume" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" || idle.currentMap === "venenot" || idle.currentMap === "monte_floreto" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
       const t = setTimeout(() => {
         setEnemies((prev) => prev.filter((e) => e.hp > 0).length > 0 ? prev : spawnEnemies());
       }, 400);
@@ -4913,7 +5235,7 @@ const confirmName = () => {
       return !isWalkable("esfera_ancestral", x, y);
     }
     // Mapas com máscara branco/preto: o grid manda (igual Revoland).
-    if (idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure") {
+    if (idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
       return !isWalkable(idle.currentMap, x, y);
     }
     for (const o of obstacles) {
@@ -4950,6 +5272,8 @@ const confirmName = () => {
   const [pokemonFace, setPokemonFace] = useState<"left" | "right">("right");
   const pokemonFaceRef = useRef<"left" | "right">("right");
   const [moving, setMoving] = useState(true);
+  const movingRef = useRef(moving);
+  movingRef.current = moving;
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
   const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean; startedAt?: number; _lastMove?: number } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
@@ -5063,6 +5387,22 @@ const confirmName = () => {
   const orangeShinyDueRef = useRef(false);
   const orangeZardKillsRef = useRef(0);
   const orangeZardDueRef = useRef(false);
+  // Venenot + Monte Floreto oculto: shiny 1º aos 1000 kills e depois a cada 2000;
+  // RAID Arbok (Venenot) a cada 1000 e RAID Golem (Monte Floreto) a cada 3000 (SEM aviso).
+  const venenotKillsRef = useRef(0);
+  const venenotShinyAtRef = useRef(1000);
+  const venenotShinyDueRef = useRef(false);
+  const venenotRaidKillsRef = useRef(0);
+  const venenotRaidDueRef = useRef(false);
+  const monteFloretoKillsRef = useRef(0);
+  const monteFloretoShinyAtRef = useRef(1000);
+  const monteFloretoShinyDueRef = useRef(false);
+  const monteFloretoRaidKillsRef = useRef(0);
+  const monteFloretoRaidDueRef = useRef(false);
+  // HALLOW: contador de Venusaur derrotados (1 a cada 300 nasce um Venusaur Shiny).
+  const hallowVenusaurKillsRef = useRef(0);
+  const hallowShinyDueRef = useRef(false);
+  const mapRaidSpawnRef = useRef(false);
   const [orbFlashes, setOrbFlashes] = useState<{ id: number; x: number; y: number; kind: "common" | "epic" }[]>([]);
   const orbFlashIdRef = useRef(1);
   // Partículas suaves de cura (anel + "+" subindo) — substitui o clarão forte
@@ -5090,13 +5430,15 @@ const confirmName = () => {
       setTrainerEnergy(Math.max(0, Math.min(100, v)));
     }
   }, [idle.trainerEnergy]);
-  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan" | "bottan" | "aspectro" | "gatoancy" | "barney" | "florzinha";
+  type NpcKind = "gordin" | "luluzinha" | "bulbaOrange" | "bulbaFlower" | "pokemarktClerk" | "boby" | "san" | "nanizinha" | "payka" | "pan" | "bottan" | "aspectro" | "gatoancy" | "barney" | "florzinha" | "barbaBranca" | "bonnyBi" | "professor";
   const NPC_IMG: Partial<Record<NpcKind, string>> = {
     gordin: gordinPng, luluzinha: luluzinhaFrontPng, pokemarktClerk: pokemarktClerkUrl,
     bottan: bottanPng, aspectro: aspectroPng, gatoancy: gatoancyPng,
     boby: bobyPng, san: sanPng, nanizinha: nanizinhaPng, payka: paykaPng, pan: panPng,
     bulbaOrange: bulbasaurOrangeUrl, bulbaFlower: bulbasaurFlowerUrl,
     barney: barneyPng, florzinha: florzinhaPng,
+    barbaBranca: barbaBrancaPng, bonnyBi: bonnyBiPng,
+    professor: professorPng,
   };
   const [npcs, setNpcs] = useState<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
   const npcsRef = useRef<{ id: number; kind: NpcKind; x: number; y: number; dir: Dir; frame: number }[]>([]);
@@ -5133,6 +5475,21 @@ const confirmName = () => {
   const [sagaTab, setSagaTab] = useState<"fala" | "pedidos">("fala");
   const [sagaChoiceSel, setSagaChoiceSel] = useState<SagaNpcId[]>([]);
   const [pokemarktShopOpen, setPokemarktShopOpen] = useState(false);
+  /** Painel do Professor do Laboratório — Pokédex de estudo + 3 missões. */
+  const [professorOpen, setProfessorOpen] = useState(false);
+  /** Aba inicial do painel do Professor (ovo selado → direto na ANCESTRAL). */
+  const [profInitialTab, setProfInitialTab] = useState<
+    "pesquisa" | "missoes" | "continentes" | "barcos" | "vip" | "perfil" | "incubadora" | "ancestral"
+  >("pesquisa");
+  // ===== ⛵ Barco (Jornada dos Navegantes) =====
+  // shipFx anima o sheet do barco e as ondas; shipSunk marca o casco partido.
+  const [shipFx, setShipFx] = useState(0);
+  const [shipSunk, setShipSunk] = useState(false);
+  const [rainOn, setRainOn] = useState(false);
+  // ⛵💥 Ataque de água dos Tentacool: { id, x, y, at (ms) }
+  const [tentaAtk, setTentaAtk] = useState<{ id: string; x: number; y: number; at: number } | null>(null);
+  const tentaAtkRef = useRef<typeof tentaAtk>(null);
+  tentaAtkRef.current = tentaAtk;
   // Energia do treinador: drena 100% em ~5h andando (20/hora). Energia 0 NÃO trava —
   // só deixa o movimento a 10% (ver energySpeedMult). Teleporte custa 5.
   const exhaustNoticeRef = useRef(0);
@@ -5285,9 +5642,398 @@ const confirmName = () => {
     }, 900);
     return () => clearInterval(iv);
   }, [enemies, moving, team]);
+  // ===== ⛵ Runtime do barco: animação, combustível e redemoinhos =====
+  const shipTier = idle.ship?.tier;
+  const shipFuel = idle.ship?.fuel ?? 0;
+  const shipHp = idle.ship?.hp ?? 0;
+  // Tick único: anima o sheet do barco e consome 1s de combustível por segundo
+  // enquanto navega. Nada acontece fora dos mapas de água ou sem barco.
+  // Captura de Tentacool: bloqueada com Poké/Great/Ultra Ball até o
+  // treinador chegar ao nível 200. Acima disso, gasta 1 bola e tem chance.
+  const tryCaptureTenta = (t: (typeof TENTACOOLS)[string][number]) => {
+    const lv = idle.trainerLevel ?? 1;
+    if (lv < TENTA_CAPTURE_TRAINER_LEVEL) {
+      pushChat(
+        `🧪 ${t.name} (Nv ${t.level} · ${t.rarity}) não pode ser capturado: Treinador Nv ${lv} < ${TENTA_CAPTURE_TRAINER_LEVEL}.`,
+        "info",
+      );
+      return;
+    }
+    const balls = idle.items?.pokeball ?? 0;
+    if (balls <= 0) {
+      pushChat("🧪 Sem Pokébolas para tentar capturar.", "info");
+      return;
+    }
+    const ok = Math.random() < (t.shiny ? 0.06 : 0.22);
+    if (ok) {
+      playBonus();
+      setIdle((s) => ({ ...s, items: { ...s.items, pokeball: (s.items.pokeball ?? 0) - 1 } }));
+      pushChat(`🎉 ${t.name} (Nv ${t.level} · ${t.rarity}) capturado!`, "cap");
+    } else {
+      playClick();
+      setIdle((s) => ({ ...s, items: { ...s.items, pokeball: (s.items.pokeball ?? 0) - 1 } }));
+      pushChat(`🧪 ${t.name} escapou da ${t.shiny ? "Ultra Ball" : "Pokébola"}!`, "info");
+    }
+  };
+
+  // ============ Sucata: coleta por proximidade (persiste no save) ============
+  // ===== CORRIDA DE SUCATA =====
+  // runId muda a cada entrada no mapa de água => o spawn é sempre diferente.
+  const [runId, setRunId] = useState(0);
+  // Sucata que caiu no chão quando o barco quebrou (fica visível no mar).
+  const [droppedScrap, setDroppedScrap] = useState<{ x: number; y: number; r: ScrapRarity }[]>([]);
+  // Tela de "seu barco quebrou".
+  const [wrecked, setWrecked] = useState(false);
+  // Confirmação de saída: com sucata = entregar; sem sucata = abortar.
+  const [exitAsk, setExitAsk] = useState(false);
+  const scrapBase = useMemo(
+    () => (isWaterMap(idle.currentMap) ? rollScrap(idle.currentMap, runId, curWorldW, curWorldH) : []),
+    [idle.currentMap, runId],
+  );
+  // Chuva traz uma caixa de sucata de raridade alta extra no meio do mar.
+  const scrapList = rainOn && isWaterMap(idle.currentMap)
+    ? [...scrapBase, rollRainScrap(idle.currentMap, runId, curWorldW, curWorldH)]
+    : scrapBase;
+/**
+ * Modelo de sucata:
+ * - CARGA (idle.scrap): o que você carregou nesta corrida. Pode perder afundando.
+ * - BANCO (idle.scrapBank): pontos já entregues ao Professor. Permanente.
+ * A penalidade antiga não subtrai mais — afundar só apaga a carga.
+ */
+  const scrapGot = idle.scrap ?? {};
+  const scrapBank = idle.scrapBank ?? 0;
+  const scrapPoints =
+    (Object.keys(scrapGot) as ScrapRarity[]).reduce(
+      (a, r) => a + (SCRAP_META[r]?.points ?? 0),
+      0,
+    );
+  /** Quantas caixas estão na mochila (itens) nesta corrida. */
+  const scrapBag = Object.keys(idle.items ?? {})
+    .filter((k) => k.startsWith("sucata"))
+    .reduce((a, k) => a + (idle.items?.[k] ?? 0), 0);
+  // Ref sempre atualizado: o runId muda DEPOIS do render (dentro de um
+  // efeito), então o interval não pode depender da lista capturada no closure
+  // — senão ele checa as caixas da corrida anterior enquanto a tela mostra as
+  // novas e nada é coletado.
+  const scrapListRef = useRef(scrapList);
+  scrapListRef.current = scrapList;
+  useEffect(() => {
+    if (!scrapListRef.current.length || !shipTier) return;
+    const iv = setInterval(() => {
+      const list = scrapListRef.current;
+      if (!list.length) return;
+      const p = trainerPosRef.current;
+      const got = idleRef.current.scrap ?? {};
+      const hit = list.find((s) => !got[s.id] && Math.hypot(p.x - s.x, p.y - s.y) < SCRAP_PICKUP_R);
+      if (!hit) return;
+      const meta = SCRAP_META[hit.rarity];
+      playBonus();
+      setIdle((s) => ({
+        ...s,
+        scrap: { ...(s.scrap ?? {}), [hit.id]: hit.rarity },
+        items: { ...s.items, sucata_comum: (s.items.sucata_comum ?? 0) + meta.items },
+      }));
+      pushChat(`🗑️ Sucata ${meta.label} coletada! +${meta.points} ponto(s) para o Professor.`, "cap");
+    }, 400);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap, shipTier, runId, rainOn]);
+
+  const tentaBase = isWaterMap(idle.currentMap) ? TENTACOOLS[idle.currentMap] ?? [] : [];
+  // Durante a chuva o mar fica mais perigoso: entram Tentacool extras.
+  const tentaList = rainOn && isWaterMap(idle.currentMap)
+    ? [...tentaBase, ...(RAIN_TENTACOOLS[idle.currentMap] ?? [])]
+    : tentaBase;
+  // ===== IA dos Tentacool: a cada WANDER_MS escolhem um ponto novo (de
+  // preferência perto de uma caixa de sucata) e nadam até lá. Ou seja: o
+  // jogador tem ~5s para chegar antes que o bicho se desloque.
+  const WANDER_MS = 5000;
+  const tentaPosRef = useRef<Record<string, { x: number; y: number; tx: number; ty: number }>>({});
+  useEffect(() => {
+    if (!tentaList.length) return;
+    const seeded: Record<string, { x: number; y: number; tx: number; ty: number }> = {};
+    for (const t of tentaList) seeded[t.id] = { x: t.x, y: t.y, tx: t.x, ty: t.y };
+    tentaPosRef.current = seeded;
+    const iv = setInterval(() => {
+      const P = tentaPosRef.current;
+      for (const t of tentaList) {
+        const p = P[t.id];
+        if (!p) { P[t.id] = { x: t.x, y: t.y, tx: t.x, ty: t.y }; continue; }
+        // 70% dos Tenpos procura sucata por perto; 30% vagueia solto.
+        let nx = t.x + (Math.random() - 0.5) * 260;
+        let ny = t.y + (Math.random() - 0.5) * 220;
+        if (scrapList.length && Math.random() < 0.7) {
+          const s = scrapList[Math.floor(Math.random() * scrapList.length)];
+          nx = s.x + (Math.random() - 0.5) * 120;
+          ny = s.y + (Math.random() - 0.5) * 120;
+        }
+        p.tx = Math.max(40, Math.min(curWorldW - 40, nx));
+        p.ty = Math.max(40, Math.min(curWorldH - 40, ny));
+      }
+    }, WANDER_MS);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap, tentaList.length, scrapList.length]);
+
+  // Nado contínuo rumo ao alvo (tick barato).
+  useEffect(() => {
+    if (!tentaList.length) return;
+    const iv = setInterval(() => {
+      const P = tentaPosRef.current;
+      for (const t of tentaList) {
+        const p = P[t.id];
+        if (!p) continue;
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 6) continue;
+        const sp = 0.9;
+        p.x += (dx / d) * sp;
+        p.y += (dy / d) * sp;
+      }
+    }, 100);
+    return () => clearInterval(iv);
+  }, [tentaList.length]);
+
+  const tentaHpOf = (id: string): number => {
+    const full = 40;
+    const map = idle.ship?.tentaHp;
+    return map && id in map ? (map[id] as number) : full;
+  };
+
+  // ===== SKILL DO BARCO: o tripulante aquático ataca o Tentacool mais próximo =====
+  const WATER_CREW = team.filter(
+    (p) => elementsOf(p.species).includes("agua"),
+  );
+  const [crewOpen, setCrewOpen] = useState(false);
+  const [crewAtk, setCrewAtk] = useState<{ x: number; y: number; at: number } | null>(null);
+
+  const setCrew = (sp: string) => {
+    playClick();
+    setIdle((s) => ({ ...s, ship: { ...s.ship, crew: sp } }));
+    pushChat(`🐢 ${sp.replace(/_/g, " ")} entrou de tripulante no barco.`, "cap");
+  };
+
+  const launchCrewSkill = () => {
+    const sp = idle.ship?.crew;
+    if (!sp) { pushChat("🐢 Escolha um tripulante aquático primeiro (perfil do barco).", "info"); return; }
+    if (!tentaList.length) return;
+    // Alvo = Tentacool vivo mais próximo do barco.
+    let best: { id: string; x: number; y: number; d: number } | null = null;
+    const P = tentaPosRef.current;
+    for (const t of tentaList) {
+      if (tentaHpOf(t.id) <= 0) continue;
+      const pos = P[t.id] ?? { x: t.x, y: t.y };
+      const d = Math.hypot(pos.x - trainerPosRef.current.x, pos.y - trainerPosRef.current.y);
+      if (!best || d < best.d) best = { id: t.id, x: pos.x, y: pos.y, d };
+    }
+    if (!best) { pushChat("🌊 Não há Tentacool vivo por perto para atacar.", "info"); return; }
+    const lvl = Math.max(1, team.find((p) => p.species === sp)?.level ?? 20);
+    const dmg = Math.round(14 + lvl * 0.55);
+    setCrewAtk({ x: best.x, y: best.y, at: Date.now() });
+    playClick();
+    setTimeout(() => {
+      setCrewOpen(false);
+      setCrewAtk(null);
+      setIdle((s) => {
+        if (!s.ship) return s;
+        const cur = (s.ship.tentaHp ?? {})[best.id] ?? 40;
+        const next = Math.max(0, cur - dmg);
+        return { ...s, ship: { ...s.ship, tentaHp: { ...(s.ship.tentaHp ?? {}), [best.id]: next } } };
+      });
+      const after = tentaHpOf(best.id) - dmg;
+      pushChat(
+        after <= 0
+          ? `🌊💥 ${sp.replace(/_/g, " ")} derrotou o Tentacool!`
+          : `🌊 ${sp.replace(/_/g, " ")} acertou o Tentacool (-${dmg}).`,
+        after <= 0 ? "cap" : "info",
+      );
+    }, 650);
+  };
+
+  // Entrou num mapa de água: nova corrida => novo sorteio de sucata.
+  useEffect(() => {
+    if (isWaterMap(idle.currentMap)) {
+      setRunId(Date.now() % 1000000);
+      setDroppedScrap([]);
+    } else {
+      setExitAsk(false);
+      setWrecked(false);
+    }
+  }, [idle.currentMap]);
+
+  /** Barco quebrou: a sucata cai no chão do mar e o jogador vai pro Laboratório. */
+  const wreckBoat = (motivo: string) => {
+    const got = Object.values(idleRef.current.scrap ?? {});
+    const p = trainerPosRef.current;
+    if (got.length > 0) {
+      const drops = got.map((r, i) => {
+        const a = (i / got.length) * Math.PI * 2;
+        return { x: p.x + Math.cos(a) * (26 + i * 5), y: p.y + Math.sin(a) * (26 + i * 5), r };
+      });
+      setDroppedScrap(drops);
+    }
+    setShipSunk(true);
+    setWrecked(true);
+    setIdle((s) => {
+      // Perde SÓ a carga desta corrida: as caixas do mar E o item da mochila.
+      // O banco de pontos já entregues ao Professor fica intacto.
+      const items = { ...s.items };
+      for (const k of Object.keys(items)) {
+        if (k.startsWith("sucata")) delete items[k];
+      }
+      return {
+        ...s,
+        currentMap: "laboratorio",
+        scrap: {},
+        items,
+        ship: { ...s.ship, hp: 0, fuel: 0, tentaHp: {} },
+      };
+    });
+    pushChat(
+      `💥 ${motivo} A sucata desta corrida afundou com o casco. Os pontos já entregues estão a salvo.`,
+      "info",
+    );
+    setTimeout(() => {
+      setTrainerPos(PROF_SPAWNS.laboratorio ?? { x: 499, y: 416 });
+      setWrecked(false);
+      setDroppedScrap([]);
+    }, 3800);
+  };
+
+  /** Converte todas as sucatas da mochila em pontos permanentes (1 sucata = 1 ponto). */
+  const convertScrapToPoints = () => {
+    const items = { ...(idleRef.current.items ?? {}) };
+    let count = 0;
+    for (const k of Object.keys(items)) {
+      if (k.startsWith("sucata")) { count += items[k] ?? 0; delete items[k]; }
+    }
+    if (count <= 0) { pushChat("🎒 Sem sucata na mochila para trocar.", "info"); return; }
+    setIdle((s) => ({ ...s, items, scrapBank: (s.scrapBank ?? 0) + count }));
+    playBonus();
+    pushChat(`♻️ Trocou ${count} sucata por ${count} ponto(s) de expedição!`, "cap");
+  };
+
+  /** Entrega a carga no banco do Professor e volta ao Laboratório. */
+  const exitToLab = (withScrap: boolean) => {
+    setExitAsk(false);
+    if (withScrap) {
+      playBonus();
+      const pts = scrapBag;
+      setIdle((s) => {
+        const items = { ...(s.items ?? {}) };
+        for (const k of Object.keys(items)) if (k.startsWith("sucata")) delete items[k];
+        return { ...s, scrap: {}, items, scrapBank: (s.scrapBank ?? 0) + pts };
+      });
+      pushChat(`📦 Você entregou ${pts} caixa(s) de sucata ao Professor. Banco total: ${(idle.scrapBank ?? 0) + pts} pts.`, "cap");
+    } else {
+      pushChat("🚫 Missão abortada — você saiu sem nenhuma sucata.", "info");
+    }
+    profTravelTo("laboratorio");
+  };
+
+  // Tentacool: se o barco entra no raio de um deles, ele dispara a skill de
+  // água. O dano é aplicado no meio da animação (não no disparo).
+  useEffect(() => {
+    if (!tentaList.length || !shipTier || shipSunk) return;
+    const iv = setInterval(() => {
+      if (tentaAtkRef.current) return;
+      const p = trainerPosRef.current;
+      const hit = tentaList.find((t) => Math.hypot(p.x - t.x, p.y - t.y) < t.range);
+      if (!hit) return;
+      setTentaAtk({ id: hit.id, x: hit.x, y: hit.y, at: Date.now() });
+      setTimeout(() => {
+        setTentaAtk(null);
+        setIdle((s) => {
+          if (!s.ship?.tier) return s;
+          const hp = Math.max(0, (s.ship.hp ?? 0) - hit.damage);
+          if (hp <= 0) {
+            setIdle((s) => ({ ...s }));
+            wreckBoat(`${hit.name} (Nv ${hit.level}) afundou o casco!`);
+            return s;
+          }
+          return { ...s, ship: { ...s.ship, hp } };
+        });
+      }, 700);
+    }, 1300);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap, shipTier, shipSunk, tentaList.length]);
+
+  // Nos mapas de água o clima é o ciclo de chuva do barco (4 min: 2 com
+  // chuva, 2 limpo). Fora deles, vale o clima global (neve/limpo) do jogo.
+  const effWeather: "rain" | "snow" | "clear" = isWaterMap(idle.currentMap)
+    ? (rainOn ? "rain" : "clear")
+    : weather;
+
+  // Tick rápido e separado: faz os redemoinhos e a chuva girarem sem depender
+  // do frame do barco (que anda mais devagar).
+  useEffect(() => {
+    if (!isWaterMap(idle.currentMap)) return;
+    const iv = setInterval(() => setShipFx((n) => (n + 1) % 100000), 110);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]);
+
+  // Ciclo de chuva: 4 minutos no total, 2 com chuva e 2 sem.
+  useEffect(() => {
+    if (!isWaterMap(idle.currentMap)) { setRainOn(false); return; }
+    setRainOn(rainState(Date.now()).raining);
+    const iv = setInterval(() => {
+      const r = rainState(Date.now());
+      setRainOn(r.raining);
+      if (r.raining && !rainOn) pushChat("🌧️ Começou a chover na Jornada dos Navegantes.", "info");
+      if (!r.raining && rainOn) pushChat("🌤️ A chuva passou. O mar está calmo.", "info");
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [idle.currentMap]);
+
+  useEffect(() => {
+    if (!isWaterMap(idle.currentMap) || !shipTier || shipSunk) return;
+    const pools = WHIRLPOOLS[idle.currentMap] ?? [];
+    const def = BOAT_BY_TIER[shipTier];
+    const iv = setInterval(() => {
+      const p = idleRef.current;
+      const sh = p.ship;
+      if (!sh?.tier) return;
+      // Tanque/casco reabastecidos ou reparados => o casco volta a navegar.
+      if (shipSunk && (sh.fuel ?? 0) > 0 && (sh.hp ?? 0) > 0) setShipSunk(false);
+      // Combustível só cai com o BARCO EM MOVIMENTO — parado não gasta.
+      if (!movingRef.current) return;
+      const nextFuel = Math.max(0, (sh.fuel ?? 0) - 1);
+      let nextHp = sh.hp ?? 0;
+      if (nextFuel <= 0) {
+        // Tanque vazio: o casco se parte e o treinador é trazido de volta.
+        wreckBoat("O combustível acabou!");
+        return;
+      }
+      for (const w of pools) {
+        if (Math.hypot(trainerPosRef.current.x - w.x, trainerPosRef.current.y - w.y) < w.r) {
+          nextHp = Math.max(0, nextHp - def.whirlDamage);
+          if (nextHp <= 0) {
+            wreckBoat("O redemoinho quebrou o casco!");
+            return;
+          }
+          break;
+        }
+      }
+      if (nextHp !== (sh.hp ?? 0) || nextFuel !== (sh.fuel ?? 0)) {
+        setIdle((s) => (s.ship ? { ...s, ship: { ...s.ship, hp: nextHp, fuel: nextFuel } } : s));
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap, shipTier, shipSunk]);
+
+  // Sai da água -> cancela o estado de casco partido.
+  useEffect(() => {
+    if (!isWaterMap(idle.currentMap)) setShipSunk(false);
+  }, [idle.currentMap]);
+
   // Coleta de orbs de energia removida — só existem orbs de mapa que spawnam pokémon
   // NPCs: garotos + bulbasaurs nos mapinhas 1 e 2
   useEffect(() => {
+    // Painel do Professor só existe dentro do laboratório — fecha ao sair de lá.
+    if (idle.currentMap !== "laboratorio") setProfessorOpen(false);
     if (idle.currentMap === "arena") {
       setNpcs([
         { id: 2, kind: "bulbaOrange", x: customDims ? customDims.w * 0.35 : 700, y: customDims ? customDims.h * 0.6 : 1100, dir: "down", frame: 0 },
@@ -5349,6 +6095,18 @@ const confirmName = () => {
       setNpcs([
         { id: 24, kind: "pan", x: 770, y: 500, dir: "down", frame: 0 },
       ]);
+    } else if (idle.currentMap === "mapinha11") {
+      // Barba Branca e Bonny Bi — passeio curto e devagar pela cidade (1402x1122), sem diálogo.
+      setNpcs([
+        { id: 30, kind: "barbaBranca", x: 450, y: 490, dir: "down", frame: 0 },
+        { id: 31, kind: "bonnyBi", x: 630, y: 780, dir: "down", frame: 0 },
+      ]);
+    } else if (idle.currentMap === "laboratorio") {
+      // Professor parado ao lado da bancada, à esquerda do spawn (499,416).
+      // Posição validada na máscara: 100% andável, longe do portal (499,615).
+      setNpcs([
+        { id: 32, kind: "professor", x: 340, y: 420, dir: "down", frame: 0 },
+      ]);
     } else {
       setNpcs([]);
       setNpcDialog(null);
@@ -5366,6 +6124,10 @@ const confirmName = () => {
       gordin: 84, luluzinha: 42, bottan: 42, aspecto: 0,
       // Barney e Florzinha ficam parados (só animam o sprite).
       barney: 0, florzinha: 0,
+      // Professor do Laboratório: parado, só anima o sprite.
+      professor: 0,
+      // Barba Branca e Bonny Bi: passeio curto e devagar (nada exagerado).
+      barbaBranca: 30, bonnyBi: 30,
     };
     const npcHomeRef = new Map<number, { x: number; y: number }>();
     const iv = setInterval(() => {
@@ -5693,6 +6455,23 @@ const confirmName = () => {
       setCodeMsg({ kind: "ok", text: "✦ +500 Esmeraldas · 6× Cristal do Despertar · 1× Pacote das Seis Stones entregues!" });
       setCodeInput("");
       pushChat(`🎉 Código EGGBOOST69: +500 💠 Esmeraldas, 6× Cristal do Despertar (adianta ovo → 69%) e 1× Pacote das Seis Stones (4k de cada).`, "cap");
+      return;
+    }
+
+    // TICKETANC2 — 2× Ticket Ancestral (abre o Baú Ancestral na aba INCUBADORA). 1 uso por conta.
+    if (raw === "TICKETANC2" || raw === "ANC2TICKET" || raw === "2TICKETSANC") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, ticket_ancestral: (base.items?.ticket_ancestral ?? 0) + 2 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: "✦ 2× Ticket Ancestral entregues! Use no BAÚ ANCESTRAL (aba INCUBADORA do Professor)." });
+      setCodeInput("");
+      pushChat(`🎫 Código ${raw}: 2× TICKET ANCESTRAL ✦ use no BAÚ ANCESTRAL (aba INCUBADORA do Professor) para ganhar ovos PLUS/LUCK.`, "cap");
       return;
     }
 
@@ -7403,7 +8182,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
-        const speed = 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+        // No barco a velocidade é a do casco e NÃO depende da energia do
+        // treinador. Fator 0.62 iguala o WASD ao clique: o clique usava o
+        // passo do chão e ficava lento, o WASD andava mais rápido.
+        const boatTierNow = isWaterMap(idleRef.current.currentMap) ? idleRef.current.ship?.tier : undefined;
+        const speed = boatTierNow
+          ? 7 * 0.62 * BOAT_BY_TIER[boatTierNow].speed * (1 + honeyBonusNow())
+          : 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
         const stepX = (dx / mag) * speed;
         const stepY = (dy / mag) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -7713,7 +8498,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (!moving) setMoving(true);
         // Velocidade escala com distância: longe anda mais rápido pra não ficar perdido.
         const distBoost = dist > 300 ? 1.5 : dist > 150 ? 1.25 : 1;
-        const speed = 6 * distBoost * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+        // No barco, MESMA fórmula do WASD (7 * 0.62 * casco.speed) e sem
+        // energySpeedMult — senão o clique fica mais lento que as teclas.
+        const boatTierClick = isWaterMap(idleRef.current.currentMap) ? idleRef.current.ship?.tier : undefined;
+        const speed = boatTierClick
+          ? 7 * 0.62 * BOAT_BY_TIER[boatTierClick].speed * distBoost * (1 + honeyBonusNow())
+          : 6 * distBoost * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -8218,7 +9008,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (ms > shinyMsRef.current) {
       shinyMsRef.current = ms;
       const shinyAlive = enemiesRef.current.some((e) => e.hp > 0 && String(e.sp).includes("shiny"));
-      if (!globalShinyDueRef.current && !shinyAlive) {
+      if (!globalShinyDueRef.current && !shinyAlive && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto") {
         globalShinyDueRef.current = true;
         pushChat(`✨ Uma energia estranha percorre o mapa... um Shiny pode aparecer a qualquer momento!`, "cap");
       }
@@ -9009,6 +9799,45 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 bidrilRaiderDueRef.current = true;
               }
             }
+            // Contadores OCULTOS do VENENOT: shiny (1º aos 1000, depois a cada 2000 kills)
+            // e RAID da Arbok (a cada 1000 kills, SEM aviso prévio).
+            if (idle.currentMap === "venenot") {
+              venenotKillsRef.current += 1;
+              venenotRaidKillsRef.current += 1;
+              if (venenotKillsRef.current >= venenotShinyAtRef.current) {
+                venenotKillsRef.current = 0;
+                venenotShinyAtRef.current = 2000;
+                venenotShinyDueRef.current = true;
+              }
+              if (venenotRaidKillsRef.current >= 1000) {
+                venenotRaidKillsRef.current = 0;
+                venenotRaidDueRef.current = true;
+              }
+            }
+            // Contadores OCULTOS do MONTE FLORETO: shiny (1º aos 1000, depois a cada 2000 kills)
+            // e RAID do Golem (a cada 3000 kills, SEM aviso prévio).
+            if (idle.currentMap === "monte_floreto") {
+              monteFloretoKillsRef.current += 1;
+              monteFloretoRaidKillsRef.current += 1;
+              if (monteFloretoKillsRef.current >= monteFloretoShinyAtRef.current) {
+                monteFloretoKillsRef.current = 0;
+                monteFloretoShinyAtRef.current = 2000;
+                monteFloretoShinyDueRef.current = true;
+              }
+              if (monteFloretoRaidKillsRef.current >= 3000) {
+                monteFloretoRaidKillsRef.current = 0;
+                monteFloretoRaidDueRef.current = true;
+              }
+            }
+            // Contador OCULTO do HALLOW: a cada 300 Venusaur derrotados nasce um
+            // Venusaur SHINY (arte do Hallow). Sem aviso prévio.
+            if (idle.currentMap === "hallow" && speciesBaseOf(target.sp) === "venusaur") {
+              hallowVenusaurKillsRef.current += 1;
+              if (hallowVenusaurKillsRef.current >= 300) {
+                hallowVenusaurKillsRef.current = 0;
+                hallowShinyDueRef.current = true;
+              }
+            }
             // Contadores OCULTOS do Mapa Orange: shiny acima de 5000 kills (5000-5400)
             // e Charizard (não-shiny) raro — 1 a cada 150 kills (SEM aviso prévio)
             if (idle.currentMap === "mapa_orange") {
@@ -9147,8 +9976,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const rawGold = baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult;
           const gold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)));
           // 🪲 BIDRIL RAIDER gigante: bônus garantido de ouro ao derrotar (fora do cap).
-          const giantGoldBonus = target.giant ? 250 + Math.floor(Math.random() * 151) : 0;
-          if (target.giant) {
+          const isBidrilKill = target.giant && speciesBaseOf(target.sp) === "beedrill";
+          const giantGoldBonus = isBidrilKill ? 250 + Math.floor(Math.random() * 151) : 0;
+          if (isBidrilKill) {
             queueMicrotask(() => {
               pushChat(`🪲 BIDRIL RAIDER derrotado! +${giantGoldBonus} ouro de recompensa!`, "cap");
               pushFxAt(target.x, target.y - 60, `+${giantGoldBonus} OURO`, "gold");
@@ -9240,6 +10070,53 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             if (Math.random() < 0.60) drops.push("stone_dragon");
             if (Math.random() < 0.25) drops.push("stone_dragon");
             pushChat("🐉✦ Rayquaza Mítico caiu e deixou Stone Dragão!", "cap");
+          }
+          // ⚔️ RAID Arbok (Venenot): 10 Esferas de Safira — alimento do Ovo Selado Ancestral.
+          if (target.giant && idle.currentMap === "venenot" && speciesBaseOf(target.sp) === "arbok") {
+            for (let i = 0; i < 10; i++) drops.push("esfera_safira");
+            pushEvent("⚔", "ARBOK RAID DERROTADA!", "+10 Esferas de Safira", "#8b6bd6");
+            pushChat("⚔ ARBOK RAID derrotada! +10 Esferas de Safira — alimente o Ovo Selado Ancestral!", "cap");
+          }
+          // ⚔️ RAID Golem (Monte Floreto): 20 Pepitas de Ouro.
+          if (target.giant && idle.currentMap === "monte_floreto" && speciesBaseOf(target.sp) === "golem") {
+            for (let i = 0; i < 20; i++) drops.push("pepita");
+            pushEvent("⚔", "GOLEM RAID DERROTADO!", "+20 Pepitas de Ouro", "#d8a24a");
+            pushChat("⚔ GOLEM RAID derrotado! +20 Pepitas de Ouro!", "cap");
+          }
+          // 🎃 VENUSAUR DE HALLOW — drops raros do Venusaur (normal ou shiny) no Hallow:
+          //   · Esfera de Safira (alimento do Ovo Selado Ancestral) — rara
+          //   · Carta de Ouro (500 de ouro) — bem rara
+          //   · Pokébolas no chão — raras
+          if (idle.currentMap === "hallow" && speciesBaseOf(target.sp) === "venusaur") {
+            if (Math.random() < 0.015) {
+              drops.push("esfera_safira");
+              queueMicrotask(() => {
+                pushChat("🔮 O Venusaur de Hallow deixou uma Esfera de Safira!", "cap");
+                pushFxAt(target.x, target.y - 60, "ESFERA DE SAFIRA", "gold");
+              });
+            }
+            const nowVen = Date.now();
+            const dropAt = { x: Math.round(target.x + (Math.random() * 60 - 30)), y: Math.round(target.y + (Math.random() * 44 - 22)) };
+            const newVenDrops: GroundDrop[] = [];
+            if (Math.random() < 0.004) {
+              newVenDrops.push({
+                uid: `hven_${nowVen.toString(36)}_c`, mat: "morango" as MaterialId, qty: 1,
+                x: dropAt.x, y: dropAt.y, droppedAt: nowVen, card: "ouro500", map: idle.currentMap,
+              });
+              queueMicrotask(() => pushChat("🃏 Uma Carta de Ouro caiu perto do Venusaur! (500 de ouro)", "cap"));
+            }
+            if (Math.random() < 0.03) {
+              const qty = 1 + Math.floor(Math.random() * 3);
+              newVenDrops.push({
+                uid: `hven_${nowVen.toString(36)}_b`, mat: "morango" as MaterialId, qty,
+                x: Math.round(dropAt.x + (Math.random() * 40 - 20)), y: Math.round(dropAt.y + (Math.random() * 40 - 20)),
+                droppedAt: nowVen, itemId: "pokeball", map: idle.currentMap,
+              });
+              queueMicrotask(() => pushChat(`🔴 ${qty} Pokébola${qty > 1 ? "s" : ""} caíram no chão perto do Venusaur!`, "cap"));
+            }
+            if (newVenDrops.length > 0) {
+              setGroundDrops((prev) => [...prev.slice(-24), ...newVenDrops]);
+            }
           }
           // Evento Gelius: chance alta de cristal extra
           // (cristal extra do Gelius vai direto para o banco em setIdle abaixo)
@@ -9448,8 +10325,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
                 const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp ? 0.22 : 0.40) : 1;
-                 const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-                captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult;
+const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
+               // 🎃 Venusaur do Hallow: TODA bola perde quase toda a chance (captura bem difícil).
+               const hallowVenMult = idle.currentMap === "hallow" && (target.sp === "venusaur" || target.sp === "venusaur_shiny") ? 0.15 : 1;
+               captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * 0.9 * hallowVenMult;
               }
               if (captured) {
                 // 📖 Saga: progresso de capturas do objetivo ativo
@@ -10170,9 +11049,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const BIRD_WARN_MS = 5 * 60 * 1000; // aviso 5min antes
   useEffect(() => {
     const spawnBird = () => {
-      // Mapas limpos (src/lands): NUNCA spawna pokémon (nem lendários).
-      if (TELEPORT_LAND_MAP_IDS.includes(currentMapRef.current)) return;
-      if (currentMapRef.current === "arena" || currentMapRef.current === "mapinha10") return;
+      // Zonas seguras/cidades/mapas do Professor (NO_HIGH_EVENT_MAPS): NUNCA spawna
+      // lendários — Moltres/Articuno não entram em laboratório, cidades nem lands.
+      if (NO_HIGH_EVENT_MAPS.includes(currentMapRef.current)) return;
+      if (currentMapRef.current === "arena") return;
       const pick = BIRD_ROSTER[Math.floor(Math.random() * BIRD_ROSTER.length)];
       setEnemies((prev) => {
         if (prev.some((e) => e.sp === pick.sp)) return prev;
@@ -10324,7 +11204,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const isDittoSp2 = target.sp === "ditto" || target.sp === "ditto_shiny";
       const guardMult = target.apex ? 0.14 : target.guardian ? (isDittoSp2 ? 0.22 : 0.40) : 1;
       const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
-      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult);
+      // 🎃 Venusaur do Hallow: TODA bola perde quase toda a chance (captura bem difícil).
+      const hallowVenMult = idle.currentMap === "hallow" && (target.sp === "venusaur" || target.sp === "venusaur_shiny") ? 0.15 : 1;
+      chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult * 0.9 * hallowVenMult);
     }
     const success = Math.random() < chance;
     const ballId = usedBall.id;
@@ -10589,6 +11471,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       }
     } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_lugia" || id === "egg_dragonite") {
       openEgg(id as EggId);
+    } else if (id === "egg_anc_selado" || id === "egg_anc_plus" || id === "egg_anc_luck") {
+      // Ovos Ancestrais NÃO chocam na mochila: selam um pokémon ESCOLHIDO
+      // na aba ANCESTRAL do Professor (Laboratório).
+      pushChat(`🥚 Use os ovos ancestrais na aba ANCESTRAL do Professor (Laboratório). Toque no card do ancestral e use SELAR no card de ovos.`, "info");
+    } else if (id === "ticket_ancestral") {
+      pushChat(`🎫 Ticket Ancestral — leve-o à aba INCUBADORA do Professor (Laboratório) e abra o BAÚ ANCESTRAL.`, "info");
     } else if (id === "egg_sprigatito") {
       // Ovo da Carta: choca Sprigatito MÍTICO Nv 1 direto na coleção.
       const baby = { ...makePet("sprigatito" as Species, 1, "mythic" as Rarity), capturedAt: Date.now() } as CollectionEntry;
@@ -10732,6 +11620,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
   type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite";
+  // Ovos ancestrais: NÃO chocam sozinhos (selam o pokémon escolhido na aba ANCESTRAL).
+  type AncEggId = "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
     egg_common: { weights: { common: 70, uncommon: 25, rare: 5 } },
     egg_rare:   { weights: { uncommon: 20, rare: 55, epic: 22, legendary: 3 } },
@@ -10812,23 +11702,146 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
   };
 
-  // Loja — apenas 1 ovo místico (500 cristais), raridade totalmente aleatória
-  // Loja — ovos temporariamente removidos da venda
-  const SHOP_EGGS: { id: EggId; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[] = [];
+  // ═══ BAÚ ANCESTRAL — ÚNICA fonte dos ovos PLUS/LUCK (nenhum ovo é vendido) ═══
+  // Comprado na aba INCUBADORA com 1 TICKET ANCESTRAL (item concedido pelo admin).
+  // Abre com ANIMAÇÃO de 60s (ovos giram ao redor do baú e entram) e sorteia 50/50.
+  // A premiação é creditada NA HORA da compra — a animação é só visual.
+  const [chestAnim, setChestAnim] = useState<null | { phase: "open" | "reveal"; got: AncEggId }>(null);
+  useEffect(() => {
+    if (!chestAnim || chestAnim.phase !== "open") return;
+    const t = setTimeout(() => {
+      setChestAnim((c) => (c && c.phase === "open" ? { ...c, phase: "reveal" } : c));
+    }, 60_000);
+    return () => clearTimeout(t);
+  }, [chestAnim]);
 
-  const buyEgg = (e: typeof SHOP_EGGS[number]) => {
-    setIdle((s) => {
-      if (e.currency === "gold" && s.bank.gold < e.price) { pushChat(`Ouro insuficiente para ${e.name}.`, "info"); return s; }
-      if (e.currency === "crystals" && s.bank.crystals < e.price) { pushChat(`Cristais insuficientes para ${e.name}.`, "info"); return s; }
-      pushChat(`Comprou ${e.name}. Vá no Inventário e USE para chocar.`, "cap");
-      return {
-        ...s,
-        bank: e.currency === "gold"
-          ? { ...s.bank, gold: s.bank.gold - e.price }
-          : { ...s.bank, crystals: s.bank.crystals - e.price },
-        items: { ...s.items, [e.id]: (s.items[e.id] ?? 0) + 1 },
-      };
+  const buyAncChest = () => {
+    const ticketsN = idle.items?.ticket_ancestral ?? 0;
+    if (ticketsN < 1) {
+      pushChat("🎫 Você precisa de 1 TICKET ANCESTRAL para abrir o Baú Ancestral — peça ao admin, é ele quem concede o item!", "info");
+      return;
+    }
+    const got: AncEggId = Math.random() < 0.5 ? "egg_anc_plus" : "egg_anc_luck";
+    const nm = got === "egg_anc_plus" ? "Egg Ancestral PLUS (16 traits)" : "Egg Ancestral Luck (+3 DOURADOS)";
+    setIdle((s) => ({
+      ...s,
+      items: { ...s.items, ticket_ancestral: (s.items?.ticket_ancestral ?? 0) - 1, [got]: (s.items?.[got] ?? 0) + 1 },
+    }));
+    pushChat(`🎁 Baú Ancestral aberto: ${nm} recebido! Toque num ancestral na aba ANCESTRAL e SELAR.`, "cap");
+    pushFxAt(trainerPos.x, trainerPos.y - 70, "BAÚ ANCESTRAL!", "capture");
+    setChestAnim({ phase: "open", got });
+  };
+
+  // ═══ EGG SELADO ANCESTRAL — selar / alimentar (Esfera) / liberar (3 dias) ═══
+  const ANC_EGG_KIND: Record<AncEggId, AncestralEggKind> = {
+    egg_anc_selado: "selado", egg_anc_plus: "plus", egg_anc_luck: "luck",
+  };
+
+  const sealAncestral = (itemId: string, entryId: string) => {
+    const kind = ANC_EGG_KIND[itemId as AncEggId];
+    if (!kind) { pushChat("Ovo inválido.", "info"); return; }
+    if ((idle.items?.[itemId] ?? 0) <= 0) { pushChat("Você não tem esse ovo. Ganhe no Baú Ancestral (aba INCUBADORA).", "info"); return; }
+    if (idle.sealedEgg) { pushChat("Já existe um Ovo Selado em incubação — libere-o antes de selar outro.", "info"); return; }
+    const egg = sealAncestralEgg(kind, entryId);
+    if (!egg) { pushChat("Este ancestral não pode ser selado.", "info"); return; }
+    setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: (s.items[itemId] ?? 0) - 1 }, sealedEgg: egg }));
+    pushChat(`🥚 ${String(egg.species).toUpperCase()} SELADO no ovo — o ovo agora acompanha você no mapa! Libera em 3 DIAS ou já, com ${FED_CAP} Esferas.`, "cap");
+  };
+
+  const feedSealedEgg = (n = 1) => {
+    const egg = idle.sealedEgg;
+    if (!egg) { pushChat("Nenhum ovo selado para alimentar.", "info"); return; }
+    const have = idle.items?.esfera_safira ?? 0;
+    if (have <= 0) {
+      pushChat("Sem Esferas de Safira — derrote pokémons (3% de chance, 4× mais raro que a Pepita).", "info");
+      return;
+    }
+    const room = Math.max(0, FED_CAP - (egg.fed ?? 0));
+    if (room <= 0) { pushChat(`Ovo com alimentação máxima (${egg.fed}/${FED_CAP} esferas).`, "info"); return; }
+    const use = Math.max(1, Math.min(n, have, room));
+    const next = feedAncestralEggState(egg, use);
+    if (!next) { pushChat(`Ovo com alimentação máxima (${egg.fed}/${FED_CAP} esferas).`, "info"); return; }
+    setIdle((s) => ({ ...s, items: { ...s.items, esfera_safira: (s.items.esfera_safira ?? 0) - use }, sealedEgg: next }));
+    pushChat(
+      next.fed >= FED_CAP
+        ? `🫧 ${use} Esfera(s) dada(s) ao ovo — ${next.fed}/${FED_CAP}! O ancestral está pronto para chocar.`
+        : `🫧 ${use} Esfera(s) dada(s) ao ovo (${next.fed}/${FED_CAP}) — ↑ chance de traits DOURADOS na liberação.`,
+      "cap",
+    );
+  };
+
+  const hatchSealedEgg = () => {
+    const egg = idle.sealedEgg;
+    if (!egg) { pushChat("Nenhum ovo selado.", "info"); return; }
+    if (!isAncestralEggReady(egg)) {
+      const rem = ancestralEggRemaining(egg);
+      const d = Math.floor(rem / 86_400_000);
+      const h = Math.floor((rem % 86_400_000) / 3_600_000);
+      const m = Math.floor((rem % 3_600_000) / 60_000);
+      pushChat(`Ovo ainda SELADO — faltam ${d}d ${h}h ${m}min (ou complete ${FED_CAP} Esferas de Safira para chocar antes).`, "info");
+      return;
+    }
+    if ((idle.collection ?? []).length >= MAX_COLLECTION) {
+      pushChat(`Coleção cheia (${MAX_COLLECTION}) — libere espaço antes de chocar o ancestral.`, "info");
+      return;
+    }
+    const traits = hatchAncestralTraits(egg);
+    const pet = { ...makePet(egg.species, 100, "mythic_shiny" as Rarity), traits, capturedAt: Date.now() };
+    const sp = egg.species;
+    setIdle((s) => ({
+      ...s,
+      sealedEgg: null,
+      caughtSpecies: (s.caughtSpecies ?? []).includes(sp) ? s.caughtSpecies : [...(s.caughtSpecies ?? []), sp],
+      seenSpecies: (s.seenSpecies ?? []).includes(sp) ? s.seenSpecies : [...(s.seenSpecies ?? []), sp],
+      collection: [...(s.collection ?? []), { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now() }],
+    }));
+    setTeam((tm) => (tm.length >= 6 ? tm : [...tm, pet]));
+    try {
+      const raw = localStorage.getItem("rubym.save.v2");
+      const save = raw ? JSON.parse(raw) : {};
+      save.party = [...(save.party ?? []), pet];
+      localStorage.setItem("rubym.save.v2", JSON.stringify(save));
+    } catch { /* ignore */ }
+    setEggOpenResult({ sp: String(sp), rarity: "mythic_shiny" });
+    pushChat(`🐣 O OVO ABRIU: ${String(sp).toUpperCase()} LIBERADO com ${traits.length} traits (mín. ROXO)!`, "cap");
+    pushFxAt(trainerPos.x, trainerPos.y - 70, "ANCESTRAL!", "capture");
+  };
+
+  // ═══ PATENTE — prêmio de 7 dias (resgate manual) ═══
+  const claimPatentePrize = () => {
+    const info = patenteOf({
+      level: idle.trainerLevel ?? 1,
+      quests: (idle.profQuest?.completed?.length ?? 0)
+        + Object.keys(idle.sideQuests?.claimedAt ?? {}).length
+        + Object.keys(idle.saga?.claimed ?? {}).length,
+      kills: idle.totalKills ?? 0,
+      caught: (idle.caughtSpecies ?? []).length,
+      profDone: idle.profQuest?.completed?.length ?? 0,
+      profTotal: PROF_QUESTS.length,
+      sagaFinished: idle.saga?.finished ?? false,
     });
+    if (!patentePrizeReady(idle.patentePrizeAt)) {
+      pushChat("Prêmio da patente ainda em recarga — volte em breve.", "info");
+      return;
+    }
+    const prize = info.current.prize;
+    const hasItems = Object.keys(prize.items ?? {}).length > 0;
+    const itemParts: string[] = [];
+    if (prize.gold) itemParts.push(`+${prize.gold.toLocaleString("pt-BR")} 🪙`);
+    if (prize.crystals) itemParts.push(`+${prize.crystals} 💎`);
+    for (const [k, v] of Object.entries(prize.items ?? {})) itemParts.push(`+${v} ${String(k).replace(/_/g, " ")}`);
+    setIdle((s) => ({
+      ...s,
+      patentePrizeAt: Date.now(),
+      bank: {
+        ...s.bank,
+        gold: s.bank.gold + (prize.gold ?? 0),
+        crystals: s.bank.crystals + (prize.crystals ?? 0),
+      },
+      items: hasItems ? { ...s.items, ...(prize.items ?? {}) } : s.items,
+    }));
+    pushChat(`🏆 Prêmio de 7 dias da patente ${info.current.name} resgatado: ${itemParts.join(" · ")}!`, "cap");
+    pushFxAt(trainerPos.x, trainerPos.y - 70, "PATENTE!", "capture");
   };
 
   // Fragmentar Pokémon da coleção -> pontos de craft por raridade
@@ -10937,7 +11950,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
     // Mapas do EVENTO (Torre Elemental) SPAWNAM — são zonas de batalha do evento.
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir") {
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") {
       return null;
     }
     const leaderLv = team[0]?.level ?? 10;
@@ -11147,6 +12160,59 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           // Escada de progressão: Bidril e Kakuna = Lv40–70
           mapLvRange = [40, 70];
+        }
+        if (idle.currentMap === "venenot") {
+          // VENENOT: venenosos com pesos aleatórios (Arbok bem fácil; alguns bem raros).
+          // Shiny e RAID da Arbok NÃO entram na pool normal — só via contador oculto de kills.
+          pool = [pickWeighted(VENENOT_POOL)];
+          if (venenotShinyDueRef.current && !enemies.some((e) => e.hp > 0 && String(e.sp).includes("shiny"))) {
+            pool = [POISON_SHINIES[Math.floor(Math.random() * POISON_SHINIES.length)]];
+            venenotShinyDueRef.current = false;
+            // Garante raridade boa e pula o gate de valiosos
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          } else if (venenotRaidDueRef.current && !enemies.some((e) => e.hp > 0 && e.giant && speciesBaseOf(e.sp) === "arbok")) {
+            pool = ["arbok"] as Species[];
+            venenotRaidDueRef.current = false;
+            forcedRarity = "epic";
+            mapRaidSpawnRef.current = true;
+            setTimeout(() => pushChat("⚔️ Uma ARBOK RAID de 2x tamanho surgiu no Venenot! Derrote-a pelas Esferas de Safira!", "cap"), 60);
+          }
+          mapLvRange = [120, 150];
+        }
+        if (idle.currentMap === "monte_floreto") {
+          // MONTE FLORETO: mesmos venenosos + alguns Golem (Lv130–140).
+          // Shiny e RAID do Golem NÃO entram na pool normal — só via contador oculto de kills.
+          pool = [pickWeighted(MONTE_FLORETO_POOL)];
+          if (monteFloretoShinyDueRef.current && !enemies.some((e) => e.hp > 0 && String(e.sp).includes("shiny"))) {
+            pool = [POISON_SHINIES[Math.floor(Math.random() * POISON_SHINIES.length)]];
+            monteFloretoShinyDueRef.current = false;
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+          } else if (monteFloretoRaidDueRef.current && !enemies.some((e) => e.hp > 0 && e.giant && speciesBaseOf(e.sp) === "golem")) {
+            pool = ["golem"] as Species[];
+            monteFloretoRaidDueRef.current = false;
+            forcedRarity = "epic";
+            mapRaidSpawnRef.current = true;
+            setTimeout(() => pushChat("🛡️ Um GOLEM RAID de 2x tamanho surgiu no Monte Floreto! Derrote-o pelas Pepitas de Ouro!", "cap"), 60);
+          }
+          mapLvRange = [130, 140];
+        }
+        if (idle.currentMap === "hallow") {
+          // HALLOW: Venusaur de Hallow + Ivysaur, Bulbasaur, Gastly e Gengar (Nv99–120).
+          // O Venusaur SHINY (arte exclusiva) NÃO entra na pool — só pelo contador
+          // de Venusaur derrotados (1 a cada 300).
+          pool = [pickWeighted(HALLOW_POOL)];
+          if (hallowShinyDueRef.current && !enemies.some((e) => e.hp > 0 && e.sp === "venusaur_shiny")) {
+            pool = ["venusaur_shiny"] as Species[];
+            hallowShinyDueRef.current = false;
+            forcedRarity = Math.random() < 0.7 ? "rare" : "epic";
+            setTimeout(() => pushChat("🎃 Um VENUSAUR SHINY DE HALLOW apareceu no mapa — captura raríssima!", "cap"), 60);
+          }
+          mapLvRange = [99, 120];
+        }
+        if (idle.currentMap === "caverna_brok") {
+          // CAVERNA DE BROK: Onix, Onix Shiny (bem raro) e Golem (Nv99–120).
+          pool = [pickWeighted(CAVERNA_BROK_POOL)];
+          mapLvRange = [99, 120];
         }
         if (idle.currentMap === "mapa_orange") {
           // Mapa Orange: charmander/vulpix/magmar comuns; charizard raro (contador 150).
@@ -11423,7 +12489,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // normal vira um Shiny da pool do mapa (1 por vez, sem fila).
         // Contadores ocultos por mapa têm prioridade (não mexe se já forçaram).
         let milestoneForced = false;
-        if (globalShinyDueRef.current && !forcedRarity && idle.currentMap !== "mapa_orange") {
+        if (globalShinyDueRef.current && !forcedRarity && idle.currentMap !== "mapa_orange" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto") {
           const allowPool = allowedSpeciesForMap(idle.currentMap) ?? pool;
           const shinyCands = allowPool.filter((s) => String(s).includes("shiny") && hasGif(s));
           const shinyAlive = enemiesRef.current.some((e) => e.hp > 0 && String(e.sp).includes("shiny"));
@@ -11640,6 +12706,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         lv = Math.min(70, Math.max(40, leaderLv + 8));
         pet = makePet(sp, lv, allowEpic ? "epic" : "rare");
       }
+      // ⚔️ RAID dos mapas do Professor (gigante 2x): Arbok no Venenot / Golem no Monte Floreto.
+      const isMapRaid = mapRaidSpawnRef.current === true && (
+        (idle.currentMap === "venenot" && speciesBaseOf(sp) === "arbok") ||
+        (idle.currentMap === "monte_floreto" && speciesBaseOf(sp) === "golem")
+      );
+      mapRaidSpawnRef.current = false;
       // 🖤 GUARDIÕES ANTI-PARALISIA — Ditto Shiny / Scizor / Umbreon
       // Aparecem raro em mapas ou com líder > Lv 100. Estrela preta ✦. Difícil de capturar.
       // Raridade varia de comum a mítico.
@@ -11739,7 +12811,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const apexHpMult = isApex ? 4.5 : 1;
       const menaceHpMult = isMenace ? 18 : 1;
       const mythEventHpMult = isMythShinyEvent ? 3.5 : 1;
-      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * ((isRider || isBidrilRaider) ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
+      const hp = Math.floor(baseHp * (elite ? 1.6 : 1) * ((isRider || isBidrilRaider || isMapRaid) ? 2.6 : 1) * roamerHpMult * highHp * guardianHpMult * apexHpMult * menaceHpMult * mythEventHpMult);
       const isAggro = isMenace ? false : true; // menace começa passivo
       const aggroR = elite ? 300 : isApex ? 360 : isMythShinyEvent ? 480 : 220 + Math.floor(Math.random() * 60);
 
@@ -11785,7 +12857,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         behavior = "aggressive";
         agg = true;
       }
-      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: Math.random() < 0.5 ? "left" : "right", aggressive: agg, aggroR: aggroRx, elite, level: lv, rarity: pet.rarity, rider: (isRider || isBidrilRaider), giant: isBidrilRaider || undefined, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: behavior === "passive" ? "IDLE" : "WANDER", behavior, nextSkillAt: Date.now() + 4000 + Math.random() * 5000 };
+      return { sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: Math.random() < 0.5 ? "left" : "right", aggressive: agg, aggroR: aggroRx, elite, level: lv, rarity: pet.rarity, rider: (isRider || isBidrilRaider), giant: (isBidrilRaider || isMapRaid) || undefined, guardian: isGuardian || isApex || isDialgaEvent, apex: isApex || isDialgaEvent, eventLegendary: isMythicRoamer || isDialgaEvent || isMenace || isMythShinyEvent || isMtcBoss, disguise, revealed: false, menace: isMenace, mtcBoss: isMtcBoss, spawnX: x, spawnY: y, wanderRadius: wanderR, detectionRadius: detectR, maxChaseDistance: maxChase, aiState: behavior === "passive" ? "IDLE" : "WANDER", behavior, nextSkillAt: Date.now() + 4000 + Math.random() * 5000 };
 
 
     }
@@ -11796,7 +12868,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
-    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus") return [];
+    if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -11997,10 +13069,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         }
         playBonus();
       });
-      return {
-        ...s, items, bank,
-        sideQuests: { ...cur, accepted, count, claimedAt, completed },
-      };
+      return applySpiritEvent(
+        {
+          ...s, items, bank,
+          sideQuests: { ...cur, accepted, count, claimedAt, completed },
+        },
+        spiritEventId("side", qid),
+      );
     });
   };
 
@@ -12068,12 +13143,15 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           setSagaChoiceSel([]);
         }
       });
-      return {
-        ...s,
-        items,
-        bank: { ...s.bank, gold },
-        saga: { ...cur, stage: nextStage, count: 0, claimed: { ...cur.claimed, [stageId]: true } },
-      };
+      return applySpiritEvent(
+        {
+          ...s,
+          items,
+          bank: { ...s.bank, gold },
+          saga: { ...cur, stage: nextStage, count: 0, claimed: { ...cur.claimed, [stageId]: true } },
+        },
+        spiritEventId("saga", stageId),
+      );
     });
   };
 
@@ -12212,6 +13290,246 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const until = idle.buffs?.goldMultUntil ?? 0;
     return until > Date.now();
   };
+  // ===== Professor do Laboratório: diálogos → quests (kills/caps/shiny/nível) =====
+  const profAcceptQuest = (id: ProfQuestId) => {
+    const q = idle.profQuest;
+    if (q?.active) {
+      pushChat("Conclua a missão atual do Professor antes de aceitar outra.", "info");
+      return;
+    }
+    if (q?.completed?.includes(id)) return;
+    const def = PROF_QUESTS.find((x) => x.id === id);
+    if (!def) return;
+    setIdle((s) => ({
+      ...s,
+      profQuest: {
+        ...(s.profQuest ?? {}),
+        active: id,
+        startKills: s.totalKills ?? 0,
+        startCaps: s.totals?.captured ?? 0,
+        startLevel: s.trainerLevel ?? 1,
+        startedAt: Date.now(),
+      },
+    }));
+    pushChat(`📜 Missão aceita: ${def.title} — ${def.objective}.`, "cap");
+    playBonus();
+  };
+  const profClaimQuest = () => {
+    const q = idle.profQuest;
+    if (!q?.active) return;
+    // Missões de shiny exigem captura DEPOIS do aceite (capturedAt no save).
+    const capturedSince = (species: string, since: number) =>
+      (idle.collection ?? []).some(
+        (e) => String(e.species) === species && (e.capturedAt ?? 0) >= since,
+      );
+    if (
+      !profQuestDone(q, {
+        kills: idle.totalKills ?? 0,
+        captures: idle.totals?.captured ?? 0,
+        level: idle.trainerLevel ?? 1,
+        capturedSince,
+      })
+    )
+      return;
+    const id = q.active;
+    const def = PROF_QUESTS.find((x) => x.id === id);
+    if (!def) return;
+    setIdle((s) => {
+      const items = { ...s.items };
+      const bank = { ...s.bank };
+      for (const [k, v] of Object.entries(def.grant.items ?? {})) {
+        items[k] = (items[k] ?? 0) + v;
+      }
+      bank.gold += def.grant.gold ?? 0;
+      bank.crystals += def.grant.crystals ?? 0;
+      const completed = Array.from(new Set([...(s.profQuest?.completed ?? []), id]));
+      return applySpiritEvent(
+        {
+          ...s,
+          items,
+          bank,
+          profQuest: { ...(s.profQuest ?? {}), active: undefined, completed },
+        },
+        spiritEventId("prof", id),
+      );
+    });
+    pushChat(`🎓 Missão "${def.title}" concluída! Recompensa: ${def.reward}.`, "cap");
+    playBonus();
+  };
+  // ===== ⛵ Loja de barcos (aba BARCO do Professor) =====
+  const buyBoat = (tier: BoatTier) => {
+    const def = BOAT_BY_TIER[tier];
+    if (!def) return;
+    const cur = idle.ship?.tier;
+    if (cur) {
+      const rank: Record<BoatTier, number> = { comum: 0, raro: 1, epico: 2, lendario: 3 };
+      if (rank[cur] >= rank[tier]) {
+        pushChat(`⛵ Você já tem ${BOAT_BY_TIER[cur].name}. Não é possível rebaixar nem trocar de casco.`, "info");
+        return;
+      }
+    }
+    const g = idle.bank?.gold ?? 0;
+    const p = idle.items?.pepita ?? 0;
+    if (g < def.priceGold || p < def.pricePepitas) {
+      pushChat(
+        `⛵ ${def.name} custa ${def.priceGold} 🪙 e ${def.pricePepitas} Pepitas de Ouro (você tem ${g} 🪙 e ${p} 🥇).`,
+        "info",
+      );
+      return;
+    }
+    playBonus();
+    setIdle((s) => ({
+      ...s,
+      bank: { ...s.bank, gold: s.bank.gold - def.priceGold },
+      items: { ...s.items, pepita: (s.items.pepita ?? 0) - def.pricePepitas },
+      ship: { tier, hp: def.hp, fuel: def.fuelSec },
+    }));
+    setShipSunk(false);
+    pushChat(`⛵ ${def.name} construído! Casco ${def.hp} e tanque cheio (${def.fuelSec}s).`, "cap");
+  };
+
+  const buyOil = (qty: number) => {
+    const n = Math.max(1, Math.floor(qty || 1));
+    const cost = OIL_PRICE_GOLD * n;
+    if ((idle.bank?.gold ?? 0) < cost) {
+      pushChat(`🛢️ Óleo custa ${OIL_PRICE_GOLD} 🪙 por unidade (precisa de ${cost} 🪙).`, "info");
+      return;
+    }
+    playBonus();
+    setIdle((s) => ({
+      ...s,
+      bank: { ...s.bank, gold: s.bank.gold - cost },
+      items: { ...s.items, [OIL_ITEM]: (s.items[OIL_ITEM] ?? 0) + n },
+    }));
+    pushChat(`🛢️ Comprou ${n} Óleo por ${cost} 🪙.`, "cap");
+  };
+
+  const refuelShip = () => {
+    const tier = idle.ship?.tier;
+    if (!tier) return;
+    const def = BOAT_BY_TIER[tier];
+    const have = idle.items?.[OIL_ITEM] ?? 0;
+    if (have <= 0) {
+      pushChat("🛢️ Sem Óleo. Compre na aba BARCO.", "info");
+      return;
+    }
+    const max = maxFuelOf(tier);
+    if ((idle.ship?.fuel ?? 0) >= max) {
+      pushChat(`⛵ Tanque já está cheio (${max}s).`, "info");
+      return;
+    }
+    playBonus();
+    setIdle((s) => ({
+      ...s,
+      items: { ...s.items, [OIL_ITEM]: (s.items[OIL_ITEM] ?? 0) - 1 },
+      ship: { ...s.ship, fuel: max },
+    }));
+    setShipSunk(false);
+    pushChat(`⛵ Tanque reabastecido (${max}s) com 1 Óleo.`, "cap");
+  };
+
+  const repairShip = () => {
+    const tier = idle.ship?.tier;
+    if (!tier) return;
+    const def = BOAT_BY_TIER[tier];
+    const max = maxHpOf(tier);
+    if ((idle.ship?.hp ?? 0) >= max) {
+      pushChat(`🔧 Casco já está intacto (${max}).`, "info");
+      return;
+    }
+    const cost = Math.floor(max * 0.25);
+    if ((idle.bank?.gold ?? 0) < cost) {
+      pushChat(`🔧 Reparo custa ${cost} 🪙 (você tem ${idle.bank?.gold ?? 0} 🪙).`, "info");
+      return;
+    }
+    playBonus();
+    setIdle((s) => ({
+      ...s,
+      bank: { ...s.bank, gold: s.bank.gold - cost },
+      ship: { ...s.ship, hp: max },
+    }));
+    pushChat(`🔧 Casco reparado por ${cost} 🪙.`, "cap");
+  };
+
+  // Viagem pelos mapas do Professor (aba MAPAS): sem nível, sem energia,
+  // sem transição longa — instantânea, igual portais internos do jogo.
+  const profTravelTo = (mapId: string) => {
+    const m = IDLE_MAPS[mapId];
+    const spawn = PROF_SPAWNS[mapId];
+    if (!m || !spawn) return;
+    // Requisitos de desbloqueio: pontos de sucata (terrestres) ou nível de treinador (mar avançado).
+    const def = PROF_MAP_BY_ID[mapId as keyof typeof PROF_MAP_BY_ID];
+    if (def) {
+      const bank = idle.scrapBank ?? 0;
+      const tlv = idle.trainerLevel ?? 1;
+      if (def.reqPts != null && bank < def.reqPts) {
+        pushChat(`🔒 ${m.name} requer ${def.reqPts} pts de sucata no banco (você tem ${bank}). Troque na aba BARCO.`, "info");
+        return;
+      }
+      if (def.reqLevel != null && tlv < def.reqLevel) {
+        pushChat(`🔒 ${m.name} requer Treinador Nv ${def.reqLevel} (você tem Nv ${tlv}).`, "info");
+        return;
+      }
+    }
+    // Jornada dos Navegantes: só a bordo. Sem barco (ou sem tier válido) a
+    // viagem é recusada com aviso — nada é gasto e nada muda de mapa.
+    if (isWaterMap(mapId) && !idle.ship?.tier) {
+      pushChat("⛵ Precisa de um barco para entrar na água. Compre na aba BARCO do Professor.", "info");
+      return;
+    }
+    // Mapas do laboratório: após desbloquear, cada entrada custa LAB_MAP_ENERGY_COST
+    // de energia. Mapas `free` (Hallow, Caverna de Brok) não gastam nada.
+    const payableDef = def && !def.free ? def : null;
+    if (payableDef && trainerEnergy < LAB_MAP_ENERGY_COST) {
+      pushChat(`⚡ ${m.name} exige ${LAB_MAP_ENERGY_COST} de energia para entrar (você tem ${trainerEnergy}).`, "info");
+      return;
+    }
+    playClick();
+    setProfessorOpen(false);
+    if (payableDef) setTrainerEnergy((e) => Math.max(0, (e ?? 0) - LAB_MAP_ENERGY_COST));
+    setIdle((state) => ({ ...state, currentMap: mapId as IdleMapId }));
+    setTrainerPos(spawn);
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setEnemies([]);
+    setChests([]);
+    setMapOrbs([]);
+    clearBattleScene();
+    pushChat(`🗺️ Você viajou para ${m.name}!${payableDef ? ` (-${LAB_MAP_ENERGY_COST} ⚡)` : ""}`, "info");
+  };
+
+  // HALLOW → CAVERNA DE BROK: pisar na LUZ AMARELA (pixels amarelos puros da
+  // máscara) abre a fenda. Sem custo de energia e sem confirmação.
+  const enterBrokCave = (from: { x: number; y: number }, light: { x: number; y: number }) => {
+    const spawn = PROF_SPAWNS.caverna_brok ?? { x: 621, y: 657 };
+    brokEntryRef.current = { x: from.x, y: from.y, lx: light.x, ly: light.y };
+    brokTeleportRef.current = Date.now() + 3000;
+    playClick();
+    setIdle((state) => ({ ...state, currentMap: "caverna_brok" as IdleMapId }));
+    setTrainerPos(spawn);
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setEnemies([]);
+    setChests([]);
+    setMapOrbs([]);
+    clearBattleScene();
+    pushChat("🕳️ A luz o puxou para dentro da Caverna de Brok!", "cap");
+  };
+  useEffect(() => {
+    if (idle.currentMap !== "hallow") return;
+    const iv = setInterval(() => {
+      const now = Date.now();
+      if (now < brokTeleportRef.current) return;
+      const p = trainerPosRef.current;
+      if (!p) return;
+      // O centro nunca entra na área bloqueada: amostra o corpo do treinador.
+      const near = [{ x: p.x, y: p.y }, { x: p.x + 12, y: p.y }, { x: p.x - 12, y: p.y }, { x: p.x, y: p.y + 12 }, { x: p.x, y: p.y - 12 }];
+      const hit = near.find((q) => maskZoneAt("hallow", q.x, q.y) === 2);
+      if (hit) enterBrokCave(p, hit);
+    }, 220);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap]);
   const listMarketItem = async (itemId: string, qty: number, price: number, currency: "gold" | "crystal" | "safira" = "gold"): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para anunciar.", "info"); return false; }
     if (!isVip()) { pushChat("✦ Anunciar no mercado é exclusivo VIP. Use um Livro VIP na Loja.", "info"); return false; }
@@ -14249,6 +15567,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const ex = (wx - 325) / 175, ey = (wy - 215) / 115;
               if (ex * ex + ey * ey <= 1) { playClick(); setFishingOpen(true); return; }
             }
+            // Navegação: nos mapas de água o clique NÃO anda sozinho. O barco
+            // é pilotado só pelas teclas — o automático ignoraria o combate,
+            // o combustível e os redemoinhos.
+            if (isWaterMap(idle.currentMap)) {
+              playClick();
+              pushChat("⛵ No barco você pilota com W A S D (ou setas).", "info");
+              return;
+            }
             const isSmallWalk = ["arena", "arena"].includes(idle.currentMap) && customDims;
             const cWw = isSmallWalk ? customDims!.w : WORLD_W;
             const cHw = isSmallWalk ? customDims!.h : WORLD_H;
@@ -14306,6 +15632,350 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             </div>
           )}
           {/* Nome/Estilo no canto esquerdo � Revoland (mapinha6), esconde quando aba aberta */}
+          {/* MAPAS DO PROFESSOR — nome do mapa no canto + volta ao Laboratório */}
+          {PROF_FX[idle.currentMap] && !isWaterMap(idle.currentMap) && (() => {
+            const pm = IDLE_MAPS[idle.currentMap];
+            return (
+              <div style={{ position: "absolute", top: 12, left: 12, zIndex: 68, pointerEvents: "none", background: "rgba(11,5,16,0.88)", border: "1px solid rgba(245,207,107,0.45)", borderRadius: 10, padding: "6px 10px", display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
+                <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13, letterSpacing: 0.5, textShadow: "1px 1px 0 #000" }}>{pm.name}</span>
+                <span style={{ color: "#c8b8d0", fontSize: 11, fontWeight: 700 }}>{pm.diff} · sem pokémon · sem objetos</span>
+              </div>
+            );
+          })()}
+          {/* Sucata que afundou com o barco (fica visivel no chao do mar) */}
+          {droppedScrap.map((d, i) => (
+            <div key={`drop-${i}`} style={{
+              position: "absolute", left: d.x, top: d.y + 6,
+              width: 34, height: 34, transform: "translate(-50%,-50%)",
+              zIndex: Math.round(d.y), pointerEvents: "none", opacity: 0.8,
+            }}>
+              <img src={SUCATA_URL} alt="" style={{
+                width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated",
+                filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) grayscale(0.5)",
+              }} />
+            </div>
+          ))}
+
+          {/* TELA: seu barco quebrou */}
+          {wrecked && (
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 12000, pointerEvents: "none",
+              display: "grid", placeItems: "center",
+              background: "radial-gradient(circle at 50% 45%, rgba(20,40,70,0.55), rgba(0,0,0,0.93))",
+              animation: "none",
+            }}>
+              <div style={{ textAlign: "center", animation: "chest-pop 400ms ease-out" }}>
+                <div style={{ fontSize: 58, filter: "drop-shadow(0 0 18px rgba(120,220,255,0.9))" }}>⛵💥</div>
+                <div style={{
+                  color: "#ff6b6b", fontSize: 26, fontWeight: 900, letterSpacing: 3,
+                  fontFamily: "monospace", marginTop: 10,
+                  textShadow: "0 0 20px rgba(255,60,60,0.9), 0 2px 0 #000",
+                }}>
+                  SEU BARCO QUEBROU
+                </div>
+                <div style={{ color: "#c9a882", fontSize: 12, marginTop: 10, fontFamily: "monospace" }}>
+A sucata afundou com o casco.
+                </div>
+                <div style={{
+                  color: "#ff8a7a", fontSize: 13, fontWeight: 900, marginTop: 10,
+                  fontFamily: "monospace",
+                }}>
+                  A CARGA DESTA CORRIDA SE PERDEU
+                </div>
+                <div style={{ color: "#5f7f8f", fontSize: 11, marginTop: 14, fontFamily: "monospace" }}>
+                  Voltando ao Laboratório…
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Confirmacao de saida: entregar ou abortar */}
+          {exitAsk && (
+            <div onClick={() => setExitAsk(false)} style={{
+              position: "absolute", inset: 0, zIndex: 12100,
+              background: "rgba(0,0,0,0.72)", display: "grid", placeItems: "center", padding: 12,
+            }}>
+              <div onClick={(e) => e.stopPropagation()} style={{
+              width: "min(340px, 100%)", background: "rgba(10,16,24,0.97)",
+              border: `2px solid ${scrapPoints > 0 ? "#c98a4b" : "#ff6b6b"}`, borderRadius: 14,
+              padding: 16, fontFamily: "monospace", textAlign: "center",
+              boxShadow: "0 0 24px rgba(0,0,0,0.6)",
+            }}>
+              <div style={{ fontSize: 10, letterSpacing: 2, color: scrapPoints > 0 ? "#c98a4b" : "#ff6b6b", fontWeight: 900 }}>
+                {scrapPoints > 0 ? "ENTREGAR A SUCATA" : "FORA DO POSTO = ABORTAR"}
+              </div>
+              <div style={{ color: "#fff", fontSize: 15, fontWeight: 900, marginTop: 8 }}>
+                {scrapPoints} ponto(s) de sucata
+              </div>
+              <div style={{ color: "#93a9ba", fontSize: 10, marginTop: 8, lineHeight: 1.6 }}>
+{scrapPoints > 0
+                  ? "Você entrega o que juntou e volta pro mestre com os pontos."
+                  : "Você está FORA de um posto de abastecimento e não pegou sucata — isso conta como missão abortada, sem recompensa."}
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                <button onClick={() => setExitAsk(false)} style={{
+                  flex: 1, padding: "9px 0", cursor: "pointer", fontFamily: "monospace",
+                  fontSize: 10, fontWeight: 900, color: "#04141a", background: "#8a6a4b",
+                  border: "none", borderRadius: 8,
+                }}>FICAR</button>
+                <button onClick={() => exitToLab(scrapPoints > 0)} style={{
+                  flex: 1, padding: "9px 0", cursor: "pointer", fontFamily: "monospace",
+                  fontSize: 10, fontWeight: 900, color: "#04141a",
+                  background: scrapPoints > 0 ? "#c98a4b" : "#ff6b6b",
+                  border: "none", borderRadius: 8,
+                }}>{scrapPoints > 0 ? "ENTREGAR" : "ABORTAR"}</button>
+              </div>
+            </div>
+          </div>
+          )}          {/* HUD compacta do barco */}
+          {isWaterMap(idle.currentMap) && (() => {
+            const t = shipTier;
+            if (!t) return null;
+            const d = BOAT_BY_TIER[t];
+            const m = BOAT_TIER_META[t];
+            const hp = Math.max(0, shipHp);
+            const fuel = Math.max(0, shipFuel);
+            const maxHp = maxHpOf(t);
+            const maxFuel = maxFuelOf(t);
+            const low = fuel <= maxFuel * 0.15 || hp <= maxHp * 0.15;
+            const atPost = (REFUEL_STATIONS[idle.currentMap] ?? []).some(
+              (st) => Math.hypot(trainerPos.x - st.x, trainerPos.y - st.y) < 70,
+            );
+            const oilN = idle.items?.[OIL_ITEM] ?? 0;
+            const thin = (val: number, max: number, color: string) => (
+              <div style={{ height: 4, flex: 1, background: "rgba(0,0,0,0.8)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ width: `${Math.max(0, Math.min(100, (val / max) * 100))}%`, height: "100%", background: color, transition: "width .3s" }} />
+              </div>
+            );
+            return (
+              <div style={{
+                position: "absolute", top: 10, left: 10, zIndex: 68, pointerEvents: "none",
+                width: 168, borderRadius: 14,
+                background: "rgba(8,14,22,0.86)",
+                border: `1px solid ${low ? "#ff5c5c" : m.neon}88`,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.55)",
+                padding: "7px 9px",
+              }}>
+                <div
+                  onClick={() => { playClick(); setCrewOpen(true); }}
+                  style={{ display: "flex", gap: 7, alignItems: "center", cursor: "pointer", pointerEvents: "auto" }}
+                  title="Perfil do barco — trocar tripulante e lançar a skill"
+                >
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                    backgroundImage: `url("${BOAT_SHOP_ICON}")`,
+                    backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center",
+                    imageRendering: "pixelated",
+                  }} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ color: "#fff", fontSize: 10, fontWeight: 900, lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</div>
+                    <div style={{ display: "flex", gap: 5, marginTop: 2, fontSize: 7.5, fontFamily: "monospace" }}>
+                      <span style={{ color: "#7fd8ff" }}>⚡{d.speed.toFixed(2)}</span>
+                      <span style={{ color: "#c98a4b" }}>🗑{scrapPoints + scrapBank}</span>
+                      <span style={{ color: "#c9a882", display: "flex", alignItems: "center", gap: 2 }}>
+                        <img src={OIL_ICON} alt="" style={{ width: 9, height: 9, objectFit: "contain" }} />{oilN}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ fontSize: 7.5, color: "#5ce87f", fontFamily: "monospace" }}>HP</span>
+                    {thin(hp, maxHp, "#5ce87f")}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ fontSize: 7.5, color: "#ffb347", fontFamily: "monospace" }}>CMB</span>
+                    {thin(fuel, maxFuel, "#ffb347")}
+                  </div>
+                </div>
+                {atPost ? (
+                  <div style={{ display: "flex", gap: 4, marginTop: 6, pointerEvents: "auto" }}>
+                    <button
+                      onClick={() => { playClick(); refuelShip(); }}
+                      disabled={oilN <= 0 || fuel >= maxFuel}
+                      style={{
+                        flex: 1, padding: "4px 0", cursor: oilN <= 0 || fuel >= maxFuel ? "not-allowed" : "pointer",
+                        fontFamily: "monospace", fontSize: 7.5, fontWeight: 900,
+                        color: oilN <= 0 || fuel >= maxFuel ? "#5f4a3a" : "#1a0c04",
+                        background: oilN <= 0 || fuel >= maxFuel ? "rgba(80,55,35,0.45)" : "#ffb347",
+                        border: "none", borderRadius: 5,
+                      }}
+                    >
+                      ABASTECER
+                    </button>
+                    <button
+                      onClick={() => { playClick(); buyOil(1); }}
+                      style={{
+                        padding: "4px 6px", cursor: "pointer", fontFamily: "monospace",
+                        fontSize: 7.5, fontWeight: 900, color: "#1a0c04", background: "#c98a4b",
+                        border: "none", borderRadius: 5,
+                      }}
+                    >
+                      +{OIL_PRICE_GOLD}
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 5, fontSize: 7, color: "#5f7f8f", fontFamily: "monospace", textAlign: "center" }}>
+                    VÁ ATÉ UM POSTO ⛽
+                  </div>
+                )}
+                {rainOn && <div style={{ marginTop: 3, fontSize: 7, color: "#8fd0ff", fontFamily: "monospace", textAlign: "center" }}>🌧 CHUVA</div>}
+              </div>
+            );
+          })()}          {/* Perfil do barco — tripulante aquático + skill */}
+          {crewOpen && (() => {
+            const sp = idle.ship?.crew;
+            return (
+              <div
+                onClick={() => setCrewOpen(false)}
+                style={{
+                  position: "fixed", inset: 0, zIndex: 10095,
+                  background: "rgba(0,0,0,0.7)", display: "grid", placeItems: "center", padding: 12,
+                }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "min(420px, 100%)", maxHeight: "82vh", overflow: "auto",
+                    background: "linear-gradient(160deg, rgba(201,138,75,0.2), rgba(8,14,22,0.97) 55%)",
+                    border: "2px solid #c98a4b", borderRadius: 14, padding: 16,
+                    boxShadow: "0 0 30px rgba(201,138,75,0.5)",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  <div style={{ color: "#c98a4b", fontSize: 10, fontWeight: 900, letterSpacing: 1.5 }}>
+                    PERFIL DO BARCO
+                  </div>
+                  <div style={{ color: "#fff", fontSize: 17, fontWeight: 900, marginTop: 4 }}>
+                    TRIPULANTE
+                  </div>
+                  <div style={{ color: "#93a9ba", fontSize: 10, marginTop: 6, lineHeight: 1.6 }}>
+                    Escolha um Pokémon <b style={{ color: "#5ec8f0" }}>de água</b> para embarcar. É ele que
+                    lança a skill nos Tentacool — mas o dano vem no <b style={{ color: "#ff8a8a" }}>casco do barco</b>
+                    quando os Tentacool revidam.
+                  </div>
+
+                  <div style={{ marginTop: 12, display: "grid", gap: 6 }}>
+                    {WATER_CREW.length === 0 && (
+                      <div style={{ color: "#ff8a8a", fontSize: 10, padding: 10, textAlign: "center", border: "1px dashed #ff8a8a55", borderRadius: 8 }}>
+                        Nenhum Pokémon de água na sua equipe. Troque na Coleção.
+                      </div>
+                    )}
+                    {WATER_CREW.map((p) => {
+                      const on = sp === p.species;
+                      return (
+                        <button
+                          key={p.uid ?? p.species}
+                          onClick={() => setCrew(p.species)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 9, width: "100%",
+                            padding: "7px 9px", cursor: "pointer", textAlign: "left",
+                            background: on ? "rgba(201,138,75,0.3)" : "rgba(0,0,0,0.45)",
+                            border: `1px solid ${on ? "#c98a4b" : "rgba(201,138,75,0.3)"}`,
+                            borderRadius: 9, color: "#fff",
+                          }}
+                        >
+                          <img
+                            src={GIF[p.species]}
+                            alt=""
+                            style={{ width: 34, height: 34, objectFit: "contain", imageRendering: "pixelated" }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, fontWeight: 900 }}>
+                              {p.species.replace(/_/g, " ").toUpperCase()}
+                            </div>
+                            <div style={{ fontSize: 9, color: "#93a9ba" }}>Nv {p.level} · Dano {Math.round(14 + p.level * 0.55)}</div>
+                          </div>
+                          {on && <span style={{ color: "#ffd94d", fontSize: 10, fontWeight: 900 }}>✔</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => { playClick(); launchCrewSkill(); }}
+                    disabled={!sp}
+                    style={{
+                      marginTop: 14, width: "100%", padding: "10px 0", cursor: sp ? "pointer" : "not-allowed",
+                      fontWeight: 900, fontSize: 11, letterSpacing: 1.5, fontFamily: "monospace",
+                      color: sp ? "#04141a" : "#5f4a3a",
+                      background: sp ? "#5ec8f0" : "rgba(80,55,35,0.45)",
+                      border: "none", borderRadius: 9,
+                      boxShadow: sp ? "0 0 16px rgba(94,200,240,0.7)" : "none",
+                    }}
+                  >
+                    🌊 LANÇAR SKILL NO TENTACOOL
+                  </button>
+
+                  <button
+                    onClick={() => setCrewOpen(false)}
+                    style={{
+                      marginTop: 8, width: "100%", padding: "8px 0", cursor: "pointer",
+                      fontWeight: 900, fontSize: 10, letterSpacing: 1.5, fontFamily: "monospace",
+                      color: "#04141a", background: "#8a6a4b", border: "none", borderRadius: 9,
+                    }}
+                  >
+                    FECHAR
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+          {/* Skill do tripulante indo pro Tentacool */}
+          {crewAtk && (() => {
+            const k = Math.min(1, (Date.now() - crewAtk.at) / 650);
+            const size = 60 + k * 120;
+            return (
+              <div style={{
+                position: "absolute", left: crewAtk.x, top: crewAtk.y,
+                width: size, height: size, transform: "translate(-50%,-50%)",
+                zIndex: Math.round(trainerPos.y) + 6, pointerEvents: "none",
+              }}>
+                <img
+                  src={FX_WATER_URL} alt=""
+                  style={{
+                    width: "100%", height: "100%", objectFit: "contain",
+                    opacity: Math.sin(k * Math.PI),
+                    filter: "drop-shadow(0 0 16px rgba(120,220,255,0.95))",
+                    transform: `rotate(${-k * 200}deg)`,
+                  }}
+                />
+              </div>
+            );
+          })()}          {PROF_FX[idle.currentMap] && (
+            <button
+              onClick={() => {
+                playClick();
+                // Sair só é "abortar missão" quando VOCÊ não está num posto.
+                // No posto, é hora de entregar a sucata e sair limpo.
+                const onPost = isWaterMap(idle.currentMap)
+                  && (REFUEL_STATIONS[idle.currentMap] ?? []).some(
+                    (st) => Math.hypot(trainerPos.x - st.x, trainerPos.y - st.y) < 70,
+                  );
+                if (onPost) exitToLab(true);
+                else setExitAsk(true);
+              }}
+              title="Voltar ao Laboratório (grátis)"
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                zIndex: 68,
+                cursor: "pointer",
+                padding: "7px 12px",
+                borderRadius: 10,
+                fontWeight: 900,
+                fontSize: 12,
+                letterSpacing: 0.5,
+                color: "#04141a",
+                background: "linear-gradient(180deg,#7ef27a,#3fbf5f)",
+                border: "2px solid #eafff0",
+                boxShadow: "0 0 12px rgba(126,242,122,0.55)",
+              }}
+            >
+              🔬 Voltar ao Laboratório
+            </button>
+          )}
           {idle.currentMap === "mapinha6" && tab === "batalha" && (() => { const m = IDLE_MAPS["mapinha6"]; return (
             <div style={{ position: "absolute", top: 12, left: 12, zIndex: 68, pointerEvents: "none", background: "rgba(11,5,16,0.88)", border: "1px solid rgba(245,207,107,0.45)", borderRadius: 10, padding: "6px 10px", display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
               <span style={{ color: "#f5cf6b", fontWeight: 900, fontSize: 13, letterSpacing: 0.5, textShadow: "1px 1px 0 #000" }}>{m.name}</span>
@@ -14503,6 +16173,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               playBonus();
               pushChat(`🎁 Recompensa (${why}): ${label}!`, "cap");
             };
+            // Florzinha (troca de flores): presente SEM bolas — só Café/Picolé.
+            const grantFlorzinhaReward = () => {
+              const step = idle.revoQuests?.rewardStep ?? 0;
+              const fid = step % 2 === 0 ? "cafe" : "picole";
+              const label = fid === "cafe" ? "1 Café Expresso" : "1 Picolé";
+              setIdle((s) => ({
+                ...s,
+                items: { ...s.items, [fid]: (s.items[fid] ?? 0) + 1 },
+                revoQuests: { ...(s.revoQuests ?? {}), rewardStep: (s.revoQuests?.rewardStep ?? 0) + 1 },
+              }));
+              playBonus();
+              pushChat(`🎁 Recompensa (Florzinha): ${label}!`, "cap");
+            };
             const acceptBouquetQuest = () => {
               setIdle((s) => ({ ...s, revoQuests: { ...(s.revoQuests ?? {}), bouquetStarted: true } }));
               playClick();
@@ -14522,7 +16205,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 revoQuests: { ...(s.revoQuests ?? {}), flowersGiven: (s.revoQuests?.flowersGiven ?? 0) + 1 },
               }));
               setNpcDialog(null);
-              grantRevoReward("Florzinha");
+              grantFlorzinhaReward();
             };
             // ===== QUEST DO ASPECTRO — A Ember da Trinite Desapareceu =====
             // Item por etapa: 1 flor · 2 chicote (+30 kills) · 3 30 energia · 4 sucata ·
@@ -14775,7 +16458,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             );
           })()}
 
-          {/* 🌸 LULUZINHA EVENTO — estudo de campo: 1 stone = +2 ultraball ou presente */}
+          {/* 🌸 LULUZINHA EVENTO — estudo de campo: 1 stone = presente surpresa (sem ultraball) */}
           {luluTalk && luluEvent && (() => {
             const have = idle.items[luluEvent.stoneId] ?? 0;
             const minsLeft = Math.max(1, Math.ceil((luluEvent.expiresAt - Date.now()) / 60000));
@@ -14784,27 +16467,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const ev = luluEvent;
               if (!ev) return;
               if ((idle.items[ev.stoneId] ?? 0) <= 0) { pushChat("Você não tem essa stone na mochila!", "info"); return; }
-              const roll = Math.random();
               setIdle((s) => {
                 if ((s.items[ev.stoneId] ?? 0) <= 0) return s;
                 const items = { ...s.items, [ev.stoneId]: s.items[ev.stoneId] - 1 };
                 let bank = s.bank;
-                let msg: string;
-                if (roll < 0.7) {
-                  items.ultraball = (items.ultraball ?? 0) + 2;
-                  msg = "+2 Ultra Ball";
-                } else {
-                  const gifts = [
-                    { label: "+5 Great Ball", apply: () => { items.greatball = (items.greatball ?? 0) + 5; } },
-                    { label: "+3 Poção", apply: () => { items.potion = (items.potion ?? 0) + 3; } },
-                    { label: "+2 Revive", apply: () => { items.revive = (items.revive ?? 0) + 2; } },
-                    { label: "+2 Energético", apply: () => { items.energetico = (items.energetico ?? 0) + 2; } },
-                    { label: "+500 ouro", apply: () => { bank = { ...bank, gold: bank.gold + 500 }; } },
-                  ];
-                  const g = gifts[Math.floor(Math.random() * gifts.length)];
-                  g.apply();
-                  msg = g.label;
-                }
+                const gifts = [
+                  { label: "+5 Great Ball", apply: () => { items.greatball = (items.greatball ?? 0) + 5; } },
+                  { label: "+3 Poção", apply: () => { items.potion = (items.potion ?? 0) + 3; } },
+                  { label: "+2 Revive", apply: () => { items.revive = (items.revive ?? 0) + 2; } },
+                  { label: "+2 Energético", apply: () => { items.energetico = (items.energetico ?? 0) + 2; } },
+                  { label: "+500 ouro", apply: () => { bank = { ...bank, gold: bank.gold + 500 }; } },
+                ];
+                const g = gifts[Math.floor(Math.random() * gifts.length)];
+                g.apply();
+                const msg = g.label;
                 queueMicrotask(() => {
                   pushChat(`🌸 Luluzinha agradece o estudo! Ganhou ${msg}!`, "chest");
                   playBonus();
@@ -14821,7 +16497,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 portraitMode="full"
                 text={thanked
                   ? `🌸 Obrigada pela ${stoneName}! Vai ajudar muito meu estudo! Se me ver de novo por aí, traz mais uma! 💖`
-                  : `🌸 Oi! Tô em estudo de campo das Stones Elementais! Me traz 1 ${stoneName} e te dou +2 Ultra Ball ou um presente surpresa! Sumo em ${minsLeft}min, corre!`}
+                  : `🌸 Oi! Tô em estudo de campo das Stones Elementais! Me traz 1 ${stoneName} e te dou um presente surpresa! Sumo em ${minsLeft}min, corre!`}
                 pageLabel={thanked ? "obrigada! 💖" : `some em ${minsLeft}min`}
                 canAdvance={false}
                 onAdvance={() => setLuluTalk(false)}
@@ -15239,6 +16915,67 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             />
           )}
 
+          {/* 🧪 Painel do Professor (Laboratório) — Pokédex de estudo + missões */}
+          {professorOpen && idle.currentMap === "laboratorio" && (
+            <ProfessorLabPanel
+              onClose={() => setProfessorOpen(false)}
+              gifMap={GIF}
+              professorImg={professorPng}
+              quest={idle.profQuest}
+              kills={idle.totalKills ?? 0}
+              captures={idle.totals?.captured ?? 0}
+              vipActive={isVip()}
+              vipUntil={idle.buffs?.goldMultUntil ?? 0}
+              onAcceptQuest={profAcceptQuest}
+              onClaimQuest={profClaimQuest}
+              onTravel={profTravelTo}
+              ship={idle.ship}
+              gold={idle.bank?.gold ?? 0}
+              pepitas={idle.items?.pepita ?? 0}
+              oil={idle.items?.[OIL_ITEM] ?? 0}
+              scrapPoints={scrapPoints}
+              scrapBag={scrapBag}
+              scrapBank={scrapBank}
+              trainerLevel={idle.trainerLevel ?? 1}
+              caughtSpecies={idle.caughtSpecies}
+              seenSpecies={idle.seenSpecies}
+              collection={idle.collection}
+              trainerXp={idle.trainerXp ?? 0}
+              trainerXpNext={trainerXpToNext(idle.trainerLevel ?? 1)}
+              trainerName={identity?.name || "Treinador"}
+              avatarUrl={skinPhotoOf(skinId) ?? trainerSheet}
+              vipMult={idle.buffs?.goldMult ?? 0}
+              spiritScore={idle.spiritScore ?? 0}
+              spiritLog={idle.spiritLog}
+              questsProf={idle.profQuest?.completed?.length ?? 0}
+              questsSide={Object.keys(idle.sideQuests?.claimedAt ?? {}).length}
+              questsSaga={Object.keys(idle.saga?.claimed ?? {}).length}
+              sagaFinished={idle.saga?.finished ?? false}
+              goldTotal={idle.totals?.gold ?? 0}
+              startedAt={idle.startedAt}
+              onBuyBoat={buyBoat}
+              onBuyOil={buyOil}
+              onRefuel={refuelShip}
+              onRepair={repairShip}
+              onConvertScrap={convertScrapToPoints}
+              sealedEgg={idle.sealedEgg}
+              esferas={idle.items?.esfera_safira ?? 0}
+              ancEggCounts={{
+                selado: idle.items?.egg_anc_selado ?? 0,
+                plus: idle.items?.egg_anc_plus ?? 0,
+                luck: idle.items?.egg_anc_luck ?? 0,
+              }}
+              onSealAncestral={sealAncestral}
+              onFeedSealedEgg={feedSealedEgg}
+              onHatchSealedEgg={hatchSealedEgg}
+              tickets={idle.items?.ticket_ancestral ?? 0}
+              onBuyAncChest={buyAncChest}
+              initialTab={profInitialTab}
+              patentePrizeAt={idle.patentePrizeAt}
+              onClaimPatentePrize={claimPatentePrize}
+            />
+          )}
+
           {/* 🎣 Aba de pescaria (MP Plus) */}
           {fishingOpen && (
             <div
@@ -15572,13 +17309,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
           {/* Clima estilo pixel-RPG */}
-          {weather !== "clear" && (
+          {effWeather !== "clear" && (
             <div style={{
               position: "absolute", inset: 0, zIndex: 40,
               pointerEvents: "none", overflow: "hidden",
               imageRendering: "pixelated",
             }}>
-              {weather === "rain" && (
+              {effWeather === "rain" && (
                 <div>
                   <div className="wx-rain-tint" />
                   <div className="wx-mist" />
@@ -15595,7 +17332,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   <div className="wx-flash" />
                 </div>
               )}
-              {weather === "snow" && (
+              {effWeather === "snow" && (
                 <div>
                   <div className="wx-snow-tint" />
                   {snowFlakes.map((s, i) => (
@@ -15614,14 +17351,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               <div style={{
                 position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
                 background: "rgba(11,5,16,0.75)",
-                border: `1px solid ${weather === "rain" ? "rgba(140,201,255,0.5)" : "rgba(230,243,255,0.55)"}`,
-                color: weather === "rain" ? "#bcdcff" : "#f2faff",
+                border: `1px solid ${effWeather === "rain" ? "rgba(140,201,255,0.5)" : "rgba(230,243,255,0.55)"}`,
+                color: effWeather === "rain" ? "#bcdcff" : "#f2faff",
                 padding: "4px 12px", borderRadius: 4, fontSize: 11, fontWeight: 700,
                 letterSpacing: 0.5, imageRendering: "pixelated",
                 fontFamily: "'Press Start 2P', 'Trebuchet MS', monospace",
                 textShadow: "1px 1px 0 #000",
               }}>
-                {weather === "rain" ? "CHUVA" : "NEVE"}
+                {effWeather === "rain" ? "CHUVA" : "NEVE"}
               </div>
             </div>
           )}
@@ -15706,6 +17443,173 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 zIndex: 0,
               }}
             />
+
+            {/* EFEITOS DOS MAPAS DO PROFESSOR — faíscas de cristal + glow rosa + varredura amarela + bolhas subindo + raios crepitando */}
+            {PROF_FX[idle.currentMap] && (
+              <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
+                {PROF_FX[idle.currentMap].cristal && (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${PROF_FX[idle.currentMap].cristal})`,
+                        backgroundSize: "100% 100%",
+                        mixBlendMode: "screen",
+                        animation: "profCristalTwinkle 0.9s linear infinite",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${PROF_FX[idle.currentMap].cristal})`,
+                        backgroundSize: "100% 100%",
+                        mixBlendMode: "screen",
+                        animation: "profCristalTwinkle 0.9s linear -0.45s infinite",
+                      }}
+                    />
+                  </>
+                )}
+                {PROF_FX[idle.currentMap].rosa && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundImage: `url(${PROF_FX[idle.currentMap].rosa})`,
+                      backgroundSize: "100% 100%",
+                      filter:
+                        "blur(3px) saturate(1.25) brightness(1) drop-shadow(0 0 6px rgba(255,70,240,0.85))",
+                      animation: "profRosaGlow 2.6s ease-in-out infinite",
+                    }}
+                  />
+                )}
+                {PROF_FX[idle.currentMap].amarelo && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      overflow: "hidden",
+                      WebkitMaskImage: `url(${PROF_FX[idle.currentMap].amarelo})`,
+                      maskImage: `url(${PROF_FX[idle.currentMap].amarelo})`,
+                      WebkitMaskSize: "100% 100%",
+                      maskSize: "100% 100%",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat",
+                      animation: "profAmareloPulse 2.4s ease-in-out infinite",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-60%",
+                        left: "-45%",
+                        width: "38%",
+                        height: "220%",
+                        background:
+                          "linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,205,0.9) 45%, rgba(255,255,255,0) 92%)",
+                        animation: "profAmareloSweep 2.8s linear infinite",
+                      }}
+                    />
+                  </div>
+                )}
+                {PROF_FX[idle.currentMap].bolhas && (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${PROF_FX[idle.currentMap].bolhas})`,
+                        backgroundSize: "100% 100%",
+                        animation: "profBolhasRise 3.2s ease-in-out infinite",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${PROF_FX[idle.currentMap].bolhas})`,
+                        backgroundSize: "100% 100%",
+                        animation: "profBolhasRise 3.2s ease-in-out -1.6s infinite",
+                      }}
+                    />
+                  </>
+                )}
+                {PROF_FX[idle.currentMap].bolhasB && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundImage: `url(${PROF_FX[idle.currentMap].bolhasB})`,
+                      backgroundSize: "100% 100%",
+                      animation: "profBolhasRise 2.6s ease-in-out -0.8s infinite",
+                    }}
+                  />
+                )}
+                {PROF_FX[idle.currentMap].raios && (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${PROF_FX[idle.currentMap].raios})`,
+                        backgroundSize: "100% 100%",
+                        mixBlendMode: "screen",
+                        animation: "profRaioFlicker 1.1s linear infinite",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${PROF_FX[idle.currentMap].raios})`,
+                        backgroundSize: "100% 100%",
+                        mixBlendMode: "screen",
+                        animation: "profRaioFlicker 1.1s linear -0.55s infinite",
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* HALLOW — água (rosa) + luz de caverna (amarelo) extraídos da máscara */}
+            {hallowFx && (
+              <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
+                {hallowFx.agua && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundImage: `url(${hallowFx.agua})`,
+                      backgroundSize: "100% 100%",
+                      mixBlendMode: "screen",
+                      animation: "profAguaShimmer 3.2s ease-in-out infinite",
+                    }}
+                  />
+                )}
+                {hallowFx.luz && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      filter: "blur(5px) brightness(1.15)",
+                      mixBlendMode: "screen",
+                      animation: "profLuzCaverna 2.1s ease-in-out infinite",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundImage: `url(${hallowFx.luz})`,
+                        backgroundSize: "100% 100%",
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Render de orbs de energia removido — só mapOrbs abaixo */}
             {/* ===== LANDS do jogador (Land Revo) ===== */}
@@ -15887,12 +17791,94 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 ))}
               </>
             )}
+            {/* Efeito de RAIOS no ovo da máquina do Laboratório (círculo amarelo da máscara) */}
+            {idle.currentMap === "laboratorio" && (
+              <div style={{ position: "absolute", left: 408, top: 191, width: 180, height: 180, zIndex: 290, pointerEvents: "none" }}>
+                {/* halo ciano externo (clima do lab) */}
+                <div style={{
+                  position: "absolute", inset: 0, borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(120,220,255,0.22) 0%, rgba(120,220,255,0.08) 45%, transparent 70%)",
+                  filter: "blur(10px)",
+                  animation: "pulse 2.2s ease-in-out infinite",
+                }} />
+                {/* halo quente do ovo */}
+                <div style={{
+                  position: "absolute", inset: 30, borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(255,240,150,0.6) 0%, rgba(255,210,50,0.3) 40%, transparent 70%)",
+                  filter: "blur(6px)",
+                  animation: "pulse 1.4s ease-in-out infinite",
+                }} />
+                {/* anel de raios girando */}
+                <div style={{ position: "absolute", left: "50%", top: "50%", width: 130, height: 130, transform: "translate(-50%, -50%)", animation: "auraRotate 2.6s linear infinite" }}>
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <span key={`labray-${i}`} style={{
+                      position: "absolute", left: "50%", top: "50%",
+                      width: 3, height: 60,
+                      background: "linear-gradient(180deg, rgba(255,255,220,0.95), rgba(255,200,40,0.05))",
+                      transform: `translate(-50%, -100%) rotate(${i * 36}deg)`,
+                      transformOrigin: "50% 100%",
+                      borderRadius: 2,
+                      boxShadow: "0 0 8px rgba(255,230,100,0.9)",
+                    }} />
+                  ))}
+                </div>
+                {/* anel tracejado contra-girando */}
+                <div style={{
+                  position: "absolute", left: "50%", top: "50%", width: 96, height: 96,
+                  transform: "translate(-50%, -50%)",
+                  borderRadius: "50%", border: "2px dashed rgba(255,235,150,0.8)",
+                  boxShadow: "0 0 14px rgba(255,220,80,0.6), inset 0 0 12px rgba(255,220,80,0.3)",
+                  animation: "auraRotate 5s linear infinite reverse",
+                }} />
+                {/* onda de choque expandindo */}
+                <div style={{
+                  position: "absolute", left: "50%", top: "50%", width: 70, height: 70,
+                  transform: "translate(-50%, -50%)", borderRadius: "50%",
+                  border: "3px solid rgba(255,240,160,0.8)",
+                  animation: "labRing 2.2s ease-out infinite",
+                }} />
+                {/* núcleo tremeluzente */}
+                <div style={{
+                  position: "absolute", left: "50%", top: "50%", width: 46, height: 46,
+                  transform: "translate(-50%, -50%)", borderRadius: "50%",
+                  background: "radial-gradient(circle at 50% 45%, #fffbe0 0%, #ffe94d 45%, rgba(255,180,20,0.2) 75%)",
+                  boxShadow: "0 0 22px rgba(255,225,80,0.95), 0 0 60px rgba(255,200,40,0.5)",
+                  animation: "labSpark 1.1s steps(2, jump-none) infinite",
+                }} />
+                {/* relâmpagos em zigue-zague saindo do ovo */}
+                {[
+                  { l: 66, t: 8, w: 26, h: 64, d: "0ms", r: -12 },
+                  { l: 96, t: 18, w: 22, h: 52, d: "380ms", r: 10 },
+                  { l: 78, t: 96, w: 24, h: 58, d: "720ms", r: 4 },
+                ].map((b, i) => (
+                  <span key={`labbolt-${i}`} style={{
+                    position: "absolute", left: b.l, top: b.t, width: b.w, height: b.h,
+                    background: "linear-gradient(180deg, #ffffe8, #ffe94d 60%, rgba(255,180,20,0))",
+                    clipPath: "polygon(46% 0, 62% 0, 54% 28%, 70% 30%, 42% 66%, 54% 64%, 44% 100%, 34% 100%, 44% 62%, 28% 60%, 48% 28%, 38% 26%)",
+                    transform: `rotate(${b.r}deg)`,
+                    filter: "drop-shadow(0 0 6px rgba(255,240,150,1))",
+                    animation: "labBolt 0.9s steps(3, jump-none) infinite",
+                    animationDelay: b.d,
+                  }} />
+                ))}
+                {/* faíscas subindo */}
+                {[{ x: 62, y: 120, d: 0 }, { x: 104, y: 124, d: 300 }, { x: 84, y: 132, d: 600 }, { x: 72, y: 112, d: 900 }, { x: 96, y: 116, d: 1200 }].map((s, i) => (
+                  <span key={`labspark-${i}`} style={{
+                    position: "absolute", left: s.x, top: s.y, width: 5, height: 5, borderRadius: "50%",
+                    background: "#fff7b0", boxShadow: "0 0 8px rgba(255,235,120,1)",
+                    animation: "healFloat 1.6s ease-out infinite", animationDelay: `${s.d}ms`,
+                    ["--hdx" as any]: i % 2 ? "6px" : "-6px",
+                  }} />
+                ))}
+                <style>{`@keyframes labSpark { 0%,100% { opacity: 1; transform: translate(-50%,-50%) scale(1); } 50% { opacity: 0.55; transform: translate(-50%,-50%) scale(0.85); } } @keyframes labBolt { 0%,100% { opacity: 1; } 33% { opacity: 0.15; } 66% { opacity: 0.7; } } @keyframes labRing { 0% { opacity: 0.9; transform: translate(-50%,-50%) scale(0.45); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.5); } }`}</style>
+              </div>
+            )}
             {npcs.map((n) => {
               // Gate de mapa: Lua Negra só existe na Esfera Ancestral (spawn já
               // o restringe, mas double-check p/ nunca aparecer em 0,0).
               if (n.kind === "gatoancy" && idle.currentMap !== "esfera_ancestral") return null;
               const isSagaNpc = n.kind === "boby" || n.kind === "san" || n.kind === "nanizinha" || n.kind === "payka" || n.kind === "pan";
-              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || n.kind === "bottan" || n.kind === "aspectro" || n.kind === "gatoancy" || n.kind === "barney" || n.kind === "florzinha" || isSagaNpc;
+              const isInteractive = n.kind === "gordin" || n.kind === "luluzinha" || n.kind === "pokemarktClerk" || n.kind === "bottan" || n.kind === "aspectro" || n.kind === "gatoancy" || n.kind === "barney" || n.kind === "florzinha" || n.kind === "professor" || isSagaNpc;
               const url = NPC_IMG[n.kind] ?? bulbasaurFlowerUrl;
               const singlePortrait = n.kind === "luluzinha";
               // Lua Negra: a esquerda é o reflexo da direita (o sheet não tem
@@ -15915,6 +17901,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     walkTargetRef.current = null;
                     setWalkingTo(null);
                     if (n.kind === "pokemarktClerk") setPokemarktShopOpen(true);
+                    else if (n.kind === "professor") setProfessorOpen(true);
                     else if (isSagaNpc) { setSagaTalk(n.kind as SagaNpcId); setSagaPage(0); setSagaTab("fala"); }
                     else {
                       if (n.kind === "gatoancy") setTrainerEnergy((en) => Math.max(0, en - 1));
@@ -16671,7 +18658,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {/* Inimigos espalhados pelo mapa */}
             {enemies.map((e) => {
               const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
-              const src = GIF[showSp];
+              const src = MAP_SPRITE[idle.currentMap]?.[showSp] ?? GIF[showSp];
               if (!src) return null;
               const camouflaged = !!(e.disguise && !e.revealed);
               const dead = e.hp <= 0;
@@ -17003,8 +18990,223 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 
 
-            {/* Treinador */}
-            <div style={{
+            {/* Treinador — nos mapas de água quem navega é o BARCO, não o treinador */}
+            {/* ⛵ Barco + redemoinhos — MAPA PRINCIPAL (não no minimapa) */}
+            {isWaterMap(idle.currentMap) && (() => {
+              const pools = WHIRLPOOLS[idle.currentMap] ?? [];
+              const boatDir = (["up", "down", "left", "right"].includes(walkDir) ? walkDir : "down") as
+                "up" | "down" | "left" | "right";
+              return (
+                <>
+                  {/* Vórtice principal (Redemoinho.png) */}
+                  {pools.map((w, i) => (
+                    <div
+                      key={`whirl-${i}`}
+                      style={{
+                        position: "absolute",
+                        left: w.x, top: w.y,
+                        width: w.r * 2.6, height: w.r * 2.6,
+                        transform: "translate(-50%,-50%)",
+                        zIndex: Math.round(w.y) - 2,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      <div
+                        style={{
+                          ...stripStyle(WHIRL_BIG.frameW, WHIRL_BIG.frameH, WHIRL_BIG.frames, 1505, 190, Math.floor(shipFx / 2) % WHIRL_BIG.frames),
+                          backgroundImage: `url("${WHIRL_BIG_URL}")`,
+                          backgroundRepeat: "no-repeat",
+                          imageRendering: "pixelated",
+                          filter: "drop-shadow(0 0 16px rgba(120,220,255,0.85))",
+                          opacity: 0.92,
+                        }}
+                      />
+                    </div>
+                  ))}
+                  {/* Caixas de sucata flutuando */}
+                  {scrapList.map((s) => {
+                    if (scrapGot[s.id]) return null;
+                    const m = SCRAP_META[s.rarity];
+                    const near = Math.hypot(trainerPos.x - s.x, trainerPos.y - s.y) < SCRAP_PICKUP_R;
+                    const sz = s.rarity === "comum" ? 34 : s.rarity === "rara" ? 42 : s.rarity === "epica" ? 50 : 60;
+                    return (
+                      <div
+                        key={s.id}
+                        style={{
+                          position: "absolute",
+                          left: s.x, top: s.y + Math.sin(shipFx / 9 + s.x) * 3,
+                          width: sz, height: sz,
+                          transform: "translate(-50%,-50%)",
+                          zIndex: Math.round(s.y),
+                          pointerEvents: "none",
+                        }}
+                      >
+                        <img
+                          src={SUCATA_URL}
+                          alt=""
+                          style={{
+                            width: "100%", height: "100%", objectFit: "contain",
+                            imageRendering: "pixelated",
+                            transform: `rotate(${Math.sin(shipFx / 14 + s.y) * 4}deg)`,
+                            filter: `drop-shadow(0 3px 3px rgba(0,0,0,0.55)) drop-shadow(0 0 ${near ? 14 : 6}px ${m.color})`,
+                          }}
+                        />
+                        <div style={{
+                          marginTop: 1, textAlign: "center", fontSize: 7.5, fontWeight: 900,
+                          fontFamily: "monospace", color: "#04141a", background: m.color,
+                          borderRadius: 3, padding: "0 3px", display: "inline-block",
+                        }}>
+                          {m.label}
+                        </div>
+                      </div>
+                    );
+                  })}                  {/* Tentacool / Tentacool Shiny */}
+                  {tentaList.map((t) => {
+                    const tp = tentaPosRef.current[t.id] ?? { x: t.x, y: t.y };
+                    const thp = tentaHpOf(t.id);
+                    if (thp <= 0) return null;
+                    const attacking = tentaAtk?.id === t.id;
+                    const col = attacking ? 2 : Math.floor(shipFx / 4) % 2;
+                    const row = attacking ? 3 : 0;
+                    const d = Math.hypot(trainerPos.x - tp.x, trainerPos.y - tp.y) < t.range;
+                    return (
+                      <div
+                        key={t.id}
+                        onClick={() => { playClick(); tryCaptureTenta(t); }}
+                        style={{
+                          position: "absolute",
+                          left: tp.x, top: tp.y,
+                          width: 64, height: 64,
+                          transform: "translate(-50%,-50%)",
+                          zIndex: Math.round(t.y),
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div
+                          style={{
+                            ...tentFrameStylePx(row, col, 64),
+                            backgroundImage: `url("${t.shiny ? TENTACOOL_SHINY_URL : TENTACOOL_URL}")`,
+                            backgroundRepeat: "no-repeat",
+                            imageRendering: "pixelated",
+                            filter: t.shiny
+                              ? "drop-shadow(0 0 10px rgba(255,240,120,0.9))"
+                              : "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
+                            opacity: d ? 1 : 0.85,
+                          }}
+                        />
+                        <div style={{
+                          marginTop: 2, textAlign: "center", fontSize: 8, fontWeight: 900,
+                          fontFamily: "monospace", letterSpacing: 0.3,
+                          color: t.shiny ? "#ffd94d" : "#5ec8f0",
+                          textShadow: "0 0 4px rgba(0,0,0,0.95), 1px 1px 0 rgba(0,0,0,0.85)",
+                        }}>
+                          Nv {t.level} · {t.rarity} · {thp}HP
+                        </div>
+                        {d && (
+                          <div style={{ marginTop: 2, textAlign: "center", fontSize: 8, fontWeight: 900, color: "#ff8a8a", fontFamily: "monospace", textShadow: "0 0 4px #000" }}>
+                            ⚠ {t.name}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                                    {/* Skill de agua (fx-water) disparada no barco */}
+                  {tentaAtk && (() => {
+                    const t = tentaList.find((x) => x.id === tentaAtk.id);
+                    if (!t) return null;
+                    const k = Math.min(1, (Date.now() - tentaAtk.at) / 700);
+                    const p = trainerPosRef.current;
+                    const fx = t.x + (p.x - t.x) * 0.62;
+                    const fy = t.y + (p.y - t.y) * 0.62;
+                    const size = 70 + k * 130;
+                    return (
+                      <div style={{
+                        position: "absolute",
+                        left: fx, top: fy,
+                        width: size, height: size,
+                        transform: "translate(-50%,-50%)",
+                        zIndex: Math.round(p.y) + 5,
+                        pointerEvents: "none",
+                      }}>
+                        <img
+                          src={FX_WATER_URL}
+                          alt=""
+                          style={{
+                            width: "100%", height: "100%", objectFit: "contain",
+                            imageRendering: "pixelated",
+                            opacity: Math.sin(k * Math.PI) * 0.95,
+                            filter: "drop-shadow(0 0 16px rgba(120,220,255,0.95))",
+                            transform: `rotate(${k * 200}deg)`,
+                          }}
+                        />
+                      </div>
+                    );
+                  })()}{/* Postos de abastecimento */}
+                  {(REFUEL_STATIONS[idle.currentMap] ?? []).map((st, i) => {
+                    const near = Math.hypot(trainerPos.x - st.x, trainerPos.y - st.y) < 70;
+                    return (
+                      <div
+                        key={`fuel-${i}`}
+                        style={{
+                          position: "absolute",
+                          left: st.x, top: st.y,
+                          transform: "translate(-50%,-50%)",
+                          zIndex: Math.round(st.y),
+                          pointerEvents: "none",
+                          textAlign: "center",
+                        }}
+                      >
+                        <div
+                          onClick={() => { playClick(); refuelShip(); }}
+                          style={{
+                            cursor: "pointer",
+                            width: 56, height: 56,
+                            display: "grid", placeItems: "center",
+                            background: "rgba(20,10,4,0.85)",
+                            border: `2px solid ${near ? "#7cffb2" : "#c98a4b"}`,
+                            borderRadius: 10,
+                            boxShadow: `0 0 ${near ? 22 : 12}px ${near ? "rgba(124,255,178,0.8)" : "rgba(201,138,75,0.6)"}`,
+                          }}
+                        >
+                          <img src={OIL_ICON} alt="Óleo" style={{ width: 38, height: 38, objectFit: "contain", imageRendering: "pixelated" }} />
+                        </div>
+                        <div style={{ marginTop: 4, fontSize: 9, fontWeight: 900, fontFamily: "monospace", color: near ? "#7cffb2" : "#c9a882", textShadow: "0 0 4px #000" }}>
+                          {near ? "CLIQUE PARA ABASTECER" : "POSTO"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {/* Chuva: usa o clima pixel-RPG do jogo (wx-rain-*) */}
+
+                  {shipTier && !shipSunk && shipHp > 0 && shipFuel > 0 && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: renderTrainerX, top: renderTrainerY,
+                        width: 128, height: 128,
+                        transform: `translate(-50%,-50%)${BOAT_DIR_FLIP_Y[boatDir] ? " scaleY(-1)" : ""}`,
+                        zIndex: Math.round(trainerPos.y) + 1,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      <div
+                        style={{
+                          ...boatFrameStylePx(BOAT_DIR_ROW[boatDir], Math.floor(shipFx / 2) % BOAT_FRAMES, 128),
+                          width: "100%",
+                          height: "100%",
+                          backgroundImage: `url("${BOAT_SHEET_URL}")`,
+                          backgroundRepeat: "no-repeat",
+                          imageRendering: "pixelated",
+                          filter: `drop-shadow(0 4px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 14px ${BOAT_TIER_META[shipTier].glow})`,
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {!isWaterMap(idle.currentMap) && (<div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
               width: 56, height: 56,
@@ -17038,13 +19240,13 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 backgroundPosition: `${walkStep * 33.333}% ${DIR_ROW[walkDir] * 33.333}%`,
                 imageRendering: "pixelated",
               }} />
-            </div>
+            </div>)}
 
             {/* Black Mitic Egg — pet flutuante */}
             <BlackMiticEggSprite
               trainerX={renderTrainerX}
               trainerY={renderTrainerY}
-              visible={(idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0}
+              visible={(idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0 && !isWaterMap(idle.currentMap)}
               onClick={openBlackEggHud}
             />
 
@@ -17052,8 +19254,30 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             <EmeraldEggSprite
               trainerX={renderTrainerX}
               trainerY={renderTrainerY}
-              visible={(idle.items?.[EMERALD_EGG_ITEM_ID] ?? 0) > 0}
+              visible={(idle.items?.[EMERALD_EGG_ITEM_ID] ?? 0) > 0 && !isWaterMap(idle.currentMap)}
               onClick={() => { playClick(); setEmeraldEggHudOpen(true); }}
+            />
+
+            {/* EGG SELADO ANCESTRAL — acompanha o treinador (mesmo estilo do BMP) */}
+            <BlackMiticEggSprite
+              trainerX={renderTrainerX}
+              trainerY={renderTrainerY}
+              visible={!!idle.sealedEgg && !isWaterMap(idle.currentMap)}
+              onClick={() => {
+                playClick();
+                if (idle.currentMap === "laboratorio") {
+                  setProfInitialTab("ancestral");
+                  setProfessorOpen(true);
+                } else {
+                  pushChat("🥚 Ovo Selado — leve o treinador ao LABORATÓRIO para gerenciá-lo (aba ANCESTRAL).", "info");
+                }
+              }}
+              src={eggSeladoAncPng}
+              title="Egg Selado Ancestral — clique para gerenciar"
+              auraRgb="201,140,255"
+              dot="#c98cff"
+              dotGlow="#8b5cf6"
+              offsetX={-84}
             />
 
 
@@ -17160,8 +19384,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               </div>
             )}
 
-            {/* Pokémon do jogador segue o treinador */}
+            {/* Pokémon do jogador segue o treinador (fora dos mapas de água) */}
             {(() => {
+              if (isWaterMap(idle.currentMap)) return null;
               const leader = team[0];
               const leaderSp = leader?.species ?? "charmander";
               const leaderSrc = GIF[leaderSp];
@@ -17849,8 +20074,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               onTradeOrb={tradeForOrb}
               benchUids={new Set(restingBench.map(p => p.uid))}
               onBuyPotion={buyPotion}
-              onBuyEgg={buyEgg}
-              shopEggs={SHOP_EGGS}
+              onBuyEgg={() => {}}
+              shopEggs={[]}
               idle={idle}
               setIdle={setIdle}
               pushChat={pushChat}
@@ -18051,6 +20276,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 torre_verdejante: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
                 torre_ancestral: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
                 elementure: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                laboratorio: [{ key: "to-revoland", target: "mapinha6", x: 499, y: 615, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
+                // Saída da Caverna de Brok: volta pro Hallow, em frente à luz
+                // por onde o jogador entrou (mas afastado, ver travelToGate).
+                caverna_brok: [{ key: "to-hallow-exit", target: "hallow", x: 197, y: 1121, arriveX: 675, arriveY: 585, color: "#f5cf6b" }],
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 const targetMap = IDLE_MAPS[g.target];
@@ -18100,7 +20329,30 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 playClick();
                 goTo(targetMap.name, g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
-                  setTrainerPos({ x: g.arriveX, y: g.arriveY });
+                  let ax = g.arriveX;
+                  let ay = g.arriveY;
+                  if (g.key === "to-hallow-exit") {
+                    // Volta na frente da luz por onde entrou, afastado o bastante
+                    // para não cair no teleport de novo.
+                    brokTeleportRef.current = Date.now() + 8000;
+                    const e = brokEntryRef.current;
+                    if (e) {
+                      const dx = e.x - e.lx;
+                      const dy = e.y - e.ly;
+                      const d = Math.hypot(dx, dy) || 1;
+                      for (const dist of [90, 130, 170, 220]) {
+                        const cx = Math.round(e.lx + (dx / d) * dist);
+                        const cy = Math.round(e.ly + (dy / d) * dist);
+                        if (!isWalkable("hallow", cx, cy)) continue;
+                        const perto = [{ x: cx, y: cy }, { x: cx + 12, y: cy }, { x: cx - 12, y: cy }, { x: cx, y: cy + 12 }, { x: cx, y: cy - 12 }];
+                        if (perto.some((q) => maskZoneAt("hallow", q.x, q.y) === 2)) continue;
+                        ax = cx;
+                        ay = cy;
+                        break;
+                      }
+                    }
+                  }
+                  setTrainerPos({ x: ax, y: ay });
                   // Remove inimigos que excedem o teto do novo mapa
                   const cap = IDLE_MAPS[g.target].maxLevel;
                   if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
@@ -18218,7 +20470,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                       boxShadow: "0 0 6px #c084fc",
                     }} />
                   ))}
-                  {/* Treinador */}
+            {/* Treinador */}
                   <div style={{
                     position: "absolute",
                     left: `${(trainerPos.x / curWorldW) * 100}%`,
@@ -18318,7 +20570,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     const WORLD_PINS_C1: Array<{ id: IdleMapId; x: number; y: number; type?: string; order: number }> = [
                       { id: "mapinha6", x: 44, y: 17, type: "castle", order: 1 },
                       { id: "mapinha13", x: 48, y: 14, type: "forest", order: 2 },
-                      { id: "terra", x: 38, y: 12, type: "forest", order: 3 },
                     ];
                     const WORLD_PINS_C2: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [];
                     const WORLD_PINS_C3: Array<{ id: IdleMapId; x: number; y: number; type?: string }> = [];
@@ -18962,7 +21213,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure"];
+              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -18995,7 +21246,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     setTeleportTransition(destination);
                     teleportTimerRef.current = setTimeout(() => {
                       setIdle((state) => ({ ...state, currentMap: destination.id as IdleMapId }));
-                      setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                      // Laboratório: chega fora da máquina central (ponto andável verificado).
+                      if (destination.id === "laboratorio") setTrainerPos({ x: 499, y: 416 });
+                      else setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
                       walkTargetRef.current = null;
                       setWalkingTo(null);
                       setEnemies([]);
@@ -19329,11 +21582,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             {([
               { id: "melhorias",label: "Melhorias",img: navMelhorias },
               { id: "market",   label: "Marketplace", img: navMarket, disabled: true },
-              { id: "eventoLiga", label: "EVENTO", img: ligaPng, shiny: true },
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
             ] as const).map((t) => {
               const isShiny = (t as { shiny?: boolean }).shiny === true;
-              // EVENTO habilitado (Torre Elemental).
+              // EVENTO (Torre Elemental) removido — evento encerrado; volta depois.
               if (isShiny) {
                 return (
                   <button
@@ -20246,8 +22498,8 @@ onClick={(e) => {
                                             stonesUsed: { ...(prev.stonesUsed || {}), [s]: nextExtra },
                                             extraChance: Math.min(0.9, (prev.extraChance || 0) + 0.02)
                                          }));
-                                         playClick();
-                                      } else {
+                                          playClick();
+                                       } else {
                                          pushChat("�R Sem stones suficientes para aumentar a chance!", "info");
                                       }
                                    }}
@@ -20949,13 +23201,6 @@ onClick={(e) => {
           >
             <span className="mob-menuopt-icon">🏪</span>
             <span>Marketplace (em breve)</span>
-          </button>
-          <button
-            className="mob-menuopt"
-            onClick={() => { playClick(); setTab("eventoLiga"); setMobPanel(null); }}
-          >
-            <span className="mob-menuopt-icon">⚡</span>
-            <span>EVENTO</span>
           </button>
         </div>
       </div>
@@ -21749,6 +23994,104 @@ onClick={(e) => {
           </div>
         );
       })()}
+
+      {/* ═══ BAÚ ANCESTRAL — animação: ovos giram ao redor do baú, entram e premiam ═══ */}
+      {chestAnim && (
+        <div
+          onClick={() => { if (chestAnim.phase === "reveal") setChestAnim(null); }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 10120, display: "grid", placeItems: "center", padding: 16 }}
+        >
+          <style>{`
+            @keyframes ancOrbit { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            @keyframes ancChestPulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255,217,77,0.7)); } 50% { transform: scale(1.07); filter: drop-shadow(0 0 44px rgba(255,217,77,1)); } }
+            @keyframes ancChestShake { 0%,100% { transform: translateX(0) } 25% { transform: translateX(-5px) rotate(-2deg) } 50% { transform: translateX(5px) rotate(2deg) } 75% { transform: translateX(-3px) } }
+            @keyframes ancEggRide { 0% { transform: translateX(118px) rotate(0deg); } 72% { transform: translateX(118px) rotate(-720deg); } 100% { transform: translateX(0) rotate(-760deg) scale(0.12); opacity: 0; } }
+            @keyframes ancFlash { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(2.6); opacity: 0; } }
+            @keyframes ancDrop { from { transform: translateY(-36px) scale(0.4); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+            @keyframes ancMystic { 0%,100% { opacity: 0.7; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+          `}</style>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(420px,100%)", background: "linear-gradient(180deg,#2a1a08,#0d0703)",
+              border: "2px solid #ffd94d", borderRadius: 16, padding: 22, textAlign: "center",
+              boxShadow: "0 0 70px rgba(255,217,77,0.4)", position: "relative", overflow: "hidden",
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#e8d9a8", letterSpacing: 2, fontWeight: 900, marginBottom: 8 }}>
+              {chestAnim.phase === "open" ? "🎁  ABRINDO O BAÚ..." : "✨  VOCÊ GANHOU!"}
+            </div>
+            <div style={{ position: "relative", height: 260, display: "grid", placeItems: "center" }}>
+              <img
+                src={chestEmeraldImg}
+                alt=""
+                width={170}
+                height={170}
+                style={{
+                  imageRendering: "pixelated",
+                  filter: "drop-shadow(0 0 26px rgba(255,217,77,0.95))",
+                  animation: chestAnim.phase === "open" ? "ancChestPulse 1s ease-in-out infinite" : "ancChestShake .45s ease-in-out 1",
+                }}
+              />
+              {chestAnim.phase === "open" && (
+                <>
+                  {[eggAncPlusPng, eggAncLuckPng].map((src, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none",
+                        animation: `ancOrbit 30s linear infinite${i ? " -15s" : ""}`,
+                      }}
+                    >
+                      <img
+                        src={src}
+                        alt=""
+                        width={58}
+                        height={58}
+                        style={{
+                          imageRendering: "pixelated",
+                          animation: "ancEggRide 60s cubic-bezier(.45,0,.75,1) both",
+                          filter: i ? "drop-shadow(0 0 14px #7cffb2)" : "drop-shadow(0 0 14px #ffd94d)",
+                        }}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
+              {chestAnim.phase === "reveal" && (
+                <div style={{ position: "absolute", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,240,180,0.95), rgba(255,217,77,0.4) 55%, transparent 70%)", animation: "ancFlash .7s ease-out both", pointerEvents: "none" }} />
+              )}
+              {chestAnim.phase === "reveal" && (
+                <img
+                  src={chestAnim.got === "egg_anc_plus" ? eggAncPlusPng : eggAncLuckPng}
+                  alt=""
+                  width={96}
+                  height={96}
+                  style={{ position: "absolute", imageRendering: "pixelated", filter: `drop-shadow(0 0 24px ${chestAnim.got === "egg_anc_plus" ? "#ffd94d" : "#7cffb2"})`, animation: "ancDrop .55s ease-out both" }}
+                />
+              )}
+            </div>
+            {chestAnim.phase === "reveal" ? (
+              <div style={{ color: chestAnim.got === "egg_anc_plus" ? "#ffd94d" : "#7cffb2", fontSize: 13, fontWeight: 900, fontFamily: "monospace", letterSpacing: 1, minHeight: 20 }}>
+                {chestAnim.got === "egg_anc_plus" ? "🥚 EGG ANCESTRAL PLUS (16 traits)" : "🥚 EGG ANCESTRAL LUCK (+3 DOURADOS)"}
+              </div>
+            ) : (
+              <div style={{ color: "#e8d9a8", fontSize: 13, fontWeight: 900, fontFamily: "monospace", letterSpacing: 1, minHeight: 40, lineHeight: 1.6, animation: "ancMystic 2.6s ease-in-out infinite" }}>
+                🔮 Os ancestrais estão te observando...
+                <div style={{ color: "#ffd94d", fontSize: 11.5, marginTop: 4 }}>Em breve, um deles escolherá você.</div>
+              </div>
+            )}
+            {chestAnim.phase === "reveal" && (
+              <button
+                onClick={() => setChestAnim(null)}
+                style={{ marginTop: 14, width: "100%", padding: "10px 0", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 900, fontSize: 11, letterSpacing: 2, color: "#0d0703", background: "linear-gradient(180deg,#ffe98a,#e0b12c)", boxShadow: "0 0 22px rgba(255,217,77,0.6)" }}
+              >
+                FECHAR
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Incubadora — animação de sucesso/falha */}
       {orbAnim && (
@@ -22759,7 +25102,7 @@ onClick={(e) => {
           epic: "#c78bff", legendary: "#f5cf6b", mythic: "#ff97e1", mythic_shiny: "#ffd6ff",
         };
         const rColor = rarityColorMap[tgt.rarity] ?? "#c8c8c8";
-        const gif = GIF[tgt.sp];
+        const gif = MAP_SPRITE[idle.currentMap]?.[tgt.sp] ?? GIF[tgt.sp];
         return (
           <div key={tgt.id} className="mob-targetcard" style={{
             position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)",
@@ -22859,7 +25202,7 @@ onClick={(e) => {
           .map((e) => ({ e, d: Math.hypot(e.x - fpx, e.y - fpy) }))
           .filter((x) => x.d <= 520)
           .sort((a, b) => a.d - b.d)
-          .slice(0, 6);
+          .slice(0, alvosMax ? 14 : 6);
         if (near.length === 0) return null;
         const lockTarget = (id: number) => {
           if (manualTargetRef.current === id) {
@@ -22874,22 +25217,56 @@ onClick={(e) => {
           }
         };
         return (
-          <div className="mob-targetlist" style={{
-            position: "fixed", top: 64, right: 10, zIndex: 9995, width: 158,
-            background: "linear-gradient(180deg, rgba(12,20,36,0.96), rgba(8,13,26,0.96))",
-            border: "1px solid rgba(255,214,80,0.4)", borderRadius: 12,
-            boxShadow: "0 6px 18px rgba(0,0,0,0.55)", overflow: "hidden", padding: 6,
-            pointerEvents: "auto",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 6px" }}>
+          <div
+            ref={alvosPanelRef}
+            className="mob-targetlist"
+            style={{
+              ...(alvosPos
+                ? { left: alvosPos.x, top: alvosPos.y, right: "auto" as unknown as number }
+                : { top: 64, right: 10 }),
+              position: "fixed", zIndex: 9995,
+              width: alvosMax ? 310 : 158,
+              background: "linear-gradient(180deg, rgba(12,20,36,0.96), rgba(8,13,26,0.96))",
+              border: "1px solid rgba(255,214,80,0.4)", borderRadius: 12,
+              boxShadow: "0 6px 18px rgba(0,0,0,0.55)", overflow: "hidden", padding: 6,
+              pointerEvents: "auto",
+            }}>
+            <div
+              onPointerDown={startAlvosDrag}
+              title="Arraste pelo cabeçalho para mover · ⤢ maximiza · 📌 volta pro canto"
+              style={{
+                display: "flex", alignItems: "center", gap: 4, justifyContent: "space-between",
+                padding: "2px 4px 6px", cursor: "grab", touchAction: "none", userSelect: "none",
+              }}
+            >
               <span style={{ fontSize: 10, fontWeight: 900, color: "#ffd94d", letterSpacing: 1 }}>🎯 ALVOS</span>
-              <span style={{ fontSize: 8, fontWeight: 800, color: "#9fd8ff", border: "1px solid rgba(159,216,255,0.5)", borderRadius: 4, padding: "1px 4px" }}>TAB</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <button
+                  onClick={() => setAlvosMax((m) => !m)}
+                  title={alvosMax ? "Restaurar tamanho" : "Maximizar painel"}
+                  style={{
+                    background: alvosMax ? "rgba(255,214,80,0.28)" : "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,214,80,0.5)", borderRadius: 4, color: "#ffe9a8",
+                    fontSize: 9, fontWeight: 900, lineHeight: 1, padding: "3px 5px", cursor: "pointer",
+                  }}
+                >{alvosMax ? "🗗" : "⤢"}</button>
+                <button
+                  onClick={() => setAlvosPos(null)}
+                  title="Voltar para o canto"
+                  style={{
+                    background: "rgba(255,255,255,0.08)", border: "1px solid rgba(159,216,255,0.4)",
+                    borderRadius: 4, color: "#9fd8ff", fontSize: 9, fontWeight: 900, lineHeight: 1,
+                    padding: "3px 5px", cursor: "pointer",
+                  }}
+                >📌</button>
+                <span style={{ fontSize: 8, fontWeight: 800, color: "#9fd8ff", border: "1px solid rgba(159,216,255,0.5)", borderRadius: 4, padding: "1px 4px" }}>TAB</span>
+              </div>
             </div>
             {near.map(({ e, d }) => {
               const hpPct = Math.max(0, Math.min(1, e.hp / Math.max(1, e.maxHp)));
               const isCur = attackTargetId === e.id;
               const isManual = manualTargetRef.current === e.id;
-              const gif = GIF[e.sp];
+              const gif = MAP_SPRITE[idle.currentMap]?.[e.sp] ?? GIF[e.sp];
               return (
                 <div
                   key={e.id}
@@ -22897,34 +25274,34 @@ onClick={(e) => {
                   onClick={() => lockTarget(e.id)}
                   title="Clique para travar / soltar o alvo"
                   style={{
-                    display: "grid", gridTemplateColumns: "34px 1fr", gap: 6, alignItems: "center",
-                    padding: 4, marginBottom: 4, borderRadius: 8, cursor: "pointer",
+                    display: "grid", gridTemplateColumns: alvosMax ? "56px 1fr" : "34px 1fr", gap: 6, alignItems: "center",
+                    padding: alvosMax ? 6 : 4, marginBottom: 4, borderRadius: 8, cursor: "pointer",
                     background: isCur ? "rgba(255,214,80,0.16)" : "rgba(255,255,255,0.04)",
                     border: `2px solid ${isCur ? "#ffd94d" : "rgba(255,255,255,0.08)"}`,
                     boxShadow: isCur ? "0 0 10px rgba(255,217,77,0.45)" : "none",
                   }}
                 >
                   <div style={{
-                    width: 34, height: 34, borderRadius: 8, overflow: "hidden", background: "#0d1430",
+                    width: alvosMax ? 56 : 34, height: alvosMax ? 56 : 34, borderRadius: 8, overflow: "hidden", background: "#0d1430",
                     border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     {gif
-                      ? <img src={gif} alt="" style={{ width: 30, height: 30, objectFit: "contain", imageRendering: "pixelated" }} draggable={false} />
+                      ? <img src={gif} alt="" style={{ width: alvosMax ? 50 : 30, height: alvosMax ? 50 : 30, objectFit: "contain", imageRendering: "pixelated" }} draggable={false} />
                       : <span style={{ fontSize: 14, opacity: 0.5 }}>❓</span>}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{
-                      fontSize: 9.5, fontWeight: 800, color: isCur ? "#ffe9a8" : "#dbe6fa",
+                      fontSize: alvosMax ? 13 : 9.5, fontWeight: 800, color: isCur ? "#ffe9a8" : "#dbe6fa",
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
                       {isManual ? "🔒 " : ""}{e.sp.replace(/_/g, " ")}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ fontSize: 8.5, fontWeight: 900, color: "#9fb4ff" }}>Lv.{e.level}</span>
-                      <span style={{ fontSize: 7.5, color: "#8fa3c8" }}>≈{Math.round(d / 10)}m</span>
+                      <span style={{ fontSize: alvosMax ? 11 : 8.5, fontWeight: 900, color: "#9fb4ff" }}>Lv.{e.level}</span>
+                      <span style={{ fontSize: alvosMax ? 10 : 7.5, color: "#8fa3c8" }}>≈{Math.round(d / 10)}m</span>
                     </div>
                     <div style={{
-                      height: 5, background: "#3a1010", borderRadius: 3, overflow: "hidden",
+                      height: alvosMax ? 8 : 5, background: "#3a1010", borderRadius: 3, overflow: "hidden",
                       marginTop: 2, border: "1px solid rgba(0,0,0,0.5)",
                     }}>
                       <div style={{
@@ -22938,7 +25315,7 @@ onClick={(e) => {
               );
             })}
             <div style={{ fontSize: 7.5, color: "#8fa3c8", textAlign: "center", paddingTop: 2 }}>
-              Clique = travar · TAB = trocar
+              Clique = travar · TAB = trocar · arraste o título
             </div>
           </div>
         );
@@ -23877,8 +26254,8 @@ function TabOverlay({
   onBuyTeleportScroll: (qty?: number) => void;
   onBuyBook: (bk: ShopBook, qty?: number) => void;
   onBuyPotion: (qty?: number) => void;
-  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
-  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
+  onBuyEgg: (e: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite" | "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }) => void;
+  shopEggs: { id: "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_lugia" | "egg_dragonite" | "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck"; name: string; price: number; currency: "gold" | "crystals"; desc: string; color: string }[];
 
   onBuyChestAmulet: () => void;
 
@@ -24437,11 +26814,12 @@ function TabOverlay({
         const NAMES: Record<string, string> = {
           potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
           book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
-          book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP ✦",
-          book_vip_30: "Livro VIP 30d ✦✦", book_vip_60: "Livro VIP 60d ✦✦✦",
+          book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP EPIC ✦",
+          book_vip_30: "Livro VIP CRISTAL ✦✦", book_vip_60: "Livro VIP GOLD ✦✦✦",
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
+          ticket_ancestral: "Ticket Ancestral 🎫",
           bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard",           egg_lugia: "Ovo de Lugia ✦",
@@ -24478,6 +26856,10 @@ function TabOverlay({
           cr_green: "Cristal Verde 🟢", cr_purple: "Cristal Roxo 🟣",
         };
         const ITEM_DESC: Record<string, string> = {
+          egg_anc_selado: "Ovo Selado Ancestral — escolha UM pokémon na aba ANCESTRAL do Professor para selar. Libera em 3 DIAS (ou já, com 300 Esferas). Alimente com Esfera de Safira (≥12 traits, nunca abaixo do ROXO).",
+          egg_anc_plus: "Ovo Ancestral Plus — mesmo fluxo do Selado, mas o ancestral nasce com 16 traits (mínimo ROXO).",
+          egg_anc_luck: "Ovo Ancestral Luck — 12 traits com +3 DOURADOS garantidos desde o início (mínimo ROXO).",
+          esfera_safira: "Esfera de Safira — rara (4× mais rara que a Pepita, qualquer pokémon). Alimento do Ovo Selado Ancestral: melhora traits DOURADOS e, em 300/300, o ovo choca antes do tempo.",
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
           pokeball: "Pokébola padrão. Chance base de captura.",
           greatball: "Great Ball. Melhor chance de captura contra pokémon fortes.",
@@ -24487,9 +26869,9 @@ function TabOverlay({
           book_exp: "Livro de EXP · +10% EXP por 1 hora.",
           book_exp_big: "Livro de EXP Raro · +20% EXP por 1 hora.",
           book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
-          book_vip: "Livro VIP · +20% Ouro e EXP por 1 hora.",
-          book_vip_30: "Livro VIP 30 dias · +30% Ouro e EXP.",
-          book_vip_60: "Livro VIP 60 dias · +40% Ouro e EXP.",
+          book_vip: "Livro VIP EPIC ✦ · +20% Ouro e EXP por 1 hora.",
+          book_vip_30: "Livro VIP CRISTAL ✦✦ · +30% Ouro e EXP por 30 dias.",
+          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 60 dias.",
           orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
           orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
           orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",
@@ -24502,6 +26884,7 @@ function TabOverlay({
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
           chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
           skin_ticket: "Ticket de Skin ✦ · use na aba Início para desbloquear uma skin premium.",
+          ticket_ancestral: "Ticket Ancestral 🎫 · usado para abrir o BAÚ ANCESTRAL na aba Incubadora do Professor (única fonte dos ovos PLUS/LUCK). Concedido pelo admin.",
           egg_common: "Ovo Comum · chocado gera um pokémon aleatório de raridade baixa.",
           egg_rare: "Ovo Raro · chance de raridades altas ao chocar.",
           egg_epic: "Ovo Épico · alta chance de raridade Épica.",
@@ -24549,7 +26932,7 @@ function TabOverlay({
           oleo: "Óleo · combustível bruto.",
           certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_lugia: "#a9d8ff", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
         if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
@@ -25396,8 +27779,8 @@ function TabOverlay({
                        }}
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
-                       {traits.length > 0
-                         ? traits.slice(0, isBMP ? 7 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                        {traits.length > 0
+                          ? traits.slice(0, isBMP ? 7 : entry.rarity === "mythic_shiny" ? 16 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 
@@ -25731,6 +28114,8 @@ function TabOverlay({
 
 
 
+          {shopEggs.length > 0 && (
+          <>
           <h3 style={{ color: "#ff97e1", fontSize: 15, margin: "6px 0 10px" }}>🥚 Ovos — chocam Pokémon com raridade aleatória</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
             {shopEggs.map((e) => {
@@ -25778,6 +28163,8 @@ function TabOverlay({
               );
             })}
           </div>
+          </>
+          )}
 
           <h3 style={{ color: "#6bd4ff", fontSize: 15, margin: "6px 0 10px" }}>Amuletos</h3>
           <div style={{
@@ -26629,6 +29016,8 @@ function WalletScreen({
     stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧",
     stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
     egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo �0pico", egg_mystic: "Ovo Místico",
+    egg_anc_selado: "Egg Selado Ancestral", egg_anc_plus: "Egg Ancestral Plus", egg_anc_luck: "Egg Ancestral Luck",
+    esfera_safira: "Esfera de Safira",
     black_mitic_egg: "Black Mitic Egg ✦", premium_box: "Caixa Premium ✦"
   };
 

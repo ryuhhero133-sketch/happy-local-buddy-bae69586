@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import { claimSnapshotOwner, clearSnapshotOwner } from "@/lib/saveManager";
 import { computeIsExisting, saveShowsProgress } from "@/lib/accountExists";
+import { recoverVaultIdentity, readVault } from "@/lib/emergencyVault";
 import { makePet } from "@/game/systems";
 import perfilChar01Png from "@/CHAR/perfil. char 01.png";
 import perfilChar02Png from "@/CHAR/perfil. char 02.png";
@@ -86,6 +87,47 @@ function writeIdentity(id: string, name: string) {
   return identity;
 }
 
+/** Erro de "backend indisponível de verdade" (tabela/endpoint ausente):
+ * tolerável — o jogo segue em modo local. Qualquer OUTRO erro (rede fora,
+ * banco fora, 500...) NÃO pode ser interpretado como "conta nova". */
+function isToleratedBackendError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  const msg = String((error as { message?: unknown } | null)?.message ?? error ?? "");
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    /relation .* does not exist|not find|404/i.test(msg)
+  );
+}
+
+/** Sessão em cache escrita pelo próprio supabase-js (`sb-*-auth-token`).
+ * Fallback APENAS quando getSession() lança (rede indisponível): devolve a
+ * cache local sem validar assinatura (mesma confiança do armazenamento
+ * local do supabase-js). Retorna null se não houver cache utilizável. */
+function readCachedSupabaseSession(): Session | null {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith("sb-") || !k.endsWith("-auth-token")) continue;
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      const o = JSON.parse(raw) as { access_token?: unknown; user?: { id?: unknown } } | null;
+      if (
+        o &&
+        typeof o.access_token === "string" &&
+        o.access_token.length > 0 &&
+        typeof o.user?.id === "string" &&
+        o.user.id.length > 0
+      ) {
+        return o as unknown as Session;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 /**
  * Garante que existe linha em `profiles` para esse usuário e devolve
  * o username (ou null se ainda não foi escolhido). Não depende do trigger SQL.
@@ -96,11 +138,9 @@ async function ensureProfile(userId: string): Promise<{ username: string | null;
   log("ensureProfile: select", userId);
   const sel = await sb.from("profiles").select("id, username, avatar_url").eq("id", userId).maybeSingle();
   if (sel.error) {
-    // Banco sem a tabela (setup ainda não rodado): não trava o login.
+    // Banco sem a tabela (setup ainda não rodou): não trava o login.
     // O jogo segue local; perfil/sync ativam sozinhos quando a tabela existir.
-    const code = (sel.error as { code?: unknown }).code;
-    const msg = String((sel.error as { message?: unknown }).message ?? sel.error);
-    if (code === "42P01" || code === "PGRST205" || /relation .* does not exist|not find|404/i.test(msg)) {
+    if (isToleratedBackendError(sel.error)) {
       warn("ensureProfile: tabela profiles ausente — seguindo em modo local");
       return { username: null, avatarUrl: null };
     }
@@ -166,6 +206,49 @@ async function preloadCloudSave(userId: string) {
   } catch (e) {
     try { localStorage.removeItem(CLOUD_PRELOADED_KEY); } catch { /* ignore */ }
     warn("preloadCloudSave falhou", e);
+  }
+}
+
+/**
+ * Etapa 2 — recuperação do cofre ANTES do primeiro render do jogo:
+ * quando a conta NÃO tem save local (dispositivo novo, wipe, F5 offline
+ * após queda) e o cofre de emergência tem cópia VÁLIDA do uid vigente,
+ * repõe `rubym.idle.v1` / `rubym.save.v2` no mesmo ponto em que
+ * preloadCloudSave repõe da nuvem. Se já existir save local, NÃO toca
+ * nada (local prevalece). Nunca lança.
+ */
+async function restoreVaultIntoStorageIfEmpty(uid: string): Promise<void> {
+  try {
+    if (localStorage.getItem(IDLE_KEY) !== null || localStorage.getItem(SAVE_KEY) !== null) return;
+    const vault = await readVault();
+    if (!vault || !isCloudBlob(vault.data)) return;
+    const blob = vault.data as {
+      idle?: unknown;
+      team?: unknown[];
+      restingBench?: unknown[];
+      party?: unknown[];
+    };
+    // Re-chega após a leitura assíncrona (corrida com outro writer).
+    if (localStorage.getItem(IDLE_KEY) !== null || localStorage.getItem(SAVE_KEY) !== null) return;
+    if (blob.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(blob.idle));
+    const party = Array.isArray(blob.party)
+      ? blob.party
+      : [
+          ...(Array.isArray(blob.team) ? blob.team : []),
+          ...(Array.isArray(blob.restingBench) ? blob.restingBench : []),
+        ];
+    if (party.length > 0) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+      try {
+        localStorage.setItem("rubym.starter.chosen", "1");
+        localStorage.setItem("rubym.setup.done", "1");
+      } catch {
+        /* ignore */
+      }
+    }
+    log("restoreVaultIntoStorageIfEmpty: progresso reposto do cofre", uid);
+  } catch (e) {
+    warn("restoreVaultIntoStorageIfEmpty falhou", e);
   }
 }
 
@@ -325,7 +408,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setSession(data.session);
       } catch (e) {
         log("initial session failed", e);
-        setSession(null);
+        // Rede fora: NÃO derruba a sessão se há cache local utilizável —
+        // sem isso o F5 offline caía na tela de login e bloqueava o jogo.
+        setSession(readCachedSupabaseSession());
       } finally {
         clearTimeout(guaranteedFallback);
         setChecking(false);
@@ -469,20 +554,25 @@ export function AuthGate({ children }: { children: ReactNode }) {
           if (avatarUrl && avatarUrl.trim().length > 0) {
             isExisting = true;
           } else {
-            try {
-              const [pokeRes, saveRes] = await Promise.all([
-                (supabase as any).from("pokemon_collection").select("id").eq("user_id", uid).limit(1),
-                (supabase as any).from("game_saves").select("data").eq("user_id", uid).maybeSingle(),
-              ]);
-              const hasPoke = Array.isArray(pokeRes?.data) && pokeRes.data.length > 0;
-              const saveData = saveRes?.data?.data ?? null;
-              isExisting = computeIsExisting({
-                username,
-                avatarUrl,
-                hasCollection: hasPoke,
-                saveHasProgress: saveShowsProgress(saveData),
-              });
-            } catch { /* ignora, trata como novo */ }
+            const [pokeRes, saveRes] = await Promise.all([
+              (supabase as any).from("pokemon_collection").select("id").eq("user_id", uid).limit(1),
+              (supabase as any).from("game_saves").select("data").eq("user_id", uid).maybeSingle(),
+            ]);
+            // Erro RETORNADO: tabela ausente = tolerado (modo local, como
+            // antes). Rede/banco fora NÃO decide "conta nova" — sobe pro
+            // catch externo, que recupera identidade local (Etapa 2).
+            const pokeErr = (pokeRes as { error?: unknown } | null)?.error ?? null;
+            const saveErr = (saveRes as { error?: unknown } | null)?.error ?? null;
+            if (pokeErr && !isToleratedBackendError(pokeErr)) throw pokeErr;
+            if (saveErr && !isToleratedBackendError(saveErr)) throw saveErr;
+            const hasPoke = Array.isArray(pokeRes?.data) && pokeRes.data.length > 0;
+            const saveData = saveRes?.data?.data ?? null;
+            isExisting = computeIsExisting({
+              username,
+              avatarUrl,
+              hasCollection: hasPoke,
+              saveHasProgress: saveShowsProgress(saveData),
+            });
             if (cancelled) return;
           }
         }
@@ -490,6 +580,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
         if (isExisting) {
           // Jogador existente: hidrata antes de liberar o jogo (evita flash level 1 / starter)
           try { await preloadCloudSave(uid); } catch {}
+          // Sem save local (novo aparelho / offline): repõe do cofre.
+          await restoreVaultIntoStorageIfEmpty(uid);
           if (cancelled) return;
           // Aqui username sempre existe (regra accountExists exige nome + 2ª prova).
           const finalName = username!;
@@ -500,6 +592,30 @@ export function AuthGate({ children }: { children: ReactNode }) {
           try { localStorage.setItem("rubym.starter.chosen", "1"); localStorage.setItem("rubym.setup.done", "1"); } catch {}
           setNeedsChar(false);
         } else {
+          // Backend tolerado (ex.: tabela `profiles` ausente) NÃO lança — devolve
+          // username nulo e cai aqui sem passar pelo catch. Sem esta checagem, uma
+          // conta COM progresso real veria o CreateCharacterScreen por cima do
+          // save (mesmo defeito que o catch da Etapa 2 corrige). Espelha o catch:
+          // identidade local da MESMA conta, ou a gravada no cofre (uid conferido),
+          // vencem a tela de criação. Sem nenhuma das duas, é conta nova mesmo.
+          const emptyIdent = loadIdentity();
+          if (emptyIdent && emptyIdent.id === uid) {
+            await restoreVaultIntoStorageIfEmpty(uid);
+            if (cancelled) return;
+            setSuggestedName("");
+            setIdentity(emptyIdent);
+            setNeedsChar(false);
+            return;
+          }
+          const emptyRecovered = await recoverVaultIdentity();
+          if (emptyRecovered && emptyRecovered.id === uid) {
+            await restoreVaultIntoStorageIfEmpty(uid);
+            if (cancelled) return;
+            setSuggestedName("");
+            setIdentity(writeIdentity(uid, emptyRecovered.name));
+            setNeedsChar(false);
+            return;
+          }
           log("carteira nova ou onboarding incompleto — exibindo CreateCharacterScreen");
           // Pré-preenche com o nome parcial, se houver (não usa como definitivo).
           setSuggestedName(username ?? "");
@@ -508,6 +624,27 @@ export function AuthGate({ children }: { children: ReactNode }) {
         }
       } catch (e) {
         warn("bootstrap falhou", e);
+        // Etapa 2: falha de rede/banco NÃO pode virar "conta nova"
+        // (CreateCharacterScreen em cima do save real). Recupera identidade:
+        // 1) identidade local já vigente (id igual); 2) identidade gravada
+        // no cofre de emergência (só se uid conferir); 3) só sem nada →
+        // comportamento antigo (não apaga save de ninguém).
+        const localIdent = loadIdentity();
+        if (localIdent && localIdent.id === uid) {
+          await restoreVaultIntoStorageIfEmpty(uid);
+          setSuggestedName("");
+          setIdentity(localIdent);
+          setNeedsChar(false);
+          return;
+        }
+        const recovered = await recoverVaultIdentity();
+        if (recovered && recovered.id === uid) {
+          await restoreVaultIntoStorageIfEmpty(uid);
+          setSuggestedName("");
+          setIdentity(writeIdentity(uid, recovered.name));
+          setNeedsChar(false);
+          return;
+        }
         setSuggestedName("");
         setIdentity(null);
         setNeedsChar(true);

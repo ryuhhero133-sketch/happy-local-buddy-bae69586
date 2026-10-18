@@ -28,6 +28,7 @@ import florBlueUrl from "@/material land/flor-blue.png";
 import florPurpleUrl from "@/material land/flor-purple.png";
 import florRedUrl from "@/material land/flor-red.png";
 import pepitaUrl from "@/material land/Pepita de ouro.png";
+import esferaSafiraUrl from "@/ambiente/Esfera de Safira.png";
 import perolaUrl from "@/material land/perola.png";
 
 // ===== Configuração central de drops de recurso =====
@@ -61,6 +62,13 @@ const BULBA_IVY = ["bulbasaur", "bulbasaur_shiny", "ivysaur", "ivysaur_shiny"];
 
 const COG_MATS: MaterialId[] = ["cog_red", "cog_brown", "cog_blue", "cog_orange"];
 
+// ===== Esfera de Safira (alimento do Ovo Selado Ancestral) =====
+// Spec do jogador: cai de QUALQUER pokémon, 4× mais rara que a Pepita.
+// Fonte única de verdade da razão 4× — mexa só aqui.
+export const PEPITA_CHANCE = 0.12; // drops.ts (pepita)
+export const SAFIRA_OVER_PEPITA = 4; // 4× mais rara
+export const SAFIRA_CHANCE = PEPITA_CHANCE / SAFIRA_OVER_PEPITA; // = 0.03 (3%)
+
 export const DROP_RULES: DropRule[] = [
   // NERF GERAL DE MATERIAIS — antes ficava fácil demais (≈2x mais raro).
   // Fibra — fonte principal: Venusaur (planta). 15%.
@@ -86,6 +94,9 @@ export const DROP_RULES: DropRule[] = [
   { id: "pepita", mat: "pepita", label: "Pepita de Ouro", img: pepitaUrl, chance: 0.12, qty: 1, elements: ["pedra"] },
   // Bronze — terra. 12% (era 32%).
   { id: "bronze", mat: "bronze", label: "Bronze", img: bronzeUrl, chance: 0.12, qty: 1, species: GROUND_SPECIES },
+  // Esfera de Safira — QUALQUER pokémon (sem species/elements/maps).
+  // Chance = pepita ÷ 4 (fonte única: SAFIRA_CHANCE). 3%.
+  { id: "esfera_safira", mat: "esfera_safira", label: "Esfera de Safira", img: esferaSafiraUrl, chance: SAFIRA_CHANCE, qty: 1 },
 ];
 
 // Água — SOMENTE pontos configurados (a definir: quais mapas). Lista vazia = nada ativo.
@@ -144,7 +155,7 @@ export function rollDropsFor(sp: Species, mapId: string): RolledDrop[] {
 export const DROP_IMG_BY_MAT: Partial<Record<MaterialId, string>> = {
   fibra: fibraUrl, ferro: ferroUrl, agua: aguaUrl, bronze: bronzeUrl,
   buque: buqueUrl, chicote: chicoteUrl, escamas: escamasUrl,
-  perola: perolaUrl, pepita: pepitaUrl, flor: florRedUrl,
+  perola: perolaUrl, pepita: pepitaUrl, flor: florRedUrl, esfera_safira: esferaSafiraUrl,
   cog_blue: cogBlueUrl, cog_orange: cogOrangeUrl, cog_red: cogRedUrl,
   cog_brown: cogBrownUrl, sucata: sucataUrl,
   lenha: lenhaUrl, pedra: pedraUrl, oleo: oleoUrl,
@@ -155,6 +166,7 @@ export const DROP_LABEL_BY_MAT: Partial<Record<MaterialId, string>> = {
   fibra: "Fibra", ferro: "Ferro", agua: "Água", bronze: "Bronze",
   buque: "Buquê", chicote: "Chicote", escamas: "Escamas",
   perola: "Pérola", pepita: "Pepita de Ouro", flor: "Flor",
+  esfera_safira: "Esfera de Safira",
   cog_red: "Cogumelo Vermelho", cog_blue: "Cogumelo Azul",
   cog_orange: "Cogumelo Laranja", cog_brown: "Cogumelo Marrom",
 };

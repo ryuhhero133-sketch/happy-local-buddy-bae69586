@@ -18,7 +18,7 @@ const SAMPLES = [
   [0.85, 0.5],
 ];
 
-type Grid = { cols: number; rows: number; walk: Uint8Array };
+type Grid = { cols: number; rows: number; walk: Uint8Array; zone: Uint8Array };
 
 const cache = new Map<CollisionMapId, Grid>();
 const loading = new Map<CollisionMapId, Promise<Grid>>();
@@ -28,7 +28,32 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure" || mapId === "mapa_orange";
+  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure" || mapId === "mapa_orange" || mapId === "laboratorio" || isProfUpdateMap(mapId);
+}
+
+// Mapas do UPDATE (aba MAPAS do Professor): colisão estilo Laboratório —
+// branco puro anda; rosa/amarelo (e qualquer outra cor) bloqueiam.
+function isProfUpdateMap(mapId: CollisionMapId): boolean {
+  return mapId === "iceblow" || mapId === "monte_floreto" || mapId === "rayow" || mapId === "sakura_city" || mapId === "venenot" || mapId === "hallow" || mapId === "caverna_brok";
+}
+
+/** Zona colorida da máscara por matiz: 1 = rosa (água dos rios), 2 = amarelo (luz de caverna). */
+function pixelZone(r: number, g: number, b: number): 0 | 1 | 2 {
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const d = mx - mn;
+  if (d === 0) return 0;
+  const sat = mx === 0 ? 0 : d / mx;
+  let h: number;
+  if (mx === r) h = 60 * (((g - b) / d) % 6);
+  else if (mx === g) h = 60 * ((b - r) / d + 2);
+  else h = 60 * ((r - g) / d + 4);
+  if (h < 0) h += 360;
+  if (sat > 0.3 && h >= 275 && h <= 345 && mx > 90) return 1;
+  // Amarelo = SÓ a luz viva da caverna (amarelo puro e brilhante). Terraço/ocre
+  // (~160,176,48) e a escada são amarelados, mas não são luz — não contam.
+  if (sat > 0.75 && h >= 45 && h <= 75 && mx >= 235) return 2;
+  return 0;
 }
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
@@ -246,6 +271,21 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
     }
     // ---- Máscaras branco/preto (SÓ o branco anda — igual Revoland) ----
     // casa1/casa2/land_revo/mapinha10 + mapas do evento Torre Elemental.
+    // Laboratório: branco PURO (>240) — as paredes cinza-claras (~220) NÃO andam.
+    case "laboratorio": {
+      return r > 240 && g > 240 && b > 240;
+    }
+    // ---- Mapas do UPDATE (aba MAPAS do Professor) — regra do Laboratório ----
+    // BRANCO PURO (>240) anda; rosa, amarelo, preto e demais cores bloqueiam.
+    case "iceblow":
+    case "monte_floreto":
+    case "rayow":
+    case "sakura_city":
+    case "venenot":
+    case "hallow":
+    case "caverna_brok": {
+      return r > 240 && g > 240 && b > 240;
+    }
     case "casa1":
     case "casa2":
     case "land_revo":
@@ -267,10 +307,11 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
     const cols = Math.ceil(w / TILE);
     const rows = Math.ceil(h / TILE);
     const walk = new Uint8Array(cols * rows);
+    const zone = new Uint8Array(cols * rows);
 
     if (typeof window === "undefined" || typeof document === "undefined") {
       walk.fill(1);
-      return resolve({ cols, rows, walk });
+      return resolve({ cols, rows, walk, zone });
     }
 
     const img = new Image();
@@ -283,7 +324,7 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
           walk.fill(1);
-          return resolve({ cols, rows, walk });
+          return resolve({ cols, rows, walk, zone });
         }
         ctx.drawImage(img, 0, 0, w, h);
         const data = ctx.getImageData(0, 0, w, h).data;
@@ -292,10 +333,15 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
         for (let cy = 0; cy < rows; cy++) {
           for (let cx = 0; cx < cols; cx++) {
             let hits = 0;
+            let pinkHits = 0;
+            let yellowHits = 0;
             for (const [fx, fy] of SAMPLES) {
               const px = Math.min(w - 1, Math.floor(cx * TILE + fx * TILE));
               const py = Math.min(h - 1, Math.floor(cy * TILE + fy * TILE));
               const idx = (py * w + px) * 4;
+              const z = pixelZone(data[idx], data[idx + 1], data[idx + 2]);
+              if (z === 1) pinkHits++;
+              else if (z === 2) yellowHits++;
               if (pixelWalk(mapId, data[idx], data[idx + 1], data[idx + 2], px, py)) hits++;
             }
             // Cavernas precisam de maioria real pra não deixar cortar parede.
@@ -304,6 +350,8 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
             // madeira têm rungs pretos misturados com chão amarelo e devem ser caminháveis.
             const neededHits = mapId === "palletRoute" ? 4 : mapId === "cave1" ? 3 : hasFootprintCollision(mapId) ? 5 : 2;
             walk[cy * cols + cx] = hits >= neededHits ? 1 : 0;
+            if (pinkHits >= 3) zone[cy * cols + cx] = 1;
+            else if (yellowHits >= 5) zone[cy * cols + cx] = 2;
           }
         }
 
@@ -347,14 +395,58 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
           }
         }
         for (let i = 0; i < walk.length; i++) walk[i] = out[i];
+        // Laboratório + mapas do UPDATE: anda SÓ na área branca CONECTADA (pintura principal).
+        // Remove manchas claras isoladas (painéis/telas/luzes) que passam no
+        // threshold mas não fazem parte do caminho pintado.
+        if (mapId === "laboratorio" || isProfUpdateMap(mapId)) {
+          const total = cols * rows;
+          const seenL = new Uint8Array(total);
+          const queue: number[] = [];
+          let bestStart = -1, bestSize = 0;
+          for (let s = 0; s < total; s++) {
+            if (walk[s] !== 1 || seenL[s]) continue;
+            let size = 0;
+            queue.length = 0;
+            queue.push(s);
+            seenL[s] = 1;
+            while (queue.length) {
+              const c = queue.pop()!;
+              size++;
+              const cx = c % cols, cy = Math.floor(c / cols);
+              if (cx > 0 && walk[c - 1] === 1 && !seenL[c - 1]) { seenL[c - 1] = 1; queue.push(c - 1); }
+              if (cx < cols - 1 && walk[c + 1] === 1 && !seenL[c + 1]) { seenL[c + 1] = 1; queue.push(c + 1); }
+              if (cy > 0 && walk[c - cols] === 1 && !seenL[c - cols]) { seenL[c - cols] = 1; queue.push(c - cols); }
+              if (cy < rows - 1 && walk[c + cols] === 1 && !seenL[c + cols]) { seenL[c + cols] = 1; queue.push(c + cols); }
+            }
+            if (size > bestSize) { bestSize = size; bestStart = s; }
+          }
+          if (bestStart >= 0) {
+            const keep = new Uint8Array(total);
+            queue.length = 0;
+            queue.push(bestStart);
+            keep[bestStart] = 1;
+            while (queue.length) {
+              const c = queue.pop()!;
+              const cx = c % cols, cy = Math.floor(c / cols);
+              const nbs = [
+                cx > 0 ? c - 1 : -1, cx < cols - 1 ? c + 1 : -1,
+                cy > 0 ? c - cols : -1, cy < rows - 1 ? c + cols : -1,
+              ];
+              for (const nb of nbs) {
+                if (nb >= 0 && walk[nb] === 1 && !keep[nb]) { keep[nb] = 1; queue.push(nb); }
+              }
+            }
+            for (let i = 0; i < total; i++) walk[i] = keep[i];
+          }
+        }
       } catch {
         walk.fill(1);
       }
-      resolve({ cols, rows, walk });
+      resolve({ cols, rows, walk, zone });
     };
     img.onerror = () => {
       walk.fill(1);
-      resolve({ cols, rows, walk });
+      resolve({ cols, rows, walk, zone });
     };
     img.src = src;
   });
@@ -368,6 +460,15 @@ export function ensureCollision(mapId: CollisionMapId, src: string, w: number, h
     return g;
   });
   loading.set(mapId, p);
+}
+
+export function maskZoneAt(mapId: CollisionMapId, x: number, y: number): 0 | 1 | 2 {
+  const g = cache.get(mapId);
+  if (!g || !g.zone) return 0;
+  const cx = Math.floor(x / TILE);
+  const cy = Math.floor(y / TILE);
+  if (cx < 0 || cy < 0 || cx >= g.cols || cy >= g.rows) return 0;
+  return (g.zone[cy * g.cols + cx] as 0 | 1 | 2) ?? 0;
 }
 
 export function isWalkable(mapId: CollisionMapId, x: number, y: number): boolean {
@@ -386,6 +487,19 @@ export function isWalkable(mapId: CollisionMapId, x: number, y: number): boolean
   // Em mapas com contorno fino, confere um pequeno corpo ao redor do player,
   // não só o ponto central. Na Pallet é menor pra deslizar sem agarrar nas bordas.
   const r = mapId === "palletRoute" ? TILE * 0.32 : TILE * 0.42;
+
+  // Objetos que o jogador pediu pra poder atravessar ("tirar árvores e pedras").
+  // A grade é construída em pixels de MUNDO (natural × MAP_DISPLAY_SCALE), então
+  // estes rects já estão no mesmo espaço das coordenadas recebidas.
+  if (x >= 156 && x <= 202 && y >= 156 && y <= 202) return true;   // vaso planta sup-esq
+  if (x >= 788 && x <= 832 && y >= 159 && y <= 198) return true;   // vaso planta sup-dir
+  if (x >= 55 && x <= 107 && y >= 478 && y <= 530) return true;    // vaso planta inf-esq
+  if (x >= 884 && x <= 940 && y >= 478 && y <= 530) return true;   // vaso planta inf-dir
+  if (x >= 78 && x <= 166 && y >= 153 && y <= 302) return true;    // cilindros esq
+  if (x >= 826 && x <= 917 && y >= 153 && y <= 302) return true;   // cilindros dir
+  if (x >= 156 && x <= 262 && y >= 296 && y <= 380) return true;   // tanque vidro esq
+  if (x >= 731 && x <= 841 && y >= 307 && y <= 379) return true;   // tanque vidro dir
+
   return (
     cellWalkable(x, y) &&
     cellWalkable(x - r, y) &&

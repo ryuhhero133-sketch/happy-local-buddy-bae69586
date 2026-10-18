@@ -109,6 +109,7 @@ const MAT_META: Record<MaterialId, { label: string; img?: string }> = {
   cog_red: { label: "Cogumelo" }, cog_brown: { label: "Cogumelo" }, cog_blue: { label: "Cogumelo" },
   laranja: { label: "Laranja", img: imgLaranja }, banana: { label: "Banana", img: imgBanana },
   buque: { label: "Buquê" }, flor: { label: "Flor" }, pepita: { label: "Pepita" }, cog_orange: { label: "Cogumelo" },
+  esfera_safira: { label: "Esfera de Safira" },
 };
 
 // Materiais mostrados na coluna "RECURSOS" (somente os que aparecem nas receitas)

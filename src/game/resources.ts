@@ -178,11 +178,21 @@ export const TELEPORT_MARKT_MAP_ID = "mapinha10";
 /** Mapas limpos novos (src/lands): teleporte custa 1 energia. */
 export const TELEPORT_LAND_MAP_IDS = ["land_revo", "land_gelo", "casa1", "casa2", "rota_pinsir", "deserto_alaka"];
 export const TELEPORT_ENERGY_LAND_COST = 1;
+/** Mapas do laboratório (aba MAPAS do Professor): 10 de energia por entrada, após desbloquear. */
+export const LAB_MAP_ENERGY_COST = 10;
 /** Custo de energia por destino: Revoland = 0, Pokémarkt = 0, lands novas = 1, demais = 5. */
 export function teleportEnergyCostFor(mapId: string): number {
   if (mapId === TELEPORT_HOME_MAP_ID) return TELEPORT_ENERGY_HOME_COST;
   if (mapId === TELEPORT_MARKT_MAP_ID) return TELEPORT_ENERGY_MARKT_COST;
   if (TELEPORT_LAND_MAP_IDS.includes(mapId)) return TELEPORT_ENERGY_LAND_COST;
+  if (mapId === "revo_rout" || mapId === "mapinha11") return 1;
+  if (mapId === "laboratorio") return 0;
+  // Hallow e Caverna de Brok: entrada grátis (são atalho de mapa, não viagem).
+  if (mapId === "hallow" || mapId === "caverna_brok") return 0;
+  // Mapas do UPDATE (aba MAPAS do Professor): 10 de energia por entrada, após desbloquear.
+  if (mapId === "iceblow" || mapId === "monte_floreto" || mapId === "rayow" || mapId === "sakura_city" || mapId === "venenot") return LAB_MAP_ENERGY_COST;
+  // Jornada dos Navegantes (continente da aba MAPAS): mesma regra — 10 de energia.
+  if (mapId === "azulante" || mapId === "margrande" || mapId === "navegante") return LAB_MAP_ENERGY_COST;
   return TELEPORT_ENERGY_COST;
 }
 

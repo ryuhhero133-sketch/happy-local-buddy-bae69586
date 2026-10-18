@@ -995,15 +995,31 @@ export function BlackMiticEggSprite(props: {
   trainerY: number;
   visible: boolean;
   onClick: () => void;
+  /** Sprite do ovo (padrão = Black Mitic Plus). */
+  src?: string;
+  /** Tooltip ao passar o mouse. */
+  title?: string;
+  /** RGB da aura (padrão roxo BMP: "160,80,255"). */
+  auraRgb?: string;
+  /** Cor das partículas orbitando. */
+  dot?: string;
+  dotGlow?: string;
+  /** Distância horizontal até o treinador (padrão -46). */
+  offsetX?: number;
 }) {
   const { trainerX, trainerY, visible, onClick } = props;
-  const [pos, setPos] = useState({ x: trainerX - 42, y: trainerY - 8 });
+  const srcImg = props.src ?? eggSprite;
+  const auraRgb = props.auraRgb ?? "160,80,255";
+  const dotCol = props.dot ?? "#c58bff";
+  const dotGlow = props.dotGlow ?? "#a066ff";
+  const offX = props.offsetX ?? -46;
+  const [pos, setPos] = useState({ x: trainerX + offX + 4, y: trainerY - 8 });
   const posRef = useRef(pos);
-  const targetRef = useRef({ x: trainerX - 42, y: trainerY - 8 });
+  const targetRef = useRef({ x: trainerX + offX, y: trainerY - 10 });
   const rafRef = useRef<number | null>(null);
   const [tick, setTick] = useState(0);
 
-  useEffect(() => { targetRef.current = { x: trainerX - 46, y: trainerY - 10 }; }, [trainerX, trainerY]);
+  useEffect(() => { targetRef.current = { x: trainerX + offX, y: trainerY - 10 }; }, [trainerX, trainerY, offX]);
 
   useEffect(() => {
     if (!visible) return;
@@ -1038,11 +1054,11 @@ export function BlackMiticEggSprite(props: {
         zIndex: Math.round(trainerY) + 1,
         cursor: "pointer", pointerEvents: "auto",
       }}
-      title="Black Mitic Plus Egg — clique para abrir o painel"
+      title={props.title ?? "Black Mitic Plus Egg — clique para abrir o painel"}
     >
       <div style={{
         position: "absolute", inset: -18, borderRadius: "50%",
-        background: `radial-gradient(circle, rgba(160,80,255,${0.45 * auraPulse}) 0%, rgba(120,40,220,${0.25 * auraPulse}) 40%, transparent 70%)`,
+        background: `radial-gradient(circle, rgba(${auraRgb},${0.45 * auraPulse}) 0%, rgba(${auraRgb},${0.25 * auraPulse}) 40%, transparent 70%)`,
         filter: "blur(4px)", pointerEvents: "none",
       }} />
       {[0, 1, 2, 3].map((i) => {
@@ -1053,18 +1069,18 @@ export function BlackMiticEggSprite(props: {
         return (
           <div key={i} style={{
             position: "absolute", left: x, top: y, width: 3, height: 3,
-            background: "#c58bff", boxShadow: "0 0 6px #a066ff, 0 0 12px #7020c0",
+            background: dotCol, boxShadow: `0 0 6px ${dotGlow}, 0 0 12px ${dotCol}`,
             borderRadius: 1, transform: "translate(-50%,-50%)", pointerEvents: "none",
           }} />
         );
       })}
       <img
-        src={eggSprite} alt="" draggable={false}
+        src={srcImg} alt="" draggable={false}
         style={{
           position: "absolute", inset: 0, width: "100%", height: "100%",
           imageRendering: "pixelated",
           transform: `rotate(${rot}deg)`,
-          filter: "drop-shadow(0 3px 4px rgba(90,20,180,0.7)) drop-shadow(0 0 6px rgba(160,80,255,0.6))",
+          filter: `drop-shadow(0 3px 4px rgba(${auraRgb},0.7)) drop-shadow(0 0 6px rgba(${auraRgb},0.6))`,
         }}
       />
     </div>
