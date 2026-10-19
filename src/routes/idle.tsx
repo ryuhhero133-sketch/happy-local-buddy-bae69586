@@ -1221,6 +1221,24 @@ const GIF: Partial<Record<Species, string>> = {
 
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
+// Ancestrais (Egg Selado): PNGs ESTÁTICOS (sem GIF, sem sheet 4x4). Sem passo
+// visual eles "escorregam" parados enquanto andam — damos bob de andar
+// sincronizado com o walkStep do treinador (frames 0..3, 180ms), mesmo ritmo
+// dos sheets dos mapas iniciais.
+const ANC_STATIC_SPECIES: ReadonlySet<Species> = new Set<Species>([
+  "giratina", "cresselia", "kyurem", "reshiram", "zekrom", "groudon_shiny",
+  "rayquaza_shiny", "dragonite_mg", "latias_ancestral", "latios_ancestral",
+  "lugia_m_shiny", "lugia_shiny_ancestral", "mega_lugia_ancestral",
+  "mega_charizard", "charizard_mega_x",
+]);
+// Frame 0 = contato com o chão (parado = sem deslocamento).
+const WALK_BOB_Y = [0, -3, 0, -2] as const;
+const WALK_BOB_SY = [1, 0.97, 1, 0.98] as const;
+const walkBobTransform = (step: number): string => {
+  const s = (((step | 0) % 4) + 4) % 4;
+  return `translateY(${WALK_BOB_Y[s]}px) scaleY(${WALK_BOB_SY[s]})`;
+};
+
 const SPRITE_SHEET: Partial<Record<Species, string>> = {
   lucario: lucarioAuraUrl,
   mew: mewAuraUrl,
@@ -19424,6 +19442,9 @@ A sucata afundou com o casco.
                         width: 36, height: 36,
                         imageRendering: "pixelated",
                         pointerEvents: "none",
+                        transform: (rp.leaderSp && ANC_STATIC_SPECIES.has(rp.leaderSp))
+                          ? walkBobTransform(rp.step)
+                          : undefined,
                       }} />
                     )
                   )}
@@ -19545,7 +19566,11 @@ A sucata afundou com o casco.
                       style={{
                         width: "100%", imageRendering: "pixelated",
                         "--face-scale": faceScale,
-                        transform: `scaleX(${faceScale})`,
+                        transform: `scaleX(${faceScale})${
+                          followerState.moving && !fainted && ANC_STATIC_SPECIES.has(leaderSp)
+                            ? ` ${walkBobTransform(walkStep)}`
+                            : ""
+                        }`,
                       } as React.CSSProperties} />
                   )}
 
