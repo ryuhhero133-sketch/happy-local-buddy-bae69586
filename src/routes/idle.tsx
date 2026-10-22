@@ -305,7 +305,7 @@ import {
   type BoatTier,
   type ShipState,
 } from "@/game/ships";
-import { applySpiritEvent, spiritEventId, patenteOf, patentePrizeReady } from "@/game/trainerProfile";
+import { applySpiritEvent, spiritEventId, patenteOf, patentePrizeReady, type VipBookId } from "@/game/trainerProfile";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -2150,8 +2150,7 @@ const SHOP_BOOKS: ShopBook[] = [
 
   { id: "book_exp", name: "Livro de EXP",    desc: "+30% EXP em batalhas por 1 hora",   price: 30, img: bookExpImg },
 
-  { id: "book_vip_30", name: "Livro VIP CRISTAL ✦✦", desc: "+30% ouro e +30% EXP por 30 DIAS", price: 500, img: bookExpImg },
-  { id: "book_vip_60", name: "Livro VIP GOLD ✦✦✦", desc: "+40% ouro e +40% EXP por 60 DIAS", price: 1000, img: bookExpImg },
+  // ═══ LIVROS VIP — vendidos na aba VIP do Laboratório por CRISTAIS ═══
   // ═══ ORB DE XP FRACO — único vendido; os fortes vêm da troca com NPC ═══
   { id: "orb_xp_minor",   name: "Orb de XP Menor ✦",   desc: "+10% EXP por 1 hora (apenas 1 orb ativo, stack com livro)", price: 100,  img: orbXpMinorUrl,   currency: "crystals", priceGold: 50000 },
   // ═══ ORB DE TIME — distribui EXP para todos os pokémons do time por 1 hora ═══
@@ -11526,7 +11525,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushChat(`✦ Orb de Time ativado — todos os pokémons do time ganham EXP por 3 horas.`, "cap");
     } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
       const cfg = id === "book_vip_60"
-        ? { add: 0.40, ms: 60 * 24 * 3600_000, label: "60 dias" }
+        ? { add: 0.40, ms: 365 * 24 * 3600_000, label: "1 ano" }
         : id === "book_vip_30"
           ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
           : { add: 0.20, ms: 3600_000, label: "1 hora" };
@@ -13377,6 +13376,46 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const until = idle.buffs?.goldMultUntil ?? 0;
     return until > Date.now();
   };
+  // ===== Loja VIP do Laboratório (aba VIP): compra com CRISTAIS, ativa na hora =====
+  const LAB_VIP_PRICES: Record<VipBookId, number> = {
+    book_vip: 10_000,
+    book_vip_30: 30_000,
+    book_vip_60: 50_000,
+  };
+  const LAB_VIP_CFG: Record<VipBookId, { add: number; ms: number; label: string }> = {
+    book_vip: { add: 0.20, ms: 3600_000, label: "1 hora" },
+    book_vip_30: { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" },
+    book_vip_60: { add: 0.40, ms: 365 * 24 * 3600_000, label: "1 ano" },
+  };
+  const buyVipBookLab = (id: VipBookId) => {
+    const base = idleRef.current;
+    const price = LAB_VIP_PRICES[id];
+    const have = base.bank?.crystals ?? 0;
+    if (have < price) {
+      pushChat(`Cristais insuficientes para o Livro VIP: faltam ${(price - have).toLocaleString("pt-BR")} 💎.`, "info");
+      return;
+    }
+    const cfg = LAB_VIP_CFG[id];
+    const nowT = Date.now();
+    const curUntil = Math.max(base.buffs.expMultUntil ?? 0, base.buffs.goldMultUntil ?? 0);
+    const curMult = curUntil > nowT ? Math.max(base.buffs.expMult ?? 0, base.buffs.goldMult ?? 0) : 0;
+    const remaining = curUntil > nowT ? curUntil - nowT : 0;
+    const newUntil = nowT + remaining + cfg.ms;
+    const newMult = Math.max(curMult, cfg.add);
+    const upgraded = curMult > 0 && newMult > curMult;
+    const next: IdleState = {
+      ...base,
+      bank: { ...base.bank, crystals: have - price },
+      buffs: {
+        ...base.buffs,
+        expMult: newMult, expMultUntil: newUntil,
+        goldMult: newMult, goldMultUntil: newUntil,
+      },
+    };
+    setIdle(next);
+    pushEvent("👑", "VIP ATIVADO", `+${Math.round(newMult * 100)}% ouro e EXP${remaining > 0 ? ` · duração somada (+${cfg.label})` : ` · ${cfg.label}`}`, "#ffd94d");
+    pushChat(`👑 Loja VIP: ativado +${Math.round(newMult * 100)}% ouro e EXP${upgraded ? " (bônus elevado)" : ""}${remaining > 0 ? ` — duração somada ao VIP atual (+${cfg.label})` : ` por ${cfg.label}`}. CLUBE VIP aceso no perfil!`, "cap");
+  };
   // ===== Professor do Laboratório: diálogos → quests (kills/caps/shiny/nível) =====
   const profAcceptQuest = (id: ProfQuestId) => {
     const q = idle.profQuest;
@@ -14044,7 +14083,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     book_exp: { to: "book_exp_big", cost: 3, trainerLv: 10, label: "Livro EXP Raro" },
     book_exp_big: { to: "book_exp_max", cost: 3, trainerLv: 25, label: "Livro EXP Lendário" },
     book_vip: { to: "book_vip_30", cost: 5, trainerLv: 20, label: "Livro VIP 30d" },
-    book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "Livro VIP 60d" },
+    book_vip_30: { to: "book_vip_60", cost: 3, trainerLv: 40, label: "Livro VIP Anual (1 ano)" },
   };
   const upgradeBook = (id: string) => {
     const rule = BOOK_UPGRADES[id];
@@ -17018,6 +17057,8 @@ A sucata afundou com o casco.
               onTravel={profTravelTo}
               ship={idle.ship}
               gold={idle.bank?.gold ?? 0}
+              crystals={idle.bank?.crystals ?? 0}
+              onBuyVipBook={buyVipBookLab}
               pepitas={idle.items?.pepita ?? 0}
               oil={idle.items?.[OIL_ITEM] ?? 0}
               scrapPoints={scrapPoints}
@@ -26965,7 +27006,7 @@ function TabOverlay({
           book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
           book_vip: "Livro VIP EPIC ✦ · +20% Ouro e EXP por 1 hora.",
           book_vip_30: "Livro VIP CRISTAL ✦✦ · +30% Ouro e EXP por 30 dias.",
-          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 60 dias.",
+          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 1 ANO.",
           orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
           orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
           orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",

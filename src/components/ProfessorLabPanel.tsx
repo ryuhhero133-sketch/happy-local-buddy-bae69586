@@ -33,6 +33,7 @@ import {
   spiritStateOf,
   vipTierOf,
   type SpiritLogEntry,
+  type VipBookId,
 } from "@/game/trainerProfile";
 import { HATCH_MS, FED_CAP } from "@/game/ancestralEggs";
 import eggSeladoUrl from "@/ambiente/Egg selado ancestral.png";
@@ -187,6 +188,10 @@ type Props = {
   captures: number;
   vipActive: boolean;
   vipUntil: number;
+  /** Cristais do jogador — moeda da LOJA VIP (aba VIP). */
+  crystals?: number;
+  /** Compra e ativa um Livro VIP na hora (deduz cristais; efeito igual ao item). */
+  onBuyVipBook?: (id: VipBookId) => void;
   onAcceptQuest: (id: ProfQuestId) => void;
   onClaimQuest: () => void;
   /** Viaja para um mapa do UPDATE (instantâneo; 10⚡ de energia após desbloquear). */
@@ -264,6 +269,7 @@ export function ProfessorLabPanel(props: Props) {
     sealedEgg, esferas, ancEggCounts, onSealAncestral, onFeedSealedEgg, onHatchSealedEgg,
     tickets, onBuyAncChest, initialTab,
     patentePrizeAt, onClaimPatentePrize,
+    crystals, onBuyVipBook,
   } = props;
   const scrapCarryPts = scrapPoints ?? 0;
   const scrapBankPts = scrapBank ?? 0;
@@ -3009,7 +3015,7 @@ export function ProfessorLabPanel(props: Props) {
                   <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       ["📈", "+30% Ouro e EXP por 30 dias (Livro VIP 30d)"],
-                      ["🚀", "+40% Ouro e EXP por 60 dias (Livro VIP 60d)"],
+                      ["🚀", "+40% Ouro e EXP por 1 ANO (Livro VIP Anual)"],
                       ["🏷️", "Anunciar no Mercado é exclusivo VIP"],
                       ["⭐", "Acesso à quest diária dourada (Coleta Dourada)"],
                       ["🎁", "Bônus extras em pacotes premium"],
@@ -3057,8 +3063,8 @@ export function ProfessorLabPanel(props: Props) {
                     {[
                       [
                         "1️⃣",
-                        "LOJA",
-                        "Compre o Livro VIP 30d (500 💎) ou 60d (1000 💎) na aba LOJA e use-o.",
+                        "LOJA VIP",
+                        "Compre os 3 Livros VIP nesta aba com 💎 Cristais — o efeito ativa na hora e o CLUBE VIP acende no perfil.",
                       ],
                       [
                         "2️⃣",
@@ -3119,6 +3125,85 @@ export function ProfessorLabPanel(props: Props) {
                   >
                     Dica do Professor: o efeito do Livro VIP acumula duração. Ative antes de farmeos
                     longos para aproveitar o bônus de ouro e EXP em cada batalha.
+                  </div>
+                </div>
+
+                {/* ===== LOJA VIP — compra direta com 💎 cristais (efeito ativa na hora) ===== */}
+                <div
+                  style={{
+                    ...cut(12),
+                    gridColumn: "1 / -1",
+                    background: "linear-gradient(160deg, rgba(255,217,77,0.10), rgba(10,14,18,0.92) 60%)",
+                    border: "1px solid rgba(255,217,77,0.55)",
+                    padding: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 8,
+                      marginBottom: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#ffd94d",
+                        fontSize: 13,
+                        fontWeight: 900,
+                        letterSpacing: 2,
+                        fontFamily: MONO,
+                      }}
+                    >
+                      LOJA VIP
+                    </div>
+                    <div style={{ color: CYAN, fontSize: 12, fontFamily: MONO, fontWeight: 700 }}>
+                      💎 {(crystals ?? 0).toLocaleString("pt-BR")} cristais
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0,1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    {[
+                      { id: "book_vip" as VipBookId, name: "EPIC ✦", desc: "+20% ouro e EXP · 1 hora", price: 10_000 },
+                      { id: "book_vip_30" as VipBookId, name: "CRISTAL ✦✦", desc: "+30% ouro e EXP · 30 dias", price: 30_000 },
+                      { id: "book_vip_60" as VipBookId, name: "GOLD ✦✦✦", desc: "+40% ouro e EXP · 1 ANO", price: 50_000 },
+                    ].map((b) => {
+                      const can = (crystals ?? 0) >= b.price;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => can && onBuyVipBook?.(b.id)}
+                          style={{
+                            background: "rgba(0,0,0,0.45)",
+                            border: `1px solid ${can ? "rgba(255,217,77,0.7)" : "rgba(255,217,77,0.2)"}`,
+                            borderRadius: 8,
+                            padding: 12,
+                            cursor: can ? "pointer" : "not-allowed",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 8,
+                            fontFamily: MONO,
+                          }}
+                        >
+                          <BookArt id={b.id} size={46} />
+                          <div style={{ color: "#ffd94d", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>
+                            Livro VIP {b.name}
+                          </div>
+                          <div style={{ color: "#efe3c0", fontSize: 10.5, lineHeight: 1.4 }}>{b.desc}</div>
+                          <div style={{ color: can ? "#7ef2a2" : "#ff8a8a", fontWeight: 900, fontSize: 12 }}>
+                            💎 {b.price.toLocaleString("pt-BR")}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
