@@ -11262,7 +11262,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         const hp = Math.floor(calcIdleMaxHp(petA) * hpMult);
         return [
           ...prev,
-          { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: false, aggroR: 0, elite: true, level: pick.level, rarity: pick.rarity, eventLegendary: true } as Enemy,
+          { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: (pick.sp === "moltres" || pick.sp === "lugia"), aggroR: (pick.sp === "moltres" || pick.sp === "lugia") ? 800 : 0, elite: true, level: pick.level, rarity: pick.rarity, eventLegendary: true } as Enemy,
         ];
       });
       const rarityLabel = pick.rarity === "mythic_shiny" ? "MÍTICO ✦" : pick.rarity === "mythic" ? "MÍTICO" : "ÉPICO";
