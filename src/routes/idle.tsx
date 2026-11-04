@@ -7739,6 +7739,7 @@ const confirmName = () => {
   const pvpTargetUserIdRef = useRef<string | null>(null);
   const [pvpDamageFlash, setPvpDamageFlash] = useState(false);
   const pvpLastHitRef = useRef<string | null>(null);
+  const ownPvpFaintedRef = useRef(false);
   useEffect(() => { pvpTargetUserIdRef.current = pvpTargetUserId; }, [pvpTargetUserId]);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
@@ -7913,6 +7914,7 @@ const confirmName = () => {
     () => identity?.id ? pvpPresence.find((p) => p.user_id === identity.id) ?? null : null,
     [pvpPresence, identity?.id],
   );
+  useEffect(() => { ownPvpFaintedRef.current = ownPvpPresence?.hp === 0; }, [ownPvpPresence?.hp]);
 
   // PK: sem alvo manual, marca automaticamente o líder PvP mais perto.
   useEffect(() => {
@@ -9745,6 +9747,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
+      // Morte PvP é autoritativa: até o revive não pode continuar batendo em selvagens.
+      if (ownPvpFaintedRef.current) {
+        setAttackTargetId((id) => id == null ? id : null);
+        combatMoveRef.current = null;
+        return;
+      }
       // Um líder PvP marcado tem exclusividade: não bate em selvagens ao redor.
       if (pvpTargetUserIdRef.current != null) {
         combatMoveRef.current = null;
