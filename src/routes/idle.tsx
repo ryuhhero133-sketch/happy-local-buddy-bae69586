@@ -7740,6 +7740,7 @@ const confirmName = () => {
   const [pvpDamageFlash, setPvpDamageFlash] = useState(false);
   const pvpLastHitRef = useRef<string | null>(null);
   const ownPvpFaintedRef = useRef(false);
+  const ownPvpWasFaintedRef = useRef(false);
   useEffect(() => { pvpTargetUserIdRef.current = pvpTargetUserId; }, [pvpTargetUserId]);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
@@ -7914,7 +7915,27 @@ const confirmName = () => {
     () => identity?.id ? pvpPresence.find((p) => p.user_id === identity.id) ?? null : null,
     [pvpPresence, identity?.id],
   );
-  useEffect(() => { ownPvpFaintedRef.current = ownPvpPresence?.hp === 0; }, [ownPvpPresence?.hp]);
+  useEffect(() => {
+    const fainted = ownPvpPresence?.hp === 0;
+    ownPvpFaintedRef.current = fainted;
+    if (fainted) {
+      // Usa o mesmo HP do combate normal: qualquer ação/auto do líder é bloqueada.
+      leaderHpRef.current = 0;
+      setLeaderHp(0);
+      setAttackTargetId(null);
+      manualTargetRef.current = null;
+      combatMoveRef.current = null;
+      setAuto(false);
+      setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
+    } else if (ownPvpWasFaintedRef.current && teamRef.current[0]) {
+      // O RPC só muda hp de 0 para 100 após os cinco minutos.
+      const revivedHp = calcIdleMaxHp(teamRef.current[0]);
+      leaderHpRef.current = revivedHp;
+      setLeaderHp(revivedHp);
+      pushChat("✨ Seu Pokémon líder reviveu após a derrota PvP.", "info");
+    }
+    ownPvpWasFaintedRef.current = fainted;
+  }, [ownPvpPresence?.hp]);
 
   // PK: sem alvo manual, marca automaticamente o líder PvP mais perto.
   useEffect(() => {
