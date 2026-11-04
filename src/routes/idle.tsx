@@ -2038,6 +2038,8 @@ type Task = { id: string; title: string; reward: number; progress: number; targe
 type IdleState = {
   /** Paz: sem PvP; Ofensivo: somente alvo marcado; PK: procura líderes próximos. */
   pvpMode?: "peace" | "offensive" | "pk";
+  /** Líder removido do time após morrer em PvP; retorna apenas quando o servidor revive. */
+  pvpFaintedLeader?: { uid: string; x: number; y: number; diedAt: number };
   safariTrainerHp?: number;
   safariUltraThrows?: number; // compartilhado entre encontros; reinicia na captura
   safariDefeats?: number; // um cristal no chão a cada dez abates especiais
@@ -7927,11 +7929,25 @@ const confirmName = () => {
       combatMoveRef.current = null;
       setAuto(false);
       setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
-    } else if (ownPvpWasFaintedRef.current && teamRef.current[0]) {
+      // Executa somente na transição vivo → morto: tira o líder derrotado do time.
+      if (!ownPvpWasFaintedRef.current && teamRef.current[0]) {
+        const fallen = teamRef.current[0];
+        const pos = followerStateRef.current;
+        setIdle((s) => ({ ...s, pvpFaintedLeader: { uid: fallen.uid, x: pos.x, y: pos.y, diedAt: Date.now() } }));
+        setTeam((tm) => tm.filter((pet) => pet.uid !== fallen.uid));
+      }
+    } else if (ownPvpWasFaintedRef.current) {
       // O RPC só muda hp de 0 para 100 após os cinco minutos.
-      const revivedHp = calcIdleMaxHp(teamRef.current[0]);
-      leaderHpRef.current = revivedHp;
-      setLeaderHp(revivedHp);
+      const fallenUid = idleRef.current.pvpFaintedLeader?.uid;
+      const entry = fallenUid ? (idleRef.current.collection ?? []).find((p) => p.uid === fallenUid) : null;
+      if (entry) {
+        const revived = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
+        const revivedHp = calcIdleMaxHp(revived);
+        setTeam((tm) => tm.some((pet) => pet.uid === revived.uid) ? tm : [revived, ...tm].slice(0, 6));
+        leaderHpRef.current = revivedHp;
+        setLeaderHp(revivedHp);
+      }
+      setIdle((s) => ({ ...s, pvpFaintedLeader: undefined }));
       pushChat("✨ Seu Pokémon líder reviveu após a derrota PvP.", "info");
     }
     ownPvpWasFaintedRef.current = fainted;
@@ -20066,7 +20082,8 @@ A sucata afundou com o casco.
                   }} />
                   {rpLeaderSrc && (
                     <button type="button" onClick={selectRemotePvp} title={`Atacar o Pokémon de ${rp.name}`} style={{
-                      position: "absolute", left: 29, top: 15, width: 48, height: 48, padding: 0,
+                      // Para observadores, a caveira fica no chão mesmo se o treinador andar.
+                      position: "absolute", left: remotePvp?.hp === 0 ? remotePvp.x - rp.x + 29 : 29, top: remotePvp?.hp === 0 ? remotePvp.y - rp.y + 15 : 15, width: 48, height: 48, padding: 0,
                       borderRadius: "50%", border: pvpSelected ? "2px solid #ff1935" : "1px solid transparent",
                       background: "transparent", cursor: "crosshair", pointerEvents: "auto", zIndex: 5,
                       // O alvo fica marcado em neon, porém o sprite não pisca na tela do outro jogador.
@@ -20112,6 +20129,16 @@ A sucata afundou com o casco.
             {/* Pokémon do jogador segue o treinador (fora dos mapas de água) */}
             {(() => {
               if (isWaterMap(idle.currentMap)) return null;
+              // Líder derrotado não acompanha o treinador: a caveira permanece no solo
+              // onde caiu até o servidor permitir o revive.
+              if (ownPvpPresence?.hp === 0) {
+                const marker = idle.pvpFaintedLeader ?? { x: renderFollowerX, y: renderFollowerY };
+                return <div aria-label="Pokémon líder derrotado" style={{
+                  position: "absolute", left: marker.x, top: marker.y, width: 54, height: 54,
+                  transform: "translate(-50%, -50%)", zIndex: Math.round(marker.y), pointerEvents: "none",
+                  display: "grid", placeItems: "center", fontSize: 38, filter: "drop-shadow(0 3px 3px #000)",
+                }}>💀</div>;
+              }
               const leader = team[0];
               const leaderSp = leader?.species ?? "charmander";
               const leaderSrc = GIF[leaderSp];
