@@ -14,6 +14,7 @@ export type GameHudProps = {
   trainerHp?: number;
   ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number; pepitas?: number;
   pvpTargeted?: boolean;
+  pvpMode?: "peace" | "offensive" | "pk";
   region: string; mapImage: string; world: { width: number; height: number }; player: Point;
   enemies: Point[]; mapFilter?: string; now: number; zoom: number; auto: boolean; autoCapture: boolean;
   activeTab: string; vip: boolean; questReset: string; quests: HudQuest[]; messages: HudMessage[];
@@ -22,6 +23,7 @@ export type GameHudProps = {
   onMap: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
   onQuests: () => void; onClaimQuest: (id: string) => void; onAuto: () => void;
   onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number;
+  onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
   onForge: () => void; onSave: () => void; onShop: () => void; onGuild: () => void; onCode: () => void;
   onZoom: (direction: 1 | -1) => void;
@@ -163,6 +165,7 @@ export function GameHud(hud: GameHudProps) {
         </button>
         <div className="revo-actions__secondary">
           <IconButton label="Mostrar ou recolher alvos próximos" active={hud.targetsOpen} onClick={hud.onTargets}><Crosshair /></IconButton>
+          <IconButton label={`PvP: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`} active={hud.pvpMode !== "peace"} onClick={hud.onPvpMode}><Shield /></IconButton>
           <IconButton label="Alternar captura automática" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>
           <IconButton label="Configurar combate automático" onClick={hud.onCombatSettings}><Settings /></IconButton>
         </div>

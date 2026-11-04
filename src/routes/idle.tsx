@@ -2036,6 +2036,8 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
 
 type Task = { id: string; title: string; reward: number; progress: number; target: number; done: boolean };
 type IdleState = {
+  /** Paz: sem PvP; Ofensivo: somente alvo marcado; PK: procura líderes próximos. */
+  pvpMode?: "peace" | "offensive" | "pk";
   safariTrainerHp?: number;
   safariUltraThrows?: number; // compartilhado entre encontros; reinicia na captura
   safariDefeats?: number; // um cristal no chão a cada dez abates especiais
@@ -5157,6 +5159,8 @@ const confirmName = () => {
         }
         // Anda na mão = solta a trava automática (a manual — escolha do jogador — continua).
         if (manualTargetRef.current == null && attackTargetIdRef.current != null) setAttackTargetId(null);
+        // Andar manualmente encerra o combate PvP; só então o auto pode voltar aos selvagens.
+        if (pvpTargetUserIdRef.current != null) setPvpTargetUserId(null);
         keysRef.current.add(k);
       }
     };
@@ -7732,8 +7736,10 @@ const confirmName = () => {
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
   const [pvpPresence, setPvpPresence] = useState<PvpPresence[]>([]);
   const [pvpTargetUserId, setPvpTargetUserId] = useState<string | null>(null);
+  const pvpTargetUserIdRef = useRef<string | null>(null);
   const [pvpDamageFlash, setPvpDamageFlash] = useState(false);
   const pvpLastHitRef = useRef<string | null>(null);
+  useEffect(() => { pvpTargetUserIdRef.current = pvpTargetUserId; }, [pvpTargetUserId]);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
   const walkStepRef = useRef(walkStep);
@@ -7899,6 +7905,22 @@ const confirmName = () => {
     () => pvpTargetUserId ? pvpPresence.find((p) => p.user_id === pvpTargetUserId) ?? null : null,
     [pvpPresence, pvpTargetUserId],
   );
+  const ownPvpPresence = useMemo(
+    () => identity?.id ? pvpPresence.find((p) => p.user_id === identity.id) ?? null : null,
+    [pvpPresence, identity?.id],
+  );
+
+  // PK: sem alvo manual, marca automaticamente o líder PvP mais perto.
+  useEffect(() => {
+    if (idle.pvpMode !== "pk" || pvpTargetUserId || !identity?.id) return;
+    const me = trainerPosRef.current;
+    const nearest = pvpPresence
+      .filter((p) => p.user_id !== identity.id && p.hp > 0)
+      .map((p) => ({ p, d: Math.hypot(p.x - me.x, p.y - me.y) }))
+      .filter((x) => x.d <= 600)
+      .sort((a, b) => a.d - b.d)[0]?.p;
+    if (nearest) setPvpTargetUserId(nearest.user_id);
+  }, [idle.pvpMode, pvpPresence, pvpTargetUserId, identity?.id]);
 
   // Presença de combate é separada da presença visual: HP nunca vem do cliente.
   useEffect(() => {
@@ -9699,6 +9721,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
+      // Um líder PvP marcado tem exclusividade: não bate em selvagens ao redor.
+      if (pvpTargetUserIdRef.current != null) {
+        combatMoveRef.current = null;
+        return;
+      }
       setNow(Date.now());
 
       const leader = team[0];
@@ -15500,7 +15527,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         trainerHp={idle.currentMap === "sa" ? idle.safariTrainerHp ?? SAFARI_TRAINER_MAX_HP : undefined}
         energy={trainerEnergy} hunger={idle.trainerHunger ?? 100}
         ballCount={idle.items?.pokeball ?? 0} throws={Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))} maxThrows={MAX_THROW_COUNT}
-        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)} pvpTargeted={!!pvpTarget}
+        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)} pvpTargeted={!!pvpTarget} pvpMode={idle.pvpMode ?? "peace"}
         region={map.name} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
         enemies={enemies.filter((enemy) => enemy.hp > 0)} now={now} zoom={zoom}
         auto={auto && (idle.autoBattle?.enabled ?? true)} autoCapture={idle.autoBattle?.useBall ?? true}
@@ -15508,6 +15535,13 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onAutoHeal={() => {
           const enabled = !!(idle.autoHeal?.enabled);
           setIdle((s) => ({ ...s, autoHeal: { enabled: !enabled, threshold: (s.autoHeal?.threshold ?? 0.5) } }));
+        }}
+        onPvpMode={() => {
+          const current = idle.pvpMode ?? "peace";
+          const next = current === "peace" ? "offensive" : current === "offensive" ? "pk" : "peace";
+          setIdle((s) => ({ ...s, pvpMode: next }));
+          if (next === "peace") setPvpTargetUserId(null);
+          pushChat(next === "peace" ? "🕊️ PvP: PAZ — não ataca jogadores." : next === "offensive" ? "⚔️ PvP: OFENSIVO — clique no Pokémon e depois AUTO." : "☠️ PvP: PK — AUTO procura Pokémon de jogadores perto.", "info");
         }}
         activeTab={tab} vip={isVip()} questReset={fmtMS(QUEST_WINDOW_MS - (now % QUEST_WINDOW_MS))}
         quests={QUEST_DEFS.map((quest) => ({ ...quest, progress: questProgress[quest.id] ?? 0, claimed: !!questClaimed[quest.id] }))}
@@ -19928,6 +19962,10 @@ A sucata afundou com o casco.
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
+                if ((idle.pvpMode ?? "peace") === "peace") {
+                  pushChat("🕊️ Você está em modo Paz. Mude para Ofensivo ou PK para atacar jogadores.", "info");
+                  return;
+                }
                 if (!remotePvp || remotePvp.hp <= 0) {
                   pushChat("⚠️ Este Pokémon não está disponível para PvP.", "info");
                   return;
@@ -19979,7 +20017,9 @@ A sucata afundou com o casco.
                       animation: pvpSelected || remoteLowHp ? "revo-pvp-auto-pulse .85s ease-in-out infinite" : undefined,
                     }}>
                       {pvpSelected && <span aria-hidden="true" style={{ position: "absolute", inset: -7, border: "2px dashed #ff314b", borderRadius: "50%", animation: "targetReticleSpin 1.5s linear infinite", pointerEvents: "none" }} />}
-                      {rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
+                      {remotePvp?.hp === 0 ? (
+                        <span aria-label="Pokémon derrotado" style={{ position: "absolute", left: 8, top: 3, fontSize: 31, lineHeight: 1, filter: "drop-shadow(0 2px 2px #000)" }}>💀</span>
+                      ) : rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
                         <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${SPRITE_SHEET[rp.leaderSp]})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
                       ) : (
                         <img src={rpLeaderSrc} alt={`Pokémon de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated", transform: (rp.leaderSp && ANC_STATIC_SPECIES.has(rp.leaderSp)) ? walkBobTransform(rp.step) : undefined }} />
@@ -20024,7 +20064,8 @@ A sucata afundou com o casco.
               const hpPct = Math.max(0, (leaderHp / leaderMax) * 100);
               const xpNeeded = 100 + leader.level * 20;
               const xpPct = Math.min(100, ((leader.xp ?? 0) / xpNeeded) * 100);
-              const fainted = leaderHp <= 0;
+               const pvpFainted = ownPvpPresence?.hp === 0;
+               const fainted = leaderHp <= 0 || pvpFainted;
               const faceScale = pokemonFace === "right" ? -1 : 1;
               const auraOn = Date.now() - leveledAt < 1400;
               const leaderEvent = String((leader as any).event ?? "");
@@ -20050,6 +20091,7 @@ A sucata afundou com o casco.
                   opacity: fainted ? 0.5 : 1,
                   zIndex: Math.round(leaderY),
                 }}>
+                  {pvpFainted && <span aria-label="Pokémon derrotado" style={{ position: "absolute", left: 11, top: 8, fontSize: 34, zIndex: 20, filter: "drop-shadow(0 2px 3px #000)" }}>💀</span>}
                   {isBMP && (
                     <div>
                       <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
@@ -20091,7 +20133,7 @@ A sucata afundou com o casco.
                       ))}
                     </div>
                   )}
-                  {SPRITE_SHEET[leaderSp] ? (
+                  {!pvpFainted && (SPRITE_SHEET[leaderSp] ? (
                     <div style={{
                       width: "100%", height: "100%",
                       backgroundImage: `url(${SPRITE_SHEET[leaderSp]})`,
@@ -20111,7 +20153,7 @@ A sucata afundou com o casco.
                             : ""
                         }`,
                       } as React.CSSProperties} />
-                  )}
+                  ))}
 
                   {/* Barra HP */}
                   {(() => {
