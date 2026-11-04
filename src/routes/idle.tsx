@@ -7169,6 +7169,22 @@ const confirmName = () => {
     }
 
     // CHAREPIC30VIP1K — Charizard Épico (direto na coleção) + VIP 30d + 1000 cristais (uso único)
+    if (raw === "REWARD100") {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, pepita: (base.bank?.pepita ?? 0) + 100 },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      setCodeMsg({ kind: "ok", text: "+100 Pepitas resgatadas!" });
+      setCodeInput("");
+      pushChat("💰 Código REWARD100: +100 Pepitas!", "cap");
+      return;
+    }
+
     if (raw === "CHAREPIC30VIP1K" || raw === "CHAREPICVIP1K" || raw === "EPICHARVIP1K") {
       const base = idleRef.current;
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
