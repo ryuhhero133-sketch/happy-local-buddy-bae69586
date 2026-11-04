@@ -168,7 +168,7 @@ export interface SynergyPack {
 
 const STEP = [0, 1, 2, 3, 4, 5];
 
-export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
+export function computeTeamSynergies(team: PetInstance[], globalAncestralTraits: string[] = []): SynergyPack {
   const byElement: Partial<Record<Element, number>> = {};
   for (const p of team) {
     for (const e of elementsOf(p.species)) {
@@ -365,7 +365,11 @@ export function computeTeamSynergies(team: PetInstance[]): SynergyPack {
   }
 
   // ===== TRAITS — atributos bônus dos pokémon capturados =====
-  const traitAgg = aggregateTraits(team);
+  // Um ancestral ativado na coleção concede apenas seus traits globais. Ele
+  // não entra nas sinergias elementais nem no bônus de raridade do time.
+  const traitAgg = aggregateTraits(globalAncestralTraits.length > 0
+    ? [...team, { traits: globalAncestralTraits } as Pick<PetInstance, "traits"> as PetInstance]
+    : team);
   if (traitAgg.count > 0) {
     pack.xpMult       += traitAgg.xpMult;
     pack.goldMult     += traitAgg.goldMult;

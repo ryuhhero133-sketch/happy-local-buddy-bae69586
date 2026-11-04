@@ -3,7 +3,7 @@
 // O ovo libera DEPOIS DE 3 DIAS — ou JÁ, se alimentado com 300 Esferas.
 // E libera EXATAMENTE o escolhido (nunca aleatório).
 // Alimentação: Esfera de Safira (drops.ts) melhora o sorteio de traits.
-// Regras duras da spec: ≥12 traits (Plus = 16), NUNCA abaixo do tier ROXO.
+// Regras duras da spec: 12 traits (Plus = 16), todos DOURADOS.
 import type { Species } from "./systems";
 import { rollAncestralTraits, type AncestralEggKind } from "./traits";
 
@@ -74,7 +74,7 @@ export function feed(egg: SealedEgg, amount = 1): SealedEgg | null {
   return { ...egg, fed };
 }
 
-/** Traits do ancestral no momento da liberação (≥12, todos ≥ ROXO). */
+/** Traits do ancestral no momento da liberação (12–16, todos DOURADOS). */
 export function hatchTraits(egg: SealedEgg): string[] {
   return rollAncestralTraits(egg.kind, egg.fed);
 }

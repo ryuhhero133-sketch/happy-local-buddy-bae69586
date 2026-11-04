@@ -2040,6 +2040,8 @@ type IdleState = {
   pvpMode?: "peace" | "offensive" | "pk";
   /** Líder removido do time após morrer em PvP; retorna apenas quando o servidor revive. */
   pvpFaintedLeader?: { uid: string; x: number; y: number; diedAt: number };
+  /** Ancestral da coleção cujos traits são aplicados globalmente. */
+  activeAncestralUid?: string;
   safariTrainerHp?: number;
   safariUltraThrows?: number; // compartilhado entre encontros; reinicia na captura
   safariDefeats?: number; // um cristal no chão a cada dez abates especiais
@@ -2704,6 +2706,13 @@ function IdlePage() {
   useEffect(() => { idleRef.current = idle; }, [idle]);
   const teamRef = useRef(team);
   useEffect(() => { teamRef.current = team; }, [team]);
+  const activeAncestralTraits = (state = idleRef.current) => {
+    const uid = state.activeAncestralUid;
+    const entry = uid ? (state.collection ?? []).find((p) => p.uid === uid && p.event === "ancestral") : null;
+    return entry?.traits ?? [];
+  };
+  const computeCombatSynergies = (currentTeam: PetInstance[]) =>
+    computeTeamSynergies(currentTeam, activeAncestralTraits());
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
@@ -2733,7 +2742,7 @@ function IdlePage() {
     const iv = setInterval(() => {
       const t = teamRef.current;
       if (!t || t.length === 0) return;
-      const syn = computeTeamSynergies(t);
+      const syn = computeCombatSynergies(t);
       if (syn.regenPct <= 0) return;
       // Cura líder
       setLeaderHp((h) => {
@@ -9991,7 +10000,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             pushChat(`💥 ${target.sp.replace(/_/g," ").toUpperCase()} desferiu um GOLPE CRÍTICO!`, "hit");
           }
           if (Math.random() < spec.para) {
-            const synNow = computeTeamSynergies(teamRef.current);
+            const synNow = computeCombatSynergies(teamRef.current);
             const resist = Math.min(0.99, synNow.paraResist);
             // Sonífero (Ditto/Lickitung/Mewtwo): proteção pós-sono + resistência real.
             const paraIsSleep = target.sp === "ditto" || target.sp === "ditto_shiny" || target.sp === "lickitung" || target.sp === "lickitung_shiny" || target.sp === "mewtwo_event";
@@ -10381,7 +10390,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           // ⚖️ Rider rebalanceado: ×3 (antes ×8) — continua ótimo, mas não pula a curva.
           const riderMult = isRiderKill ? 3 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 2 : 1;
-          const elemSyn = computeTeamSynergies(team);
+          const elemSyn = computeCombatSynergies(team);
           // ⚖️ Teto anti-stack: Livro+Orb+Incenso+VIP+Guilda+Sinergia combinados limitados a ×2.5.
           // Eventos de mapa (mítico/oddish/dark/rider) ficam fora do teto por serem situacionais.
           const rawBoostMult = (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult;
@@ -11099,7 +11108,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       if (skill.status === "sleep" && Date.now() < sleepProtectionUntilRef.current) {
         pushFxAt(fx.x, fx.y - 40, "🛡️ BLOQUEADO", "xp");
       } else {
-        const sleepResist = skill.status === "sleep" ? statusResistFor(computeTeamSynergies(teamRef.current), "sleep") : 0;
+        const sleepResist = skill.status === "sleep" ? statusResistFor(computeCombatSynergies(teamRef.current), "sleep") : 0;
         const effChance = (skill.statusChance ?? 1) * (1 - sleepResist);
         if (Math.random() < effChance) {
           applySkillStatus(skill.status, skill.statusDuration ?? 3000, fx.x, fx.y, spName, skill.damagePerTick, skill.tickInterval);
@@ -12318,14 +12327,14 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       return;
     }
     const traits = hatchAncestralTraits(egg);
-    const pet = { ...makePet(egg.species, 100, "mythic_shiny" as Rarity), traits, capturedAt: Date.now() };
+    const pet = { ...makePet(egg.species, 100, "mythic_shiny" as Rarity), traits, event: "ancestral", capturedAt: Date.now() };
     const sp = egg.species;
     setIdle((s) => ({
       ...s,
       sealedEgg: null,
       caughtSpecies: (s.caughtSpecies ?? []).includes(sp) ? s.caughtSpecies : [...(s.caughtSpecies ?? []), sp],
       seenSpecies: (s.seenSpecies ?? []).includes(sp) ? s.seenSpecies : [...(s.seenSpecies ?? []), sp],
-      collection: [...(s.collection ?? []), { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now() }],
+      collection: [...(s.collection ?? []), { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now(), traits, event: "ancestral" }],
     }));
     setTeam((tm) => (tm.length >= 6 ? tm : [...tm, pet]));
     try {
@@ -12335,7 +12344,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       localStorage.setItem("rubym.save.v2", JSON.stringify(save));
     } catch { /* ignore */ }
     setEggOpenResult({ sp: String(sp), rarity: "mythic_shiny" });
-    pushChat(`🐣 O OVO ABRIU: ${String(sp).toUpperCase()} LIBERADO com ${traits.length} traits (mín. ROXO)!`, "cap");
+    pushChat(`🐣 O OVO ABRIU: ${String(sp).toUpperCase()} LIBERADO com ${traits.length} traits DOURADOS!`, "cap");
     pushFxAt(trainerPos.x, trainerPos.y - 70, "ANCESTRAL!", "capture");
   };
 
@@ -28623,7 +28632,7 @@ function TabOverlay({
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
                         {traits.length > 0
-                          ? traits.slice(0, isBMP ? 7 : entry.rarity === "mythic_shiny" ? 16 : 4).map((id) => <TraitIcon key={id} id={id} size={isBMP ? 20 : 22} />)
+                          ? traits.slice(0, isBMP ? 7 : entry.rarity === "mythic_shiny" ? 16 : 4).map((id, index) => <TraitIcon key={`${id}-${index}`} id={id} size={isBMP ? 20 : 22} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 
@@ -29261,6 +29270,44 @@ function TabOverlay({
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
+        const ancestrals = collectionForDisplay.filter((p) => p.event === "ancestral" && (p.traits?.length ?? 0) >= 12);
+        const activeAncestral = ancestrals.find((p) => p.uid === idle.activeAncestralUid) ?? null;
+        const ancestralStoneCost = 30;
+        const ancestralPepitaCost = 30;
+        const ancestralSafiraCost = 100;
+        const totalStones = Object.entries(idle.items ?? {}).reduce((sum, [id, qty]) => sum + (isStoneId(id) ? qty : 0), 0);
+        const rollAncestralTrait = (traitIndex: number) => {
+          const current = activeAncestral;
+          if (!current || !current.traits?.[traitIndex]) return;
+          if (totalStones < ancestralStoneCost || (idle.items?.pepita ?? 0) < ancestralPepitaCost || (idle.items?.esfera_safira ?? 0) < ancestralSafiraCost) {
+            pushChat("Gacha Ancestral: faltam 30 Stones, 30 Pepitas ou 100 Esferas de Safira.", "info");
+            return;
+          }
+          const gold = Object.values(TRAITS).filter((t) => t.tier === "gold");
+          const purple = Object.values(TRAITS).filter((t) => t.tier === "purple");
+          // 45% dourado; o restante é roxo. Repetir é permitido para ancestrais.
+          const pool = Math.random() < 0.45 ? gold : purple;
+          const rolled = pool[Math.floor(Math.random() * pool.length)]?.id;
+          if (!rolled) return;
+          setIdle((s) => {
+            const items = { ...s.items, pepita: (s.items?.pepita ?? 0) - ancestralPepitaCost, esfera_safira: (s.items?.esfera_safira ?? 0) - ancestralSafiraCost };
+            let remaining = ancestralStoneCost;
+            for (const stone of Object.keys(items).filter(isStoneId).sort()) {
+              const used = Math.min(remaining, items[stone] ?? 0);
+              items[stone] = (items[stone] ?? 0) - used;
+              remaining -= used;
+              if (remaining === 0) break;
+            }
+            return {
+              ...s,
+              items,
+              collection: (s.collection ?? []).map((entry) => entry.uid === current.uid
+                ? { ...entry, traits: (entry.traits ?? []).map((trait, index) => index === traitIndex ? rolled : trait) }
+                : entry),
+            };
+          });
+          pushChat(`🎰 Trait substituído: ${TRAITS[rolled]?.name ?? rolled} (${TRAITS[rolled]?.tier === "gold" ? "DOURADO" : "ROXO"})!`, "cap");
+        };
         const stonesMap: Record<keyof typeof stats, { stone: string, color: string, label: string, desc: string, fail: number }> = {
           attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Aumenta o Dano Total em +5% por nível. Essencial para derrotar Chefes e lendários mais rápido.", fail: 15 },
           speed: { stone: "stone_electric", color: "#ffd94d", label: "VELO", desc: "Reduz o intervalo de ataque em -0.05s. Quanto mais rápido, mais vezes você ataca por segundo.", fail: 12 },
@@ -29391,6 +29438,35 @@ function TabOverlay({
                   })}
                 </div>
               </div>
+            </div>
+
+            <div style={{ padding: 16, borderRadius: 16, border: "2px solid #ffd94d88", background: "linear-gradient(135deg, rgba(68,45,8,.92), rgba(25,12,48,.95))", boxShadow: "0 0 24px #ffd94d22" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+                <div>
+                  <div style={{ color: "#ffe88a", fontSize: 17, fontWeight: 900, letterSpacing: 1 }}>👑 ANCESTRAL GLOBAL</div>
+                  <div style={{ color: "#d8cda7", fontSize: 11 }}>Ative um ancestral da coleção: seus traits funcionam em todo o time, mesmo fora dele.</div>
+                </div>
+                <div style={{ color: "#fff0a8", fontSize: 10, fontWeight: 800, padding: "6px 10px", borderRadius: 8, background: "#0008" }}>{activeAncestral ? "✓ ATIVO GLOBAL" : "NENHUM ATIVO"}</div>
+              </div>
+              {ancestrals.length === 0 ? <div style={{ color: "#b9a77c", fontSize: 12, padding: 8 }}>Choque um Ovo Ancestral para liberar um Pokémon com 12–16 traits dourados.</div> : <>
+                <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
+                  {ancestrals.map((entry) => {
+                    const selected = entry.uid === activeAncestral?.uid;
+                    return <button key={entry.uid} onClick={() => setIdle((s) => ({ ...s, activeAncestralUid: selected ? undefined : entry.uid }))} style={{ minWidth: 132, cursor: "pointer", borderRadius: 12, padding: 9, border: `2px solid ${selected ? "#ffe066" : "#795d25"}`, background: selected ? "linear-gradient(160deg,#6d4c11,#23152e)" : "#180f25", color: "#fff" }}>
+                      {gifMap[entry.species] && <img src={gifMap[entry.species]} alt="" style={{ width: 50, height: 50, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 0 7px #ffd94d)" }} />}
+                      <div style={{ fontSize: 10, fontWeight: 900 }}>{entry.species.replace(/_/g, " ").toUpperCase()}</div>
+                      <div style={{ color: "#ffe066", fontSize: 9, marginTop: 3 }}>{selected ? "ATIVO" : "ATIVAR"}</div>
+                    </button>;
+                  })}
+                </div>
+                {activeAncestral && <div style={{ marginTop: 10, borderTop: "1px solid #ffd94d44", paddingTop: 10 }}>
+                  <div style={{ color: "#ffe88a", fontWeight: 900, fontSize: 12 }}>TRAITS ATIVOS — toque em um trait para tentar substituí-lo</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {activeAncestral.traits?.map((trait, index) => <button key={`${trait}-${index}`} onClick={() => rollAncestralTrait(index)} title={`Trocar ${TRAITS[trait]?.name ?? trait}: 45% chance de dourado`} style={{ padding: 0, border: "none", borderRadius: 10, background: "transparent", cursor: "pointer" }}><TraitIcon id={trait} size={30} /></button>)}
+                  </div>
+                  <div style={{ color: "#cbbf99", fontSize: 10, marginTop: 9 }}>🎰 Cada tentativa: <b style={{ color: "#ffe066" }}>30 Stones elementais (mistura aceita)</b> + <b style={{ color: "#ffe066" }}>30 Pepitas</b> + <b style={{ color: "#ffe066" }}>100 Esferas de Safira</b>. Chance de dourado: 45%.</div>
+                </div>}
+              </>}
             </div>
 
 

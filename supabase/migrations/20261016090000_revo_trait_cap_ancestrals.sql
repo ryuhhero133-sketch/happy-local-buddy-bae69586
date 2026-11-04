@@ -1,5 +1,5 @@
 -- =====================================================================
--- IDLE MON REVO -- ANCESTRAIS / Ovos Selados (cap de traits 7 -> 12)
+-- IDLE MON REVO -- ANCESTRAIS / Ovos Selados (cap de traits 7 -> 16)
 -- Arquivo NOVO (idempotente, nada destrutivo). NAO aplicado automaticamente --
 -- revisar e aplicar manualmente (SQL Editor / supabase db push).
 --
@@ -8,7 +8,7 @@
 --     Role: somente rollAncestralTraits() (ovos ancestrais) -- nunca drop aleatorio.
 --  2) Semeia as 15 novas especies ancestrais em species_rules (mythic_shiny).
 --  3) Recria mint_pokemon_batch + enforce_pokemon_registry com teto de
---     traits por Pokemon: 7 -> 12 (ancestrais nascem com 12~16).
+--     traits por Pokemon: 7 -> 16 (ancestrais nascem com 12~16).
 --     SEM isso o servidor rejeita/descarta ancestrais com >7 traits.
 -- =====================================================================
 
@@ -125,7 +125,7 @@ begin
       _rejected := _rejected || jsonb_build_object('uid', _pu, 'reason', 'rarity_mismatch');
       continue;
     end if;
-    if jsonb_typeof(_tr) <> 'array' or jsonb_array_length(_tr) > 12 then
+    if jsonb_typeof(_tr) <> 'array' or jsonb_array_length(_tr) > 16 then
       _rejected := _rejected || jsonb_build_object('uid', _pu, 'reason', 'bad_traits');
       continue;
     end if;
@@ -137,8 +137,11 @@ begin
         _rejected := _rejected || jsonb_build_object('uid', _pu, 'reason', 'unknown_trait');
         continue;
       end if;
-      if (select count(*) from (select distinct jsonb_array_elements_text(_tr)) s)
-         <> jsonb_array_length(_tr) then
+       -- Repetição é permitida somente no ancestral: existem 8 traits dourados
+       -- e o ovo Plus promete 16 slots.
+       if coalesce(_e ->> 'event', '') <> 'ancestral'
+          and (select count(*) from (select distinct jsonb_array_elements_text(_tr)) s)
+            <> jsonb_array_length(_tr) then
         _rejected := _rejected || jsonb_build_object('uid', _pu, 'reason', 'dup_traits');
         continue;
       end if;
@@ -314,7 +317,7 @@ begin
               and ((_ra = (select rarity from public.species_rules where species = _sp))
                 or ((_ev like 'black_mitic%' )
                   and _ra in ('epic','mythic','mythic_shiny')))
-              and jsonb_typeof(_tr) = 'array' and jsonb_array_length(_tr) <= 12
+              and jsonb_typeof(_tr) = 'array' and jsonb_array_length(_tr) <= 16
               and not exists (
                 select 1 from jsonb_array_elements_text(_tr) t
                 where t not in (select trait from public.trait_rules))

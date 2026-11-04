@@ -163,36 +163,21 @@ const ANCESTRAL_EGG_TRAITS: Record<AncestralEggKind, number> = {
 };
 
 const GIFT_GOLD_POOL = POOL_BY_TIER.gold;
-const GIFT_PURPLE_POOL = POOL_BY_TIER.purple;
 
 /**
  * Sorteio dos traits de um ancestral recém-liberado do Ovo Selado.
  * Regras duras (spec do jogador):
  *  - NUNCA menos que 12 traits (Plus = 16);
- *  - NUNCA abaixo do tier ROXO (todos os slots são purple/gold);
- *  - DOURADO escala com a alimentação (Esfera de Safira): +1 gold a cada 2
- *    esferas, teto 5; o ovo "Luck" parte de +3 gold.
+ *  - TODOS os slots são DOURADOS; Selado/Luck têm 12 e Plus tem 16;
+ *  - Repetições são válidas. O catálogo tem oito traits dourados, portanto
+ *    elas são necessárias para cumprir os 12–16 slots prometidos pelo ovo.
  */
 export function rollAncestralTraits(kind: AncestralEggKind, fed: number): string[] {
   const total = ANCESTRAL_EGG_TRAITS[kind] ?? 12;
-  const fedGold = Math.max(0, Math.floor((fed ?? 0) / 2));
-  const bonus = kind === "luck" ? 3 : 0;
-  // Sempre sobra pelo menos 4 slots roxos — gold nunca vira maioria absoluta.
-  const goldCount = Math.min(5 + bonus, Math.max(0, total - 4), fedGold + bonus);
-  const purpleCount = total - goldCount;
-
-  const goldPool = [...GIFT_GOLD_POOL];
-  const purplePool = [...GIFT_PURPLE_POOL];
-  const out: string[] = [];
-  const takeFrom = (pool: string[]) => {
-    if (pool.length === 0) return;
-    const i = Math.floor(Math.random() * pool.length);
-    out.push(pool[i]);
-    pool.splice(i, 1);
-  };
-  for (let i = 0; i < goldCount; i++) takeFrom(goldPool);
-  for (let i = 0; i < purpleCount; i++) takeFrom(purplePool);
-  return out;
+  void fed; // Alimentar ainda antecipa a eclosão; o ancestral já nasce dourado.
+  return Array.from({ length: total }, () =>
+    GIFT_GOLD_POOL[Math.floor(Math.random() * GIFT_GOLD_POOL.length)],
+  );
 }
 
 // Soma os efeitos de todos os traits do time em um pacote parcial.
