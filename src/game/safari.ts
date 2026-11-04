@@ -37,6 +37,53 @@ export const SAFARI_TRAINER_MAX_HP = 100;
 export const SAFARI_TRAINER_HIT = 15;
 
 /** Escolhe o ponto mais afastado dos selvagens existentes, sem formar grupos. */
+export const SAFARI_ANCESTRAL_SPECIES = ["moltres", "articuno", "zapdos", "lugia"] as const;
+export const SAFARI_ANCESTRAL_WINDOW_MS = 30 * 60 * 1000;
+export const SAFARI_ANCESTRAL_DURATION_MS = 3 * 60 * 1000;
+export const SAFARI_ANCESTRAL_LEVEL = 1000;
+
+/** Entries: captura ancestral só com Safari Ball; Ultra não conta. */
+export function safariAncestralCatchChance(ballId: string): number {
+  return ballId === "safariball" ? 0.02 : 0;
+}
+
+export function safariAncestralDrop(entryKind: "black_mitic" | "ancestral"): { pepita?: number; greatball?: number; ultraball?: number; chance: number } {
+  if (entryKind === "black_mitic") return { pepita: 1, ultraball: 1, chance: 0.20 };
+  return { pepita: 1, greatball: 1, ultraball: 1, chance: 1.0 };
+}
+
+export async function safariAttackRemote(
+  supabase: any,
+  attackerUserId: string,
+  targetUserId: string,
+  targetSp: string,
+  targetLevel: number,
+  mapId: string,
+  damage: number,
+): Promise<{ ok: boolean; newHp?: number; reason?: string }> {
+  try {
+    const { data: targetRow } = await supabase
+      .from("game_saves")
+      .select("data")
+      .eq("user_id", targetUserId)
+      .single();
+    if (!targetRow?.data) return { ok: false, reason: "no_save" };
+    const d = targetRow.data;
+    const currentHp = d.trainer_hp ?? 100;
+    const newHp = Math.max(0, currentHp - damage);
+    await supabase.from("game_saves").update({
+      data: { ...d, trainer_hp: newHp, last_attacked_by: attackerUserId, last_attack_map: mapId },
+      updated_at: new Date().toISOString(),
+    }).eq("user_id", targetUserId);
+    return { ok: true, newHp };
+  } catch { return { ok: false, reason: "db_error" }; }
+}
+
+/** Quando o mapa alterna para neve após 30min. */
+export function safariSnowActive(windowStartMs: number): boolean {
+  return Date.now() - windowStartMs < SAFARI_ANCESTRAL_DURATION_MS;
+}
+
 export function safariSpreadPoint(
   bounds: { minX: number; maxX: number; minY: number; maxY: number },
   placed: readonly { x: number; y: number }[],
