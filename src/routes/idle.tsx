@@ -19956,8 +19956,11 @@ A sucata afundou com o casco.
 
             {/* Outros jogadores no mesmo mapa */}
             {visibleMapPlayers.map((rp) => {
-              const rpLeaderSrc = rp.leaderSp ? GIF[rp.leaderSp] : undefined;
               const remotePvp = pvpPresence.find((p) => p.user_id === rp.userId);
+              // O líder de PvP vem do heartbeat seguro (team[0]), não do card visual
+              // que pode levar até 8s para atualizar.
+              const pvpLeaderSp = remotePvp?.leader_species ?? rp.leaderSp;
+              const rpLeaderSrc = pvpLeaderSp ? GIF[pvpLeaderSp] : undefined;
               const pvpSelected = pvpTargetUserId === rp.userId;
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const selectRemotePvp = (ev: React.MouseEvent) => {
@@ -19974,7 +19977,7 @@ A sucata afundou com o casco.
                 // A seleção não inicia o combate: o botão Auto fica vermelho para confirmação.
                 setAuto(false);
                 setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
-                pushChat(`🎯 ${rp.name}: ${rp.leaderSp?.replace(/_/g, " ") ?? "Pokémon"} marcado para PvP. Clique em AUTO para atacar.`, "info");
+                pushChat(`🎯 ${rp.name}: ${pvpLeaderSp?.replace(/_/g, " ") ?? "Pokémon"} (líder) marcado para PvP. Clique em AUTO para atacar.`, "info");
               };
               return (
                 <div key={rp.id} style={{
@@ -20019,10 +20022,10 @@ A sucata afundou com o casco.
                       {pvpSelected && <span aria-hidden="true" style={{ position: "absolute", inset: -7, border: "2px dashed #ff314b", borderRadius: "50%", animation: "targetReticleSpin 1.5s linear infinite", pointerEvents: "none" }} />}
                       {remotePvp?.hp === 0 ? (
                         <span aria-label="Pokémon derrotado" style={{ position: "absolute", left: 8, top: 3, fontSize: 31, lineHeight: 1, filter: "drop-shadow(0 2px 2px #000)" }}>💀</span>
-                      ) : rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
-                        <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${SPRITE_SHEET[rp.leaderSp]})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
+                      ) : pvpLeaderSp && SPRITE_SHEET[pvpLeaderSp] ? (
+                        <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${SPRITE_SHEET[pvpLeaderSp]})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
                       ) : (
-                        <img src={rpLeaderSrc} alt={`Pokémon de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated", transform: (rp.leaderSp && ANC_STATIC_SPECIES.has(rp.leaderSp)) ? walkBobTransform(rp.step) : undefined }} />
+                        <img src={rpLeaderSrc} alt={`Pokémon líder de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated", transform: (pvpLeaderSp && ANC_STATIC_SPECIES.has(pvpLeaderSp)) ? walkBobTransform(rp.step) : undefined }} />
                       )}
                       {remotePvp && <span aria-label={`HP ${remotePvp.hp} de ${remotePvp.max_hp}`} style={{ position: "absolute", left: 1, right: 1, bottom: -3, height: 4, border: "1px solid #220308", borderRadius: 3, background: "#220308", overflow: "hidden" }}><i style={{ display: "block", width: `${Math.max(0, remotePvp.hp / Math.max(1, remotePvp.max_hp) * 100)}%`, height: "100%", background: remoteLowHp ? "#ff1935" : "#62db72", boxShadow: remoteLowHp ? "0 0 7px #ff1935" : undefined }} /></span>}
                     </button>
