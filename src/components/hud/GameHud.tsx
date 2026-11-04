@@ -12,7 +12,7 @@ type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
   trainerHp?: number;
-  ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number;
+  ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number; pepitas?: number;
   region: string; mapImage: string; world: { width: number; height: number }; player: Point;
   enemies: Point[]; mapFilter?: string; now: number; zoom: number; auto: boolean; autoCapture: boolean;
   activeTab: string; vip: boolean; questReset: string; quests: HudQuest[]; messages: HudMessage[];
@@ -57,6 +57,7 @@ function ResourceBar({ hud }: { hud: GameHudProps }) {
     { label: "Arremessos disponíveis", icon: <Crosshair className="revo-throws-icon" />, value: `${hud.throws}/${hud.maxThrows}` },
     { label: "Ouro no banco", icon: <Coins className="revo-gold" />, value: number(hud.gold) },
     { label: "Cristais azuis", icon: <img src={hud.icons.crystal} alt="" />, value: number(hud.crystals) },
+    { label: "Pepitas de Ouro", icon: <img src={hud.icons.ruby} alt="" />, value: number(hud.pepitas ?? 0) },
     { label: "Rubis", icon: <img src={hud.icons.ruby} alt="" />, value: number(hud.rubies) },
   ];
   return <div className="revo-resources" aria-label="Recursos do treinador">{resources.map((resource) =>

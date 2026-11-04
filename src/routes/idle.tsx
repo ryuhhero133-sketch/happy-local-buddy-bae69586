@@ -15423,7 +15423,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         trainerHp={idle.currentMap === "sa" ? idle.safariTrainerHp ?? SAFARI_TRAINER_MAX_HP : undefined}
         energy={trainerEnergy} hunger={idle.trainerHunger ?? 100}
         ballCount={idle.items?.pokeball ?? 0} throws={Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))} maxThrows={MAX_THROW_COUNT}
-        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies}
+        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={idle.bank?.pepita ?? 0}
         region={map.name} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
         enemies={enemies.filter((enemy) => enemy.hp > 0)} now={now} zoom={zoom}
         auto={auto && (idle.autoBattle?.enabled ?? true)} autoCapture={idle.autoBattle?.useBall ?? true}
