@@ -13,6 +13,7 @@ import charmanderGif from "@/assets/charmander.gif";
 import bulbasaurGif from "@/assets/bulbasaur.gif";
 import squirtleGif from "@/assets/squirtle.gif";
 import MetaMaskLoginButton from "@/components/MetaMaskLoginButton";
+import { canUseOfflineTest, enterOfflineTest, exitOfflineTest, isOfflineTest } from "@/lib/offlineTest";
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken, clearActiveSession } from "@/lib/session.functions";
@@ -187,18 +188,43 @@ async function preloadCloudSave(userId: string) {
       return;
     }
     if (isCloudBlob(cloud)) {
-      if (cloud.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(cloud.idle));
-      const party = Array.isArray(cloud.party)
-        ? cloud.party
-        : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
-      if (party.length > 0) {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
-        // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
-        // não pode reabrir o modal de starter em outro navegador/F5.
-        try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+      // Anti-regressão: um snapshot antigo da nuvem NÃO pode apagar safiras,
+      // ovos ou progresso feito localmente desde a última gravação.
+      const cloudIdle = cloud.idle as Record<string, unknown> | undefined;
+      const rawLocal = localStorage.getItem(IDLE_KEY);
+      let localIdle: Record<string, unknown> | null = null;
+      if (rawLocal) {
+        try { localIdle = JSON.parse(rawLocal) as Record<string, unknown>; } catch { localIdle = null; }
       }
-      localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
-      log("preloadCloudSave: save restaurado do servidor");
+      const cloudSavedAt = Number((cloud as { savedAt?: unknown }).savedAt ?? cloudIdle?.savedAt);
+      const localSavedAt = Number(localIdle?.savedAt);
+      const cloudHasTimestamp = Number.isFinite(cloudSavedAt) && cloudSavedAt > 0;
+      const localHasTimestamp = Number.isFinite(localSavedAt) && localSavedAt > 0;
+      const localIsNewer = !!localIdle && (!cloudHasTimestamp || (localHasTimestamp && localSavedAt > cloudSavedAt));
+      if (localIsNewer) {
+        // Preserva o snapshot inteiro. Mesclar inventários de épocas distintas
+        // poderia ressuscitar itens já gastos e desfazer pagamentos de entrada.
+        localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
+        log("preloadCloudSave: progresso local mais novo mantido");
+        return;
+      }
+      if (cloudHasTimestamp || !localIdle) {
+        if (cloudIdle) {
+          const stamped = cloudHasTimestamp ? cloudIdle : { ...cloudIdle, savedAt: Date.now() };
+          localStorage.setItem(IDLE_KEY, JSON.stringify(stamped));
+        }
+        const party = Array.isArray(cloud.party)
+          ? cloud.party
+          : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
+        if (party.length > 0) {
+          localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+          // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
+          // não pode reabrir o modal de starter em outro navegador/F5.
+          try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+        }
+        localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
+        log("preloadCloudSave: save restaurado do servidor");
+      }
     } else {
       localStorage.removeItem(CLOUD_PRELOADED_KEY);
       log("preloadCloudSave: nenhum save remoto");
@@ -257,6 +283,38 @@ type Mode = "login" | "signup" | "reset";
 /* ───────────────────────────── AUTH GATE ───────────────────────────── */
 
 export function AuthGate({ children }: { children: ReactNode }) {
+  if (import.meta.env.DEV) return <DevelopmentAuthGate>{children}</DevelopmentAuthGate>;
+  return <OnlineAuthGate>{children}</OnlineAuthGate>;
+}
+
+function DevelopmentAuthGate({ children }: { children: ReactNode }) {
+  // Match the server splash on the first client render, including offline tests.
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
+  if (!clientReady) return <SplashScreen label="Conectando ao servidor..." />;
+  if (isOfflineTest()) {
+    return <>
+      <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", zIndex: 100000, background: "rgba(7,20,38,0.88)", color: "#a7c5dd", padding: "2px 10px", borderRadius: "6px 6px 0 0", fontSize: 9, whiteSpace: "nowrap" }}>
+        LOGIN TEST · Offline · Save separado{" "}
+        <button type="button" onClick={exitOfflineTest} style={{ textDecoration: "underline", marginLeft: 8 }}>Sair do teste</button>
+      </div>
+      {children}
+    </>;
+  }
+  return <OnlineAuthGate>{children}</OnlineAuthGate>;
+}
+
+function OfflineTestButton() {
+  if (!import.meta.env.DEV || !canUseOfflineTest()) return null;
+  return <div className="space-y-2">
+    <button type="button" onClick={enterOfflineTest} className="w-full py-3 rounded bg-sky-700 text-white font-bold hover:bg-sky-600">
+      LOGIN TEST
+    </button>
+    <p className="text-xs" style={{ color: "#bae6fd" }}>Teste offline local, sem carteira. Progresso separado; recursos online indisponíveis.</p>
+  </div>;
+}
+
+function OnlineAuthGate({ children }: { children: ReactNode }) {
   const [maintenance, setMaintenance] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [bypassCode, setBypassCode] = useState("");
@@ -673,6 +731,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             <span className="text-4xl">⚠️</span>
           </div>
           <h1 className="text-3xl font-black tracking-[0.2em] uppercase">MANUTENÇÃO</h1>
+          {import.meta.env.DEV && <OfflineTestButton />}
           <div className="h-1 w-full bg-red-900 rounded-full overflow-hidden">
             <div className="h-full bg-red-500 animate-[loading_2s_infinite]" style={{ width: '40%' }} />
           </div>
@@ -739,7 +798,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (typeof window !== "undefined" && window.location.search.includes("login")) return <PanelShell title="ENTRAR"><form className="space-y-3"><MetaMaskLoginButton /><button type="button" onClick={() => window.location.href="/?login=1"} className="w-full py-2 bg-amber-600 text-black font-black">RECARREGAR LOGIN</button></form></PanelShell>;
+  if (typeof window !== "undefined" && window.location.search.includes("login")) return <PanelShell title="ENTRAR"><form className="space-y-3"><MetaMaskLoginButton />{import.meta.env.DEV && <OfflineTestButton />}<button type="button" onClick={() => window.location.href="/?login=1"} className="w-full py-2 bg-amber-600 text-black font-black">RECARREGAR LOGIN</button></form></PanelShell>;
   // Sem sessão: SOMENTE MetaMask (fluxo convidado "ENTRAR NO MUNDO" removido).
   if (!session) {
     return (
@@ -749,6 +808,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             Conecte sua carteira MetaMask para jogar. Cada carteira tem seu próprio treinador.
           </p>
           <MetaMaskLoginButton />
+          {import.meta.env.DEV && <OfflineTestButton />}
         </div>
       </PanelShell>
     );
@@ -1657,6 +1717,10 @@ async function persistSkinToServer(skinId: string) {
 }
 
 export async function signOutRubyM() {
+  if (import.meta.env.DEV && isOfflineTest()) {
+    exitOfflineTest();
+    return;
+  }
   try {
     // Logout encerra a sessão no Supabase; o handler SIGNED_OUT do AuthGate
     // limpa os dados locais (wipe de rubym.*) para isolar as carteiras.

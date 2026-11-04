@@ -24,3 +24,18 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+### Teste offline local (sem MetaMask)
+
+No servidor de desenvolvimento em `http://localhost:8080/idle`, clique em
+**LOGIN TEST**. O botão só aparece em localhost/loopback, nunca no build de produção.
+O sandbox depende de `src/lib/offlineTest.local.ts`, arquivo privado ignorado
+pelo Git. Sem esse arquivo, até o desenvolvimento usa o login normal. A versão
+de produção elimina o botão e não carrega o sandbox.
+
+- Não cria sessão Supabase nem pede assinatura da carteira.
+- Saves de teste usam o prefixo `idlemon.test:` no localStorage, separados dos saves reais.
+- Chamadas ao backend e conexões realtime remotas ficam bloqueadas durante o teste.
+- Recursos online (mercado, ranking, multiplayer, compras e salvamento na nuvem) não estão disponíveis.
+- F5 mantém o teste; **Sair do teste** volta ao login normal sem apagar seu progresso de teste.
+- Na primeira entrada, escolha o visual/nome e o Pokémon inicial normalmente.

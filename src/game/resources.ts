@@ -189,6 +189,8 @@ export function teleportEnergyCostFor(mapId: string): number {
   if (mapId === "laboratorio") return 0;
   // Hallow e Caverna de Brok: entrada grátis (são atalho de mapa, não viagem).
   if (mapId === "hallow" || mapId === "caverna_brok") return 0;
+  // SA (Mapa Mundi): campo aberto — entrada SEM custo de energia.
+  if (mapId === "sa") return 0;
   // Mapas do UPDATE (aba MAPAS do Professor): 10 de energia por entrada, após desbloquear.
   if (mapId === "iceblow" || mapId === "monte_floreto" || mapId === "rayow" || mapId === "sakura_city" || mapId === "venenot") return LAB_MAP_ENERGY_COST;
   // Jornada dos Navegantes (continente da aba MAPAS): mesma regra — 10 de energia.

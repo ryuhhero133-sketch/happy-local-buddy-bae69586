@@ -73,6 +73,18 @@ export function isValidSnapshot(data: unknown): data is { idle: Record<string, u
   return !!idle && typeof idle === "object" && !Array.isArray(idle);
 }
 
+/** Marca o snapshot com o instante da escrita. Usado para nunca adotar um
+ * save da nuvem mais antigo quando já existe progresso local mais recente. */
+export function stampSnapshot(snapshot: unknown, now = Date.now()): unknown {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return snapshot;
+  const s = snapshot as Record<string, unknown>;
+  const existing = Number(s.savedAt);
+  // Use o tempo maior: preserva a gravação anterior em vez de "envelhecer"
+  // o save local quando uma função auxiliar não tinha carimbo.
+  const value = Number.isFinite(existing) && existing > 0 ? Math.max(existing, now) : now;
+  return { ...s, savedAt: value };
+}
+
 /** Tetos (espelham o trigger no banco — última palavra é do servidor). */
 const CAPS = {
   trainerLevel: 1_000_000,

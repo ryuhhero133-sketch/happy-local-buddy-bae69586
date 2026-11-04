@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isMapBlocked } from "@/game/mapAccess";
 import { Map, Sparkles, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ballImg from "@/assets/items/icon-pokeball.png";
@@ -90,7 +91,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
             <span className="world-atlas__emblem"><Map aria-hidden="true" /></span>
             <div>
               <p className="world-atlas__eyebrow">Atlas dos aventureiros</p>
-              <h2>Mapa Mundi <span>Teleporte Grátis</span></h2>
+              <h2>Mapa Mundi <span>Viagens</span></h2>
             </div>
           </div>
           <div className="world-atlas__header-actions">
@@ -120,7 +121,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <div className="world-atlas__grid">
           {visible.map((destination) => {
             const isCurrent = currentMap === destination.id;
-            const isLocked = LOCKED_MAPS.has(destination.id);
+            const isLocked = LOCKED_MAPS.has(destination.id) || isMapBlocked(destination.id);
             const previewImage = imageForDestination(destination);
             return (
               <article className={`world-destination ${isCurrent ? "is-current" : ""}`} key={destination.id}>
@@ -147,7 +148,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                     disabled={isLocked}
                     onClick={() => onTeleport({ ...destination, previewImage })}
                   >
-                    {isCurrent ? "Atual" : isLocked ? "🔒 Bloqueado" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
+                    {isCurrent ? "Atual" : isLocked ? "🔒 Bloqueado" : destination.id === "sa" ? "Entrar · 1.000 ouro + 10 pepitas" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
                     {!isCurrent && !isLocked && <span aria-hidden="true">→</span>}
                   </Button>
                 </div>

@@ -231,6 +231,19 @@ function saveState(uid: string, s: CollectionState) {
   try { localStorage.setItem(storageKey(uid), JSON.stringify(s)); } catch { /* ignore */ }
 }
 
+/** Restaura ovos cujo item ainda está na mochila. O contador da mochila é a
+ * fonte de verdade, mas não pode apagar um ovo já existente. */
+export function hatchedEggSync(uid: string, itemCount: number): number {
+  if (!Number.isFinite(itemCount) || itemCount <= 0) return 0;
+  const st = loadState(uid);
+  const missing = itemCount - st.eggs.length;
+  if (missing <= 0) return 0;
+  const eggs = [...st.eggs];
+  for (let i = 0; i < missing; i++) eggs.push(newEgg());
+  saveState(uid, { ...st, eggs, selectedId: st.selectedId ?? eggs[0]?.id ?? null });
+  return missing;
+}
+
 /**
  * Entrega ovos Black Mitic PLUS já ATIVADOS e PRONTOS para chocar na incubadora.
  * Usado pelos códigos de recompensa. Retorna quantos ovos foram realmente criados
@@ -1300,8 +1313,8 @@ export function BlackMiticEggHud(props: {
         const removable = [...eggs].map((e, i) => ({ e, i })).filter(x => !x.e.activated);
         const removeIdx = new Set(removable.slice(-toRemove).map(x => x.i));
         eggs = eggs.filter((_, i) => !removeIdx.has(i));
-        // se ainda sobrou, remove os ativados mais recentes
-        while (eggs.length > itemCount) eggs.pop();
+        // NUNCA apaga ovos ativados/prontos: o contador da mochila pode estar
+        // atrasado (ex.: após chocar um ovo) e o progresso deles é mais novo.
       }
       let selectedId = prev.selectedId;
       if (!selectedId || !eggs.some(e => e.id === selectedId)) selectedId = eggs[0]?.id ?? null;
@@ -1311,6 +1324,13 @@ export function BlackMiticEggHud(props: {
     });
     if (plusToApply > 0) onConsumePlus?.(plusToApply);
   }, [itemCount, uid, plusPending, onConsumePlus]);
+
+  // Recupera ovos sem item localmente perdido (ex.: após sincronização da
+  // nuvem apagar o save da incubadora). Nunca consome item da mochila.
+  useEffect(() => {
+    if (!open || itemCount <= 0) return;
+    if (hatchedEggSync(uid, itemCount) > 0) setState(loadState(uid));
+  }, [open, uid, itemCount]);
 
   useEffect(() => { if (open) setState(loadState(uid)); }, [open, uid]);
 

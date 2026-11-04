@@ -119,7 +119,7 @@ export type Species =
   | "arbok" | "charizard_shiny" | "charizard_alt"
   | "moltres" | "zapdos" | "articuno"
   | "mew" | "dragonite" | "lucario"
-  | "metapod" | "beedrill" | "pidgey" | "pidgeot" | "vileplume" | "tangela" | "kabutops"
+  | "metapod" | "beedrill" | "pidgey" | "pidgeot" | "vileplume" | "tangela" | "kabutops" | "kabutops_shiny"
   | "lapras" | "vaporeon" | "dragonair"
   | "gyarados" | "jolteon" | "jolteon_shiny" | "vaporeon_shiny"
   | "flareon" | "flareon_shiny" | "snorlax" | "dragonite_shiny" | "mew_alt" | "raichu"
@@ -402,6 +402,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   vileplume_shiny: { hp: 82, atk: 88, def: 92, spa: 118, spd: 98, spe: 55, rarity: "epic", goldRange: [24, 40], crystalChance: 0.12, catchMod: 1.4, minLv: 22 },
   tangela:    { hp: 65, atk: 55, def: 115, spa: 100, spd: 40, spe: 60, rarity: "rare", goldRange: [10, 16], crystalChance: 0.05, catchMod: 1.3, minLv: 14 },
   kabutops:   { hp: 60, atk: 115, def: 105, spa: 65, spd: 70, spe: 80, rarity: "epic", goldRange: [20, 34], crystalChance: 0.1, catchMod: 1.55, minLv: 26 },
+  kabutops_shiny: { hp: 60, atk: 115, def: 105, spa: 65, spd: 70, spe: 80, rarity: "mythic", goldRange: [20, 34], crystalChance: 0.1, catchMod: 1.55, minLv: 26 },
   lapras:     { hp: 130, atk: 85, def: 80, spa: 85, spd: 95, spe: 60, rarity: "epic", goldRange: [25, 42], crystalChance: 0.125, catchMod: 1.6, minLv: 28 },
   vaporeon:   { hp: 130, atk: 65, def: 60, spa: 110, spd: 95, spe: 65, rarity: "epic", goldRange: [22, 37], crystalChance: 0.11, catchMod: 1.55, minLv: 24 },
   dragonair:  { hp: 61, atk: 84, def: 65, spa: 70, spd: 70, spe: 70, rarity: "epic", goldRange: [20, 35], crystalChance: 0.1, catchMod: 1.5, minLv: 22 },

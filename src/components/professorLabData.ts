@@ -32,6 +32,12 @@ import hallowUrl from "@/ambiente/mascara colisao/hallow.png";
 import hallowMaskUrl from "@/ambiente/mascara colisao/hallow Colisao.png";
 import cavernaBrokUrl from "@/ambiente/mascara colisao/Caverna de Brok.png";
 import cavernaBrokMaskUrl from "@/ambiente/mascara colisao/Caverna de brok Colisao.png";
+// Mapas lisos (sem máscara de colisão): só o fundo PNG original.
+import mapaXzUrl from "@/ambiente/xz/xz.png";
+import mapa0000Url from "@/ambiente/0000.png";
+import mapa0055Url from "@/ambiente/0055.png";
+import mapa0066Url from "@/ambiente/0066.png";
+import mapa0077Url from "@/ambiente/0077.png";
 
 export type ProfQuestId =
   | "q1" | "q2" | "q3"
@@ -247,14 +253,20 @@ export type ProfMapId =
   | "margrande"
   | "navegante"
   | "hallow"
-  | "caverna_brok";
+  | "caverna_brok"
+  | "map_0000"
+  | "map_0055"
+  | "map_0066"
+  | "map_0077"
+  | "map_xz";
 
 export type ProfMapDef = {
   id: ProfMapId;
   name: string;
   emoji: string;
   bg: string;
-  mask: string;
+  /** Máscara de colisão. Ausente nos mapas lisos (FREE_WALK_MAPS libera tudo). */
+  mask?: string;
   /** Continente exibido na aba MAPAS (se ausente, fica no grupo principal). */
   continent?: string;
   /** Pontos de sucata no banco para desbloquear (mapas terrestres). */
@@ -420,6 +432,71 @@ const M_CAVERNA_BROK: ProfMapDef = {
   desc: "Galeria escura onde a caverna de Brok desce por entre paredes de rocha. Só anda pela faixa clara do chão.",
 };
 
+// ════ MAPAS LISOS (0000 / 0055 / 0066 / 0077) ════
+// Teleporte grátis (free: true → sem pontos e sem nível), sem Pokémon e sem
+// objetos: entram em FREE_WALK_MAPS, então isWalkable() libera a área toda e
+// nenhum ensureCollision() é chamado. Só o mapa liso para andar.
+const M_MAP_0000: ProfMapDef = {
+  id: "map_0000",
+  name: "Cidade 0000",
+  emoji: "🏘️",
+  continent: "MAPAS LISOS",
+  bg: mapa0000Url,
+  free: true,
+  spawn: { x: 724, y: 543 },
+  element: "normal",
+  stars: 1,
+  desc: "Cidade com Centro Pokémon, casas, lago e fonte. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
+};
+const M_MAP_0055: ProfMapDef = {
+  id: "map_0055",
+  name: "Trilha 0055",
+  emoji: "🥾",
+  continent: "MAPAS LISOS",
+  bg: mapa0055Url,
+  free: true,
+  spawn: { x: 900, y: 1150 },
+  element: "pedra",
+  stars: 1,
+  desc: "Trilha de areia entre rochas, escadas e árvores de outono. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
+};
+const M_MAP_0066: ProfMapDef = {
+  id: "map_0066",
+  name: "Lagoa 0066",
+  emoji: "🏞️",
+  continent: "MAPAS LISOS",
+  bg: mapa0066Url,
+  free: true,
+  spawn: { x: 900, y: 1150 },
+  element: "agua",
+  stars: 1,
+  desc: "Campo aberto com lagoa, cercas e casinha no alto. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
+};
+const M_MAP_0077: ProfMapDef = {
+  id: "map_0077",
+  name: "Bosque 0077",
+  emoji: "🍂",
+  continent: "MAPAS LISOS",
+  bg: mapa0077Url,
+  free: true,
+  spawn: { x: 1250, y: 620 },
+  element: "planta",
+  stars: 1,
+  desc: "Bosque de outono com clareiras, muros baixos e lagoa. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
+};
+const M_MAP_XZ: ProfMapDef = {
+  id: "map_xz",
+  name: "Mundo XZ",
+  emoji: "🗺️",
+  continent: "MAPAS LISOS",
+  bg: mapaXzUrl,
+  free: true,
+  spawn: { x: 872, y: 1396 },
+  element: "normal",
+  stars: 1,
+  desc: "Mundo gigante com cidade, rotas, caverna, lagos e farol. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
+};
+
 export const PROF_MAPS: ProfMapDef[] = [
   M_ICEBLOW,
   M_MONTE,
@@ -429,6 +506,11 @@ export const PROF_MAPS: ProfMapDef[] = [
   M_AZULANTE,
   M_MARGRANDE,
   M_NAVEGANTE,
+  M_MAP_0000,
+  M_MAP_0055,
+  M_MAP_0066,
+  M_MAP_0077,
+  M_MAP_XZ,
 ];
 
 export const PROF_MAP_BY_ID: Record<ProfMapId, ProfMapDef> = {
@@ -442,6 +524,11 @@ export const PROF_MAP_BY_ID: Record<ProfMapId, ProfMapDef> = {
   azulante: M_AZULANTE,
   margrande: M_MARGRANDE,
   navegante: M_NAVEGANTE,
+  map_0000: M_MAP_0000,
+  map_0055: M_MAP_0055,
+  map_0066: M_MAP_0066,
+  map_0077: M_MAP_0077,
+  map_xz: M_MAP_XZ,
 };
 
 /** Posições de chegada (instantânea, sem custo) — inclui o retorno ao Laboratório. */
@@ -456,6 +543,13 @@ export const PROF_SPAWNS: Record<string, { x: number; y: number }> = {
   azulante: { x: 120, y: 1060 },
   margrande: { x: 150, y: 775 },
   navegante: { x: 900, y: 420 },
+  map_0000: { x: 724, y: 543 },
+  map_0055: { x: 900, y: 1150 },
+  map_0066: { x: 900, y: 1150 },
+  map_0077: { x: 1250, y: 620 },
+  map_xz: { x: 872, y: 1396 },
+  // SA (Mapa Mundi): grama no meio do grande campo aberto — longe da cidade.
+  sa: { x: 1900, y: 1150 },
   laboratorio: { x: 499, y: 416 },
 };
 

@@ -3,6 +3,7 @@
 // barras de stats laranja e radar cyan com PODER. Só visualização: nenhum Pokémon
 // é adicionado à coleção por aqui. Missões: 3 diálogos → quests com progresso real.
 import { useEffect, useMemo, useState } from "react";
+import { isMapBlocked } from "@/game/mapAccess";
 import type { CSSProperties, ReactNode } from "react";
 import { RARITY_COLOR, RARITY_NAME, SPECIES_BASE, type Rarity, type Species } from "@/game/systems";
 import { DEX, TYPE_COLOR, TYPE_ICON, type PokeType } from "@/game/movesets";
@@ -1753,11 +1754,13 @@ export function ProfessorLabPanel(props: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  5 MAPAS PARA EXPLORAR
+                  {PROF_MAPS.length} MAPAS PARA EXPLORAR
                 </div>
                 <div style={{ color: "#8ba0b2", fontSize: 11, marginBottom: 12 }}>
-                  Expedições do laboratório — sem custo de ouro;10 de energia por entrada
-                  (após desbloquear). Alguns mapas têm pokémons selvagens e nível próprio.
+                  Expedições do laboratório — sem custo de ouro. Mapas grátis
+                  (incluindo os lisos 0000/0055/0066/0077) não gastam energia e
+                  não têm nível de treinador; os demais cobram 10 de energia por
+                  entrada após o desbloqueio.
                 </div>
                 <div
                   style={{
@@ -1770,7 +1773,7 @@ export function ProfessorLabPanel(props: Props) {
                     const m = ELEMENT_META[c.element];
                     const lockedPts = c.reqPts != null && scrapBankPts < c.reqPts;
                     const lockedLv = c.reqLevel != null && (trainerLevel ?? 1) < c.reqLevel;
-                    const locked = lockedPts || lockedLv;
+                    const locked = lockedPts || lockedLv || isMapBlocked(c.id);
                     const reqLabel = c.reqPts != null
                       ? `${scrapBankPts}/${c.reqPts} PTS`
                       : `NV ${(trainerLevel ?? 1)}/${c.reqLevel}`;
@@ -1930,11 +1933,11 @@ export function ProfessorLabPanel(props: Props) {
                                 lineHeight: 1.6,
                               }}
                             >
-                              🔒 {c.reqPts != null
+                              🔒 {isMapBlocked(c.id) ? "MAPA TEMPORARIAMENTE BLOQUEADO" : c.reqPts != null
                                 ? `ENTREGUE ${c.reqPts} PTS DE SUCATA AO PROFESSOR`
                                 : `TREINADOR NV ${c.reqLevel} NECESSÁRIO`}
                               <div style={{ fontSize: 9, marginTop: 4, color: "#8a7a60", fontWeight: 700 }}>
-                                {c.reqPts != null
+                                {isMapBlocked(c.id) ? "Aguarde a liberação do mapa." : c.reqPts != null
                                   ? "Troque sucatas por pontos na aba BARCO"
                                   : "Suba de nível para desbloquear"}
                               </div>

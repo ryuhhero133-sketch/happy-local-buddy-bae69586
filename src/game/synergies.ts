@@ -74,7 +74,7 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   psyduck: ["agua"], poliwag: ["agua"], poliwhirl: ["agua"], poliwrath: ["agua","lutador"],
   gyarados: ["agua","voador"],
   lapras: ["agua","gelo"], lapras_shiny: ["agua","gelo"],
-  vaporeon: ["agua"], vaporeon_shiny: ["agua"], kabutops: ["pedra","agua"],
+  vaporeon: ["agua"], vaporeon_shiny: ["agua"], kabutops: ["pedra","agua"], kabutops_shiny: ["pedra","agua"],
   suicune: ["agua"], suicune_shiny: ["agua"],
   // Elétrico
   pikachu: ["eletrico"], raichu: ["eletrico"], magnemite: ["eletrico"],
