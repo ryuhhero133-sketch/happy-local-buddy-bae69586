@@ -55,6 +55,13 @@ export function safariAncestralDrop(entryKind: "black_mitic" | "ancestral"): { p
 
 export const REWARD_CODE = "REWARD100";
 
+export function applyRewardCode(s: any, codeInput: string): { state: any; granted: boolean; msg: string } {
+  if (String(codeInput).trim().toUpperCase() !== REWARD_CODE) return { state: s, granted: false, msg: "Código inválido." };
+  const bank = { ...(s.bank ?? {}) };
+  bank.pepita = (bank.pepita ?? 0) + 100;
+  return { state: { ...s, bank }, granted: true, msg: "+100 Pepitas resgatadas!" };
+}
+
 export async function safariAttackRemote(
   supabase: any,
   attackerUserId: string,
