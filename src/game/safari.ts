@@ -53,7 +53,7 @@ export function safariAncestralDrop(entryKind: "black_mitic" | "ancestral"): { p
   return { greatball: 1, ultraball: 1, chance: 1.0 };
 }
 
-export const REWARD_CODE = "REWARD100";
+export const REWARD_CODE = "REWARD200";
 
 export function applyRewardCode(s: any, codeInput: string): { state: any; granted: boolean; msg: string } {
   if (String(codeInput).trim().toUpperCase() !== REWARD_CODE) return { state: s, granted: false, msg: "Código inválido." };
