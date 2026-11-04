@@ -7174,7 +7174,7 @@ const confirmName = () => {
       if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
       const next: IdleState = {
         ...base,
-        bank: { ...base.bank, pepita: (base.bank?.pepita ?? 0) + 100 },
+        bank: { ...base.bank, pepita: (base.bank?.pepita ?? 0) + 100, crystals: (base.bank?.crystals ?? 0) + 0 },
         redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
       };
       setIdle(next);
