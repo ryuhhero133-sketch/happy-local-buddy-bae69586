@@ -7746,6 +7746,8 @@ const confirmName = () => {
   useEffect(() => { walkStepRef.current = walkStep; }, [walkStep]);
   const leaderSpRef = useRef<Species | undefined>(team[0]?.species);
   useEffect(() => { leaderSpRef.current = team[0]?.species; }, [team]);
+  const leaderLevelRef = useRef<number>(team[0]?.level ?? 1);
+  useEffect(() => { leaderLevelRef.current = team[0]?.level ?? 1; }, [team]);
   const skinUrlRef = useRef<string | null>(null);
   useEffect(() => { skinUrlRef.current = skinUrl; }, [skinUrl]);
   useEffect(() => {
@@ -7771,9 +7773,9 @@ const confirmName = () => {
         dir: payload.dir,
         leader_species: payload.leaderSp ?? null,
         leader_rarity: null,
-        level: team[0]?.level ?? 1,
-        trainer_level: idle.trainerLevel ?? 1,
-        craft_points: idle.craftPoints ?? 0,
+        level: leaderLevelRef.current,
+        trainer_level: idleRef.current.trainerLevel ?? 1,
+        craft_points: idleRef.current.craftPoints ?? 0,
         updated_at: new Date().toISOString(),
       };
       try {
@@ -7845,7 +7847,9 @@ const confirmName = () => {
       void gameDb.from("players").delete().eq("id", meId);
       setRemotePlayers([]);
     };
-  }, [identity?.id, identity?.name, idle.currentMap, idle.totals.captured, idle.craftPoints, team]);
+  // Não depende do array do time: ele muda durante o jogo e antes desmontava a
+  // presença, fazendo os avatares dos outros piscarem/sumirem por alguns segundos.
+  }, [identity?.id, identity?.name, idle.currentMap]);
 
 
   const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
