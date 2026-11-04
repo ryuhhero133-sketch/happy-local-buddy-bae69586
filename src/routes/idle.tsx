@@ -20036,8 +20036,8 @@ A sucata afundou com o casco.
                       position: "absolute", left: 29, top: 15, width: 48, height: 48, padding: 0,
                       borderRadius: "50%", border: pvpSelected ? "2px solid #ff1935" : "1px solid transparent",
                       background: "transparent", cursor: "crosshair", pointerEvents: "auto", zIndex: 5,
-                      boxShadow: pvpSelected ? "0 0 12px #ff1935, 0 0 28px #ff1935, inset 0 0 10px #ff1935" : "none",
-                      animation: pvpSelected || remoteLowHp ? "revo-pvp-auto-pulse .85s ease-in-out infinite" : undefined,
+                      // O alvo fica marcado em neon, porém o sprite não pisca na tela do outro jogador.
+                      boxShadow: pvpSelected || remoteLowHp ? "0 0 12px #ff1935, 0 0 28px #ff1935, inset 0 0 10px #ff1935" : "none",
                     }}>
                       {pvpSelected && <span aria-hidden="true" style={{ position: "absolute", inset: -7, border: "2px dashed #ff314b", borderRadius: "50%", animation: "targetReticleSpin 1.5s linear infinite", pointerEvents: "none" }} />}
                       {remotePvp?.hp === 0 ? (
