@@ -7728,7 +7728,12 @@ const confirmName = () => {
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
   type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
+  type PvpPresence = { user_id: string; player_name: string; map_id: string; x: number; y: number; leader_species?: Species; leader_level: number; hp: number; max_hp: number; last_hit_at?: string | null; last_attacker_name?: string | null; last_death_at?: string | null; updated_at: string };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
+  const [pvpPresence, setPvpPresence] = useState<PvpPresence[]>([]);
+  const [pvpTargetUserId, setPvpTargetUserId] = useState<string | null>(null);
+  const [pvpDamageFlash, setPvpDamageFlash] = useState(false);
+  const pvpLastHitRef = useRef<string | null>(null);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
   const walkStepRef = useRef(walkStep);
@@ -7889,6 +7894,73 @@ const confirmName = () => {
     // Jogadores se veem em qualquer mapa (filtro por mapa já vem do banco).
     return remotePlayers;
   }, [remotePlayers, idle.currentMap]);
+
+  const pvpTarget = useMemo(
+    () => pvpTargetUserId ? pvpPresence.find((p) => p.user_id === pvpTargetUserId) ?? null : null,
+    [pvpPresence, pvpTargetUserId],
+  );
+
+  // Presença de combate é separada da presença visual: HP nunca vem do cliente.
+  useEffect(() => {
+    if (!identity?.id || !team[0]) return;
+    let cancelled = false;
+    const sync = async () => {
+      const pos = trainerPosRef.current;
+      await (gameDb as any).rpc("pvp_heartbeat", {
+        p_map_id: String(idle.currentMap), p_x: Math.round(pos.x), p_y: Math.round(pos.y),
+        p_leader_species: team[0]?.species ?? "", p_leader_level: team[0]?.level ?? 1,
+        p_player_name: identity.name || "Treinador",
+      });
+      const since = new Date(Date.now() - 15_000).toISOString();
+      const { data } = await (gameDb as any).from("pvp_presence")
+        .select("user_id,player_name,map_id,x,y,leader_species,leader_level,hp,max_hp,last_hit_at,last_attacker_name,last_death_at,updated_at")
+        .eq("map_id", idle.currentMap).gte("updated_at", since);
+      if (!cancelled && data) setPvpPresence(data as PvpPresence[]);
+    };
+    void sync();
+    const iv = window.setInterval(() => void sync(), 1500);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [identity?.id, identity?.name, idle.currentMap, team]);
+
+  // A vítima recebe o flash e a mensagem lendo o evento que o servidor gravou.
+  useEffect(() => {
+    if (!identity?.id) return;
+    const mine = pvpPresence.find((p) => p.user_id === identity.id);
+    const hit = mine?.last_hit_at ?? null;
+    if (!hit || hit === pvpLastHitRef.current) return;
+    pvpLastHitRef.current = hit;
+    if (mine?.hp === 0) pushChat(`💀 ${mine.last_attacker_name ?? "Outro treinador"} derrotou seu Pokémon ლიდer!`, "hit");
+    else pushChat(`⚠️ ${mine?.last_attacker_name ?? "Outro treinador"} está atacando seu Pokémon!`, "hit");
+    if ((mine?.hp ?? 100) / Math.max(1, mine?.max_hp ?? 100) > 0.25) return;
+    setPvpDamageFlash(true);
+    const timer = window.setTimeout(() => setPvpDamageFlash(false), 750);
+    return () => clearTimeout(timer);
+  }, [pvpPresence, identity?.id]);
+
+  // Só ataca após o jogador marcar o alvo e ligar o Auto. O RPC valida mapa,
+  // distância, cooldown e calcula o dano no banco.
+  useEffect(() => {
+    if (!pvpTargetUserId || !identity?.id) return;
+    let cancelled = false;
+    const attack = async () => {
+      if (!autoRef.current || !(autoBattleRef.current?.enabled ?? true)) return;
+      const { data } = await (gameDb as any).rpc("pvp_attack", { p_target_user_id: pvpTargetUserId });
+      const result = Array.isArray(data) ? data[0] : data;
+      if (cancelled || !result) return;
+      if (result.ok) {
+        setPvpPresence((prev) => prev.map((p) => p.user_id === pvpTargetUserId ? { ...p, hp: result.target_hp } : p));
+        if (result.reason === "defeated") {
+          pushChat(`🏆 Você derrotou o Pokémon de ${result.target_name}!`, "cap");
+          setPvpTargetUserId(null);
+        }
+      } else if (["offline", "different_map", "out_of_range", "target_fainted"].includes(result.reason)) {
+        if (result.reason !== "target_fainted") pushChat("🎯 Alvo PvP saiu do alcance.", "info");
+        setPvpTargetUserId(null);
+      }
+    };
+    const iv = window.setInterval(() => void attack(), 950);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [pvpTargetUserId, identity?.id]);
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -15403,6 +15475,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         </div>
       )}
 
+      {pvpDamageFlash && (
+        <div aria-live="assertive" style={{ position: "fixed", inset: 0, zIndex: 20000, pointerEvents: "none", background: "radial-gradient(ellipse at center, rgba(255,30,48,.22), rgba(180,0,18,.6))", animation: "revo-pvp-damage-flash .75s ease-out forwards" }}>
+          <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", color: "#fff", fontWeight: 1000, fontSize: 22, letterSpacing: 2, textShadow: "0 0 12px #ff1935, 2px 2px #51000a" }}>⚠️ SEU POKÉMON ESTÁ SOB ATAQUE! ⚠️</div>
+        </div>
+      )}
       <GameHud
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}
         viewportWidth={viewSize.w}
@@ -15423,7 +15500,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         trainerHp={idle.currentMap === "sa" ? idle.safariTrainerHp ?? SAFARI_TRAINER_MAX_HP : undefined}
         energy={trainerEnergy} hunger={idle.trainerHunger ?? 100}
         ballCount={idle.items?.pokeball ?? 0} throws={Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))} maxThrows={MAX_THROW_COUNT}
-        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)}
+        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)} pvpTargeted={!!pvpTarget}
         region={map.name} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
         enemies={enemies.filter((enemy) => enemy.hp > 0)} now={now} zoom={zoom}
         auto={auto && (idle.autoBattle?.enabled ?? true)} autoCapture={idle.autoBattle?.useBall ?? true}
@@ -19846,6 +19923,21 @@ A sucata afundou com o casco.
             {/* Outros jogadores no mesmo mapa */}
             {visibleMapPlayers.map((rp) => {
               const rpLeaderSrc = rp.leaderSp ? GIF[rp.leaderSp] : undefined;
+              const remotePvp = pvpPresence.find((p) => p.user_id === rp.userId);
+              const pvpSelected = pvpTargetUserId === rp.userId;
+              const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
+              const selectRemotePvp = (ev: React.MouseEvent) => {
+                ev.stopPropagation();
+                if (!remotePvp || remotePvp.hp <= 0) {
+                  pushChat("⚠️ Este Pokémon não está disponível para PvP.", "info");
+                  return;
+                }
+                setPvpTargetUserId(rp.userId);
+                // A seleção não inicia o combate: o botão Auto fica vermelho para confirmação.
+                setAuto(false);
+                setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
+                pushChat(`🎯 ${rp.name}: ${rp.leaderSp?.replace(/_/g, " ") ?? "Pokémon"} marcado para PvP. Clique em AUTO para atacar.`, "info");
+              };
               return (
                 <div key={rp.id} style={{
                   position: "absolute",
@@ -19879,27 +19971,21 @@ A sucata afundou com o casco.
                     filter: rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
                   }} />
                   {rpLeaderSrc && (
-                    rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
-                      <div style={{
-                        position: "absolute", left: 34, top: 20,
-                        width: 36, height: 36,
-                        backgroundImage: `url(${SPRITE_SHEET[rp.leaderSp]})`,
-                        backgroundSize: "400% 400%",
-                        backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`,
-                        imageRendering: "pixelated",
-                        pointerEvents: "none",
-                      }} />
-                    ) : (
-                      <img src={rpLeaderSrc} alt="" style={{
-                        position: "absolute", left: 34, top: 20,
-                        width: 36, height: 36,
-                        imageRendering: "pixelated",
-                        pointerEvents: "none",
-                        transform: (rp.leaderSp && ANC_STATIC_SPECIES.has(rp.leaderSp))
-                          ? walkBobTransform(rp.step)
-                          : undefined,
-                      }} />
-                    )
+                    <button type="button" onClick={selectRemotePvp} title={`Atacar o Pokémon de ${rp.name}`} style={{
+                      position: "absolute", left: 29, top: 15, width: 48, height: 48, padding: 0,
+                      borderRadius: "50%", border: pvpSelected ? "2px solid #ff1935" : "1px solid transparent",
+                      background: "transparent", cursor: "crosshair", pointerEvents: "auto", zIndex: 5,
+                      boxShadow: pvpSelected ? "0 0 12px #ff1935, 0 0 28px #ff1935, inset 0 0 10px #ff1935" : "none",
+                      animation: pvpSelected || remoteLowHp ? "revo-pvp-auto-pulse .85s ease-in-out infinite" : undefined,
+                    }}>
+                      {pvpSelected && <span aria-hidden="true" style={{ position: "absolute", inset: -7, border: "2px dashed #ff314b", borderRadius: "50%", animation: "targetReticleSpin 1.5s linear infinite", pointerEvents: "none" }} />}
+                      {rp.leaderSp && SPRITE_SHEET[rp.leaderSp] ? (
+                        <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${SPRITE_SHEET[rp.leaderSp]})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
+                      ) : (
+                        <img src={rpLeaderSrc} alt={`Pokémon de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated", transform: (rp.leaderSp && ANC_STATIC_SPECIES.has(rp.leaderSp)) ? walkBobTransform(rp.step) : undefined }} />
+                      )}
+                      {remotePvp && <span aria-label={`HP ${remotePvp.hp} de ${remotePvp.max_hp}`} style={{ position: "absolute", left: 1, right: 1, bottom: -3, height: 4, border: "1px solid #220308", borderRadius: 3, background: "#220308", overflow: "hidden" }}><i style={{ display: "block", width: `${Math.max(0, remotePvp.hp / Math.max(1, remotePvp.max_hp) * 100)}%`, height: "100%", background: remoteLowHp ? "#ff1935" : "#62db72", boxShadow: remoteLowHp ? "0 0 7px #ff1935" : undefined }} /></span>}
+                    </button>
                   )}
 
                 </div>

@@ -13,6 +13,7 @@ export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
   trainerHp?: number;
   ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number; pepitas?: number;
+  pvpTargeted?: boolean;
   region: string; mapImage: string; world: { width: number; height: number }; player: Point;
   enemies: Point[]; mapFilter?: string; now: number; zoom: number; auto: boolean; autoCapture: boolean;
   activeTab: string; vip: boolean; questReset: string; quests: HudQuest[]; messages: HudMessage[];
@@ -154,7 +155,7 @@ export function GameHud(hud: GameHudProps) {
       </div>
       <ChatHud messages={hud.messages} />
       <div className="revo-actions" aria-label="Ações de combate">
-        <button type="button" className={`revo-auto ${hud.auto ? "is-active" : ""}`} onClick={hud.onAuto} aria-pressed={hud.auto} title={hud.auto ? "Desligar batalha automática (Espaço)" : "Ligar batalha automática (Espaço)"}>
+        <button type="button" className={`revo-auto ${hud.auto ? "is-active" : ""} ${hud.pvpTargeted ? "is-pvp-targeted" : ""}`} onClick={hud.onAuto} aria-pressed={hud.auto} title={hud.pvpTargeted ? "Alvo PvP marcado — clique em Auto para atacar" : (hud.auto ? "Desligar batalha automática (Espaço)" : "Ligar batalha automática (Espaço)")}>
           <span><img src={hud.icons.ball} alt="" /></span><strong>Auto</strong>
         </button>
         <button type="button" className={`revo-potion ${hud.autoHealEnabled ? "is-active" : ""}`} onClick={hud.onAutoHeal} aria-pressed={hud.autoHealEnabled} title={hud.autoHealEnabled ? "Desligar poção automática" : "Ligar poção automática (cura o Pokémon líder)"}>

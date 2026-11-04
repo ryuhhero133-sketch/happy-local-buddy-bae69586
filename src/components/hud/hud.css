@@ -82,6 +82,22 @@
   pointer-events: auto;
 }
 .revo-gold { color: var(--hud-gold); }
+
+@keyframes revo-pvp-auto-pulse {
+  0%, 100% { box-shadow: 0 0 8px #ff1f37, inset 0 0 8px #a40018; }
+  50% { box-shadow: 0 0 22px #ff1f37, 0 0 38px #a40018, inset 0 0 14px #ff314b; }
+}
+@keyframes revo-pvp-damage-flash {
+  0% { opacity: 0; } 18% { opacity: .72; } 100% { opacity: 0; }
+}
+.revo-auto.is-pvp-targeted {
+  color: #fff !important;
+}
+.revo-auto.is-pvp-targeted > span {
+  border-color: #ff334a !important;
+  background: radial-gradient(circle at 45% 35%, #8f1020, #26040b 70%) !important;
+  animation: revo-pvp-auto-pulse .85s ease-in-out infinite !important;
+}
 .revo-muted { color: var(--hud-muted); }
 .revo-push { margin-left: auto; }
 .revo-panel__header { min-height: 39px; display: flex; align-items: center; gap: 9px; padding: 5px 12px; border-bottom: 1px solid #728aab38; }
