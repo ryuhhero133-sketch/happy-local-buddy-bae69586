@@ -38,6 +38,7 @@ export const SAFARI_TRAINER_HIT = 15;
 
 /** Escolhe o ponto mais afastado dos selvagens existentes, sem formar grupos. */
 export const SAFARI_ANCESTRAL_SPECIES = ["moltres", "articuno", "zapdos", "lugia"] as const;
+export const SAFARI_ANCESTRAL_AGGRESSIVE = new Set(["moltres", "lugia"]) as Set<string>;
 export const SAFARI_ANCESTRAL_WINDOW_MS = 30 * 60 * 1000;
 export const SAFARI_ANCESTRAL_DURATION_MS = 3 * 60 * 1000;
 export const SAFARI_ANCESTRAL_LEVEL = 1000;
@@ -49,7 +50,7 @@ export function safariAncestralCatchChance(ballId: string): number {
 
 export function safariAncestralDrop(entryKind: "black_mitic" | "ancestral"): { pepita?: number; greatball?: number; ultraball?: number; chance: number } {
   if (entryKind === "black_mitic") return { pepita: 1, ultraball: 1, chance: 0.20 };
-  return { pepita: 1, greatball: 1, ultraball: 1, chance: 1.0 };
+  return { pepita: 100, greatball: 1, ultraball: 1, chance: 1.0 };
 }
 
 export async function safariAttackRemote(
