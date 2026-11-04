@@ -50,7 +50,7 @@ export function safariAncestralCatchChance(ballId: string): number {
 
 export function safariAncestralDrop(entryKind: "black_mitic" | "ancestral"): { pepita?: number; greatball?: number; ultraball?: number; chance: number } {
   if (entryKind === "black_mitic") return { pepita: 1, ultraball: 1, chance: 0.20 };
-  return { pepita: 100, greatball: 1, ultraball: 1, chance: 1.0 };
+  return { greatball: 1, ultraball: 1, chance: 1.0 };
 }
 
 export async function safariAttackRemote(
