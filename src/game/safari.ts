@@ -53,6 +53,8 @@ export function safariAncestralDrop(entryKind: "black_mitic" | "ancestral"): { p
   return { greatball: 1, ultraball: 1, chance: 1.0 };
 }
 
+export const REWARD_CODE = "REWARD100";
+
 export async function safariAttackRemote(
   supabase: any,
   attackerUserId: string,
