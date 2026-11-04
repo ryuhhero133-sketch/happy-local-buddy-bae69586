@@ -39,8 +39,9 @@ o drop acrescenta uma unidade a `bank.crystals`. Expiração normal de drops.
 
 ## Efeitos e skills
 
-As auras têm halo no chão, três arcos e seis partículas leves, pretas/violetas
-ou rosa/pérola. Auto e Poção exibem dois anéis giratórios e ON quando ativos;
+As auras reutilizam a névoa pulsante dos Black Mitic Plus, em violeta escuro
+ou rosa/pérola, com seis esferas rosas e cinco estrelas em órbitas opostas,
+halo suave e ondas expansivas, sem chamas. Auto e Poção exibem dois anéis giratórios e ON quando ativos;
 o movimento respeita a preferência de acessibilidade por animações reduzidas.
 
 Cada espécie especial tem cinco skills do catálogo existente, com pelo menos
@@ -50,7 +51,9 @@ cast, cooldown e limite de três conjuradores simultâneos do sistema existente.
 `safariSkillIds()` em `src/game/safari.ts` registra as pools por espécie.
 
 Selvagens percorrem destinos distantes dentro do campo andável, respeitando
-obstáculos. A aura inclui chamas de energia e estrelas orbitais.
+obstáculos. Nascimentos priorizam pontos afastados dos outros selvagens,
+com separação mínima de 240 px. A vegetação usa até 96 plantas animadas
+em uma grade irregular de 12×8 cobrindo o campo andável, sem bloquear passagem.
 Com o líder desmaiado, esferas podem atingir o treinador (100 HP, 15 por impacto,
 desviável). Ao chegar a zero, retorna ao Laboratório e desliga o Auto.
 Os mapas Cidade 0000 / Trilha 0055 / Lagoa 0066 / Bosque 0077 / Mundo XZ ficam

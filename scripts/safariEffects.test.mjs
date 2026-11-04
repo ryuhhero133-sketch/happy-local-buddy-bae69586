@@ -51,9 +51,10 @@ test("anéis de atividade aparecem somente com is-active, sem bloquear cliques",
   assert.match(css, /prefers-reduced-motion/);
 });
 test("auras usam partículas, cores distintas e camada atrás do Pokémon", () => {
-  assert.ok(css.includes("--safari-core: #05030ed9"));
-  assert.ok(css.includes("--safari-core: #ee4bb34d"));
-  assert.match(css, /@keyframes safariAuraSpark/);
-  assert.ok(css.includes(".safari-wild-aura::after"));
+  assert.ok(css.includes("--safari-core: #190729b8"));
+  assert.ok(css.includes("--safari-core: #b82d854d"));
+  assert.match(css, /@keyframes safariOrbPulse/);
+  assert.ok(css.includes(".safari-aura-wave"));
+  assert.match(css, /\.safari-wild-aura \{[^}]*z-index: -1/);
   assert.ok(idle.includes('aria-hidden="true" className={`safari-wild-aura'));
 });

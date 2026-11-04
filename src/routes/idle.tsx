@@ -490,7 +490,7 @@ import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementu
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
 import saUrl from "@/ambiente/mascara colisao/sa.png";
 import { isMapBlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
-import { SAFARI_SPECIES, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
+import { SAFARI_SPECIES, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
 import safariSnorlaxMythicSheet from "@/ambiente/xz/Snorlax Mitico.png";
 import safariKabutopsSheet from "@/ambiente/xz/Kabutops.png";
@@ -1823,17 +1823,21 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
       { src: floresFramesUrl, w: 50, h: 50 },
       { src: folhasFramesUrl, w: 50, h: 54 },
     ];
-    for (let p = 0; p < 32; p++) {
+    // Uma célula por planta: cobre todo o campo sem concentrar a decoração.
+    const plantCols = 12, plantRows = 8;
+    const cellW = (maxX - minX - 100) / plantCols;
+    const cellH = (maxY - minY - 100) / plantRows;
+    for (let p = 0; p < 96; p++) {
       const plant = plants[p % plants.length];
       let px, py, ok;
       let attempt = 0;
       do {
         attempt++;
-        px = minX + 60 + rand() * (maxX - minX - 120);
-        py = minY + 60 + rand() * (maxY - minY - 120);
+        px = minX + 50 + ((p % plantCols) + 0.15 + rand() * 0.7) * cellW;
+        py = minY + 50 + (Math.floor(p / plantCols) + 0.15 + rand() * 0.7) * cellH;
         ok = Math.hypot(px - SPAWN.x, py - SPAWN.y) >= 90;
-        for (const o of list) if (Math.hypot(px - o.x, py - o.y) < (o.bgAnim ? 65 : 105)) { ok = false; break; }
-      } while (!ok && attempt < 2000);
+        for (const o of list) if (Math.hypot(px - o.x, py - o.y) < (o.bgAnim ? 58 : 85)) { ok = false; break; }
+      } while (!ok && attempt < 80);
       if (!ok) continue;
       list.push({
         id: id++, x: px, y: py, ...plant,
@@ -12314,10 +12318,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const insetY = spawnMinY;
     const spanW = spawnMaxX - spawnMinX;
     const spanH = spawnMaxY - spawnMinY;
-    const MIN_DIST = isSmall ? 90 : 220;
+    const MIN_DIST = saField ? 240 : isSmall ? 90 : 220;
     for (let attempts = 0; attempts < 40; attempts++) {
-      const x = insetX + Math.random() * spanW;
-      const y = insetY + Math.random() * spanH;
+      const { x, y } = saField
+        ? safariSpreadPoint({ minX: spawnMinX, maxX: spawnMaxX, minY: spawnMinY, maxY: spawnMaxY }, placed)
+        : { x: insetX + Math.random() * spanW, y: insetY + Math.random() * spanH };
       const dt = Math.hypot(x - useW / 2, y - useH / 2);
       if (dt < (isSmall ? 80 : 300)) continue;
       // Verdejante 1 (mapa iniciante): nunca nasce em cima do jogador (150px de folga)
@@ -19214,10 +19219,11 @@ A sucata afundou com o casco.
                   {/* MIRA do alvo travado — só o anel dourado girando */}
                   {safariWild && <>
                     <div aria-hidden="true" className={`safari-wild-aura ${e.rarity === "mythic" ? "safari-wild-aura--pink" : "safari-wild-aura--black"}`}>
-                      <i /><i /><i />
-                      {[0, 1, 2, 3].map((flame) => <b key={`flame-${flame}`} className="safari-aura-flame" style={{ "--flame": flame } as React.CSSProperties} />)}
+                      <div className="bmp-aura-glow safari-aura-nebula" />
+                      <div className="bmp-aura-ring safari-aura-halo" />
+                      <div className="safari-aura-wave" />
+                      {[0, 1, 2, 3, 4, 5].map((orb) => <em key={`orb-${orb}`} className="safari-aura-orb" style={{ "--orbit": orb } as React.CSSProperties}><b /></em>)}
                       {[0, 1, 2, 3, 4].map((star) => <em key={`star-${star}`} className="safari-aura-star" style={{ "--orbit": star } as React.CSSProperties}><span>✦</span></em>)}
-                      {[0, 1, 2, 3, 4, 5].map((spark) => <span key={spark} style={{ "--spark": spark } as React.CSSProperties} />)}
                     </div>
                     <span className="safari-wild-label">{e.rarity === "mythic" ? "MÍTICO" : "BLACK MITIC"}</span>
                   </>}

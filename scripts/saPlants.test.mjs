@@ -21,7 +21,8 @@ test("SA usa plantas recortadas, sem animafl nem flutuação artificial", () => 
   const start = idle.indexOf('if (mapId === "sa") {');
   const end = idle.indexOf("return list;", start);
   const branch = idle.slice(start, end);
-  assert.ok(branch.includes("p < 32"));
+  assert.ok(branch.includes("p < 96"));
+  assert.ok(branch.includes("plantCols = 12, plantRows = 8"));
   assert.ok(branch.includes("cols: 4, rows: 1, frames: 4"));
   assert.ok(branch.includes("blocks: false, collideR: 0"));
 });

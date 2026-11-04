@@ -33,3 +33,25 @@ export function safariEvent(species: string): string {
 }
 export const SAFARI_TRAINER_MAX_HP = 100;
 export const SAFARI_TRAINER_HIT = 15;
+
+/** Escolhe o ponto mais afastado dos selvagens existentes, sem formar grupos. */
+export function safariSpreadPoint(
+  bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  placed: readonly { x: number; y: number }[],
+  random: () => number = Math.random,
+): { x: number; y: number } {
+  let best = { x: bounds.minX, y: bounds.minY };
+  let bestDistance = -1;
+  for (let sample = 0; sample < 24; sample++) {
+    const point = {
+      x: bounds.minX + random() * (bounds.maxX - bounds.minX),
+      y: bounds.minY + random() * (bounds.maxY - bounds.minY),
+    };
+    const distance = placed.reduce((nearest, other) => Math.min(nearest, Math.hypot(point.x - other.x, point.y - other.y)), Infinity);
+    if (distance > bestDistance) {
+      best = point;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}

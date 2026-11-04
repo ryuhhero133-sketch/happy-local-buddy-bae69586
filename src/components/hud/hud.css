@@ -409,27 +409,25 @@
   to { background-position: var(--sa-plant-end) 0px; }
 }
 
-.safari-wild-aura { position: absolute; inset: -18px; z-index: -1; border-radius: 50%; pointer-events: none; --safari-core: #05030ed9; --safari-glow: #9272d7; --safari-spark: #dacbff; }
-.safari-wild-aura--pink { --safari-core: #ee4bb34d; --safari-glow: #ff7ecb; --safari-spark: #fff0fc; }
-.safari-wild-aura::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; background: radial-gradient(ellipse at 50% 60%, var(--safari-core) 5%, var(--safari-core) 28%, transparent 68%); filter: drop-shadow(0 0 8px var(--safari-glow)); animation: safariAuraBreathe 3s ease-in-out infinite alternate; }
-.safari-wild-aura::after { content: ""; position: absolute; left: 4%; right: 4%; bottom: 10%; height: 24%; border: 1px solid var(--safari-glow); border-radius: 50%; box-shadow: 0 0 9px var(--safari-glow), inset 0 0 9px var(--safari-glow); opacity: .65; }
-.safari-wild-aura i { position: absolute; inset: 8px; border: 1px solid transparent; border-top: 2px solid var(--safari-glow); border-bottom-color: var(--safari-spark); border-radius: 43% 57% 62% 38%; filter: drop-shadow(0 0 4px var(--safari-glow)); animation: safariAuraOrbit 6s linear infinite; opacity: .75; }
-.safari-wild-aura i:nth-child(2) { inset: 1px 10px; border-radius: 60% 40% 45% 55%; animation-direction: reverse; animation-duration: 8s; opacity: .5; }
-.safari-wild-aura i:nth-child(3) { inset: 16px -2px; border-radius: 50%; animation-duration: 10s; opacity: .35; }
-.safari-wild-aura > span { position: absolute; left: calc(12% + var(--spark) * 15%); bottom: 12%; width: 3px; height: 3px; border-radius: 50%; background: var(--safari-spark); box-shadow: 0 0 5px var(--safari-glow), 0 0 9px var(--safari-glow); animation: safariAuraSpark 2.8s ease-out infinite; animation-delay: calc(var(--spark) * -.47s); }
-.safari-wild-aura--pink > span { border-radius: 1px; width: 4px; height: 4px; }
-.safari-aura-flame { position: absolute; left: calc(6% + var(--flame) * 23%); bottom: 8%; width: 22%; height: 88%; transform-origin: 50% 100%; border-radius: 80% 20% 50% 50%; background: linear-gradient(0deg, var(--safari-core), var(--safari-glow) 32%, var(--safari-spark) 56%, transparent 94%); clip-path: polygon(50% 0, 70% 31%, 62% 46%, 91% 27%, 80% 66%, 100% 100%, 0 100%, 13% 60%, 20% 34%, 36% 58%); filter: drop-shadow(0 0 4px var(--safari-glow)); opacity: .6; animation: safariFlameRise .85s ease-in-out infinite alternate; animation-delay: calc(var(--flame) * -.23s); }
-.safari-aura-star { position: absolute; inset: -5px; border-radius: 50%; animation: safariAuraOrbit 5s linear infinite; animation-delay: calc(var(--orbit) * -1s); }
-.safari-aura-star > span { position: absolute; left: 50%; top: 0; color: var(--safari-spark); font-size: 13px; font-style: normal; text-shadow: 0 0 6px var(--safari-glow), 0 0 12px var(--safari-glow); }
+.safari-wild-aura { position: absolute; inset: -18px; z-index: -1; border-radius: 50%; pointer-events: none; --safari-core: #190729b8; --safari-glow: #ad75ed; --safari-spark: #fff0fc; }
+.safari-wild-aura--pink { --safari-core: #b82d854d; --safari-glow: #ff7ecb; }
+.safari-wild-aura .safari-aura-nebula { inset: -12%; background: radial-gradient(circle, var(--safari-core) 12%, #a653db66 38%, #ff7ecb24 56%, transparent 72%); filter: blur(9px); animation-duration: 2.8s; }
+.safari-wild-aura .safari-aura-halo { inset: 8%; border: 1px solid #ffb8e778; box-shadow: 0 0 16px #ef80dd55, inset 0 0 20px var(--safari-core); animation: bmpAuraPulse 2.8s ease-in-out infinite; }
+.safari-aura-wave { position: absolute; inset: 6%; border: 1px solid #ffabe76b; border-radius: 50%; box-shadow: 0 0 12px #ff7ecb40; animation: safariAuraRipple 3.8s ease-out infinite; }
+.safari-aura-orb { position: absolute; inset: 2%; border-radius: 50%; transform: rotate(calc(var(--orbit) * 60deg)); animation: safariAuraOrbit 8s linear infinite; animation-delay: calc(var(--orbit) * -1.333333s); }
+.safari-aura-orb:nth-of-type(even) { inset: 11%; }
+.safari-aura-orb > b { position: absolute; left: calc(50% - 4px); top: -4px; width: 8px; height: 8px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff6fd, #ffade6 30%, #e94cab 65%, #9a287a); box-shadow: 0 0 6px #ffcaee, 0 0 13px #ff70d5b3; animation: safariOrbPulse 2.8s ease-in-out infinite; animation-delay: calc(var(--orbit) * -.46s); }
+.safari-aura-star { position: absolute; inset: -9%; border-radius: 50%; transform: rotate(calc(var(--orbit) * -72deg)); animation: safariAuraOrbit 13s linear infinite reverse; animation-delay: calc(var(--orbit) * -2.6s); }
+.safari-aura-star > span { position: absolute; left: calc(50% - 6px); top: -6px; color: var(--safari-spark); font-size: 13px; font-style: normal; text-shadow: 0 0 5px #fff0fc, 0 0 10px #ff7ecb; animation: safariStarTwinkle 3.6s ease-in-out infinite; animation-delay: calc(var(--orbit) * -.72s); }
 .safari-energy-orb::before { content: ""; position: absolute; inset: -5px; border: 2px solid var(--orb-color); border-top-color: #fff; border-radius: 50%; box-shadow: 0 0 10px var(--orb-color), inset 0 0 8px var(--orb-color); animation: safariAuraOrbit .5s linear infinite; }
 .safari-energy-orb::after { content: ""; position: absolute; right: 50%; top: 35%; width: 65px; height: 30%; background: linear-gradient(90deg, transparent, var(--orb-color)); transform-origin: 100% 50%; transform: rotate(var(--orb-angle)); border-radius: 50%; filter: blur(3px); }
-@keyframes safariFlameRise { from { transform: scaleY(.74) skewX(-9deg); opacity: .35; } to { transform: scaleY(1.2) skewX(8deg); opacity: .8; } }
+@keyframes safariAuraRipple { 0% { transform: scale(.8); opacity: 0; } 20% { opacity: .65; } 100% { transform: scale(1.45); opacity: 0; } }
+@keyframes safariOrbPulse { 0%, 100% { transform: scale(.8); opacity: .75; } 50% { transform: scale(1.2); opacity: 1; } }
+@keyframes safariStarTwinkle { 0%, 100% { transform: scale(.65) rotate(0deg); opacity: .45; } 50% { transform: scale(1.15) rotate(90deg); opacity: 1; } }
 .safari-wild-label { position: absolute; bottom: -19px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 9px; font-weight: 900; color: #ffb6e6; text-shadow: 0 1px 3px #000, 0 0 5px #000; pointer-events: none; }
 .safari-crystal-drop { border-radius: 50%; background: radial-gradient(ellipse, #58baff50, transparent 70%); box-shadow: 0 0 15px #58baff65; }
 .safari-crystal-drop img { filter: drop-shadow(0 0 6px #55bdff); }
-@keyframes safariAuraBreathe { from { opacity: .45; transform: scale(.86); } to { opacity: .95; transform: scale(1.16); } }
-@keyframes safariAuraOrbit { to { transform: rotate(360deg); } }
-@keyframes safariAuraSpark { 0% { opacity: 0; transform: translateY(0) scale(.5) rotate(0deg); } 25% { opacity: .9; } 100% { opacity: 0; transform: translateY(-75px) scale(.15) rotate(150deg); } }
+@keyframes safariAuraOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes safariPokemonWalk { from { background-position-x: 0px; } to { background-position-x: var(--safari-frame-end); } }
 
 /* Small, deliberate motion; no flashing or permanent movement on every control. */

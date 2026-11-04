@@ -8,6 +8,35 @@ const code = transformSync(source, { loader: "ts", format: "esm" }).code;
 const rules = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
 const idle = readFileSync(new URL("../src/routes/idle.tsx", import.meta.url), "utf8");
 
+test("Safari: nascimentos cobrem os quatro quadrantes, longe dos existentes", () => {
+  let seed = 517;
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const bounds = { minX: 1466, maxX: 2809, minY: 912, maxY: 1727 };
+  const placed = [];
+  for (let i = 0; i < 12; i++) {
+    const point = rules.safariSpreadPoint(bounds, placed, random);
+    assert.ok(point.x >= bounds.minX && point.x <= bounds.maxX);
+    assert.ok(point.y >= bounds.minY && point.y <= bounds.maxY);
+    for (const other of placed) assert.ok(Math.hypot(point.x - other.x, point.y - other.y) > 200);
+    placed.push(point);
+  }
+  const quadrants = new Set(placed.map(p => `${p.x > 2137.5}:${p.y > 1319.5}`));
+  assert.equal(quadrants.size, 4);
+  assert.match(idle, /const MIN_DIST = saField \? 240/);
+  assert.match(idle, /\? safariSpreadPoint\(/);
+});
+
+test("Safari: aura Black Mitic Plus pulsante com orbes rosas e estrelas, sem chamas", () => {
+  const css = readFileSync(new URL("../src/components/hud/hud.css", import.meta.url), "utf8");
+  assert.ok(idle.includes('className="bmp-aura-glow safari-aura-nebula"'));
+  assert.ok(idle.includes('className="safari-aura-orb"'));
+  assert.ok(idle.includes('className="safari-aura-star"'));
+  assert.ok(css.includes("safariAuraRipple"));
+  assert.ok(css.includes("safariOrbPulse"));
+  assert.ok(!idle.includes("safari-aura-flame"));
+  assert.ok(!css.includes("safariFlameRise"));
+});
+
 test("Safari: níveis discretos e níveis 10/50 raros", () => {
   const counts = new Map();
   for (let n = 0; n < 10000; n++) {
