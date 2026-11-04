@@ -88,3 +88,18 @@ revoke all on function public.pvp_heartbeat(text, integer, integer, text, intege
 revoke all on function public.pvp_attack(uuid) from public;
 grant execute on function public.pvp_heartbeat(text, integer, integer, text, integer, text) to authenticated;
 grant execute on function public.pvp_attack(uuid) to authenticated;
+
+-- Atualizações de HP/morte chegam instantaneamente aos jogadores no mapa.
+alter table public.pvp_presence replica identity full;
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_rel r
+       join pg_publication p on p.oid = r.prpubid
+       where p.pubname = 'supabase_realtime' and r.prrelid = 'public.pvp_presence'::regclass
+     ) then
+    alter publication supabase_realtime add table public.pvp_presence;
+  end if;
+end;
+$$;

@@ -7940,9 +7940,29 @@ const confirmName = () => {
       if (!cancelled && data) setPvpPresence(data as PvpPresence[]);
     };
     void sync();
-    const iv = window.setInterval(() => void sync(), 1500);
+    // Reserva caso o websocket caia; dano e morte chegam pelo canal abaixo.
+    const iv = window.setInterval(() => void sync(), 3000);
     return () => { cancelled = true; clearInterval(iv); };
   }, [identity?.id, identity?.name, idle.currentMap, team]);
+
+  // Realtime: cada hit do RPC atualiza a barra, caveira e flash sem esperar polling.
+  useEffect(() => {
+    if (!identity?.id) return;
+    const mapId = String(idle.currentMap);
+    const channel = (gameDb as any)
+      .channel(`pvp-presence:${identity.id}:${mapId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "pvp_presence", filter: `map_id=eq.${mapId}` }, (payload: any) => {
+        const row = (payload.new ?? payload.old) as PvpPresence | undefined;
+        if (!row?.user_id) return;
+        setPvpPresence((prev) => {
+          if (payload.eventType === "DELETE" || row.map_id !== mapId) return prev.filter((p) => p.user_id !== row.user_id);
+          const next = prev.filter((p) => p.user_id !== row.user_id);
+          return [...next, row];
+        });
+      })
+      .subscribe();
+    return () => { void (gameDb as any).removeChannel(channel); };
+  }, [identity?.id, idle.currentMap]);
 
   // A vítima recebe o flash e a mensagem lendo o evento que o servidor gravou.
   useEffect(() => {
