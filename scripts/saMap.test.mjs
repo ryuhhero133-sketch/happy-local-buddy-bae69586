@@ -45,7 +45,7 @@ test("sa: fundo importado e registrado em IDLE_MAPS com nível livre", () => {
   assert.match(def, /name: "Safari"/);
   assert.match(def, /bg: saUrl/);
   assert.match(def, /minLevel: 1/);
-  assert.match(def, /maxLevel: 640/);
+  assert.match(def, /maxLevel: 600/);
   assert.match(def, /rate: 1\.0/);
   assert.match(def, /element: "Planta"/);
 });
@@ -98,13 +98,13 @@ test("sa: spawn do jogador registrado no ponto de grama", () => {
 
 test("sa: pool estrita com Venusaur em destaque", () => {
   const allowed = lineWith(idle, 'if (mapId === "sa") return [');
-  assert.ok(allowed.includes('"venusaur"'), "pool sem venusaur");
-  assert.ok(allowed.includes('"ivysaur"') && allowed.includes('"bulbasaur"'), "linha evolutiva ausente");
+  assert.ok(allowed.includes("SAFARI_PLANT_SPECIES"));
+  assert.ok(allowed.includes("SAFARI_SPECIES"));
 });
 
 test("sa: spawnOneEnemy sorteia da pool do mapa e nasce só no campo", () => {
-  assert.match(lineWith(idle, "// SA (Mapa Mundi): Venusaur em destaque"), /Venusaur em destaque/);
-  assert.match(lineWith(idle, 'pool = ["venusaur", "venusaur", "venusaur"'), /"vileplume"/);
+  assert.ok(idle.includes("pool = [...SAFARI_PLANT_SPECIES]"));
+  assert.ok(idle.includes('forcedRarity = "epic";'));
   assert.match(idle, /const saField = idle\.currentMap === "sa";/);
   assert.match(idle, /spawnMinX = saField \? useW \* 0\.36/);
   assert.match(idle, /spawnMaxY = saField \? useH \* 0\.53/);

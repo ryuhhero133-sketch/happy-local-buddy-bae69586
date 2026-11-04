@@ -1,5 +1,9 @@
 /** Regras exclusivas dos encontros especiais do mapa sa (Safari). */
 export const SAFARI_SPECIES = ["snorlax", "snorlax_mythic", "kabutops", "kabutops_shiny", "aerodactyl"] as const;
+export const SAFARI_PLANT_SPECIES = ["venusaur", "ivysaur", "bulbasaur", "oddish", "gloom", "vileplume", "bellsprout", "weepinbell", "victreebel", "exeggcute", "exeggutor"] as const;
+export function safariSpecialsEarned(defeats: number): number {
+  return Math.floor(Math.max(0, defeats) / 20);
+}
 // IDs do catálogo existente: usa as sprites e a resolução real de dano/área.
 const SAFARI_SKILLS: Record<string, readonly string[]> = {
   snorlax: ["quake_aoe", "fire_burst", "volt_field", "fight_single", "safari_dark_orb"],
@@ -18,9 +22,7 @@ export function safariRarity(species: string): "mythic" | "mythic_shiny" {
   return species === "snorlax_mythic" || species === "kabutops_shiny" ? "mythic" : "mythic_shiny";
 }
 export function safariLevel(roll: number): number {
-  if (roll < 0.01) return 10;
-  if (roll < 0.03) return 50;
-  return [100, 300, 500, 640][Math.min(3, Math.floor((roll - 0.03) / 0.97 * 4))];
+  return 30 + Math.min(570, Math.max(0, Math.floor(roll * 571)));
 }
 export function safariCatchChance(ball: string, ultraThrows: number): number {
   if (ball === "safariball") return 0.02;

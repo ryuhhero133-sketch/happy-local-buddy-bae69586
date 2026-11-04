@@ -37,15 +37,23 @@ test("Safari: aura Black Mitic Plus pulsante com orbes rosas e estrelas, sem cha
   assert.ok(!css.includes("safariFlameRise"));
 });
 
-test("Safari: níveis discretos e níveis 10/50 raros", () => {
-  const counts = new Map();
-  for (let n = 0; n < 10000; n++) {
-    const lv = rules.safariLevel(n / 10000);
-    counts.set(lv, (counts.get(lv) ?? 0) + 1);
+test("Safari: todos os níveis inteiros de 30 a 600 têm a mesma faixa de sorteio", () => {
+  for (let n = 0; n < 571; n++) assert.equal(rules.safariLevel((n + 0.5) / 571), 30 + n);
+  assert.equal(rules.safariLevel(0), 30);
+  assert.equal(rules.safariLevel(1), 600);
+  assert.ok(idle.includes('if (idle.currentMap === "sa") lv = safariLevel(Math.random())'));
+});
+test("Safari: um especial por vinte derrotas, sem sorteio de 40%", () => {
+  for (const [kills, earned] of [[0, 0], [19, 0], [20, 1], [39, 1], [40, 2], [100, 5]]) {
+    assert.equal(rules.safariSpecialsEarned(kills), earned);
   }
-  assert.deepEqual([...counts.keys()], [10, 50, 100, 300, 500, 640]);
-  assert.equal(counts.get(10), 100);
-  assert.equal(counts.get(50), 200);
+  assert.ok(idle.includes('safariSpecialsEarned(idleRef.current.safariMapDefeats ?? 0) > spawned'));
+  assert.ok(idle.includes('safariMapDefeats: (s.safariMapDefeats ?? 0) + (s.currentMap === "sa" ? 1 : 0)'));
+  assert.ok(idle.includes('safariSpecialSpawnsRef.current = spawned + 1'));
+  assert.ok(!idle.includes('Math.random() < 0.40) pool = [...SAFARI_SPECIES]'));
+  assert.ok(rules.SAFARI_PLANT_SPECIES.includes("victreebel"));
+  assert.ok(rules.SAFARI_PLANT_SPECIES.includes("exeggutor"));
+  assert.ok(idle.includes('const allowEpic = idle.currentMap === "sa" || leaderLv >= 50'));
 });
 test("Ultra: nenhuma chance até 70; crescente depois, sem garantia", () => {
   for (let n = 0; n <= 70; n++) assert.equal(rules.safariCatchChance("ultraball", n), 0);

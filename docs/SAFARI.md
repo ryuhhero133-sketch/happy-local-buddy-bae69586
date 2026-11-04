@@ -7,13 +7,17 @@ não há viagem. Clicar no mapa atual não cobra novamente. Voltar após morte c
 
 ## Encontros especiais
 
-40% dos sorteios da pool usam Snorlax, Snorlax Mítico, Kabutops,
-Kabutops Shiny e Aerodactyl, com o restante preservando a fauna vegetal.
+Os spawns normais são Pokémon de Planta épicos: Bulbasaur, Ivysaur, Venusaur,
+Oddish, Gloom, Vileplume, Bellsprout, Weepinbell, Victreebel, Exeggcute e Exeggutor.
+A cada 20 derrotas de qualquer Pokémon no Safari, libera um encontro com
+Snorlax, Snorlax Mítico, Kabutops, Kabutops Shiny ou Aerodactyl.
+O progresso e os encontros já liberados ficam salvos; entrar novamente não
+libera especiais extras. O contador antigo dos drops de cristal é separado.
 Snorlax/Kabutops/Aerodactyl: Black Mítico (tier técnico `mythic_shiny`,
 evento `safari:black_mitic`); variantes Mítico/Shiny: `mythic`, aura rosa.
 Isso reutiliza os tiers existentes sem alterar regras globais de raridade.
 
-Níveis: 10 (1%), 50 (2%); 100/300/500/640 dividem os 97% restantes.
+Todos os selvagens: nível inteiro aleatório de 30 a 600, com chances iguais.
 Os níveis são independentes do nível do treinador. Grades originais 4×4:
 baixo/esquerda/direita/cima; quatro frames por linha, sem espelhar a sheet.
 Ícones recortados separados para a coleção. Scripts preservam os originais.

@@ -490,7 +490,7 @@ import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementu
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
 import saUrl from "@/ambiente/mascara colisao/sa.png";
 import { isMapBlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
-import { SAFARI_SPECIES, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
+import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
 import safariSnorlaxMythicSheet from "@/ambiente/xz/Snorlax Mitico.png";
 import safariKabutopsSheet from "@/ambiente/xz/Kabutops.png";
@@ -1047,7 +1047,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   map_xz: { name: "Mundo XZ", diff: "Especial", bg: mapaXzUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   // SA (Mapa Mundi): campo aberto com árvores/pedras e selvagens tipo Venusaur.
   // Entrada grátis pelo Mapa Mundi — FORA de FREE_WALK_MAPS (tem obstáculos e spawn).
-  sa: { name: "Safari", diff: "Especial", bg: saUrl, rate: 1.0, minLevel: 1, maxLevel: 640, element: "Planta", stars: 1 },
+  sa: { name: "Safari", diff: "Especial", bg: saUrl, rate: 1.0, minLevel: 1, maxLevel: 600, element: "Planta", stars: 1 },
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -2039,6 +2039,8 @@ type IdleState = {
   safariTrainerHp?: number;
   safariUltraThrows?: number; // compartilhado entre encontros; reinicia na captura
   safariDefeats?: number; // um cristal no chão a cada dez abates especiais
+  safariMapDefeats?: number; // todos os abates no Safari; um especial a cada vinte
+  safariSpecialSpawns?: number; // encontros especiais já liberados, persistidos
   startedAt: number;
   lastTickAt: number;
   pending: { gold: number; rubies: number; crystals: number };
@@ -3223,6 +3225,7 @@ const confirmName = () => {
   type SkillArea = { id: number; skillId: string; element: ElementFx; sheet: string | null; x: number; y: number; r: number; until: number; tickMs: number; nextTick: number; dmg: number; dmgMult: number; eSp: Species; eLevel: number; eElite: boolean; casterId: number; status: string; statusChance: number; statusDuration: number; tickPct: number };
   const [skillArea, setSkillArea] = useState<SkillArea[]>([]);
   const safariLastSkillRef = useRef(new Map<number, string>());
+  const safariSpecialSpawnsRef = useRef(idle.safariSpecialSpawns ?? 0);
   const skillAreaIdRef = useRef(1);
   const skillAreaRef = useRef<SkillArea[]>([]);
   useEffect(() => { skillAreaRef.current = skillArea; }, [skillArea]);
@@ -5293,7 +5296,7 @@ const confirmName = () => {
     if (mapId === "caverna_brok") return [...CAVERNA_BROK_POOL.map((e) => e[0])];
     // SA (Mapa Mundi): campo aberto tipo Planta — Venusaur em destaque, com a
     // linha evolutiva e alguns Grass comuns. Shiny só via marco global de shiny.
-    if (mapId === "sa") return ["venusaur", "venusaur", "ivysaur", "ivysaur", "bulbasaur", "bulbasaur", "oddish", "gloom", "vileplume", "venusaur_shiny", ...SAFARI_SPECIES];
+    if (mapId === "sa") return [...SAFARI_PLANT_SPECIES, ...SAFARI_SPECIES];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
   };
@@ -10800,6 +10803,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               collection: newCollection,
               safariUltraThrows,
               safariDefeats,
+              safariMapDefeats: (s.safariMapDefeats ?? 0) + (s.currentMap === "sa" ? 1 : 0),
               // 🎯 Tentativa de captura consumiu 1 arremesso (sucesso ou falha).
               ...(spentThrow ? { throwsLeft: Math.max(0, (s.throwsLeft ?? MAX_THROW_COUNT) - 1) } : {}),
             };
@@ -12563,10 +12567,15 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           mapLvRange = [99, 120];
         }
         if (idle.currentMap === "sa") {
-          // SA (Mapa Mundi): Venusaur em destaque + linha evolutiva e alguns
-          // Grass comuns. Sem faixa fixa — o nível selvagem escala com o time.
-          pool = ["venusaur", "venusaur", "venusaur", "ivysaur", "ivysaur", "bulbasaur", "bulbasaur", "oddish", "gloom", "vileplume"] as Species[];
-          if (Math.random() < 0.40) pool = [...SAFARI_SPECIES];
+          // Planta épicos normalmente; cada vinte abates libera só um especial.
+          pool = [...SAFARI_PLANT_SPECIES];
+          forcedRarity = "epic";
+          const spawned = Math.max(safariSpecialSpawnsRef.current, idleRef.current.safariSpecialSpawns ?? 0);
+          if (safariSpecialsEarned(idleRef.current.safariMapDefeats ?? 0) > spawned) {
+            pool = [...SAFARI_SPECIES];
+            safariSpecialSpawnsRef.current = spawned + 1;
+            queueMicrotask(() => setIdle((s) => ({ ...s, safariSpecialSpawns: Math.max(s.safariSpecialSpawns ?? 0, spawned + 1) })));
+          }
         }
         if (idle.currentMap === "mapa_orange") {
           // Mapa Orange: charmander/vulpix/magmar comuns; charizard raro (contador 150).
@@ -13038,9 +13047,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       }
       if (isMythicRoamer) lv = 500;
       if (isDialgaEvent) lv = 800;
-      if (isSafariEncounter(idle.currentMap, sp)) lv = safariLevel(Math.random());
+      if (idle.currentMap === "sa") lv = safariLevel(Math.random());
       // �0pico só aparece quando o líder chega ao nível 50.
-      const allowEpic = leaderLv >= 50;
+      const allowEpic = idle.currentMap === "sa" || leaderLv >= 50;
       if (forcedRarity === "epic" && !allowEpic) forcedRarity = "rare";
       let pet = makePet(sp, lv, forcedRarity);
       if (!isMythicRoamer && (pet.rarity === "epic" || pet.rarity === "legendary") && !allowEpic) {
