@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { Anvil, Bell, BookOpen, ChevronDown, ChevronUp, CloudUpload, Coins, Compass, Crosshair, Gift, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Users, Utensils, Zap } from "lucide-react";
+import { Anvil, Bell, BookOpen, ChevronDown, ChevronUp, CloudUpload, Coins, Compass, Crosshair, Gift, Home, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Users, Utensils, Zap } from "lucide-react";
 import { ChatHud, type HudMessage } from "./ChatHud";
 import { QuestTracker, type HudQuest } from "./QuestTracker";
 import { TeamHud, type HudTeamMember } from "./TeamHud";
@@ -23,6 +23,7 @@ export type GameHudProps = {
   onMap: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
   onQuests: () => void; onClaimQuest: (id: string) => void; onAuto: () => void;
   onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number;
+  onMapEditor: () => void; mapEditorActive: boolean;
   onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
   onForge: () => void; onSave: () => void; onShop: () => void; onGuild: () => void; onCode: () => void;
@@ -164,6 +165,7 @@ export function GameHud(hud: GameHudProps) {
           <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong>
         </button>
         <div className="revo-actions__secondary">
+          <IconButton label="Editor de mapa: posicionar sprites" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>
           <IconButton label="Mostrar ou recolher alvos próximos" active={hud.targetsOpen} onClick={hud.onTargets}><Crosshair /></IconButton>
           <IconButton label={`PvP: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`} active={hud.pvpMode !== "peace"} onClick={hud.onPvpMode}><Shield /></IconButton>
           <IconButton label="Alternar captura automática" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>
