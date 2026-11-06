@@ -27,7 +27,7 @@ import { z } from "zod";
 
 export const updateActiveSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ token: z.string() }).parse(d))
+  .validator((d) => z.object({ token: z.string() }).parse(d))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;

@@ -33,7 +33,7 @@ const SaveSchema = z.object({
 
 export const saveBlackEggSave = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => SaveSchema.parse(input))
+  .validator((input: unknown) => SaveSchema.parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true; updated_at: string }> => {
     const supabase = context.supabase as any;
     const userId = context.userId;

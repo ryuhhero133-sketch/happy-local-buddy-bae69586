@@ -138,7 +138,7 @@ const KillSchema = z.object({
 
 export const reportKill = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => KillSchema.parse(data))
+  .validator((data: unknown) => KillSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;
@@ -258,7 +258,7 @@ const CaptureSchema = z.object({
 
 export const attemptCapture = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => CaptureSchema.parse(data))
+  .validator((data: unknown) => CaptureSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;
@@ -315,7 +315,7 @@ const ChestSchema = z.object({
 
 export const openChest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => ChestSchema.parse(data))
+  .validator((data: unknown) => ChestSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;
@@ -375,7 +375,7 @@ const MoveMapSchema = z.object({ map_id: z.string().min(1).max(32) });
 
 export const setActiveMap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => MoveMapSchema.parse(data))
+  .validator((data: unknown) => MoveMapSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const userId = context.userId;
@@ -421,7 +421,7 @@ const PushInitialSchema = z.object({
 
 export const pushInitialState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => PushInitialSchema.parse(data))
+  .validator((data: unknown) => PushInitialSchema.parse(data))
   .handler(async ({ data, context }): Promise<{ ok: boolean; applied: boolean; reason?: string }> => {
     const supabase = context.supabase as any;
     const userId = context.userId;

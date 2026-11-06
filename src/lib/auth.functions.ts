@@ -10,7 +10,7 @@ const MASTER_CODE = "rbx05";
  * currently unreliable, so this acts as a universal recovery fallback.
  */
 export const masterResetPassword = createServerFn({ method: "POST" })
-  .inputValidator((data) =>
+  .validator((data) =>
     z
       .object({
         email: z.string().email(),
