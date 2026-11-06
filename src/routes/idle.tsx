@@ -1702,7 +1702,7 @@ const HEAL_SHEET = "fada";
   };
 
 // Sprites reutilizadas do próprio jogo para o editor de mapa.
-type EditorObstacle = Obstacle & { name: string; assetId?: string; harvestable?: boolean; choppingUntil?: number; choppedAt?: number };
+type EditorObstacle = Obstacle & { name: string; assetId?: string; baseW?: number; baseH?: number; harvestable?: boolean; choppingUntil?: number; choppedAt?: number };
 type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; harvestable?: boolean };
 // As plantas usam a célula real de cada sprite sheet (4 frames horizontais),
 // para não ficarem espichadas no editor.
@@ -1711,7 +1711,8 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "casa2", name: "Casa 2", src: casa2Url, w: 140, h: 120, blocks: true, collideR: 38 },
   { id: "arvore", name: "Árvore", src: treeOakUrl, w: 110, h: 124, blocks: false, collideR: 0 },
   { id: "pinheiro", name: "Pinheiro", src: treePineUrl, w: 90, h: 132, blocks: false, collideR: 0 },
-  { id: "arvore_madeira", name: "Árvore de madeira", src: treeFullUrl, w: 110, h: 150, blocks: false, collideR: 0, harvestable: true },
+  // A arte de coleta é 1024×1024 com transparência — sempre quadrada para não esticar.
+  { id: "arvore_madeira", name: "Árvore de madeira", src: treeFullUrl, w: 150, h: 150, blocks: false, collideR: 0, harvestable: true },
   { id: "pedra", name: "Pedra", src: rockBoulderUrl, w: 90, h: 78, blocks: true, collideR: 20 },
   { id: "mato", name: "Mato", src: matoFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.08 } },
   { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
@@ -1726,7 +1727,8 @@ function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[
       const saved = object as EditorObstacle;
       const asset = MAP_EDITOR_ASSETS.find((item) => item.id === saved.assetId || item.src === saved.src);
       // Migra layouts salvos antes da correção das plantas (eram 48px e ficavam esticadas).
-      return asset ? { ...saved, src: saved.choppedAt ? saved.src : asset.src, assetId: asset.id, name: asset.name, w: asset.w, h: asset.h, blocks: asset.blocks, collideR: asset.collideR, bgAnim: asset.bgAnim, harvestable: asset.harvestable } : saved;
+      const hasSavedSize = typeof saved.baseW === "number" && typeof saved.baseH === "number";
+      return asset ? { ...saved, src: saved.choppedAt ? saved.src : asset.src, assetId: asset.id, name: asset.name, w: hasSavedSize ? saved.w : asset.w, h: hasSavedSize ? saved.h : asset.h, baseW: hasSavedSize ? saved.baseW : asset.w, baseH: hasSavedSize ? saved.baseH : asset.h, blocks: asset.blocks, collideR: asset.collideR, bgAnim: asset.bgAnim, harvestable: asset.harvestable } : saved;
     }) : [],
   ]));
 }
@@ -3247,6 +3249,7 @@ const confirmName = () => {
   const [mapEditorOpen, setMapEditorOpen] = useState(false);
   // "Selecionar" deixa o mapa seguro para inspecionar/remover sem criar objetos.
   const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
+  const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
   const [mapEditorObjects, setMapEditorObjects] = useState<Record<string, EditorObstacle[]>>(() => {
     try {
       const raw = localStorage.getItem(MAP_EDITOR_KEY);
@@ -3256,6 +3259,7 @@ const confirmName = () => {
   const mapEditorObjectsRef = useRef(mapEditorObjects);
   useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* ignore */ } }, [mapEditorObjects]);
+  useEffect(() => { setMapEditorSelectedId(null); }, [idle.currentMap]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -5482,6 +5486,7 @@ const confirmName = () => {
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
   const editorObstacles = mapEditorObjects[idle.currentMap] ?? [];
+  const selectedMapEditorObject = editorObstacles.find((object) => object.id === mapEditorSelectedId) ?? null;
   const obstacles = useMemo(() => [...buildObstacles(curWorldW, curWorldH, idle.currentMap), ...editorObstacles], [idle.currentMap, curWorldW, curWorldH, editorObstacles]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
@@ -16315,9 +16320,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               const editorObject: EditorObstacle = {
                 id: editorId, name: editorAsset.name, x: editorWx, y: editorWy, w: editorAsset.w, h: editorAsset.h,
                 src: editorAsset.src, blocks: editorAsset.blocks, collideR: editorAsset.collideR,
-                assetId: editorAsset.id, harvestable: editorAsset.harvestable, bgAnim: editorAsset.bgAnim,
+                assetId: editorAsset.id, baseW: editorAsset.w, baseH: editorAsset.h, harvestable: editorAsset.harvestable, bgAnim: editorAsset.bgAnim,
               };
               setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), editorObject] }));
+              setMapEditorSelectedId(editorId);
               playClick();
               e.stopPropagation();
               return;
@@ -18812,7 +18818,7 @@ A sucata afundou com o casco.
                   animationDelay: `${delay}s`,
                   ...({ "--sa-plant-end": `${-o.w * cols}px` } as React.CSSProperties),
                 };
-                return <div key={`obs-${o.id}`} style={style} onClick={(ev) => { if (mapEditorOpen && editorObject) { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); } }}>{mapEditorOpen && editorObject && <button onClick={(ev) => { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); }} style={{ position: "absolute", right: 0, top: 0, width: 20, height: 20, border: "1px solid #ff6b6b", borderRadius: 4, background: "#250000dd", color: "#ffb3b3", fontSize: 11, cursor: "pointer" }}>×</button>}</div>;
+                return <div key={`obs-${o.id}`} style={{ ...style, outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #c4b5fd" : undefined }} onClick={(ev) => { if (mapEditorOpen && editorObject) { ev.stopPropagation(); setMapEditorSelectedId(o.id); } }}>{mapEditorOpen && editorObject && <button onClick={(ev) => { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); setMapEditorSelectedId((selected) => selected === o.id ? null : selected); }} style={{ position: "absolute", right: 0, top: 0, width: 20, height: 20, border: "1px solid #ff6b6b", borderRadius: 4, background: "#250000dd", color: "#ffb3b3", fontSize: 11, cursor: "pointer" }}>×</button>}</div>;
               }
               // Imagem normal (árvore / pedra)
               return (
@@ -18825,12 +18831,13 @@ A sucata afundou com o casco.
                   imageRendering: "pixelated",
                   pointerEvents: (mapEditorOpen && editorObject) || editorObject?.harvestable ? "auto" : "none",
                   transition: "opacity 120ms linear",
+                  outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #c4b5fd" : undefined,
                   zIndex: Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                 }} onClick={(ev) => {
                   if (mapEditorOpen && editorObject) {
                     ev.stopPropagation();
-                    setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) }));
+                    setMapEditorSelectedId(o.id);
                   } else if (editorObject?.harvestable) {
                     ev.stopPropagation();
                     chopEditorTree(editorObject);
@@ -20921,9 +20928,27 @@ A sucata afundou com o casco.
                   <span style={{ color: "#eadfe8", fontSize: 8 }}>{asset.name}</span>
                 </button>)}
               </div>
+              {selectedMapEditorObject && (() => {
+                const baseW = selectedMapEditorObject.baseW ?? selectedMapEditorObject.w;
+                const baseH = selectedMapEditorObject.baseH ?? selectedMapEditorObject.h;
+                const scale = Math.round((selectedMapEditorObject.w / Math.max(1, baseW)) * 100);
+                const resize = (percent: number) => setMapEditorObjects((prev) => ({
+                  ...prev,
+                  [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorObject.id ? { ...item, baseW, baseH, w: Math.round(baseW * percent / 100), h: Math.round(baseH * percent / 100) } : item),
+                }));
+                return <div style={{ marginTop: 8, padding: 7, border: "1px solid #4d3a75", borderRadius: 7, background: "#120b20" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#d8c8ff", fontWeight: 800 }}><span>SELECIONADO: {selectedMapEditorObject.name}</span><span>{scale}%</span></div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 5 }}>
+                    <button onClick={() => resize(Math.max(35, scale - 10))} title="Diminuir" style={{ width: 25, border: "1px solid #6d5a9e", borderRadius: 5, background: "#211533", color: "#fff", cursor: "pointer" }}>−</button>
+                    <input aria-label="Tamanho da sprite selecionada" type="range" min="35" max="250" value={scale} onChange={(event) => resize(Number(event.target.value))} style={{ flex: 1 }} />
+                    <button onClick={() => resize(Math.min(250, scale + 10))} title="Aumentar" style={{ width: 25, border: "1px solid #6d5a9e", borderRadius: 5, background: "#211533", color: "#fff", cursor: "pointer" }}>+</button>
+                    <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== selectedMapEditorObject.id) })); setMapEditorSelectedId(null); }} title="Remover sprite selecionada" style={{ border: "1px solid #ff6b6b", borderRadius: 5, background: "#3d1111", color: "#ffd2d2", cursor: "pointer", fontSize: 9, padding: "3px 5px" }}>REMOVER</button>
+                  </div>
+                </div>;
+              })()}
               <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                 <button onClick={() => { const data = JSON.stringify({ version: 1, map: idle.currentMap, objects: editorObstacles }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `mapa-${idle.currentMap}.json`; a.click(); URL.revokeObjectURL(url); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #5ec26a", background: "#153b22", color: "#b8ffce", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⬇ EXPORTAR JSON</button>
-                <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorAsset(null); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #ff6b6b", background: "#3d1111", color: "#ffd2d2", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>LIMPAR</button>
+                <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorAsset(null); setMapEditorSelectedId(null); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #ff6b6b", background: "#3d1111", color: "#ffd2d2", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>LIMPAR</button>
               </div>
             </div>
           )}
