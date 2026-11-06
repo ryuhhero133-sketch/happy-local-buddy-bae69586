@@ -858,6 +858,7 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 
 const IDLE_KEY = "rubym.idle.v1";
+const MAP_EDITOR_KEY = "rubym.map-editor.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
@@ -1700,6 +1701,19 @@ const HEAL_SHEET = "fada";
     return ordered[0];
   };
 
+// Sprites reutilizadas do próprio jogo para o editor de mapa.
+type EditorObstacle = Obstacle & { name: string };
+const MAP_EDITOR_ASSETS: Array<{ id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number }> = [
+  { id: "casa1", name: "Casa 1", src: casa1Url, w: 140, h: 120, blocks: true, collideR: 38 },
+  { id: "casa2", name: "Casa 2", src: casa2Url, w: 140, h: 120, blocks: true, collideR: 38 },
+  { id: "arvore", name: "Árvore", src: treeOakUrl, w: 110, h: 124, blocks: false, collideR: 0 },
+  { id: "pinheiro", name: "Pinheiro", src: treePineUrl, w: 90, h: 132, blocks: false, collideR: 0 },
+  { id: "pedra", name: "Pedra", src: rockBoulderUrl, w: 90, h: 78, blocks: true, collideR: 20 },
+  { id: "mato", name: "Mato", src: matoFramesUrl, w: 48, h: 54, blocks: false, collideR: 0 },
+  { id: "grama", name: "Grama", src: gramaFramesUrl, w: 48, h: 54, blocks: false, collideR: 0 },
+  { id: "flores", name: "Flores", src: floresFramesUrl, w: 50, h: 50, blocks: false, collideR: 0 },
+  { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 50, h: 54, blocks: false, collideR: 0 },
+];
 // ============ Obstáculos com colisão ============
 type Obstacle = {
   id: number;
@@ -3214,6 +3228,17 @@ const confirmName = () => {
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
+  const [mapEditorOpen, setMapEditorOpen] = useState(false);
+  const [mapEditorAsset, setMapEditorAsset] = useState(MAP_EDITOR_ASSETS[0].id);
+  const [mapEditorObjects, setMapEditorObjects] = useState<Record<string, EditorObstacle[]>>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_EDITOR_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
+  const mapEditorObjectsRef = useRef(mapEditorObjects);
+  useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
+  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* ignore */ } }, [mapEditorObjects]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -5412,7 +5437,8 @@ const confirmName = () => {
   }, []);
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
-  const obstacles = useMemo(() => buildObstacles(curWorldW, curWorldH, idle.currentMap), [idle.currentMap, curWorldW, curWorldH]);
+  const editorObstacles = mapEditorObjects[idle.currentMap] ?? [];
+  const obstacles = useMemo(() => [...buildObstacles(curWorldW, curWorldH, idle.currentMap), ...editorObstacles], [idle.currentMap, curWorldW, curWorldH, editorObstacles]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
@@ -16231,6 +16257,23 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           onClick={(e) => {
             // LOADING de teleport: nenhuma interação com o mapa.
             if (mapLoadingRef.current) { e.stopPropagation(); return; }
+            // Editor de mapa: clique posiciona a sprite escolhida sem mover o jogador.
+            if (mapEditorOpen) {
+              const rectEditor = viewportRef.current?.getBoundingClientRect();
+              if (!rectEditor) return;
+              const editorAsset = MAP_EDITOR_ASSETS.find((a) => a.id === mapEditorAsset) ?? MAP_EDITOR_ASSETS[0];
+              const editorId = Date.now() + Math.floor(Math.random() * 1000);
+              const editorWx = Math.round(renderCamX + (e.clientX - rectEditor.left - centerOffX) / zoom);
+              const editorWy = Math.round(renderCamY + (e.clientY - rectEditor.top - centerOffY) / zoom);
+              const editorObject: EditorObstacle = {
+                id: editorId, name: editorAsset.name, x: editorWx, y: editorWy, w: editorAsset.w, h: editorAsset.h,
+                src: editorAsset.src, blocks: editorAsset.blocks, collideR: editorAsset.collideR,
+              };
+              setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), editorObject] }));
+              playClick();
+              e.stopPropagation();
+              return;
+            }
             const t = e.target as HTMLElement;
             if (t.closest && t.closest("button, a, input, select, textarea")) return;
             const rect = viewportRef.current?.getBoundingClientRect();
@@ -18707,7 +18750,7 @@ A sucata afundou com o casco.
                   top: o.y - o.h + 8, // âncora na base
                   width: o.w, height: o.h,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
-                  pointerEvents: "none",
+                  pointerEvents: mapEditorOpen && o.id > 1000000000 ? "auto" : "none",
                   zIndex: Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                   backgroundImage: `url(${o.src})`,
@@ -18719,7 +18762,7 @@ A sucata afundou com o casco.
                   animationDelay: `${delay}s`,
                   ...({ "--sa-plant-end": `${-o.w * cols}px` } as React.CSSProperties),
                 };
-                return <div key={`obs-${o.id}`} style={style} />;
+                return <div key={`obs-${o.id}`} style={style} onClick={(ev) => { if (mapEditorOpen && o.id > 1000000000) { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); } }}>{mapEditorOpen && o.id > 1000000000 && <button onClick={(ev) => { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); }} style={{ position: "absolute", right: 0, top: 0, width: 20, height: 20, border: "1px solid #ff6b6b", borderRadius: 4, background: "#250000dd", color: "#ffb3b3", fontSize: 11, cursor: "pointer" }}>×</button>}</div>;
               }
               // Imagem normal (árvore / pedra)
               return (
@@ -18730,11 +18773,11 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
                   imageRendering: "pixelated",
-                  pointerEvents: "none",
+                  pointerEvents: mapEditorOpen && o.id > 1000000000 ? "auto" : "none",
                   transition: "opacity 120ms linear",
                   zIndex: Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
-                }} />
+                }} onClick={(ev) => { if (mapEditorOpen && o.id > 1000000000) { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); } }} />
               );
             })}
 
@@ -20771,6 +20814,17 @@ A sucata afundou com o casco.
                   />
                 </button>
                 <button
+                  onClick={() => { setMapEditorOpen((v) => !v); setAuto(false); }}
+                  title="Editor de mapa: posicionar sprites do jogo"
+                  style={{
+                    background: mapEditorOpen ? "#7c4dff" : "rgba(255,255,255,0.06)",
+                    color: mapEditorOpen ? "#fff" : "#f5cf6b",
+                    border: "1px solid rgba(124,77,255,0.7)",
+                    borderRadius: 6, width: 24, height: 24, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
+                  }}
+                >⌂</button>
+                <button
                   onClick={() => setShowAutoSettings((v) => !v)}
                   title="Configurar"
                   style={{
@@ -20799,6 +20853,22 @@ A sucata afundou com o casco.
                   />
                 </button>
               </div>
+              {mapEditorOpen && (
+                <div style={{ position: "absolute", right: 0, bottom: 42, width: 260, background: "rgba(12,7,24,0.97)", border: "1px solid #7c4dff", borderRadius: 10, padding: 10, boxShadow: "0 8px 30px #0008", color: "#eadfe8", zIndex: 500 }}>
+                  <div style={{ color: "#c4b5fd", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>⌂ EDITOR DE MAPA</div>
+                  <div style={{ fontSize: 10, color: "#a8a0b8", margin: "5px 0 8px" }}>Escolha uma sprite e clique no mapa. Clique numa sprite editada para remover.</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                    {MAP_EDITOR_ASSETS.map((asset) => <button key={asset.id} onClick={() => setMapEditorAsset(asset.id)} title={asset.name} style={{ padding: 4, border: `2px solid ${mapEditorAsset === asset.id ? "#c4b5fd" : "#3a2e58"}`, background: "#1a0f26", borderRadius: 7, cursor: "pointer", display: "grid", placeItems: "center", gap: 2 }}>
+                      <img src={asset.src} alt="" style={{ width: 42, height: 42, objectFit: "contain", imageRendering: "pixelated" }} />
+                      <span style={{ color: "#eadfe8", fontSize: 8 }}>{asset.name}</span>
+                    </button>)}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    <button onClick={() => { const data = JSON.stringify({ version: 1, map: idle.currentMap, objects: editorObstacles }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `mapa-${idle.currentMap}.json`; a.click(); URL.revokeObjectURL(url); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #5ec26a", background: "#153b22", color: "#b8ffce", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⬇ EXPORTAR JSON</button>
+                    <button onClick={() => setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [] }))} style={{ flex: 1, padding: "7px 4px", border: "1px solid #ff6b6b", background: "#3d1111", color: "#ffd2d2", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>LIMPAR</button>
+                  </div>
+                </div>
+              )}
             </div>
             );
           })()}
