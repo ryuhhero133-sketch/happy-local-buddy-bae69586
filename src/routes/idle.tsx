@@ -859,6 +859,7 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 const IDLE_KEY = "rubym.idle.v1";
 const MAP_EDITOR_KEY = "rubym.map-editor.v1";
+const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
@@ -1703,6 +1704,7 @@ const HEAL_SHEET = "fada";
 
 // Sprites reutilizadas do próprio jogo para o editor de mapa.
 type EditorObstacle = Obstacle & { name: string; assetId?: string; baseW?: number; baseH?: number; harvestable?: boolean; choppingUntil?: number; choppedAt?: number };
+type EditorPokemonSpawn = { id: number; x: number; y: number; species: Species; level: number; rarity: Rarity; radius: number };
 type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; harvestable?: boolean };
 // As plantas usam a célula real de cada sprite sheet (4 frames horizontais),
 // para não ficarem espichadas no editor.
@@ -3247,9 +3249,16 @@ const confirmName = () => {
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [mapEditorOpen, setMapEditorOpen] = useState(false);
+  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon">("sprites");
   // "Selecionar" deixa o mapa seguro para inspecionar/remover sem criar objetos.
   const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
   const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
+  const [mapEditorPokemon, setMapEditorPokemon] = useState<Species>("charmander");
+  const [mapEditorPokemonLevel, setMapEditorPokemonLevel] = useState(1);
+  const [mapEditorPokemonRarity, setMapEditorPokemonRarity] = useState<Rarity>("common");
+  const [mapEditorSpawns, setMapEditorSpawns] = useState<Record<string, EditorPokemonSpawn[]>>(() => {
+    try { const raw = localStorage.getItem(MAP_EDITOR_SPAWNS_KEY); return raw ? JSON.parse(raw) : {}; } catch { return {}; }
+  });
   const [mapEditorObjects, setMapEditorObjects] = useState<Record<string, EditorObstacle[]>>(() => {
     try {
       const raw = localStorage.getItem(MAP_EDITOR_KEY);
@@ -3259,6 +3268,7 @@ const confirmName = () => {
   const mapEditorObjectsRef = useRef(mapEditorObjects);
   useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* ignore */ } }, [mapEditorObjects]);
+  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* ignore */ } }, [mapEditorSpawns]);
   useEffect(() => { setMapEditorSelectedId(null); }, [idle.currentMap]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
@@ -3380,10 +3390,25 @@ const confirmName = () => {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; editorSpawnId?: number; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const enemiesRef = useRef<Enemy[]>([]);
   useEffect(() => { enemiesRef.current = enemies; }, [enemies]);
+  // Pontos configurados no editor entram no mapa como inimigos reais, com a
+  // espécie, nível, raridade e raio de passeio escolhidos pelo editor.
+  useEffect(() => {
+    const spawns = mapEditorSpawns[idle.currentMap] ?? [];
+    setEnemies((current) => {
+      const withoutRemoved = current.filter((enemy) => enemy.editorSpawnId == null || spawns.some((spawn) => spawn.id === enemy.editorSpawnId));
+      const existing = new Set(withoutRemoved.map((enemy) => enemy.editorSpawnId));
+      const created = spawns.filter((spawn) => !existing.has(spawn.id)).map((spawn) => {
+        const pet = makePet(spawn.species, spawn.level, spawn.rarity);
+        const hp = calcIdleMaxHp(pet);
+        return { sp: spawn.species, hp, maxHp: hp, id: enemyIdRef.current++, editorSpawnId: spawn.id, x: spawn.x, y: spawn.y, face: "left" as const, level: spawn.level, rarity: spawn.rarity, spawnX: spawn.x, spawnY: spawn.y, wanderRadius: spawn.radius, detectionRadius: 230, maxChaseDistance: Math.max(260, spawn.radius * 3), aiState: "WANDER", behavior: "wander" as const, nextSkillAt: Date.now() + 3000 };
+      });
+      return created.length ? [...withoutRemoved, ...created] : withoutRemoved;
+    });
+  }, [idle.currentMap, mapEditorSpawns]);
   // Kills totais (ref fresca p/ waves dentro de intervals com closure antiga).
   const totalKillsRef = useRef(0);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit" | "heal";
@@ -16312,11 +16337,15 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             if (mapEditorOpen) {
               const rectEditor = viewportRef.current?.getBoundingClientRect();
               if (!rectEditor) return;
-              const editorAsset = MAP_EDITOR_ASSETS.find((a) => a.id === mapEditorAsset);
-              if (!editorAsset) { e.stopPropagation(); return; }
               const editorId = Date.now() + Math.floor(Math.random() * 1000);
               const editorWx = Math.round(renderCamX + (e.clientX - rectEditor.left - centerOffX) / zoom);
               const editorWy = Math.round(renderCamY + (e.clientY - rectEditor.top - centerOffY) / zoom);
+              if (mapEditorTab === "pokemon") {
+                setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), { id: editorId, x: editorWx, y: editorWy, species: mapEditorPokemon, level: mapEditorPokemonLevel, rarity: mapEditorPokemonRarity, radius: 90 }] }));
+                playClick(); e.stopPropagation(); return;
+              }
+              const editorAsset = MAP_EDITOR_ASSETS.find((a) => a.id === mapEditorAsset);
+              if (!editorAsset) { e.stopPropagation(); return; }
               const editorObject: EditorObstacle = {
                 id: editorId, name: editorAsset.name, x: editorWx, y: editorWy, w: editorAsset.w, h: editorAsset.h,
                 src: editorAsset.src, blocks: editorAsset.blocks, collideR: editorAsset.collideR,
@@ -18793,6 +18822,11 @@ A sucata afundou com o casco.
             )}
 
             {/* Obstáculos (árvores, pedras, plantas animadas) — z-index pela BASE (y) para o treinador passar por trás */}
+            {mapEditorOpen && mapEditorTab === "pokemon" && (mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => (
+              <div key={`editor-spawn-${spawn.id}`} style={{ position: "absolute", left: spawn.x - spawn.radius, top: spawn.y - spawn.radius, width: spawn.radius * 2, height: spawn.radius * 2, border: "2px dashed #fb7185", borderRadius: "50%", background: "rgba(251,113,133,0.10)", pointerEvents: "none", zIndex: Math.round(spawn.y) + 1, display: "grid", placeItems: "center", color: "#fff", fontSize: 10, fontWeight: 900, textShadow: "0 1px 2px #000" }}>
+                {spawn.species.replace(/_/g, " ")} Lv.{spawn.level}
+              </div>
+            ))}
             {obstacles.map((o) => {
               const editorObject = o.id > 1000000000 ? o as EditorObstacle : null;
               const editorTreeStump = !!editorObject?.harvestable && editorObject.choppedAt != null && now - editorObject.choppedAt < 30 * 60_000;
@@ -20918,6 +20952,11 @@ A sucata afundou com o casco.
                 <span style={{ color: "#c4b5fd", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>⌂ EDITOR DE MAPA</span>
                 <button onClick={() => setMapEditorOpen(false)} title="Fechar editor" style={{ border: "1px solid #3a2e58", background: "#1a0f26", color: "#eadfe8", borderRadius: 5, width: 20, height: 20, cursor: "pointer", fontSize: 11, lineHeight: 1 }}>×</button>
               </div>
+              <div style={{ display: "flex", gap: 5, margin: "7px 0" }}>
+                <button onClick={() => setMapEditorTab("sprites")} style={{ flex: 1, padding: "5px", border: `1px solid ${mapEditorTab === "sprites" ? "#c4b5fd" : "#3a2e58"}`, background: mapEditorTab === "sprites" ? "#39255a" : "#1a0f26", color: "#eadfe8", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>🌳 SPRITES</button>
+                <button onClick={() => setMapEditorTab("pokemon")} style={{ flex: 1, padding: "5px", border: `1px solid ${mapEditorTab === "pokemon" ? "#fb7185" : "#3a2e58"}`, background: mapEditorTab === "pokemon" ? "#542133" : "#1a0f26", color: "#eadfe8", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⚡ POKÉMON</button>
+              </div>
+              {mapEditorTab === "sprites" ? <>
               <div style={{ fontSize: 10, color: "#a8a0b8", margin: "5px 0 8px" }}>Escolha uma sprite e clique no mapa. Use Selecionar para não criar objetos; no editor, clique num objeto para remover.</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
                 <button onClick={() => setMapEditorAsset(null)} title="Selecionar/remover sem posicionar nada" style={{ padding: 4, border: `2px solid ${mapEditorAsset === null ? "#c4b5fd" : "#3a2e58"}`, background: "#1a0f26", borderRadius: 7, cursor: "pointer", display: "grid", placeItems: "center", gap: 2 }}>
@@ -20928,6 +20967,31 @@ A sucata afundou com o casco.
                   <span style={{ color: "#eadfe8", fontSize: 8 }}>{asset.name}</span>
                 </button>)}
               </div>
+              </> : <>
+                <div style={{ fontSize: 10, color: "#a8a0b8", margin: "5px 0 8px" }}>Defina o Pokémon e clique no mapa para criar um ponto de spawn real.</div>
+                <label style={{ display: "grid", gap: 3, fontSize: 9, color: "#d8c8ff", marginBottom: 6 }}>POKÉMON
+                  <select value={mapEditorPokemon} onChange={(event) => setMapEditorPokemon(event.target.value as Species)} style={{ width: "100%", background: "#1a0f26", color: "#fff", border: "1px solid #574070", borderRadius: 5, padding: 5 }}>
+                    {Object.keys(SPECIES_BASE).filter((species) => !!GIF[species as Species]).sort().map((species) => <option key={species} value={species}>{species.replace(/_/g, " ").toUpperCase()}</option>)}
+                  </select>
+                </label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <label style={{ flex: 1, display: "grid", gap: 3, fontSize: 9, color: "#d8c8ff" }}>NÍVEL
+                    <input type="number" min="1" max="1000" value={mapEditorPokemonLevel} onChange={(event) => setMapEditorPokemonLevel(Math.max(1, Math.min(1000, Number(event.target.value) || 1)))} style={{ width: "100%", background: "#1a0f26", color: "#fff", border: "1px solid #574070", borderRadius: 5, padding: 5 }} />
+                  </label>
+                  <label style={{ flex: 1, display: "grid", gap: 3, fontSize: 9, color: "#d8c8ff" }}>RARIDADE
+                    <select value={mapEditorPokemonRarity} onChange={(event) => setMapEditorPokemonRarity(event.target.value as Rarity)} style={{ width: "100%", background: "#1a0f26", color: "#fff", border: "1px solid #574070", borderRadius: 5, padding: 5 }}>
+                      {(["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"] as Rarity[]).map((rarity) => <option key={rarity} value={rarity}>{RARITY_NAME[rarity]}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div style={{ marginTop: 8, maxHeight: 110, overflowY: "auto", display: "grid", gap: 4 }}>
+                  {(mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => <div key={spawn.id} style={{ padding: 5, border: "1px solid #4d3a75", borderRadius: 6, background: "#120b20", fontSize: 9, display: "flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ flex: 1, color: "#ffd1dc" }}>{spawn.species.replace(/_/g, " ")} · Lv.{spawn.level} · {RARITY_NAME[spawn.rarity]}</span>
+                    <button onClick={() => setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === spawn.id ? { ...item, radius: Math.max(20, item.radius - 20) } : item) }))} style={{ cursor: "pointer" }}>−</button><span>{spawn.radius}px</span><button onClick={() => setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === spawn.id ? { ...item, radius: Math.min(300, item.radius + 20) } : item) }))} style={{ cursor: "pointer" }}>+</button>
+                    <button onClick={() => setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== spawn.id) }))} style={{ cursor: "pointer", color: "#ff9a9a" }}>×</button>
+                  </div>)}
+                </div>
+              </>}
               {selectedMapEditorObject && (() => {
                 const baseW = selectedMapEditorObject.baseW ?? selectedMapEditorObject.w;
                 const baseH = selectedMapEditorObject.baseH ?? selectedMapEditorObject.h;
@@ -20947,8 +21011,8 @@ A sucata afundou com o casco.
                 </div>;
               })()}
               <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                <button onClick={() => { const data = JSON.stringify({ version: 1, map: idle.currentMap, objects: editorObstacles }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `mapa-${idle.currentMap}.json`; a.click(); URL.revokeObjectURL(url); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #5ec26a", background: "#153b22", color: "#b8ffce", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⬇ EXPORTAR JSON</button>
-                <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorAsset(null); setMapEditorSelectedId(null); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #ff6b6b", background: "#3d1111", color: "#ffd2d2", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>LIMPAR</button>
+                <button onClick={() => { const data = JSON.stringify({ version: 2, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [] }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `mapa-${idle.currentMap}.json`; a.click(); URL.revokeObjectURL(url); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #5ec26a", background: "#153b22", color: "#b8ffce", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⬇ EXPORTAR JSON</button>
+                <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorAsset(null); setMapEditorSelectedId(null); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #ff6b6b", background: "#3d1111", color: "#ffd2d2", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>LIMPAR</button>
               </div>
             </div>
           )}
