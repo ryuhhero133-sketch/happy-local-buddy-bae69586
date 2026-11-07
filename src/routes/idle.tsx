@@ -21021,7 +21021,7 @@ A sucata afundou com o casco.
 
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
           {/* Mobile: botão VOLTAR (visível só ≤768px; bottom-nav fica oculta) */}
-          {tab !== "batalha" && tab !== "sinergia" && (
+          {tab !== "batalha" && (
             <button
               className="mob-tabback"
               onClick={() => { playClick(); setTab("batalha"); }}
@@ -21029,7 +21029,7 @@ A sucata afundou com o casco.
               ← VOLTAR
             </button>
           )}
-          {tab !== "batalha" && tab !== "sinergia" && (
+          {tab !== "batalha" && (
             <TabOverlay
               tab={tab}
               onClose={() => setTab("batalha")}
@@ -29474,7 +29474,7 @@ function TabOverlay({
 
       {tab === "sinergia" && (
         <div style={{ position: "fixed", inset: "120px 60px 100px", zIndex: 5000, display: "grid", placeItems: "center", pointerEvents: "auto" }}>
-          <ElementalSynergyScreen team={team} items={idle.items ?? {}} gifMap={GIF} onClose={() => { playClick(); setTab("batalha"); }} />
+          <ElementalSynergyScreen team={team} items={idle.items ?? {}} gifMap={GIF} onClose={onClose} />
         </div>
       )}
 
