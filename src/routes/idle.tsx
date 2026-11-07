@@ -234,6 +234,8 @@ import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
 import { ElementalSynergyScreen } from "@/components/ElementalSynergyScreen";
+import synergyDockIcon from "@/assets/synergy/core.png";
+import { CRYSTAL_NODES, CRYSTAL_MAX_LEVEL, crystalBonuses, crystalCost, type CrystalElement, type CrystalNetwork } from "@/game/elementalNetwork";
 import { GuildPanel } from "@/components/GuildPanel";
 import { QuestBookPanel } from "@/components/QuestBookPanel";
 import type { Guild, GuildElement } from "@/game/guild";
@@ -2099,6 +2101,7 @@ type IdleState = {
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   trainerEnergy?: number;
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
+  crystalNetwork?: CrystalNetwork;
   autoHeal: { enabled: boolean; threshold: number };
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball" | "safariball"; captureHpPct: number };
   trainerLevel?: number;
@@ -2746,8 +2749,15 @@ function IdlePage() {
     const entry = uid ? (state.collection ?? []).find((p) => p.uid === uid && p.event === "ancestral") : null;
     return entry?.traits ?? [];
   };
-  const computeCombatSynergies = (currentTeam: PetInstance[]) =>
-    computeTeamSynergies(currentTeam, activeAncestralTraits());
+  const computeCombatSynergies = (currentTeam: PetInstance[]) => {
+    const pack = computeTeamSynergies(currentTeam, activeAncestralTraits());
+    const crystal = crystalBonuses(idleRef.current.crystalNetwork);
+    pack.hpMult += crystal.hpMult;
+    pack.dmgMult += crystal.dmgMult;
+    pack.defMult += crystal.defMult;
+    pack.atkSpeedMult += crystal.atkSpeedMult;
+    return pack;
+  };
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
@@ -15735,7 +15745,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           hunger: Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100)), fainted: !!pet.faintedAt,
         }))}
         selectedPetUid={petDetailUid} onSelectPet={(uid) => { playClick(); setPetDetailUid(uid); }}
-        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: navMelhorias, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
+        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: synergyDockIcon, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
         forgeNotification={Object.values(forgeNotifications).some(Boolean)}
         onTab={(next) => { playClick(); if (next === "market") { pushChat("🛒 Mercado temporariamente bloqueado.", "info"); return; } setTab((current) => current === next ? "batalha" : next); }}
         onProfile={() => { playClick(); setTrainerCardOpen(true); }}
@@ -27411,6 +27421,28 @@ function TabOverlay({
       }}
     />;
   };
+  if (tab === "sinergia") {
+    const upgradeCrystal = (element: CrystalElement) => {
+      const node = CRYSTAL_NODES[element];
+      const level = idle.crystalNetwork?.[element] ?? 0;
+      const cost = crystalCost(level);
+      if (level >= CRYSTAL_MAX_LEVEL) return;
+      if ((idle.items?.[node.stone] ?? 0) < cost) {
+        pushChat(`Faltam ${cost} pedras para aprimorar ${node.label}.`, "info");
+        return;
+      }
+      setIdle((state: typeof idle) => {
+        const current = state.crystalNetwork?.[element] ?? 0;
+        const required = crystalCost(current);
+        if (current >= CRYSTAL_MAX_LEVEL || (state.items?.[node.stone] ?? 0) < required) return state;
+        return { ...state, items: { ...state.items, [node.stone]: state.items[node.stone] - required }, crystalNetwork: { ...state.crystalNetwork, [element]: current + 1 } };
+      });
+      pushChat(`✨ Cristal ${node.label} aprimorado para nível ${level + 1}!`, "cap");
+    };
+    return <div className="mob-taboverlay revo-synergy-overlay" onClick={(event) => event.stopPropagation()}>
+      <ElementalSynergyScreen network={idle.crystalNetwork ?? {}} items={idle.items ?? {}} onUpgrade={upgradeCrystal} onClose={onClose} />
+    </div>;
+  }
   return (
     <div
       className={`mob-taboverlay${["mochila", "colecao", "pokedex"].includes(tab) ? " revo-inventory-overlay" : ""}`}
@@ -29471,12 +29503,6 @@ function TabOverlay({
         </div>
       )}
 
-
-      {tab === "sinergia" && (
-        <div style={{ position: "fixed", inset: "120px 60px 100px", zIndex: 5000, display: "grid", placeItems: "center", pointerEvents: "auto" }}>
-          <ElementalSynergyScreen team={team} items={idle.items ?? {}} gifMap={GIF} onClose={onClose} />
-        </div>
-      )}
 
       {tab === "melhorias" && (() => {
         const nowMs = Date.now();

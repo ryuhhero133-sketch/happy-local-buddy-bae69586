@@ -266,6 +266,9 @@
 /* Legacy dialogs remain mounted in their original ownership, above the HUD. */
 .revo-game .revo-auto-settings { position: fixed !important; left: auto !important; right: 185px !important; bottom: 120px !important; transform: none !important; z-index: 6000; pointer-events: auto; }
 .revo-game .mob-taboverlay { position: fixed !important; top: 120px !important; bottom: 119px !important; left: 50% !important; right: auto !important; transform: translateX(-50%); width: min(1120px, calc(100vw - 120px)); max-height: none !important; border-radius: 18px !important; border-color: #8ca4bc !important; box-shadow: 0 16px 70px #0009 !important; z-index: 5000 !important; overflow-y: auto; }
+.revo-game .mob-taboverlay.revo-synergy-overlay { top: 50% !important; bottom: auto !important; left: 50% !important; right: auto !important; transform: translate(-50%, -50%) !important; width: min(1120px, calc((100dvh - 239px) * 1.33333), calc(100vw - 120px)) !important; height: auto !important; aspect-ratio: 1448 / 1086; padding: 0 !important; overflow: hidden !important; display: grid; place-items: center; background: #102e1c !important; border: 1px solid #b58726 !important; }
+.revo-synergy-stage { position: relative; width: min(100%, calc((100dvh - 239px) * 1.33333)); max-height: 100%; aspect-ratio: 1448 / 1086; container-type: inline-size; overflow: hidden; flex: none; }
+@media (max-width: 768px) { .revo-game .mob-taboverlay.revo-synergy-overlay { width: min(calc(100vw - 16px), calc((100dvh - 110px) * 1.33333)) !important; } }
 .revo-game .mob-targetcard { top: 78px !important; z-index: 110 !important; max-width: 280px; padding: 5px 9px !important; background: linear-gradient(#132c45ed, #071526f5) !important; border-width: 1px !important; }
 .revo-game .mob-targetlist { top: auto !important; left: auto !important; right: 190px !important; bottom: 132px !important; max-height: min(350px, 45dvh); overflow-y: auto !important; z-index: 120 !important; }
 
