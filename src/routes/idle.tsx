@@ -233,6 +233,7 @@ import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
+import { ElementalSynergyScreen } from "@/components/ElementalSynergyScreen";
 import { GuildPanel } from "@/components/GuildPanel";
 import { QuestBookPanel } from "@/components/QuestBookPanel";
 import type { Guild, GuildElement } from "@/game/guild";
@@ -3424,7 +3425,7 @@ const confirmName = () => {
   const isFirstSpawnRef = useRef(true);
   const lastSpawnAtRef = useRef(0);
   const orbIdRef = useRef(1);
-  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
+  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "sinergia" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
   const [hudTargetsOpen, setHudTargetsOpen] = useState(false);
 
   // ===== Guilda & Livro de Missões (painéis externos religados) =====
@@ -15734,7 +15735,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           hunger: Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100)), fainted: !!pet.faintedAt,
         }))}
         selectedPetUid={petDetailUid} onSelectPet={(uid) => { playClick(); setPetDetailUid(uid); }}
-        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
+        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: navMelhorias, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
         forgeNotification={Object.values(forgeNotifications).some(Boolean)}
         onTab={(next) => { playClick(); if (next === "market") { pushChat("🛒 Mercado temporariamente bloqueado.", "info"); return; } setTab((current) => current === next ? "batalha" : next); }}
         onProfile={() => { playClick(); setTrainerCardOpen(true); }}
@@ -21020,7 +21021,7 @@ A sucata afundou com o casco.
 
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
           {/* Mobile: botão VOLTAR (visível só ≤768px; bottom-nav fica oculta) */}
-          {tab !== "batalha" && (
+          {tab !== "batalha" && tab !== "sinergia" && (
             <button
               className="mob-tabback"
               onClick={() => { playClick(); setTab("batalha"); }}
@@ -21028,7 +21029,7 @@ A sucata afundou com o casco.
               ← VOLTAR
             </button>
           )}
-          {tab !== "batalha" && (
+          {tab !== "batalha" && tab !== "sinergia" && (
             <TabOverlay
               tab={tab}
               onClose={() => setTab("batalha")}
@@ -29470,6 +29471,12 @@ function TabOverlay({
         </div>
       )}
 
+
+      {tab === "sinergia" && (
+        <div style={{ position: "fixed", inset: "120px 60px 100px", zIndex: 5000, display: "grid", placeItems: "center", pointerEvents: "auto" }}>
+          <ElementalSynergyScreen team={team} items={idle.items ?? {}} gifMap={GIF} onClose={() => { playClick(); setTab("batalha"); }} />
+        </div>
+      )}
 
       {tab === "melhorias" && (() => {
         const nowMs = Date.now();

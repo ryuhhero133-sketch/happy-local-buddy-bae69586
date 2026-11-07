@@ -7,7 +7,7 @@ import { TargetHud, type HudTarget } from "./TargetHud";
 import { getHudScale, type HudMapBounds } from "./hudLayout";
 import "./hud.css";
 
-export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias" | "market" | "wallet";
+export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias" | "sinergia" | "market" | "wallet";
 type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
@@ -98,7 +98,7 @@ function BottomDock({ hud }: { hud: GameHudProps }) {
   const items: { id: HudTab; label: string; key?: string; unavailable?: boolean }[] = [
     { id: "pokemon", label: "Pokémon" }, { id: "mochila", label: "Mochila", key: "B" },
     { id: "colecao", label: "Coleção", key: "C" }, { id: "pokedex", label: "Pokédex" },
-    { id: "melhorias", label: "Melhorias" }, { id: "market", label: "Marketplace", unavailable: true },
+    { id: "melhorias", label: "Melhorias" }, { id: "sinergia", label: "Sinergia" }, { id: "market", label: "Marketplace", unavailable: true },
     { id: "wallet", label: "Banco" },
   ];
   return <nav className={`revo-dock ${collapsed ? "is-collapsed" : ""}`} aria-label="Menu principal do jogo">
