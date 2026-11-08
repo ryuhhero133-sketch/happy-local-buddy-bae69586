@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { Anvil, Bell, BookOpen, ChevronDown, ChevronUp, CloudUpload, Coins, Compass, Crosshair, Gift, Home, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Users, Utensils, Zap } from "lucide-react";
+import { Anvil, Bell, BookOpen, ChevronDown, ChevronUp, CloudUpload, Coins, Compass, Crosshair, Gift, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Users, Utensils, Zap } from "lucide-react";
 import { ChatHud, type HudMessage } from "./ChatHud";
 import { QuestTracker, type HudQuest } from "./QuestTracker";
 import { TeamHud, type HudTeamMember } from "./TeamHud";
@@ -7,7 +7,7 @@ import { TargetHud, type HudTarget } from "./TargetHud";
 import { getHudScale, type HudMapBounds } from "./hudLayout";
 import "./hud.css";
 
-export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias" | "sinergia" | "market" | "wallet";
+export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias" | "market" | "wallet";
 type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
@@ -23,7 +23,6 @@ export type GameHudProps = {
   onMap: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
   onQuests: () => void; onClaimQuest: (id: string) => void; onAuto: () => void;
   onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number;
-  onMapEditor: () => void; mapEditorActive: boolean;
   onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
   onForge: () => void; onSave: () => void; onShop: () => void; onGuild: () => void; onCode: () => void;
@@ -98,7 +97,7 @@ function BottomDock({ hud }: { hud: GameHudProps }) {
   const items: { id: HudTab; label: string; key?: string; unavailable?: boolean }[] = [
     { id: "pokemon", label: "Pokémon" }, { id: "mochila", label: "Mochila", key: "B" },
     { id: "colecao", label: "Coleção", key: "C" }, { id: "pokedex", label: "Pokédex" },
-    { id: "melhorias", label: "Melhorias" }, { id: "sinergia", label: "Sinergia" }, { id: "market", label: "Marketplace", unavailable: true },
+    { id: "melhorias", label: "Melhorias" }, { id: "market", label: "Marketplace", unavailable: true },
     { id: "wallet", label: "Banco" },
   ];
   return <nav className={`revo-dock ${collapsed ? "is-collapsed" : ""}`} aria-label="Menu principal do jogo">
@@ -165,7 +164,6 @@ export function GameHud(hud: GameHudProps) {
           <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong>
         </button>
         <div className="revo-actions__secondary">
-          <IconButton label="Editor de mapa: posicionar sprites" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>
           <IconButton label="Mostrar ou recolher alvos próximos" active={hud.targetsOpen} onClick={hud.onTargets}><Crosshair /></IconButton>
           <IconButton label={`PvP: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`} active={hud.pvpMode !== "peace"} onClick={hud.onPvpMode}><Shield /></IconButton>
           <IconButton label="Alternar captura automática" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>

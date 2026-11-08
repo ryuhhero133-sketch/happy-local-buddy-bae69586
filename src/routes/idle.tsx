@@ -233,9 +233,6 @@ import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
-import { ElementalSynergyScreen } from "@/components/ElementalSynergyScreen";
-import synergyDockIcon from "@/assets/synergy/core.png";
-import { CRYSTAL_NODES, CRYSTAL_MAX_LEVEL, crystalBonuses, crystalCost, type CrystalElement, type CrystalNetwork } from "@/game/elementalNetwork";
 import { GuildPanel } from "@/components/GuildPanel";
 import { QuestBookPanel } from "@/components/QuestBookPanel";
 import type { Guild, GuildElement } from "@/game/guild";
@@ -861,8 +858,6 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 
 const IDLE_KEY = "rubym.idle.v1";
-const MAP_EDITOR_KEY = "rubym.map-editor.v1";
-const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
@@ -1705,38 +1700,6 @@ const HEAL_SHEET = "fada";
     return ordered[0];
   };
 
-// Sprites reutilizadas do próprio jogo para o editor de mapa.
-type EditorObstacle = Obstacle & { name: string; assetId?: string; baseW?: number; baseH?: number; harvestable?: boolean; choppingUntil?: number; choppedAt?: number };
-type EditorPokemonSpawn = { id: number; x: number; y: number; species: Species; level: number; rarity: Rarity; radius: number };
-type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; harvestable?: boolean };
-// As plantas usam a célula real de cada sprite sheet (4 frames horizontais),
-// para não ficarem espichadas no editor.
-const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
-  { id: "casa1", name: "Casa 1", src: casa1Url, w: 140, h: 120, blocks: true, collideR: 38 },
-  { id: "casa2", name: "Casa 2", src: casa2Url, w: 140, h: 120, blocks: true, collideR: 38 },
-  { id: "arvore", name: "Árvore", src: treeOakUrl, w: 110, h: 124, blocks: false, collideR: 0 },
-  { id: "pinheiro", name: "Pinheiro", src: treePineUrl, w: 90, h: 132, blocks: false, collideR: 0 },
-  // A arte de coleta é 1024×1024 com transparência — sempre quadrada para não esticar.
-  { id: "arvore_madeira", name: "Árvore de madeira", src: treeFullUrl, w: 150, h: 150, blocks: false, collideR: 0, harvestable: true },
-  { id: "pedra", name: "Pedra", src: rockBoulderUrl, w: 90, h: 78, blocks: true, collideR: 20 },
-  { id: "mato", name: "Mato", src: matoFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.08 } },
-  { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
-  { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
-  { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
-];
-function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[]> {
-  if (!raw || typeof raw !== "object") return {};
-  const maps = raw as Record<string, unknown>;
-  return Object.fromEntries(Object.entries(maps).map(([mapId, objects]) => [mapId,
-    Array.isArray(objects) ? objects.map((object) => {
-      const saved = object as EditorObstacle;
-      const asset = MAP_EDITOR_ASSETS.find((item) => item.id === saved.assetId || item.src === saved.src);
-      // Migra layouts salvos antes da correção das plantas (eram 48px e ficavam esticadas).
-      const hasSavedSize = typeof saved.baseW === "number" && typeof saved.baseH === "number";
-      return asset ? { ...saved, src: saved.choppedAt ? saved.src : asset.src, assetId: asset.id, name: asset.name, w: hasSavedSize ? saved.w : asset.w, h: hasSavedSize ? saved.h : asset.h, baseW: hasSavedSize ? saved.baseW : asset.w, baseH: hasSavedSize ? saved.baseH : asset.h, blocks: asset.blocks, collideR: asset.collideR, bgAnim: asset.bgAnim, harvestable: asset.harvestable } : saved;
-    }) : [],
-  ]));
-}
 // ============ Obstáculos com colisão ============
 type Obstacle = {
   id: number;
@@ -2101,7 +2064,6 @@ type IdleState = {
   buffs: { atk: number; def: number; expMult: number; expMultUntil?: number; goldMult?: number; goldMultUntil?: number; honeyUntil?: number; honeyRareUntil?: number; orbMult?: number; orbUntil?: number; orbId?: string; teamOrbUntil?: number };
   trainerEnergy?: number;
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
-  crystalNetwork?: CrystalNetwork;
   autoHeal: { enabled: boolean; threshold: number };
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball" | "safariball"; captureHpPct: number };
   trainerLevel?: number;
@@ -2749,15 +2711,8 @@ function IdlePage() {
     const entry = uid ? (state.collection ?? []).find((p) => p.uid === uid && p.event === "ancestral") : null;
     return entry?.traits ?? [];
   };
-  const computeCombatSynergies = (currentTeam: PetInstance[]) => {
-    const pack = computeTeamSynergies(currentTeam, activeAncestralTraits());
-    const crystal = crystalBonuses(idleRef.current.crystalNetwork);
-    pack.hpMult += crystal.hpMult;
-    pack.dmgMult += crystal.dmgMult;
-    pack.defMult += crystal.defMult;
-    pack.atkSpeedMult += crystal.atkSpeedMult;
-    return pack;
-  };
+  const computeCombatSynergies = (currentTeam: PetInstance[]) =>
+    computeTeamSynergies(currentTeam, activeAncestralTraits());
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
@@ -3259,28 +3214,6 @@ const confirmName = () => {
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
-  const [mapEditorOpen, setMapEditorOpen] = useState(false);
-  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon">("sprites");
-  // "Selecionar" deixa o mapa seguro para inspecionar/remover sem criar objetos.
-  const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
-  const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
-  const [mapEditorPokemon, setMapEditorPokemon] = useState<Species>("charmander");
-  const [mapEditorPokemonLevel, setMapEditorPokemonLevel] = useState(1);
-  const [mapEditorPokemonRarity, setMapEditorPokemonRarity] = useState<Rarity>("common");
-  const [mapEditorSpawns, setMapEditorSpawns] = useState<Record<string, EditorPokemonSpawn[]>>(() => {
-    try { const raw = localStorage.getItem(MAP_EDITOR_SPAWNS_KEY); return raw ? JSON.parse(raw) : {}; } catch { return {}; }
-  });
-  const [mapEditorObjects, setMapEditorObjects] = useState<Record<string, EditorObstacle[]>>(() => {
-    try {
-      const raw = localStorage.getItem(MAP_EDITOR_KEY);
-      return raw ? normalizeMapEditorObjects(JSON.parse(raw)) : {};
-    } catch { return {}; }
-  });
-  const mapEditorObjectsRef = useRef(mapEditorObjects);
-  useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
-  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* ignore */ } }, [mapEditorObjects]);
-  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* ignore */ } }, [mapEditorSpawns]);
-  useEffect(() => { setMapEditorSelectedId(null); }, [idle.currentMap]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -3401,25 +3334,10 @@ const confirmName = () => {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; editorSpawnId?: number; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const enemiesRef = useRef<Enemy[]>([]);
   useEffect(() => { enemiesRef.current = enemies; }, [enemies]);
-  // Pontos configurados no editor entram no mapa como inimigos reais, com a
-  // espécie, nível, raridade e raio de passeio escolhidos pelo editor.
-  useEffect(() => {
-    const spawns = mapEditorSpawns[idle.currentMap] ?? [];
-    setEnemies((current) => {
-      const withoutRemoved = current.filter((enemy) => enemy.editorSpawnId == null || spawns.some((spawn) => spawn.id === enemy.editorSpawnId));
-      const existing = new Set(withoutRemoved.map((enemy) => enemy.editorSpawnId));
-      const created = spawns.filter((spawn) => !existing.has(spawn.id)).map((spawn) => {
-        const pet = makePet(spawn.species, spawn.level, spawn.rarity);
-        const hp = calcIdleMaxHp(pet);
-        return { sp: spawn.species, hp, maxHp: hp, id: enemyIdRef.current++, editorSpawnId: spawn.id, x: spawn.x, y: spawn.y, face: "left" as const, level: spawn.level, rarity: spawn.rarity, spawnX: spawn.x, spawnY: spawn.y, wanderRadius: spawn.radius, detectionRadius: 230, maxChaseDistance: Math.max(260, spawn.radius * 3), aiState: "WANDER", behavior: "wander" as const, nextSkillAt: Date.now() + 3000 };
-      });
-      return created.length ? [...withoutRemoved, ...created] : withoutRemoved;
-    });
-  }, [idle.currentMap, mapEditorSpawns]);
   // Kills totais (ref fresca p/ waves dentro de intervals com closure antiga).
   const totalKillsRef = useRef(0);
   type FxKind = "myDmg" | "enemyDmg" | "xp" | "gold" | "capture" | "crit" | "heal";
@@ -3435,7 +3353,7 @@ const confirmName = () => {
   const isFirstSpawnRef = useRef(true);
   const lastSpawnAtRef = useRef(0);
   const orbIdRef = useRef(1);
-  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "sinergia" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
+  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
   const [hudTargetsOpen, setHudTargetsOpen] = useState(false);
 
   // ===== Guilda & Livro de Missões (painéis externos religados) =====
@@ -4356,33 +4274,6 @@ const confirmName = () => {
       setTimeout(() => {
         setChopTrees((prev) => prev.map((o) => (o.id === id ? { id: o.id, fx: o.fx, fy: o.fy } : o)));
       }, 30 * 60_000);
-    }, 900);
-  };
-  // Árvores colocadas pelo editor também viram recurso jogável. A posição e o
-  // estado do toco ficam no mesmo localStorage do layout do mapa.
-  const chopEditorTree = (tree: EditorObstacle) => {
-    const isStump = tree.choppedAt != null && Date.now() - tree.choppedAt < 30 * 60_000;
-    if (!tree.harvestable || tree.choppingUntil != null || isStump) return;
-    const hasPinsir =
-      (teamRef.current ?? []).some((p) => speciesBaseOf(p.species) === "pinsir") ||
-      (idle.caughtSpecies ?? []).some((sp) => speciesBaseOf(sp as Species) === "pinsir");
-    if (!hasPinsir) { pushChat("🪓 Você precisa de um Pinsir para cortar madeira!", "info"); return; }
-    if ((trainerEnergy ?? 0) < 1) { pushChat("⚡ Sem energia para cortar (precisa 1).", "info"); return; }
-    setTrainerEnergy((energy) => Math.max(0, (energy ?? 0) - 1));
-    playSfx(sfxTreeChopUrl);
-    pushFxAt(tree.x, tree.y - 110, "🪓", "xp");
-    setMapEditorObjects((prev) => ({
-      ...prev,
-      [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === tree.id ? { ...item, src: treeChopUrl, choppingUntil: Date.now() + 900 } : item),
-    }));
-    setTimeout(() => {
-      setMapEditorObjects((prev) => ({
-        ...prev,
-        [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === tree.id ? { ...item, src: treeStumpUrl, choppingUntil: undefined, choppedAt: Date.now() } : item),
-      }));
-      setIdle((state) => ({ ...state, items: { ...state.items, lenha: (state.items.lenha ?? 0) + 1 } }));
-      pushFxAt(tree.x, tree.y - 80, "+1 Lenha 🪵", "gold");
-      pushChat("🪵 +1 Lenha! (-1 ⚡)", "info");
     }, 900);
   };
   const renderChopTrees = () => {
@@ -5521,9 +5412,7 @@ const confirmName = () => {
   }, []);
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
-  const editorObstacles = mapEditorObjects[idle.currentMap] ?? [];
-  const selectedMapEditorObject = editorObstacles.find((object) => object.id === mapEditorSelectedId) ?? null;
-  const obstacles = useMemo(() => [...buildObstacles(curWorldW, curWorldH, idle.currentMap), ...editorObstacles], [idle.currentMap, curWorldW, curWorldH, editorObstacles]);
+  const obstacles = useMemo(() => buildObstacles(curWorldW, curWorldH, idle.currentMap), [idle.currentMap, curWorldW, curWorldH]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
@@ -15725,8 +15614,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           const enabled = !!(idle.autoHeal?.enabled);
           setIdle((s) => ({ ...s, autoHeal: { enabled: !enabled, threshold: (s.autoHeal?.threshold ?? 0.5) } }));
         }}
-        mapEditorActive={mapEditorOpen}
-        onMapEditor={() => { playClick(); setMapEditorOpen((open) => !open); setAuto(false); }}
         onPvpMode={() => {
           const current = idle.pvpMode ?? "peace";
           const next = current === "peace" ? "offensive" : current === "offensive" ? "pk" : "peace";
@@ -15745,7 +15632,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           hunger: Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100)), fainted: !!pet.faintedAt,
         }))}
         selectedPetUid={petDetailUid} onSelectPet={(uid) => { playClick(); setPetDetailUid(uid); }}
-        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: synergyDockIcon, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
+        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
         forgeNotification={Object.values(forgeNotifications).some(Boolean)}
         onTab={(next) => { playClick(); if (next === "market") { pushChat("🛒 Mercado temporariamente bloqueado.", "info"); return; } setTab((current) => current === next ? "batalha" : next); }}
         onProfile={() => { playClick(); setTrainerCardOpen(true); }}
@@ -16344,30 +16231,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           onClick={(e) => {
             // LOADING de teleport: nenhuma interação com o mapa.
             if (mapLoadingRef.current) { e.stopPropagation(); return; }
-            // Editor de mapa: clique posiciona a sprite escolhida sem mover o jogador.
-            if (mapEditorOpen) {
-              const rectEditor = viewportRef.current?.getBoundingClientRect();
-              if (!rectEditor) return;
-              const editorId = Date.now() + Math.floor(Math.random() * 1000);
-              const editorWx = Math.round(renderCamX + (e.clientX - rectEditor.left - centerOffX) / zoom);
-              const editorWy = Math.round(renderCamY + (e.clientY - rectEditor.top - centerOffY) / zoom);
-              if (mapEditorTab === "pokemon") {
-                setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), { id: editorId, x: editorWx, y: editorWy, species: mapEditorPokemon, level: mapEditorPokemonLevel, rarity: mapEditorPokemonRarity, radius: 90 }] }));
-                playClick(); e.stopPropagation(); return;
-              }
-              const editorAsset = MAP_EDITOR_ASSETS.find((a) => a.id === mapEditorAsset);
-              if (!editorAsset) { e.stopPropagation(); return; }
-              const editorObject: EditorObstacle = {
-                id: editorId, name: editorAsset.name, x: editorWx, y: editorWy, w: editorAsset.w, h: editorAsset.h,
-                src: editorAsset.src, blocks: editorAsset.blocks, collideR: editorAsset.collideR,
-                assetId: editorAsset.id, baseW: editorAsset.w, baseH: editorAsset.h, harvestable: editorAsset.harvestable, bgAnim: editorAsset.bgAnim,
-              };
-              setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), editorObject] }));
-              setMapEditorSelectedId(editorId);
-              playClick();
-              e.stopPropagation();
-              return;
-            }
             const t = e.target as HTMLElement;
             if (t.closest && t.closest("button, a, input, select, textarea")) return;
             const rect = viewportRef.current?.getBoundingClientRect();
@@ -18833,14 +18696,7 @@ A sucata afundou com o casco.
             )}
 
             {/* Obstáculos (árvores, pedras, plantas animadas) — z-index pela BASE (y) para o treinador passar por trás */}
-            {mapEditorOpen && mapEditorTab === "pokemon" && (mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => (
-              <div key={`editor-spawn-${spawn.id}`} style={{ position: "absolute", left: spawn.x - spawn.radius, top: spawn.y - spawn.radius, width: spawn.radius * 2, height: spawn.radius * 2, border: "2px dashed #fb7185", borderRadius: "50%", background: "rgba(251,113,133,0.10)", pointerEvents: "none", zIndex: Math.round(spawn.y) + 1, display: "grid", placeItems: "center", color: "#fff", fontSize: 10, fontWeight: 900, textShadow: "0 1px 2px #000" }}>
-                {spawn.species.replace(/_/g, " ")} Lv.{spawn.level}
-              </div>
-            ))}
             {obstacles.map((o) => {
-              const editorObject = o.id > 1000000000 ? o as EditorObstacle : null;
-              const editorTreeStump = !!editorObject?.harvestable && editorObject.choppedAt != null && now - editorObject.choppedAt < 30 * 60_000;
               // Animação por sprite sheet (CSS steps + background-position)
               if (o.bgAnim) {
                 const { cols, rows, frames, ms } = o.bgAnim;
@@ -18851,7 +18707,7 @@ A sucata afundou com o casco.
                   top: o.y - o.h + 8, // âncora na base
                   width: o.w, height: o.h,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
-                  pointerEvents: mapEditorOpen && o.id > 1000000000 ? "auto" : "none",
+                  pointerEvents: "none",
                   zIndex: Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                   backgroundImage: `url(${o.src})`,
@@ -18863,30 +18719,21 @@ A sucata afundou com o casco.
                   animationDelay: `${delay}s`,
                   ...({ "--sa-plant-end": `${-o.w * cols}px` } as React.CSSProperties),
                 };
-                return <div key={`obs-${o.id}`} style={{ ...style, outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #c4b5fd" : undefined }} onClick={(ev) => { if (mapEditorOpen && editorObject) { ev.stopPropagation(); setMapEditorSelectedId(o.id); } }}>{mapEditorOpen && editorObject && <button onClick={(ev) => { ev.stopPropagation(); setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== o.id) })); setMapEditorSelectedId((selected) => selected === o.id ? null : selected); }} style={{ position: "absolute", right: 0, top: 0, width: 20, height: 20, border: "1px solid #ff6b6b", borderRadius: 4, background: "#250000dd", color: "#ffb3b3", fontSize: 11, cursor: "pointer" }}>×</button>}</div>;
+                return <div key={`obs-${o.id}`} style={style} />;
               }
               // Imagem normal (árvore / pedra)
               return (
-                <img key={`obs-${o.id}`} src={editorTreeStump ? treeStumpUrl : o.src} alt="" title={editorObject?.harvestable ? (editorTreeStump ? "Toco — volta em 30 min" : "Árvore de madeira — clique para cortar") : undefined} style={{
+                <img key={`obs-${o.id}`} src={o.src} alt="" style={{
                   position: "absolute",
                   left: o.x - o.w / 2,
                   top: o.y - o.h + 8, // âncora na base
                   width: o.w, height: o.h,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
                   imageRendering: "pixelated",
-                  pointerEvents: (mapEditorOpen && editorObject) || editorObject?.harvestable ? "auto" : "none",
+                  pointerEvents: "none",
                   transition: "opacity 120ms linear",
-                  outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #c4b5fd" : undefined,
                   zIndex: Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
-                }} onClick={(ev) => {
-                  if (mapEditorOpen && editorObject) {
-                    ev.stopPropagation();
-                    setMapEditorSelectedId(o.id);
-                  } else if (editorObject?.harvestable) {
-                    ev.stopPropagation();
-                    chopEditorTree(editorObject);
-                  }
                 }} />
               );
             })}
@@ -20955,78 +20802,6 @@ A sucata afundou com o casco.
             </div>
             );
           })()}
-
-          {/* ===== PAINEL DO EDITOR DE MAPA (fora da barra de combate, que fica oculta no HUD novo) ===== */}
-          {mapEditorOpen && (
-            <div style={{ position: "fixed", right: 210, bottom: 150, width: 260, background: "rgba(12,7,24,0.97)", border: "1px solid #7c4dff", borderRadius: 10, padding: 10, boxShadow: "0 8px 30px #0008", color: "#eadfe8", zIndex: 6000, pointerEvents: "auto" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ color: "#c4b5fd", fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>⌂ EDITOR DE MAPA</span>
-                <button onClick={() => setMapEditorOpen(false)} title="Fechar editor" style={{ border: "1px solid #3a2e58", background: "#1a0f26", color: "#eadfe8", borderRadius: 5, width: 20, height: 20, cursor: "pointer", fontSize: 11, lineHeight: 1 }}>×</button>
-              </div>
-              <div style={{ display: "flex", gap: 5, margin: "7px 0" }}>
-                <button onClick={() => setMapEditorTab("sprites")} style={{ flex: 1, padding: "5px", border: `1px solid ${mapEditorTab === "sprites" ? "#c4b5fd" : "#3a2e58"}`, background: mapEditorTab === "sprites" ? "#39255a" : "#1a0f26", color: "#eadfe8", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>🌳 SPRITES</button>
-                <button onClick={() => setMapEditorTab("pokemon")} style={{ flex: 1, padding: "5px", border: `1px solid ${mapEditorTab === "pokemon" ? "#fb7185" : "#3a2e58"}`, background: mapEditorTab === "pokemon" ? "#542133" : "#1a0f26", color: "#eadfe8", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⚡ POKÉMON</button>
-              </div>
-              {mapEditorTab === "sprites" ? <>
-              <div style={{ fontSize: 10, color: "#a8a0b8", margin: "5px 0 8px" }}>Escolha uma sprite e clique no mapa. Use Selecionar para não criar objetos; no editor, clique num objeto para remover.</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
-                <button onClick={() => setMapEditorAsset(null)} title="Selecionar/remover sem posicionar nada" style={{ padding: 4, border: `2px solid ${mapEditorAsset === null ? "#c4b5fd" : "#3a2e58"}`, background: "#1a0f26", borderRadius: 7, cursor: "pointer", display: "grid", placeItems: "center", gap: 2 }}>
-                  <span style={{ fontSize: 25, lineHeight: "42px" }}>☝</span><span style={{ color: "#eadfe8", fontSize: 8 }}>Selecionar</span>
-                </button>
-                {MAP_EDITOR_ASSETS.map((asset) => <button key={asset.id} onClick={() => setMapEditorAsset(asset.id)} title={asset.name} style={{ padding: 4, border: `2px solid ${mapEditorAsset === asset.id ? "#c4b5fd" : "#3a2e58"}`, background: "#1a0f26", borderRadius: 7, cursor: "pointer", display: "grid", placeItems: "center", gap: 2 }}>
-                  <img src={asset.src} alt="" style={{ width: 42, height: 42, objectFit: "contain", imageRendering: "pixelated" }} />
-                  <span style={{ color: "#eadfe8", fontSize: 8 }}>{asset.name}</span>
-                </button>)}
-              </div>
-              </> : <>
-                <div style={{ fontSize: 10, color: "#a8a0b8", margin: "5px 0 8px" }}>Defina o Pokémon e clique no mapa para criar um ponto de spawn real.</div>
-                <label style={{ display: "grid", gap: 3, fontSize: 9, color: "#d8c8ff", marginBottom: 6 }}>POKÉMON
-                  <select value={mapEditorPokemon} onChange={(event) => setMapEditorPokemon(event.target.value as Species)} style={{ width: "100%", background: "#1a0f26", color: "#fff", border: "1px solid #574070", borderRadius: 5, padding: 5 }}>
-                    {Object.keys(SPECIES_BASE).filter((species) => !!GIF[species as Species]).sort().map((species) => <option key={species} value={species}>{species.replace(/_/g, " ").toUpperCase()}</option>)}
-                  </select>
-                </label>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <label style={{ flex: 1, display: "grid", gap: 3, fontSize: 9, color: "#d8c8ff" }}>NÍVEL
-                    <input type="number" min="1" max="1000" value={mapEditorPokemonLevel} onChange={(event) => setMapEditorPokemonLevel(Math.max(1, Math.min(1000, Number(event.target.value) || 1)))} style={{ width: "100%", background: "#1a0f26", color: "#fff", border: "1px solid #574070", borderRadius: 5, padding: 5 }} />
-                  </label>
-                  <label style={{ flex: 1, display: "grid", gap: 3, fontSize: 9, color: "#d8c8ff" }}>RARIDADE
-                    <select value={mapEditorPokemonRarity} onChange={(event) => setMapEditorPokemonRarity(event.target.value as Rarity)} style={{ width: "100%", background: "#1a0f26", color: "#fff", border: "1px solid #574070", borderRadius: 5, padding: 5 }}>
-                      {(["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"] as Rarity[]).map((rarity) => <option key={rarity} value={rarity}>{RARITY_NAME[rarity]}</option>)}
-                    </select>
-                  </label>
-                </div>
-                <div style={{ marginTop: 8, maxHeight: 110, overflowY: "auto", display: "grid", gap: 4 }}>
-                  {(mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => <div key={spawn.id} style={{ padding: 5, border: "1px solid #4d3a75", borderRadius: 6, background: "#120b20", fontSize: 9, display: "flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ flex: 1, color: "#ffd1dc" }}>{spawn.species.replace(/_/g, " ")} · Lv.{spawn.level} · {RARITY_NAME[spawn.rarity]}</span>
-                    <button onClick={() => setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === spawn.id ? { ...item, radius: Math.max(20, item.radius - 20) } : item) }))} style={{ cursor: "pointer" }}>−</button><span>{spawn.radius}px</span><button onClick={() => setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === spawn.id ? { ...item, radius: Math.min(300, item.radius + 20) } : item) }))} style={{ cursor: "pointer" }}>+</button>
-                    <button onClick={() => setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== spawn.id) }))} style={{ cursor: "pointer", color: "#ff9a9a" }}>×</button>
-                  </div>)}
-                </div>
-              </>}
-              {selectedMapEditorObject && (() => {
-                const baseW = selectedMapEditorObject.baseW ?? selectedMapEditorObject.w;
-                const baseH = selectedMapEditorObject.baseH ?? selectedMapEditorObject.h;
-                const scale = Math.round((selectedMapEditorObject.w / Math.max(1, baseW)) * 100);
-                const resize = (percent: number) => setMapEditorObjects((prev) => ({
-                  ...prev,
-                  [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorObject.id ? { ...item, baseW, baseH, w: Math.round(baseW * percent / 100), h: Math.round(baseH * percent / 100) } : item),
-                }));
-                return <div style={{ marginTop: 8, padding: 7, border: "1px solid #4d3a75", borderRadius: 7, background: "#120b20" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#d8c8ff", fontWeight: 800 }}><span>SELECIONADO: {selectedMapEditorObject.name}</span><span>{scale}%</span></div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 5 }}>
-                    <button onClick={() => resize(Math.max(35, scale - 10))} title="Diminuir" style={{ width: 25, border: "1px solid #6d5a9e", borderRadius: 5, background: "#211533", color: "#fff", cursor: "pointer" }}>−</button>
-                    <input aria-label="Tamanho da sprite selecionada" type="range" min="35" max="250" value={scale} onChange={(event) => resize(Number(event.target.value))} style={{ flex: 1 }} />
-                    <button onClick={() => resize(Math.min(250, scale + 10))} title="Aumentar" style={{ width: 25, border: "1px solid #6d5a9e", borderRadius: 5, background: "#211533", color: "#fff", cursor: "pointer" }}>+</button>
-                    <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== selectedMapEditorObject.id) })); setMapEditorSelectedId(null); }} title="Remover sprite selecionada" style={{ border: "1px solid #ff6b6b", borderRadius: 5, background: "#3d1111", color: "#ffd2d2", cursor: "pointer", fontSize: 9, padding: "3px 5px" }}>REMOVER</button>
-                  </div>
-                </div>;
-              })()}
-              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                <button onClick={() => { const data = JSON.stringify({ version: 2, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [] }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `mapa-${idle.currentMap}.json`; a.click(); URL.revokeObjectURL(url); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #5ec26a", background: "#153b22", color: "#b8ffce", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>⬇ EXPORTAR JSON</button>
-                <button onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: [] })); setMapEditorAsset(null); setMapEditorSelectedId(null); }} style={{ flex: 1, padding: "7px 4px", border: "1px solid #ff6b6b", background: "#3d1111", color: "#ffd2d2", borderRadius: 7, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>LIMPAR</button>
-              </div>
-            </div>
-          )}
 
 
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
@@ -27421,28 +27196,6 @@ function TabOverlay({
       }}
     />;
   };
-  if (tab === "sinergia") {
-    const upgradeCrystal = (element: CrystalElement) => {
-      const node = CRYSTAL_NODES[element];
-      const level = idle.crystalNetwork?.[element] ?? 0;
-      const cost = crystalCost(level);
-      if (level >= CRYSTAL_MAX_LEVEL) return;
-      if ((idle.items?.[node.stone] ?? 0) < cost) {
-        pushChat(`Faltam ${cost} pedras para aprimorar ${node.label}.`, "info");
-        return;
-      }
-      setIdle((state: typeof idle) => {
-        const current = state.crystalNetwork?.[element] ?? 0;
-        const required = crystalCost(current);
-        if (current >= CRYSTAL_MAX_LEVEL || (state.items?.[node.stone] ?? 0) < required) return state;
-        return { ...state, items: { ...state.items, [node.stone]: state.items[node.stone] - required }, crystalNetwork: { ...state.crystalNetwork, [element]: current + 1 } };
-      });
-      pushChat(`✨ Cristal ${node.label} aprimorado para nível ${level + 1}!`, "cap");
-    };
-    return <div className="mob-taboverlay revo-synergy-overlay" onClick={(event) => event.stopPropagation()}>
-      <ElementalSynergyScreen network={idle.crystalNetwork ?? {}} items={idle.items ?? {}} onUpgrade={upgradeCrystal} onClose={onClose} />
-    </div>;
-  }
   return (
     <div
       className={`mob-taboverlay${["mochila", "colecao", "pokedex"].includes(tab) ? " revo-inventory-overlay" : ""}`}
