@@ -226,3 +226,488 @@
 @media (prefers-reduced-motion: reduce) {
   .revo-inventory *, .revo-inventory *::before, .revo-inventory *::after { transition: none !important; animation: none !important; }
 }
+
+/* Estilos exclusivos da mochila. */
+/* The inventory is a modal, independent of world zoom and floating HUD scale. */
+.revo-game .mob-taboverlay.revo-inventory-overlay {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  transform: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 20px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 9, 19, .56) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(2px);
+  overflow: hidden !important;
+}
+
+
+.inventory-bag {
+  --bag-gold: #dfc57d;
+  --bag-blue: #77c7f4;
+  --bag-ink: #eef4fc;
+  --bag-muted: #9bb0c8;
+  position: relative;
+  flex-shrink: 0;
+  width: min(880px, calc(100vw - 48px), calc((100dvh - 52px) * 1.9));
+  aspect-ratio: 1.9 / 1;
+  height: auto;
+  padding: 12px 22px;
+  display: grid;
+  grid-template-rows: 64px 40px minmax(0, 1fr);
+  gap: 8px;
+  color: var(--bag-ink);
+  font-family: "Trebuchet MS", system-ui, sans-serif;
+  border: 0;
+  border-radius: 30px 30px 26px 26px;
+  background: url("../../ambiente/aba/men ic/nhuni/01_Molduras/moldura_com_fundo_limpo.png") center / 100% 100% no-repeat, linear-gradient(145deg, #2a1247, #150a29 60%, #1d0e36);
+  box-shadow: 0 18px 75px #000b, 0 0 0 3px #06040f, 0 0 0 4px #7a5bb088;
+  outline: none;
+}
+.inventory-bag *, .inventory-bag *::before, .inventory-bag *::after { box-sizing: border-box; }
+.inventory-bag button, .inventory-bag input { font: inherit; }
+.inventory-bag button { cursor: pointer; color: inherit; }
+.inventory-bag button:disabled { opacity: .38; cursor: not-allowed; }
+.inventory-bag button:focus-visible, .inventory-bag summary:focus-visible, .inventory-bag input:focus-visible { outline: 2px solid #84d7ff; outline-offset: 3px; }
+.inventory-bag button { transition: background-color .15s, border-color .15s, box-shadow .15s, transform .15s, filter .15s; }
+.inventory-bag button:not(:disabled):hover { filter: brightness(1.12); }
+.inventory-bag button:not(:disabled):active { transform: translateY(1px); }
+.inventory-bag img, .inventory-bag svg { flex-shrink: 0; }
+.inventory-bag img { object-fit: contain; image-rendering: pixelated; }
+.inventory-bag .inventory-heading { position: relative; display: flex; justify-content: center; align-items: center; gap: 6px; padding-inline: 22px; background: url("../../ambiente/aba/men ic/nhuni/02_Cabecalho/topo_ornamental_completo.png") no-repeat center / auto 100%; }
+.inventory-bag .inventory-heading__rule { display: none; }
+.inventory-bag .inventory-heading__title { position: relative; height: auto; min-width: 0; padding: 0; display: flex; justify-content: center; align-items: center; gap: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.inventory-bag .inventory-heading__title::after { display: none; }
+.inventory-bag .inventory-heading__title > img { display: none !important; }
+.inventory-bag .inventory-heading h2 { padding: 0; margin: 0; font-size: 0 !important; font-weight: 800; letter-spacing: 0; }
+.inventory-bag .inventory-close { position: absolute; right: 6px; top: 27px; width: 36px; height: 34px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; color: #ffe18b !important; background: url("../../ambiente/aba/men ic/nhuni/08_Navegacao/fechar_vermelho.png") no-repeat center / contain; box-shadow: none; }
+.inventory-bag .inventory-close svg { display: none; }
+.inventory-bag .inventory-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; }
+.inventory-bag .inventory-tabs > button { display: flex; align-items: center; justify-content: center; gap: 0; min-width: 0; height: 40px; padding: 0; border: 0; border-radius: 14px; background-color: #2c1356; background-position: center; background-size: 100% 100%; background-repeat: no-repeat; box-shadow: 0 3px 5px #0007; font-size: 14px; font-weight: 700; }
+.inventory-bag .inventory-tabs > button > span { font-size: 0; }
+.inventory-bag .inventory-tabs > button svg { display: none; }
+.inventory-bag .inventory-tabs > button[aria-pressed="true"] { border: 0; background-color: transparent; box-shadow: 0 0 13px #c07bff99, 0 3px 6px #0009; transform: translateY(-2px); }
+.inventory-bag .inventory-tabs > button:not([aria-pressed="true"]) { opacity: .78; }
+.inventory-bag .inventory-tabs > button[data-tab="items"] { background-image: url("../../ambiente/aba/men ic/nhuni/03_Abas_Superiores/aba_itens.png"); }
+.inventory-bag .inventory-tabs > button[data-tab="balls"] { background-image: url("../../ambiente/aba/men ic/nhuni/03_Abas_Superiores/aba_pokebolas.png"); }
+.inventory-bag .inventory-tabs > button[data-tab="materials"] { background-image: url("../../ambiente/aba/men ic/nhuni/03_Abas_Superiores/aba_materiais.png"); }
+.inventory-bag .inventory-tabs > button[data-tab="evolution"] { background-image: url("../../ambiente/aba/men ic/nhuni/03_Abas_Superiores/aba_evolucao.png"); }
+.inventory-bag .inventory-tabs > button[data-tab="consumables"] { background-image: url("../../ambiente/aba/men ic/nhuni/03_Abas_Superiores/aba_consumiveis.png"); }
+.inventory-bag .inventory-tabs > button[data-tab="special"] { background-image: url("../../ambiente/aba/men ic/nhuni/03_Abas_Superiores/aba_especiais.png"); }
+.inventory-bag .inventory-body { min-height: 0; display: grid; grid-template-columns: 132px minmax(0, 1fr) 196px; gap: 8px; }
+.inventory-bag .inventory-panel { min-width: 0; min-height: 0; border: 1px solid #b78de0; border-radius: 14px; background: linear-gradient(150deg, #2a1450e0, #150a2bf0 75%); box-shadow: inset 0 0 0 3px #1b0b36, inset 0 3px 8px #c79bff14; }
+.inventory-bag .inventory-categories { display: flex; flex-direction: column; padding: 9px 7px 7px; }
+.inventory-bag .inventory-categories__list { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #3d617b transparent; }
+.inventory-bag .inventory-categories__list > button { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; min-height: 29px; padding: 0; text-align: center; border: 0; border-radius: 10px; background-color: transparent; background-position: center; background-size: 100% 100%; background-repeat: no-repeat; color: #d8e4f0; font-size: 12px; font-weight: 600; }
+.inventory-bag .inventory-categories__list > button > span { font-size: 0; }
+.inventory-bag .inventory-categories__list > button svg { display: none; }
+.inventory-bag .inventory-categories__list > button[aria-pressed="true"] { background-color: transparent; border: 0; box-shadow: 0 0 10px #e06bff7a, 0 2px 4px #0008; transform: translateY(-1px); }
+.inventory-bag .inventory-categories__list > button:not([aria-pressed="true"]) { opacity: .8; }
+.inventory-bag .inventory-categories__list > button[data-cat="all"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_todos.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="usable"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_usaveis.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="materials"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_materiais.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="evolution"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_evolucao.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="eggs"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_ovos.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="fragments"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_fragmentos.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="ores"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_minerios.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="events"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_eventos.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="other"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_outros.png"); }
+.inventory-bag .inventory-categories__list > button[data-cat="equipment"] { background-image: url("../../ambiente/aba/men ic/nhuni/04_Categorias_Laterais/categoria_equipamentos.png"); }
+.inventory-bag .inventory-appearance { flex-shrink: 0; display: flex; align-items: center; gap: 7px; padding: 7px 4px; margin-top: 6px; background: transparent; border: 0; border-top: 1px solid #58748e44; color: var(--bag-muted) !important; font-size: 9px !important; text-align: left; }
+.inventory-bag .inventory-appearance svg { width: 15px; height: 15px; color: var(--bag-gold); }
+.inventory-bag .inventory-storage { display: flex; flex-direction: column; overflow: hidden; }
+.inventory-bag .inventory-storage__header { display: flex; flex-shrink: 0; align-items: center; gap: 7px; min-height: 36px; padding: 4px 11px; border-bottom: 1px solid #a877e0; background: linear-gradient(#3a1a66cc, #1d0b3cf0); }
+.inventory-bag .inventory-storage__header > h3 { margin: 0; flex: 1; min-width: 0; font-size: 16px; font-weight: 700; letter-spacing: .1px; white-space: nowrap; color: #ffe9b0; }
+.inventory-bag .inventory-storage__header > h3 span { color: #e6d5ff; font-size: 12px; }
+.inventory-bag .inventory-storage__header button { height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 2px 6px; border: 1px solid #c99be8; border-radius: 8px; background: linear-gradient(#4b2382, #2a1150); font-size: 12px; font-weight: 700; }
+.inventory-bag .inventory-storage__header button svg { width: 15px; height: 15px; }
+.inventory-bag .inventory-search-toggle { width: 32px; padding: 0 !important; background: url("../../ambiente/aba/men ic/nhuni/06_Detalhes_Item/botao_pesquisar.png") no-repeat center / contain !important; border: 0 !important; }
+.inventory-bag .inventory-search-toggle svg { display: none; }
+.inventory-bag .inventory-expand[aria-pressed="false"] { min-width: 112px; padding: 0 !important; background: url("../../ambiente/aba/men ic/nhuni/06_Detalhes_Item/botao_expandir.png") no-repeat center / 100% 100% !important; border: 0 !important; }
+.inventory-bag .inventory-expand[aria-pressed="false"] > svg, .inventory-bag .inventory-expand[aria-pressed="false"] > span { display: none; }
+.inventory-bag .inventory-expand > svg { color: #ffe9a8; stroke-width: 3; }
+.inventory-bag .inventory-search { display: flex; align-items: center; flex-shrink: 0; gap: 8px; margin: 8px 12px 0; padding: 5px 8px; border: 1px solid #a877e0; border-radius: 7px; background: #170a30; }
+.inventory-bag .inventory-search > svg { width: 14px; height: 14px; }
+.inventory-bag .inventory-search input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--bag-ink); font-size: 12px; }
+.inventory-bag .inventory-grid { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 9px; padding: 12px 13px 3px; }
+.inventory-bag .inventory-slot { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; min-width: 0; padding: 5px 4px 10px; border: 1px solid transparent; border-radius: 10px; background: url("../../ambiente/aba/men ic/nhuni/05_Slots/slot_normal.png") center / 100% 100% no-repeat; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--item-tier, #54718a) 65%, transparent); }
+.inventory-bag .inventory-slot > img, .inventory-bag .inventory-slot > svg, .inventory-bag .inventory-slot > span:not(b) { max-width: 78%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 3px 2px #0008); }
+.inventory-bag .inventory-slot > b { position: absolute; right: 5px; bottom: 3px; max-width: calc(100% - 7px); overflow: hidden; text-overflow: ellipsis; color: #f6f8ff; font-size: 14px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: -1px -1px 1px #07101b, 1px 1px 1px #000, 0 2px 3px #000; }
+.inventory-bag .inventory-slot > small { position: absolute; top: 2px; left: 5px; color: #b4cbe0; font-size: 6px; letter-spacing: .4px; text-transform: uppercase; }
+.inventory-bag .inventory-slot.is-selected { border-color: transparent; box-shadow: 0 0 0 2px #f4d36d, 0 0 13px #edc13b99, inset 0 0 12px #f3c64122; }
+.inventory-bag .inventory-slot:not(:disabled):hover { border-color: transparent; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--item-tier, #54718a) 65%, transparent), 0 0 11px #7fd8ff59; }
+.inventory-bag .inventory-slot--empty { opacity: 1; background: url("../../ambiente/aba/men ic/nhuni/05_Slots/slot_vazio.png") center / 100% 100% no-repeat; border-color: transparent; box-shadow: none; }
+.inventory-bag .inventory-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; pointer-events: none; color: #a9c0d6; padding: 20px; text-align: center; }
+.inventory-bag .inventory-empty > svg { width: 37px; height: 37px; opacity: .7; }
+.inventory-bag .inventory-empty > strong { font-size: 15px; }
+.inventory-bag .inventory-empty > span { font-size: 11px; }
+.inventory-bag .inventory-pagination { height: 43px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 23px; padding-block: 5px; }
+.inventory-bag .inventory-pagination > button { width: 36px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 9px; background-color: transparent; box-shadow: none; }
+.inventory-bag .inventory-pagination > button:nth-of-type(1) { background: url("../../ambiente/aba/men ic/nhuni/08_Navegacao/seta_pagina_anterior.png") no-repeat center / contain; }
+.inventory-bag .inventory-pagination > button:nth-of-type(2) { background: url("../../ambiente/aba/men ic/nhuni/08_Navegacao/seta_pagina_proxima.png") no-repeat center / contain; }
+.inventory-bag .inventory-pagination svg { display: none; }
+.inventory-bag .inventory-pagination > span { font-size: 16px; font-weight: 700; min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; color: #ffe9b0; text-shadow: 0 2px 3px #000a; }
+.inventory-bag .inventory-detail { position: relative; display: flex; flex-direction: column; align-items: center; padding: 16px 13px 12px; overflow: visible; }
+.inventory-bag .inventory-detail__art { position: relative; flex-shrink: 0; display: grid; place-items: center; width: 106px; height: 106px; border: 2px solid #e6b95f; border-radius: 13px; background: radial-gradient(ellipse at 45% 40%, color-mix(in srgb, var(--item-tier) 24%, #2a1450), #150a2c 70%); box-shadow: inset 0 0 0 3px #2a1150, 0 0 15px color-mix(in srgb, var(--item-tier) 22%, transparent); }
+.inventory-bag .inventory-detail__art > img, .inventory-bag .inventory-detail__art > svg, .inventory-bag .inventory-detail__art > span { max-width: 96px; max-height: 101px; object-fit: contain; filter: drop-shadow(0 3px 4px #0008); }
+.inventory-bag .inventory-detail__art.is-precious::before, .inventory-bag .inventory-detail__art.is-precious::after { content: "✦"; position: absolute; color: #fff0aa; font-size: 15px; text-shadow: 0 0 7px #ffc355; animation: inventory-sparkle 3s ease-in-out infinite; pointer-events: none; }
+.inventory-bag .inventory-detail__art.is-precious::before { left: 3px; top: 1px; }
+.inventory-bag .inventory-detail__art.is-precious::after { right: -6px; top: -7px; animation-delay: 1.2s; color: #ffd3ef; }
+.inventory-bag .inventory-detail > h3 { flex-shrink: 0; margin: 12px 0 7px; font-size: 19px; font-weight: 800; text-align: center; color: #f5e7b7; line-height: 1.15; max-width: 100%; }
+.inventory-bag .inventory-rarity { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 85px; border: 1px solid var(--item-tier); border-radius: 12px; padding: 3px 13px; color: #f5ecff; background: linear-gradient(color-mix(in srgb, var(--item-tier) 52%, #232444), color-mix(in srgb, var(--item-tier) 24%, #111a2c)); box-shadow: inset 0 1px 0 #e8d7ff22; font-size: 12px; font-weight: 600; }
+.inventory-bag .inventory-detail__description { flex: 1; align-self: stretch; min-height: 38px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #45627d transparent; margin-top: 10px; padding: 12px 2px 4px; border-top: 1px solid #63788e26; }
+.inventory-bag .inventory-detail__description > p { margin: 0; color: #dfe9f3; font-size: 14px; line-height: 1.5; }
+.inventory-bag .inventory-detail__description > small { display: block; margin-top: 10px; font-size: 8px; letter-spacing: .6px; color: #8db5d5; }
+.inventory-bag .inventory-quantity { display: flex; flex-shrink: 0; align-self: stretch; align-items: center; justify-content: center; gap: 6px; margin: 10px 0 12px; }
+.inventory-bag .inventory-quantity > button { height: 32px; min-width: 36px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 9px; background-color: transparent; background-position: center; background-repeat: no-repeat; background-size: contain; box-shadow: none; font-size: 12px; font-weight: 800; }
+.inventory-bag .inventory-quantity > button:nth-of-type(1) { width: 38px; background-image: url("../../ambiente/aba/men ic/nhuni/06_Detalhes_Item/contador_menos.png"); }
+.inventory-bag .inventory-quantity > button:nth-of-type(2) { width: 40px; background-image: url("../../ambiente/aba/men ic/nhuni/06_Detalhes_Item/contador_mais.png"); }
+.inventory-bag .inventory-quantity > button:nth-of-type(3) { width: 52px; background-image: url("../../ambiente/aba/men ic/nhuni/06_Detalhes_Item/contador_max.png"); font-size: 0; }
+.inventory-bag .inventory-quantity > button > svg { display: none; }
+.inventory-bag .inventory-quantity > input { width: 48px; min-width: 0; padding: 4px 0; border: 0; text-align: center; appearance: textfield; background: #170a30cc; border-radius: 7px; color: #ffe9b0; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.inventory-bag .inventory-quantity input::-webkit-inner-spin-button, .inventory-bag .inventory-quantity input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.inventory-bag .inventory-use { flex-shrink: 0; display: flex; justify-content: center; align-items: center; align-self: stretch; gap: 10px; height: 47px; padding: 7px 12px; border: 1px solid #ffeab1; border-radius: 13px; color: #352508 !important; background: linear-gradient(#ffe68a, #ffc43c 46%, #e89b0b); box-shadow: inset 0 0 0 2px #edbf57, inset 0 3px 3px #fff5ccbb, 0 0 12px #edb12433, 0 3px 0 #654a15; font-size: 19px !important; font-weight: 900 !important; text-shadow: 0 1px 0 #fff7c777; }
+.inventory-bag .inventory-use > svg { width: 23px; height: 23px; }
+.inventory-bag .inventory-use:disabled { filter: grayscale(.6); font-size: 13px !important; }
+.inventory-bag .inventory-detail__empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 13px; text-align: center; height: 100%; color: #8faac1; }
+.inventory-bag .inventory-detail__empty > svg { width: 50px; height: 50px; opacity: .7; }
+.inventory-bag .inventory-detail__empty > p { font-size: 12px; margin: 0; }
+.inventory-bag .inventory-extra-actions { position: absolute; right: 7px; top: 6px; z-index: 2; }
+.inventory-bag .inventory-extra-actions > summary { cursor: pointer; list-style: none; color: #b1c8da; padding: 3px; border-radius: 5px; }
+.inventory-bag .inventory-extra-actions > summary::-webkit-details-marker { display: none; }
+.inventory-bag .inventory-extra-actions > summary > svg { width: 20px; height: 20px; }
+.inventory-bag .inventory-extra-actions > div { position: absolute; top: 29px; right: 0; width: 195px; padding: 6px; border: 1px solid #b78de0; border-radius: 10px; background: #1d0b3f; box-shadow: 0 9px 24px #0009; }
+.inventory-bag .inventory-extra-actions button { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-radius: 6px; background: transparent; padding: 8px 6px; text-align: left; font-size: 11px; }
+.inventory-bag .inventory-extra-actions button:hover { background: #5f86a32a; }
+.inventory-bag .inventory-extra-actions button > svg { width: 15px; height: 15px; color: var(--bag-gold); }
+.inventory-bag .inventory-extra-actions p { margin: 0; padding: 7px; font-size: 11px; color: var(--bag-muted); }
+.inventory-bag.is-expanded { width: min(1240px, calc(100vw - 32px)); height: calc(100dvh - 32px); }
+.inventory-bag .inventory-appearance-backdrop { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; padding: 16px; background: #020916d9; backdrop-filter: blur(4px); }
+.inventory-bag .inventory-appearance-dialog { width: min(560px, calc(100vw - 48px)); max-height: calc(100dvh - 60px); overflow-y: auto; padding: 18px; background: #1d0b3f; border: 1px solid #b78de0; border-radius: 16px; }
+.inventory-bag .inventory-appearance-dialog > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
+.inventory-bag .inventory-appearance-dialog h3 { margin: 0; color: var(--bag-gold); font-size: 17px; }
+.inventory-bag .inventory-appearance-dialog header button { background: #3a1a66; border: 1px solid #b78de0; color: #e6d594; border-radius: 6px; display: grid; place-items: center; padding: 4px; }
+.inventory-bag .inventory-appearance-content { display: grid; gap: 14px; }
+.inventory-bag .inventory-appearance-content h4 { margin: 0; color: #b7d4eb; font-size: 12px; }
+.inventory-bag .inventory-appearance-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
+.inventory-bag .inventory-appearance-grid > button { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 3px; border: 1px solid #4c6b88; border-radius: 9px; background: #132d46; font-size: 8px; text-align: center; }
+.inventory-bag .inventory-appearance-grid > button.is-active { border-color: #e3c77b; box-shadow: inset 0 0 10px #e4b54a17; }
+.inventory-bag .inventory-appearance-grid > button > img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 5px; }
+.inventory-bag .inventory-appearance-grid > button > span:first-child { font-size: 23px; }
+@keyframes inventory-sparkle { 0%, 100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+@media (max-width: 1100px) and (min-width: 701px) {
+  .inventory-bag { width: min(calc(100vw - 32px), calc((100dvh - 52px) * 1.9)); height: auto; padding-inline: 14px; gap: 8px; }
+  .inventory-bag .inventory-body { grid-template-columns: 124px minmax(0, 1fr) 184px; gap: 7px; }
+  .inventory-bag .inventory-tabs { gap: 7px; }
+  .inventory-bag .inventory-tabs > button { gap: 6px; font-size: 12px; }
+  .inventory-bag .inventory-tabs > button svg { width: 19px; }
+  .inventory-bag .inventory-grid { padding-inline: 9px; gap: 7px; }
+  .inventory-bag .inventory-detail { padding-inline: 12px; }
+  .inventory-bag .inventory-storage__header > h3 { font-size: 14px; }
+  .inventory-bag .inventory-storage__header > h3 span { font-size: 10px; }
+  .inventory-bag .inventory-slot > b { font-size: 12px; }
+  .inventory-bag .inventory-detail > h3 { font-size: 17px; }
+  .inventory-bag .inventory-detail__description > p { font-size: 12px; }
+  .inventory-bag .inventory-categories__list > button { gap: 7px; font-size: 11px; padding-inline: 6px; }
+}
+@media (max-height: 690px) and (min-width: 701px) {
+  .inventory-bag { height: auto; grid-template-rows: 60px 38px minmax(0, 1fr); gap: 7px; padding-bottom: 10px; }
+  .inventory-bag .inventory-heading__title { height: 56px; }
+  .inventory-bag .inventory-heading__title > img { width: 45px; height: 49px; }
+  .inventory-bag .inventory-heading h2 { font-size: 25px; }
+  .inventory-bag .inventory-tabs > button { padding-block: 4px; }
+  .inventory-bag .inventory-detail__art { width: 87px; height: 87px; }
+  .inventory-bag .inventory-detail__art > img, .inventory-bag .inventory-detail__art > svg, .inventory-bag .inventory-detail__art > span { max-width: 76px; max-height: 76px; }
+  .inventory-bag .inventory-detail { padding-top: 11px; }
+  .inventory-bag .inventory-detail > h3 { margin-top: 8px; font-size: 15px; }
+  .inventory-bag .inventory-rarity { font-size: 10px; }
+  .inventory-bag .inventory-detail__description { margin-top: 7px; padding-top: 8px; }
+  .inventory-bag .inventory-detail__description > p { font-size: 11px; }
+  .inventory-bag .inventory-categories__list > button { min-height: 27px; padding-block: 3px; }
+  .inventory-bag .inventory-use { height: 40px; font-size: 16px !important; }
+}
+@media (max-width: 700px) {
+  .revo-game .mob-taboverlay.revo-inventory-overlay { padding: 6px !important; }
+  .inventory-bag, .inventory-bag.is-expanded { width: calc(100vw - 12px); height: calc(100dvh - 20px); padding: 0 10px 10px; grid-template-rows: 52px 70px minmax(0, 1fr); gap: 8px; border-radius: 22px; }
+  .inventory-bag .inventory-categories { order: 0; }
+  .inventory-bag .inventory-storage { order: 1; }
+  .inventory-bag .inventory-detail { order: 2; }
+  .inventory-bag .inventory-heading { padding-inline: 14px; }
+  .inventory-bag .inventory-heading__title { min-width: 0; padding-inline: 18px; gap: 9px; height: 51px; }
+  .inventory-bag .inventory-heading__title > img { width: 36px; height: 43px; }
+  .inventory-bag .inventory-heading h2 { font-size: 22px; }
+  .inventory-bag .inventory-close { right: 0; top: 10px; width: 30px; height: 30px; }
+  .inventory-bag .inventory-close svg { width: 20px; height: 20px; }
+  .inventory-bag .inventory-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, 1fr); gap: 5px; }
+  .inventory-bag .inventory-tabs > button { gap: 5px; padding: 4px; font-size: 10px; border-radius: 8px; }
+  .inventory-bag .inventory-tabs > button svg { width: 16px; height: 16px; }
+  .inventory-bag .inventory-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: 42px minmax(170px, 1fr) 210px; gap: 7px; }
+  .inventory-bag .inventory-categories { padding: 3px 5px; display: block; border-radius: 9px; }
+  .inventory-bag .inventory-categories__list { display: flex; overflow-x: auto; overflow-y: hidden; height: 100%; gap: 3px; }
+  .inventory-bag .inventory-categories__list > button { width: auto; flex-shrink: 0; min-height: 0; min-width: 106px; height: 32px; padding: 5px 7px; gap: 4px; font-size: 9px; }
+  .inventory-bag .inventory-categories__list > button svg { width: 15px; height: 15px; }
+  .inventory-bag .inventory-appearance { display: flex; position: absolute; left: 18px; bottom: 64px; z-index: 1; width: 82px; padding: 3px; border: 0; font-size: 8px !important; }
+  .inventory-bag .inventory-grid { padding: 7px 9px 0; gap: 5px; }
+  .inventory-bag .inventory-slot { padding: 3px 2px 7px; border-radius: 7px; }
+  .inventory-bag .inventory-slot > b { right: 3px; bottom: 2px; font-size: 10px; }
+  .inventory-bag .inventory-storage__header { min-height: 32px; padding: 3px 8px; }
+  .inventory-bag .inventory-storage__header > h3 { font-size: 12px; }
+  .inventory-bag .inventory-storage__header > h3 span { font-size: 10px; }
+  .inventory-bag .inventory-storage__header button { height: 24px; font-size: 10px; }
+  .inventory-bag .inventory-pagination { height: 31px; gap: 19px; padding-block: 2px; }
+  .inventory-bag .inventory-pagination > button { height: 25px; width: 28px; border-radius: 7px; }
+  .inventory-bag .inventory-pagination svg { width: 19px; height: 19px; }
+  .inventory-bag .inventory-pagination > span { font-size: 12px; }
+  .inventory-bag .inventory-detail { display: grid; grid-template-columns: 85px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) 34px 37px; gap: 5px 10px; padding: 10px; }
+  .inventory-bag .inventory-detail__art { grid-column: 1; grid-row: 1 / 4; align-self: start; width: 79px; height: 79px; }
+  .inventory-bag .inventory-detail__art > img, .inventory-bag .inventory-detail__art > svg, .inventory-bag .inventory-detail__art > span { max-width: 67px; max-height: 67px; }
+  .inventory-bag .inventory-detail > h3 { grid-column: 2; margin: 0; font-size: 14px; text-align: left; padding-right: 20px; }
+  .inventory-bag .inventory-rarity { grid-column: 2; justify-self: start; min-width: 0; padding: 2px 9px; font-size: 9px; }
+  .inventory-bag .inventory-detail__description { grid-column: 2; min-height: 0; margin: 0; padding: 2px 0; border: 0; }
+  .inventory-bag .inventory-detail__description > p { font-size: 10px; line-height: 1.4; }
+  .inventory-bag .inventory-detail__description > small { font-size: 7px; margin-top: 3px; }
+  .inventory-bag .inventory-quantity { grid-column: 1 / -1; margin: 0; justify-content: flex-end; }
+  .inventory-bag .inventory-quantity > button { height: 28px; min-width: 31px; font-size: 11px; }
+  .inventory-bag .inventory-quantity > input { font-size: 13px; }
+  .inventory-bag .inventory-use { grid-column: 1 / -1; height: 36px; font-size: 15px !important; border-radius: 9px; }
+  .inventory-bag .inventory-use > svg { width: 18px; height: 18px; }
+  .inventory-bag .inventory-detail__empty { grid-column: 1 / -1; grid-row: 1 / -1; }
+  .inventory-bag .inventory-appearance-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) and (max-height: 700px) {
+  .inventory-bag .inventory-body { grid-template-rows: 36px minmax(140px, 1fr) 182px; }
+  .inventory-bag .inventory-detail { grid-template-rows: auto auto minmax(0, 1fr) 28px 31px; gap: 3px 8px; padding: 7px 10px; }
+  .inventory-bag .inventory-use { height: 30px; }
+  .inventory-bag .inventory-detail__art { width: 65px; height: 65px; }
+  .inventory-bag .inventory-detail__art > img, .inventory-bag .inventory-detail__art > svg, .inventory-bag .inventory-detail__art > span { max-width: 55px; max-height: 55px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inventory-bag *, .inventory-bag *::before, .inventory-bag *::after { transition: none !important; animation: none !important; }
+}
+
+/* Mochila verde/dourada: composição horizontal da referência mm. */
+@media (min-width: 701px) {
+  .inventory-bag {
+    width: min(940px, calc(100vw - 48px), calc((100dvh - 42px) * 1.78));
+    height: auto;
+    aspect-ratio: 1.78 / 1;
+    padding: 13px 18px 17px;
+    grid-template-rows: 82px 58px minmax(0, 1fr);
+    gap: 8px;
+    border: 2px solid #d9aa4f;
+    border-radius: 30px;
+    background: linear-gradient(145deg, #063f3d, #022d31 58%, #063733);
+    box-shadow: 0 18px 65px #000c, inset 0 0 0 2px #0b7165, inset 0 0 0 5px #061f24;
+  }
+  .inventory-bag .inventory-heading {
+    justify-content: center;
+    padding: 0 70px;
+    background: none;
+  }
+  .inventory-bag .inventory-heading::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(510px, 70%);
+    height: 76px;
+    transform: translateX(-50%);
+    border: 2px solid #d8ae59;
+    border-radius: 50% 50% 22px 22px / 48% 48% 30px 30px;
+    background: linear-gradient(180deg, #145e55, #073a39 72%, #062c31);
+    box-shadow: inset 0 1px #ffeaaa77, 0 5px 12px #001a1dcc;
+  }
+  .inventory-bag .inventory-heading__title { z-index: 1; align-self: center; }
+  .inventory-bag .inventory-heading h2 { display: block; color: #fff1c8; font-family: Georgia, serif; font-size: clamp(27px, 3.4cqw, 38px) !important; font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 2px #001b1f, 0 0 8px #e9bd5a66; }
+  .inventory-bag .inventory-close { right: 4px; top: 19px; width: 40px; height: 40px; background: #8e1e18; border: 2px solid #f5cf78; box-shadow: inset 0 0 0 2px #55120f, 0 2px 5px #0009; }
+  .inventory-bag .inventory-close svg { display: block; width: 22px; height: 22px; color: #fff8dc; stroke-width: 3; }
+  .inventory-bag .inventory-tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); justify-self: center; width: min(690px, 78%); gap: 2px; }
+  .inventory-bag .inventory-tabs > button { height: 58px; border-radius: 14px; opacity: 1 !important; box-shadow: none; background-size: contain; }
+  .inventory-bag .inventory-tabs > button[aria-pressed="true"] { transform: translateY(-2px); filter: brightness(1.13); box-shadow: 0 0 13px #ffd8658f; }
+  .inventory-bag .inventory-tabs > button[data-tab="items"] { background-image: url("../../ambiente/aba/men ic/mm/01_Abas/aba_itens.png"); }
+  .inventory-bag .inventory-tabs > button[data-tab="balls"] { background-image: url("../../ambiente/aba/men ic/mm/01_Abas/aba_pokebolas.png"); }
+  .inventory-bag .inventory-tabs > button[data-tab="materials"] { background-image: url("../../ambiente/aba/men ic/mm/01_Abas/aba_materiais.png"); }
+  .inventory-bag .inventory-tabs > button[data-tab="evolution"] { background-image: url("../../ambiente/aba/men ic/mm/01_Abas/aba_evolucao.png"); }
+  .inventory-bag .inventory-tabs > button[data-tab="special"] { background-image: url("../../ambiente/aba/men ic/mm/01_Abas/aba_especiais.png"); }
+  .inventory-bag .inventory-body { grid-template-columns: minmax(220px, .82fr) minmax(0, 1.3fr) 64px; gap: 10px; }
+  .inventory-bag .inventory-panel { border: 1px solid #c6a04f; border-radius: 19px; background: linear-gradient(145deg, #084946ef, #032d30f5); box-shadow: inset 0 0 0 2px #042127, inset 0 0 0 4px #0b6a5e55; }
+  .inventory-bag .inventory-detail { order: 0; padding: 16px 15px 13px; }
+  .inventory-bag .inventory-detail__art { width: 87px; height: 87px; border: 2px solid #f1c45b; border-radius: 16px; background: radial-gradient(circle at 38% 27%, #1a7067, #063538 68%); box-shadow: inset 0 0 0 2px #0a2d31, 0 0 14px #f0bd5077; }
+  .inventory-bag .inventory-detail__art > img, .inventory-bag .inventory-detail__art > svg, .inventory-bag .inventory-detail__art > span { max-width: 75px; max-height: 75px; }
+  .inventory-bag .inventory-detail > h3 { margin: 9px 0 4px; color: #fff0c5; font-family: Georgia, serif; font-size: 20px; }
+  .inventory-bag .inventory-rarity { padding: 2px 10px; color: #fff3cf; background: #124d48; border-color: #d9ac53; }
+  .inventory-bag .inventory-detail__description { justify-content: center; margin-top: 8px; padding: 8px 3px; border-color: #cba95755; }
+  .inventory-bag .inventory-detail__description > p { color: #e9efd8; font-family: Georgia, serif; font-size: 14px; line-height: 1.36; text-align: center; }
+  .inventory-bag .inventory-quantity { margin: 5px 0 8px; }
+  .inventory-bag .inventory-quantity > button { transform: scale(.82); }
+  .inventory-bag .inventory-use { height: 38px; border-color: #ffe394; border-radius: 12px; background: linear-gradient(#1b826a, #09604e); color: #fff3cd !important; box-shadow: inset 0 0 0 2px #0c4e45, inset 0 1px #e8e19a88, 0 2px 0 #052d2c; font-family: Georgia, serif; font-size: 17px !important; text-shadow: 0 2px #06332f; }
+  .inventory-bag .inventory-storage { order: 1; background: #032f32f4; }
+  .inventory-bag .inventory-storage__header { min-height: 32px; padding: 3px 10px; border-color: #caa75688; background: #083e3ce8; }
+  .inventory-bag .inventory-storage__header > h3 { color: #f9e5b2; font-family: Georgia, serif; font-size: 15px; }
+  .inventory-bag .inventory-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 8px 10px 2px; }
+  .inventory-bag .inventory-slot { border: 0; border-radius: 10px; background: url("../../ambiente/aba/men ic/mm/07_Modelos_Vazios/slot_base_sem_icone.png") center / 100% 100% no-repeat; box-shadow: none; }
+  .inventory-bag .inventory-slot.is-selected { background-image: url("../../ambiente/aba/men ic/mm/07_Modelos_Vazios/slot_hover_sem_icone.png"); box-shadow: 0 0 12px #ffd254a8; }
+  .inventory-bag .inventory-slot--empty { opacity: 1; background-image: url("../../ambiente/aba/men ic/mm/07_Modelos_Vazios/slot_sem_item.png"); }
+  .inventory-bag .inventory-slot > b { color: #fff8dc; font-size: 12px; }
+  .inventory-bag .inventory-pagination { height: 30px; padding: 0; gap: 16px; }
+  .inventory-bag .inventory-pagination > span { color: #ffe8af; font-size: 14px; }
+  .inventory-bag .inventory-categories { order: 2; padding: 6px 4px; border-radius: 17px; background: #083d3a; }
+  .inventory-bag .inventory-categories__list { display: flex; flex-direction: column; align-items: center; gap: 3px; overflow-y: auto; }
+  .inventory-bag .inventory-categories__list > button { flex: 0 0 30px; width: 48px; min-height: 30px; border: 1px solid transparent; border-radius: 9px; background: transparent !important; opacity: 1 !important; }
+  .inventory-bag .inventory-categories__list > button svg { display: block; width: 21px; height: 21px; color: #edce7b; filter: drop-shadow(0 2px 1px #001b1e); }
+  .inventory-bag .inventory-categories__list > button[aria-pressed="true"] { border-color: #ffe19a; background: #1a695e !important; box-shadow: 0 0 10px #ffd45eaa, inset 0 0 8px #f5c55b33; }
+  .inventory-bag .inventory-appearance { align-self: center; width: 45px; min-height: 30px; justify-content: center; margin-top: 3px; padding: 3px; border-top: 1px solid #d0ad5d55; }
+  .inventory-bag .inventory-appearance svg { width: 18px; height: 18px; color: #eac56f; }
+  .inventory-bag .inventory-appearance span { display: none; }
+}
+
+/* Referência: moldura vertical à direita, ficha independente à esquerda. */
+@media (min-width: 701px) {
+  .inventory-bag, .inventory-bag.is-expanded {
+    width: min(950px, calc(100vw - 36px), calc((100dvh - 32px) * 1.16));
+    height: min(820px, calc(100dvh - 32px));
+    aspect-ratio: auto;
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .inventory-bag::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    aspect-ratio: 1097 / 1434;
+    max-width: 69%;
+    background: url("../../ambiente/aba/men ic/mm/00_Moldura_e_Paineis/Mochila Mística de Inventário.png") center / 100% 100% no-repeat;
+    pointer-events: none;
+  }
+  .inventory-bag .inventory-heading { position: absolute; inset: 0 0 auto auto; width: 69%; height: 15%; padding: 0; background: none; }
+  .inventory-bag .inventory-heading::before { display: none; }
+  .inventory-bag .inventory-heading__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .inventory-bag .inventory-close { z-index: 3; top: 18%; right: 5%; width: 34px; height: 34px; }
+  .inventory-bag .inventory-tabs { position: absolute; top: 15%; right: 5%; width: 58%; height: 9%; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+  .inventory-bag .inventory-tabs > button { height: 100%; background-color: transparent; }
+  .inventory-bag .inventory-body { position: absolute; inset: 0; display: block; pointer-events: none; }
+  .inventory-bag .inventory-body > * { pointer-events: auto; }
+  .inventory-bag .inventory-detail {
+    position: absolute; left: 0; top: 25%; width: 38%; height: 55%;
+    padding: 18px 20px 16px;
+    border: 0; border-radius: 18px;
+    background: url("../../ambiente/aba/men ic/mm/00_Moldura_e_Paineis/painel_detalhes_limpo.png") center / 100% 100% no-repeat;
+    box-shadow: 0 8px 18px #0008;
+  }
+  .inventory-bag .inventory-detail__description { justify-content: flex-start; }
+  .inventory-bag .inventory-storage {
+    position: absolute; left: 40%; top: 25%; width: 47%; height: 63%;
+    border: 0; border-radius: 12px; background: #002b2bbb; box-shadow: none;
+  }
+  .inventory-bag .inventory-storage__header { min-height: 32px; }
+  .inventory-bag .inventory-search-toggle, .inventory-bag .inventory-expand[aria-pressed="false"] { background: linear-gradient(#21695a, #063b38) !important; border: 1px solid #c9a65a !important; }
+  .inventory-bag .inventory-search-toggle svg, .inventory-bag .inventory-expand[aria-pressed="false"] > svg, .inventory-bag .inventory-expand[aria-pressed="false"] > span { display: block; }
+  .inventory-bag .inventory-expand[aria-pressed="false"] { min-width: 70px; }
+  .inventory-bag .inventory-quantity > button { background: linear-gradient(#21695a, #063b38) !important; border: 1px solid #c9a65a; transform: none; }
+  .inventory-bag .inventory-quantity > button > svg { display: block; width: 16px; height: 16px; }
+  .inventory-bag .inventory-quantity > button:nth-of-type(3) { font-size: 11px; }
+  .inventory-bag .inventory-quantity > input { background: #052b29; }
+  .inventory-bag .inventory-pagination > button:nth-of-type(n) { background: linear-gradient(#21695a, #063b38); border: 1px solid #c9a65a; }
+  .inventory-bag .inventory-pagination svg { display: block; width: 20px; height: 20px; }
+  .inventory-bag .inventory-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); gap: 2px; padding: 2px 5px; }
+  .inventory-bag .inventory-slot { padding: 6px; background-size: 125% 125%; }
+  .inventory-bag .inventory-slot > img, .inventory-bag .inventory-slot > svg, .inventory-bag .inventory-slot > span:not(b) { max-width: 72%; max-height: 78%; }
+  .inventory-bag .inventory-slot > b { right: 13%; bottom: 9%; font-size: 12px; }
+  .inventory-bag .inventory-categories {
+    position: absolute; right: 3%; top: 25%; width: 8%; height: 63%;
+    padding: 6px 2px; background: #003a36ed;
+  }
+  .inventory-bag .inventory-categories__list > button { flex: 1 0 28px; width: 85%; }
+  .inventory-bag .inventory-pagination { flex-shrink: 0; }
+}
+@media (max-width: 700px) {
+  .inventory-bag .inventory-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); }
+}
+
+/* Pokémon: moldura proporcional na escala da Coleção/Pokédex. */
+.revo-game .mob-tab-pokemon {
+  position: relative;
+  flex-shrink: 0;
+  width: min(1080px, calc(100vw - 36px));
+  height: min(606px, calc(100dvh - 36px));
+  padding: 71px min(65px, calc((100vw - 36px) * .06)) 58px;
+  border: 0;
+  border-radius: 24px;
+  background: #063d30 url("../../hudd-pokemon.png") center / 100% 100% no-repeat;
+  box-shadow: 0 24px 70px #000c, 0 0 0 1px #f2c56a33;
+  overflow: hidden;
+}
+
+/* Janelas de serviços compartilham a escala da Coleção, sem alterar suas ações. */
+.revo-service-window {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: min(1080px, calc(100vw - 36px));
+  height: min(606px, calc(100dvh - 36px));
+  padding: 71px min(65px, calc((100vw - 36px) * .06)) 58px;
+  background: #2a0b52 url("../../HDD.png") center / 100% 100% no-repeat;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px #000c;
+  overflow: hidden;
+}
+/* Banco e Guilda acompanham a escala do Pokémon; Missões mantém o tamanho atual. */
+.revo-service-window--guild,
+.revo-service-window--bank {
+  width: min(900px, calc(100vw - 36px));
+  height: min(506px, calc(100dvh - 36px));
+  padding: 59px min(54px, calc((100vw - 36px) * .06)) 48px;
+}
+.revo-service-content { height: 100%; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: #d5ad67 #211238; }
+.revo-service-window--bank .revo-service-content { overflow: hidden; }
+.revo-service-close { position: absolute; z-index: 2; right: 7%; top: 12%; width: 32px; height: 32px; border: 1px solid #f0cb7d; border-radius: 10px; color: #ffe9a8; background: #3a1c6e; font-size: 22px; cursor: pointer; }
+.revo-service-window--guild .revo-service-content, .revo-service-window--bank .revo-service-content { padding-top: 35px; box-sizing: border-box; }
+.guild-panel { box-sizing: border-box; box-shadow: inset 0 1px 0 #fff3, 0 6px 18px #0006; }
+.guild-member-avatar { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border: 2px solid #efcb88; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #edc9e5, #775496); color: #fff7dc; font-weight: 900; overflow: hidden; }
+.guild-member-avatar img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.quest-book__header { border: 1px solid #d9b873 !important; border-radius: 12px 12px 0 0 !important; background: linear-gradient(110deg, #3e302d, #251b29) !important; box-shadow: inset 0 1px #f3dba455 !important; }
+.quest-book__header > div { color: #ffe3a4 !important; text-shadow: none !important; font-family: Georgia, serif; font-size: 20px !important; }
+.quest-book__body { border: 1px solid #af8a50 !important; background: #241b20 !important; grid-template-columns: 145px minmax(0, 1fr) minmax(0, 1.15fr) !important; }
+.quest-book__categories { background: linear-gradient(#30252d, #1b1721) !important; border-color: #a7814d !important; }
+.quest-book__list, .quest-book__details { max-height: none !important; }
+.revo-bank-content { box-sizing: border-box; font-family: "Trebuchet MS", sans-serif; }
+.revo-bank-content input { box-sizing: border-box; }
+.revo-bank-content button { cursor: pointer; }
+.revo-bank-content button:disabled { cursor: not-allowed; opacity: .6; }
+@media (max-width: 700px) {
+  .revo-service-window { width: calc(100vw - 12px); height: calc(100dvh - 20px); padding: 10px; border: 2px solid #dfc57d; border-radius: 22px; background: linear-gradient(145deg, #271147, #120827); }
+  .revo-service-window--guild, .revo-service-window--bank { width: calc(100vw - 12px); height: calc(100dvh - 20px); padding: 10px; }
+  .revo-service-close { top: 14px; right: 14px; }
+  .quest-book__body { grid-template-columns: 95px minmax(140px, 1fr) minmax(160px, 1fr) !important; overflow: auto !important; }
+}
+.mob-tab-pokemon__body {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #f0c96f #261049;
+  background:
+    radial-gradient(circle at 11% 8%, #ffc7e622 0 2px, transparent 3px),
+    radial-gradient(circle at 89% 14%, #ffe8a733 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 86%, #d9b9ff22 0 3px, transparent 4px);
+}
+.mob-tab-pokemon__body::-webkit-scrollbar { width: 8px; }
+.mob-tab-pokemon__body::-webkit-scrollbar-track { background: #241043aa; border-radius: 999px; }
+.mob-tab-pokemon__body::-webkit-scrollbar-thumb { background: linear-gradient(#ffe19a, #b87bce); border: 1px solid #6b3b96; border-radius: 999px; }
+@media (max-width: 700px) {
+  .revo-game .mob-tab-pokemon { width: calc(100vw - 12px); height: calc(100dvh - 20px); padding: 10px; border: 2px solid #dfc57d; border-radius: 22px; background: radial-gradient(ellipse at 50% -5%, #36557033, transparent 50%), linear-gradient(145deg, #1c0b3c, #0c0420 55%, #140733); box-shadow: 0 18px 75px #000a, 0 0 0 3px #150a29; }
+  .mob-tab-pokemon__body { overflow-y: auto; }
+  .pokemon-status-portrait { height: 120px !important; }
+  .pokemon-status-portrait__sprite { max-height: 104px !important; }
+}

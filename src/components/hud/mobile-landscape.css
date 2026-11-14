@@ -1,0 +1,206 @@
+/* Touch landscape only. Desktop HUD and portrait layout retain their existing rules. */
+.revo-touch-stick { display: none; }
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 650px) {
+  .revo-hud .revo-mobile-bag { display: none; }
+  .revo-game::after {
+    content: '↻  Gire o celular para jogar de lado';
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    display: grid;
+    place-items: center;
+    padding: 30px;
+    background: #071426ed;
+    color: #ffe3a1;
+    text-align: center;
+    font: bold 20px Georgia, serif;
+    pointer-events: auto;
+  }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  .revo-hud { --hud-scale: 1; }
+  .revo-game .revo-hud-frame { inset: 0 !important; width: 100% !important; height: 100dvh !important; }
+  .revo-hud { width: 100%; height: 100%; transform: none; }
+  .revo-game { --hud-player-width: 170px; --hud-chat-width: 185px; }
+  .revo-hud .revo-panel, .revo-hud .revo-resource { border-color: #6f9da688; background-color: #091b2d; box-shadow: 0 2px 8px #0008; }
+  .revo-hud .revo-player { top: max(5px, env(safe-area-inset-top)); left: max(7px, env(safe-area-inset-left)); width: 170px; height: 54px; padding: 5px 5px 5px 48px; border-radius: 16px; }
+  .revo-hud .revo-player__avatar { width: 43px; height: 44px; top: 3px; left: 3px; }
+  .revo-hud .revo-player__avatar > img { width: 38px; height: 38px; }
+  .revo-hud .revo-player__avatar > span { display: none; }
+  .revo-hud .revo-player__name strong { font-size: 11px; }
+  .revo-hud .revo-player__stat { font-size: 8px; grid-template-columns: 16px 1fr 38px; gap: 2px; }
+  .revo-hud .revo-player__stat > b { font-size: 8px; }
+  .revo-hud .revo-resources { top: max(7px, env(safe-area-inset-top)); left: 182px; right: 162px; width: auto; display: flex; flex-wrap: nowrap; gap: 3px; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+  .revo-hud .revo-resources .revo-resource { flex: 1 0 42px; min-width: 0; height: 25px; padding: 2px 4px; gap: 2px; }
+  .revo-hud .revo-resource img, .revo-hud .revo-resource svg { width: 13px; height: 13px; }
+  .revo-hud .revo-resource strong { font-size: 9px; }
+  .revo-hud .revo-systems { top: max(6px, env(safe-area-inset-top)); right: max(7px, env(safe-area-inset-right)); display: flex; gap: 3px; }
+  .revo-hud .revo-systems > .revo-icon { width: 25px; height: 26px; padding: 4px; }
+  .revo-hud .revo-clock { width: auto; height: 26px; padding: 2px 5px; font-size: 9px; }
+  .revo-hud .revo-clock svg { display: none; }
+  .revo-hud .revo-team { top: 68px; left: max(7px, env(safe-area-inset-left)); width: 132px; max-height: calc(100% - 190px); gap: 3px; }
+  .revo-hud .revo-team__header { min-height: 26px; padding: 2px 4px; }
+  .revo-hud .revo-team__list { gap: 3px; }
+  .revo-hud .revo-team__card { min-height: 42px; grid-template-columns: 30px minmax(0, 1fr); gap: 4px; padding: 3px; border-radius: 9px; }
+  .revo-hud .revo-team__portrait { width: 29px; height: 29px; }
+  .revo-hud .revo-team__portrait > img { width: 26px; height: 26px; }
+  .revo-hud .revo-team__name > strong { font-size: 9px; }
+  .revo-hud .revo-team__tier, .revo-hud .revo-team__stat--xp, .revo-hud .revo-team__stat--hunger { display: none; }
+  .revo-hud .revo-team__stat { grid-template-columns: 12px minmax(0, 1fr); gap: 2px; }
+  .revo-hud .revo-team__stat > b { display: none; }
+  .revo-hud .revo-team.is-compact { width: 45px; }
+  .revo-hud .revo-team.is-compact .revo-team__card { min-height: 40px; }
+  .revo-hud .revo-right-stack { top: 68px; right: max(7px, env(safe-area-inset-right)); width: 144px; max-height: calc(100% - 160px); gap: 5px; overflow-y: auto; scrollbar-width: thin; pointer-events: auto; }
+  .revo-hud .revo-minimap { flex: none; }
+  .revo-hud .revo-minimap .revo-panel__header { min-height: 25px; padding: 2px 5px; }
+  .revo-hud .revo-minimap .revo-panel__header > strong { font-size: 9px; }
+  .revo-hud .revo-channel, .revo-hud .revo-minimap > footer { display: none; }
+  .revo-hud .revo-minimap__body { padding: 2px 4px 4px; gap: 3px; }
+  .revo-hud .revo-minimap__preview { aspect-ratio: 2.2; }
+  .revo-hud .revo-minimap__tools .revo-icon { width: 24px; height: 24px; padding: 4px; }
+  .revo-hud .revo-quests { display: none; }
+  .revo-hud .revo-quests .revo-panel__header { min-height: 25px; padding: 2px 5px; }
+  .revo-hud .revo-quests__body { padding: 5px; }
+  .revo-hud .revo-quests__emblem, .revo-hud .revo-quests__region { display: none; }
+  .revo-hud .revo-quests > footer { padding: 2px 5px; }
+  .revo-hud .revo-chat { left: calc(120px + env(safe-area-inset-left)); bottom: calc(92px + env(safe-area-inset-bottom)); width: 185px; height: 100px; }
+  .revo-hud .revo-chat.is-collapsed { left: calc(120px + env(safe-area-inset-left)); bottom: calc(8px + env(safe-area-inset-bottom)); width: 83px; height: 38px; }
+  .revo-hud .revo-chat.is-collapsed .revo-chat__tabs { height: 100%; }
+  .revo-hud .revo-chat.is-collapsed .revo-chat__tabs::before { content: '💬 CHAT'; flex: 1; font-size: 9px; text-align: center; }
+  .revo-hud .revo-chat.is-collapsed .revo-chat__tabs [role="tab"] { display: none; }
+  .revo-hud .revo-touch-stick { position: absolute; display: block; left: max(10px, env(safe-area-inset-left)); bottom: calc(10px + env(safe-area-inset-bottom)); width: 100px; height: 100px; border: 2px solid #aacbd2a6; border-radius: 50%; background: radial-gradient(circle, #28465cbb, #061525a6 70%); box-shadow: inset 0 0 16px #a6ddeb3d, 0 3px 12px #0009; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; z-index: 130; }
+  .revo-hud .revo-touch-stick__ring { position: absolute; inset: 23px; border: 1px dashed #c2d8dc85; border-radius: 50%; pointer-events: none; }
+  .revo-hud .revo-touch-stick__knob { position: absolute; left: 33px; top: 33px; width: 30px; height: 30px; border: 2px solid #d4eced; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8cb6bc, #345d70 70%); box-shadow: 0 2px 7px #000c; pointer-events: none; }
+  .revo-hud .revo-chat__tabs { padding: 1px 3px; }
+  .revo-hud .revo-chat__tabs button { padding: 3px 1px; }
+  .revo-hud .revo-chat__feed { font-size: 9px; padding: 2px 4px; }
+  .revo-hud .revo-chat__input { margin: 2px 4px; }
+  .revo-hud .revo-chat__input input { padding: 3px; }
+  .revo-hud .revo-chat__input > button { width: 23px; height: 23px; }
+  /* O dock do PC não aparece no jogo mobile: tudo fica dentro do MENU. */
+  .revo-hud .revo-dock { display: none; }
+  .revo-hud .revo-actions { right: max(7px, env(safe-area-inset-right)); bottom: calc(6px + env(safe-area-inset-bottom)); width: 160px; height: 99px; transform: none; }
+  .revo-hud .revo-auto, .revo-hud .revo-potion { right: 0; bottom: 0; width: 48px; }
+  .revo-hud .revo-potion { right: 54px; }
+  .revo-hud .revo-auto > span, .revo-hud .revo-potion > span { width: 44px; height: 44px; }
+  .revo-hud .revo-auto > span > img, .revo-hud .revo-potion > span > img { width: 24px; height: 24px; }
+  .revo-hud .revo-auto > strong, .revo-hud .revo-potion > strong { font-size: 9px; padding: 1px 5px; margin-top: -6px; }
+  .revo-hud .revo-actions__secondary { right: 0; bottom: 66px; flex-direction: row; gap: 2px; }
+  .revo-hud .revo-actions__secondary .revo-icon { width: 30px; height: 30px; padding: 5px; }
+  .revo-hud .revo-main-menu-trigger { left: auto; right: max(8px, env(safe-area-inset-right)); bottom: calc(112px + env(safe-area-inset-bottom)); width: 48px; height: 48px; font-size: 9px; }
+  .revo-hud .revo-main-menu-trigger svg { width: 22px; height: 22px; }
+  .revo-hud .revo-main-menu-trigger__art { width: 30px; height: 30px; }
+  .revo-hud .revo-mobile-bag { position: absolute; right: calc(62px + env(safe-area-inset-right)); bottom: calc(112px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 2px; gap: 0; border: 2px solid #e2bc69; border-radius: 50%; background: radial-gradient(circle at 38% 25%, #285945, #082c28 75%); box-shadow: inset 0 0 0 2px #061c1c, 0 3px 10px #000a; color: #fff3c7; font: bold 8px Georgia, serif; pointer-events: auto; z-index: 130; }
+  .revo-hud .revo-mobile-bag img { display: block; width: 31px; height: 31px; object-fit: contain; image-rendering: auto; }
+  .revo-hud .revo-target { top: 33px; height: 36px; }
+  .revo-hud .revo-notices { top: 36px; right: 7px; max-height: 55vh; overflow-y: auto; }
+  .revo-game .mob-targetcard { top: 34px !important; left: 50% !important; transform: translateX(-50%) !important; max-width: 170px; }
+  .revo-game .mob-targetlist { right: 160px !important; bottom: 74px !important; max-height: 40dvh; }
+  .revo-game .mob-taboverlay { inset: 4px max(5px, env(safe-area-inset-right)) 4px max(5px, env(safe-area-inset-left)) !important; top: 4px !important; bottom: 4px !important; left: max(5px, env(safe-area-inset-left)) !important; right: max(5px, env(safe-area-inset-right)) !important; width: auto !important; height: auto !important; transform: none !important; padding: 6px !important; overflow: auto !important; }
+  .revo-game .mob-taboverlay.revo-inventory-overlay { inset: 0 !important; width: 100% !important; height: 100dvh !important; padding: 5px !important; }
+  .revo-game .revo-inventory, .revo-game .collection-window, .revo-game .mob-tab-pokemon, .revo-game .revo-service-window { max-width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
+  .revo-game .revo-auto-settings { right: 7px !important; bottom: 73px !important; max-height: calc(100dvh - 85px); overflow-y: auto; }
+  .revo-main-menu-backdrop { justify-content: center; padding: max(5px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); background: #06101edf; }
+  .revo-main-menu-backdrop .revo-main-menu { width: min(680px, 100%); height: 100%; max-height: 100%; aspect-ratio: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 26px repeat(3, minmax(0, 1fr)) auto; gap: 4px; padding: 58px 26px 36px; overflow-y: auto; border: 0; border-radius: 18px; background: #063d30 url("../../hudd-pokemon.png") center / 100% 100% no-repeat !important; box-shadow: 0 12px 30px #000a; filter: none; animation: none; }
+  .revo-main-menu-backdrop .revo-main-menu::before { content: 'MENU PRINCIPAL'; position: relative; inset: auto; grid-column: 1 / 4; grid-row: 1; display: flex; align-items: center; justify-content: flex-start; background: none; color: #ffe4a4; font: bold 13px Georgia, serif; letter-spacing: 1px; backdrop-filter: none; -webkit-mask-image: none; mask-image: none; }
+  .revo-main-menu-backdrop .revo-main-menu::after { display: none; }
+  .revo-main-menu-backdrop .revo-main-menu__close { position: relative; grid-column: 4; grid-row: 1; top: auto; left: auto; width: 100%; height: 28px; background: #a84442; border: 1px solid #ffcf99; border-radius: 9px; animation: none; }
+  .revo-main-menu-backdrop .revo-main-menu__close::after { content: 'FECHAR ✕'; color: white; font-size: 10px; font-weight: bold; }
+  .revo-main-menu-backdrop .revo-main-menu__item { position: relative; left: auto; top: auto; width: 100%; height: 100%; min-height: 48px; transform: none; gap: 1px; padding: 2px; font-size: clamp(9px, 1.9dvh, 12px); border: 1px solid #a9c876; border-radius: 9px; background: linear-gradient(#133e36e8, #062922f2); white-space: normal; text-align: center; }
+  .revo-main-menu-backdrop .revo-main-menu__item:nth-of-type(n+2):nth-of-type(-n+5) { grid-row: 2; }
+  .revo-main-menu-backdrop .revo-main-menu__item:nth-of-type(n+6):nth-of-type(-n+9) { grid-row: 3; }
+  .revo-main-menu-backdrop .revo-main-menu__item:nth-of-type(n+10):nth-of-type(-n+13) { grid-row: 4; }
+  .revo-main-menu-backdrop .revo-main-menu__symbol { width: auto; height: min(8dvh, 37px); aspect-ratio: 1; }
+  .revo-main-menu-backdrop .revo-main-menu__item:nth-of-type(12) .revo-main-menu__label { font-size: inherit; }
+  .revo-main-menu-backdrop .revo-main-menu__extras { position: relative; grid-column: 1 / -1; grid-row: 5; left: auto; right: auto; bottom: auto; gap: 3px; opacity: 1; animation: none; }
+  .revo-main-menu-backdrop .revo-main-menu__extras button { min-height: 26px; padding: 2px 6px; font-size: 10px; border-width: 1px; border-radius: 7px; }
+  .revo-main-menu-backdrop .revo-main-menu__extras button img { width: 14px; height: 14px; }
+
+  /* A moldura ocupa a tela toda; somente as listas internas rolam. */
+  .revo-main-menu-backdrop { padding: 0; }
+  .revo-main-menu-backdrop .revo-main-menu { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; grid-template-rows: 26px repeat(3, minmax(0, 1fr)) 30px; padding: max(53px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-right)) max(27px, env(safe-area-inset-bottom)) max(28px, env(safe-area-inset-left)); overflow: hidden; }
+  .revo-main-menu-backdrop .revo-main-menu__symbol { height: min(10dvh, 39px); }
+  .revo-main-menu-backdrop .revo-main-menu__extras { align-items: center; }
+  .revo-main-menu-backdrop .revo-main-menu__extras button { min-height: 28px; }
+
+  .revo-game .mob-taboverlay.revo-inventory-overlay { padding: 0 !important; background: #060e1be8 !important; }
+  .revo-game .mob-tab-pokemon, .revo-game .collection-window,
+  .revo-game .revo-service-window--guild, .revo-game .revo-service-window--bank {
+    width: 100vw; max-width: none; height: 100dvh; max-height: none;
+    flex: 0 0 auto; border-radius: 0;
+    padding: max(34px, env(safe-area-inset-top)) max(31px, env(safe-area-inset-right)) max(25px, env(safe-area-inset-bottom)) max(31px, env(safe-area-inset-left));
+  }
+  .revo-game .revo-service-window--guild, .revo-game .revo-service-window--bank { padding-top: max(34px, env(safe-area-inset-top)); }
+  .revo-game .revo-service-window--guild .revo-service-content, .revo-game .revo-service-window--bank .revo-service-content { padding-top: 0; }
+  .revo-game .revo-service-close { top: 7px; right: 17px; min-width: 36px; min-height: 32px; }
+
+  /* Coleção e Pokédex mantêm as três colunas do PC, com espaço real para cards e detalhes. */
+  .revo-game .collection-window { grid-template-rows: 28px 32px minmax(0, 1fr); gap: 4px; }
+  .revo-game .collection-window .inventory-heading { padding: 0 36px; }
+  .revo-game .collection-window .inventory-heading__title { height: 28px; }
+  .revo-game .collection-window .inventory-heading h2 { font-size: 18px; }
+  .revo-game .collection-window .inventory-close { top: 5px; right: 16px; width: 34px; height: 32px; }
+  .revo-game .collection-tabs { margin: 0; gap: 5px; }
+  .revo-game .collection-tabs > button { font-size: 10px; padding: 2px; }
+  .revo-game .collection-body { grid-template-columns: minmax(105px, 15%) minmax(0, 1fr) minmax(160px, 24%); grid-template-rows: minmax(0, 1fr); gap: 6px; }
+  .revo-game .collection-sidebar { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+  .revo-game .collection-sidebar > button { min-height: 26px; flex-shrink: 0; padding: 3px 5px; }
+  .revo-game .collection-main { gap: 4px; overflow: hidden; }
+  .revo-game .collection-progress { min-height: 32px; padding: 2px 6px; }
+  .revo-game .collection-progress > svg { width: 20px; height: 20px; }
+  .revo-game .collection-progress__row { margin-top: 2px; }
+  .revo-game .collection-progress__row > div { height: 10px; }
+  .revo-game .collection-toolbar { min-height: 28px; }
+  .revo-game .collection-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  .revo-game .collection-card__select > img, .revo-game .collection-card__select > .collection-sheet { max-height: 58px; }
+  .revo-game .collection-pagination { height: 25px; }
+  .revo-game .collection-detail { min-height: 0; padding: 5px; }
+  .revo-game .collection-detail > header { min-height: 23px; }
+  .revo-game .collection-types { min-height: 18px; margin-top: 2px; }
+  .revo-game .collection-portrait { min-height: 30px; max-height: none; }
+  .revo-game .collection-detail__data { min-height: 35px; margin: 2px 0; }
+  .revo-game .collection-details-button { height: 30px; font-size: 12px !important; }
+
+  .revo-game .mob-tab-pokemon__body { height: 100%; overflow-y: auto; }
+  .revo-game .mob-tab-pokemon .mob-syn-grid { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) !important; }
+  .revo-game .pokemon-status-portrait { height: clamp(75px, 23dvh, 110px) !important; }
+
+  /* Banco: cabeçalho menor e câmbio lado a lado, sem rolagem da janela inteira. */
+  .revo-game .revo-bank-content { gap: 5px !important; }
+  .revo-game .revo-bank-content > :first-child { min-height: 59px !important; }
+  .revo-game .revo-bank-content > :first-child > div:last-child { flex-direction: row !important; align-items: end !important; justify-content: space-between !important; padding: 4px 12px !important; }
+  .revo-game .revo-bank-content > :first-child > div:last-child > div:first-child > div:last-child { display: none; }
+  .revo-game .revo-bank-content > :first-child > div:last-child > div:first-child > div:first-child { font-size: 15px !important; }
+  .revo-game .revo-bank-content > :nth-child(2) button { padding: 5px !important; font-size: 10px !important; min-height: 30px; }
+  .revo-game .revo-bank-exchange { height: 100%; align-items: stretch; gap: 8px !important; padding: 4px !important; }
+  .revo-game .revo-bank-exchange > div { min-height: 0; padding: 7px 10px !important; display: grid; grid-template-columns: minmax(0, 1fr) minmax(72px, .7fr); grid-template-rows: auto 1fr 1fr; align-items: center; column-gap: 8px; }
+  .revo-game .revo-bank-exchange > div > div:first-child { grid-column: 1 / -1; margin: 0 !important; }
+  .revo-game .revo-bank-exchange input { grid-column: 1; padding: 5px !important; }
+  .revo-game .revo-bank-exchange > div > div:nth-of-type(2) { grid-column: 2; grid-row: 2; margin: 0 !important; font-size: 10px !important; }
+  .revo-game .revo-bank-exchange button { grid-column: 1 / -1; padding: 5px !important; min-height: 30px; }
+
+  /* Criação de guilda em uma faixa compacta, missões rolando apenas dentro do painel. */
+  .revo-game .revo-service-window--guild .revo-service-content { overflow-y: auto; }
+  .revo-game .guild-panel { padding: 8px !important; }
+  .revo-game .guild-create { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(240px, 1.7fr) minmax(100px, .7fr); gap: 4px 10px; align-items: center; padding: 6px 8px !important; }
+  .revo-game .guild-create > div:first-child { grid-column: 1 / -1; margin: 0 !important; }
+  .revo-game .guild-create__name, .revo-game .guild-create__elements { margin: 0 !important; }
+  .revo-game .guild-create__elements { flex-wrap: nowrap !important; justify-content: center; gap: 4px !important; }
+  .revo-game .guild-create__elements button { width: 36px !important; height: 36px !important; }
+  .revo-game .guild-create__elements img { width: 32px; height: 32px; }
+  .revo-game .guild-create__hint { grid-column: 1 / -1; margin: 0 !important; }
+
+  /* Mochila ligeiramente maior, com alvos de toque maiores para os itens. */
+  .revo-game .inventory-bag { width: min(98vw, calc((100dvh - 8px) * 1.9)); max-width: none; }
+  .revo-game .inventory-bag .inventory-slot { min-width: 38px; min-height: 36px; }
+  .revo-game .inventory-bag .inventory-detail { top: 22%; height: 72%; display: grid; grid-template-columns: 76px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) 28px 34px; gap: 3px 6px; padding: 10px 12px; overflow: hidden; }
+  .revo-game .inventory-bag .inventory-detail__art { grid-column: 1; grid-row: 1 / 4; width: 72px; height: 72px; }
+  .revo-game .inventory-bag .inventory-detail__art > img { max-width: 60px; max-height: 60px; }
+  .revo-game .inventory-bag .inventory-detail > h3 { grid-column: 2; margin: 0; font-size: 13px; text-align: left; }
+  .revo-game .inventory-bag .inventory-rarity { grid-column: 2; justify-self: start; padding: 1px 6px; font-size: 9px; }
+  .revo-game .inventory-bag .inventory-detail__description { grid-column: 2; min-height: 0; margin: 0; padding: 1px; overflow-y: auto; }
+  .revo-game .inventory-bag .inventory-detail__description > p { font-size: 10px; text-align: left; }
+  .revo-game .inventory-bag .inventory-quantity { grid-column: 1 / -1; margin: 0; }
+  .revo-game .inventory-bag .inventory-use { grid-column: 1 / -1; height: 32px; font-size: 13px !important; }
+  .revo-game .mob-tab-pokemon { width: 100vw !important; max-width: none !important; height: 100dvh !important; max-height: none !important; border: 0 !important; border-radius: 0 !important; padding: max(33px, env(safe-area-inset-top)) max(30px, env(safe-area-inset-right)) max(25px, env(safe-area-inset-bottom)) max(30px, env(safe-area-inset-left)) !important; }
+}

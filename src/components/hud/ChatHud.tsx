@@ -7,6 +7,9 @@ type Filter = "all" | "system" | "world" | "captures";
 export function ChatHud({ messages }: { messages: HudMessage[] }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse) and (orientation: landscape) and (max-height: 650px)").matches) setCollapsed(true);
+  }, []);
   const feed = useRef<HTMLDivElement>(null);
   const classify = (message: HudMessage) =>
     ["capture", "cap"].includes(message.kind) ? "captures" :

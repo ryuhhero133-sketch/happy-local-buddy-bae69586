@@ -98,27 +98,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "IDLE MON — Aventura Idle de Monstrinhos" },
-      { name: "description", content: "IDLE MON: capture, evolua e batalhe monstrinhos em uma aventura idle pixel-art estilo GameBoy." },
-      { name: "author", content: "IDLE MON" },
-      { name: "theme-color", content: "#1a0306" },
+      { title: "Poke Emerald Saga" },
+      { name: "description", content: "Poke Emerald Saga: capture, evolua e batalhe Pokémon em uma aventura pixel-art." },
+      { name: "author", content: "Poke Emerald Saga" },
+       { name: "theme-color", content: "#071426" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "IDLE MON" },
-      { property: "og:title", content: "IDLE MON — Aventura Idle de Monstrinhos" },
-      { property: "og:description", content: "IDLE MON: capture, evolua e batalhe monstrinhos em uma aventura idle pixel-art estilo GameBoy." },
+      { name: "apple-mobile-web-app-title", content: "Poke Emerald Saga" },
+      { property: "og:title", content: "Poke Emerald Saga" },
+      { property: "og:description", content: "Capture, evolua e batalhe Pokémon em uma aventura pixel-art." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "IDLE MON — Aventura Idle de Monstrinhos" },
-      { name: "twitter:description", content: "IDLE MON: capture, evolua e batalhe monstrinhos em uma aventura idle pixel-art estilo GameBoy." },
+      { name: "twitter:title", content: "Poke Emerald Saga" },
+      { name: "twitter:description", content: "Capture, evolua e batalhe Pokémon em uma aventura pixel-art." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/83df230b-fd7b-409a-ae69-9f3e05a585a2/id-preview-3ee1b917--761d0e62-e6ea-49aa-8343-99c5e00a533c.lovable.app-1783456476504.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/83df230b-fd7b-409a-ae69-9f3e05a585a2/id-preview-3ee1b917--761d0e62-e6ea-49aa-8343-99c5e00a533c.lovable.app-1783456476504.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/idle-mon-icon.png", type: "image/png" },
-      { rel: "apple-touch-icon", href: "/idle-mon-icon.png" },
+       { rel: "apple-touch-icon", href: "/idle-mon-icon.png" },
+       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
 
@@ -130,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
@@ -148,6 +149,20 @@ import { useState, useEffect } from "react";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    // O servidor Vite local pode reiniciar; um SW de produção não deve transformar
+    // uma falha temporária do localhost na página offline do jogo.
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+      navigator.serviceWorker.getRegistrations().then((registrations) =>
+        Promise.all(registrations.map((registration) => registration.unregister())),
+      ).catch((error) => console.warn("Não foi possível limpar o PWA local:", error));
+      return;
+    }
+    if (location.protocol === "https:") {
+      navigator.serviceWorker.register("/sw.js").catch((error) => console.warn("PWA indisponível:", error));
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

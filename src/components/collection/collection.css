@@ -1,20 +1,38 @@
-.collection-window { width: min(1180px, calc(100vw - 36px)); height: min(660px, calc(100dvh - 36px)); grid-template-rows: 58px 44px minmax(0, 1fr); gap: 10px; padding-inline: 18px; }
-.collection-book { width: 48px; height: 48px; padding: 6px; color: #ffe18d; fill: #8c3fc0; filter: drop-shadow(0 3px 0 #513315); transform: rotate(-10deg); }
-.collection-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-left: 220px; margin-right: 105px; gap: 9px; }
-.collection-tabs > button { font-size: 13px; }
+/* Moldura HDD dourada/roxa: o interior é opaco, por isso entra como fundo. */
+.collection-window {
+  width: min(1080px, calc(100vw - 36px));
+  height: min(606px, calc(100dvh - 36px));
+  padding: 71px min(65px, calc((100vw - 36px) * .06)) 58px;
+  grid-template-rows: 46px 34px minmax(0, 1fr);
+  gap: 6px;
+  border: 0;
+  border-radius: 24px;
+  background: #2a0b52 url("../../HDD.png") center / 100% 100% no-repeat;
+  box-shadow: 0 24px 70px #000c, 0 0 0 1px #f2c56a33;
+}
+/* Título à esquerda para não colidir com o crest central da moldura. */
+.collection-window .inventory-heading { justify-content: flex-start; gap: 10px; padding: 0 22px 0 80px; }
+.collection-window .inventory-heading__rule { display: none; }
+.collection-window .inventory-heading__title { height: 46px; min-width: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.collection-window .inventory-heading__title::after { display: none; }
+.collection-window .inventory-heading h2 { margin: 0; color: #ffe9a8; font-family: Georgia, "Times New Roman", serif; font-size: 24px; letter-spacing: .5px; text-shadow: 0 2px 3px #000c, 0 0 12px #e8b45a55; }
+.collection-window .inventory-close { top: 30px; right: 4px; width: 33px; height: 33px; border: 1px solid #f0cb7d; border-radius: 12px; background: linear-gradient(#5b2c9e, #2a1150); box-shadow: inset 0 0 0 2px #1d0a3e, 0 2px 6px #0009; color: #ffe9a8 !important; }
+.collection-book { width: 42px; height: 42px; padding: 6px; color: #ffe18d; fill: #8c3fc0; filter: drop-shadow(0 3px 0 #513315); transform: rotate(-10deg); }
+.collection-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-left: 186px; margin-right: 92px; gap: 7px; }
+.collection-tabs > button { font-size: 12px; }
 .collection-tabs > button:nth-child(n+2) svg { color: #f5ce5c; }
-.collection-body { min-height: 0; display: grid; grid-template-columns: 220px minmax(0, 1fr) 270px; gap: 13px; }
-.collection-sidebar { padding: 8px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #496b88 transparent; }
-.collection-sidebar > button { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-height: 36px; padding: 7px 10px; border: 1px solid #496b87; border-radius: 9px; background: linear-gradient(#122e46, #07192b); box-shadow: inset 0 1px 0 #a3cbea18; text-align: left; font-size: 12px; font-weight: 700; }
-.collection-sidebar > button svg { width: 22px; height: 22px; color: var(--filter-color); fill: color-mix(in srgb, var(--filter-color) 45%, transparent); filter: drop-shadow(0 1px 2px #0008); }
+.collection-body { min-height: 0; display: grid; grid-template-columns: 176px minmax(0, 1fr) 226px; gap: 10px; }
+.collection-sidebar { padding: 6px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #496b88 transparent; }
+.collection-sidebar > button { display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 32px; padding: 6px 8px; border: 1px solid #496b87; border-radius: 9px; background: linear-gradient(#122e46, #07192b); box-shadow: inset 0 1px 0 #a3cbea18; text-align: left; font-size: 11px; font-weight: 700; }
+.collection-sidebar > button svg { width: 20px; height: 20px; color: var(--filter-color); fill: color-mix(in srgb, var(--filter-color) 45%, transparent); filter: drop-shadow(0 1px 2px #0008); }
 .collection-sidebar > button span { flex: 1; }
 .collection-sidebar > button small { font-size: 11px; color: #d1deee; font-weight: 400; }
 .collection-sidebar > button[aria-pressed="true"] { border-color: #91e3ff; background: linear-gradient(#174572, #1769b6); box-shadow: inset 0 0 0 2px #1a507a, 0 0 12px #1ca6ff88; }
 .collection-sidebar > footer { margin-top: auto; padding: 10px 3px 2px; display: grid; gap: 5px; font-size: 10px; color: #d3c394; text-align: center; }
 .collection-sidebar > footer span { color: #96b3cc; font-size: 9px; }
 .collection-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
-.collection-progress { flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 11px 13px; min-height: 68px; background: linear-gradient(#123a59, #09223c); }
-.collection-progress > svg { width: 40px; height: 40px; color: #f8f5e7; fill: #d52d3e; filter: drop-shadow(0 2px 2px #000); }
+.collection-progress { flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 8px 10px; min-height: 54px; background: linear-gradient(#123a59, #09223c); }
+.collection-progress > svg { width: 32px; height: 32px; color: #f8f5e7; fill: #d52d3e; filter: drop-shadow(0 2px 2px #000); }
 .collection-progress > div { flex: 1; min-width: 0; }
 .collection-progress strong { font-size: 13px; }
 .collection-progress__row { display: flex; align-items: center; gap: 14px; margin-top: 7px; }
@@ -22,7 +40,7 @@
 .collection-progress__row > div span { display: block; height: 100%; min-width: 0; border-radius: 12px; background: linear-gradient(#abff45, #42dc08 55%, #30a808); box-shadow: inset 0 1px 0 #efffa077, 0 0 5px #66e32644; }
 .collection-progress__row b { font-size: 16px; white-space: nowrap; }
 .collection-progress__row em { color: #ffe423; font-size: 18px; font-weight: 900; font-style: normal; }
-.collection-toolbar { display: flex; flex-shrink: 0; gap: 9px; min-height: 38px; }
+.collection-toolbar { display: flex; flex-shrink: 0; gap: 7px; min-height: 32px; }
 .collection-toolbar label { flex: 1; display: flex; align-items: center; min-width: 0; gap: 7px; padding: 5px 9px; border: 1px solid #41698b; border-radius: 9px; box-shadow: inset 0 0 0 3px #0d2e48; background: #061a2c; }
 .collection-toolbar label > svg { width: 18px; height: 18px; }
 .collection-toolbar input { width: 100%; min-width: 0; color: #eff6ff; background: transparent; border: 0; font-size: 12px; outline: none; }
@@ -33,7 +51,7 @@
 .collection-toolbar > button > svg { width: 20px; height: 20px; }
 .collection-filter-options { flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 6px; flex-wrap: wrap; font-size: 10px; }
 .collection-filter-options label { display: inline-flex; align-items: center; gap: 5px; }
-.collection-grid { position: relative; min-height: 0; flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.collection-grid { position: relative; min-height: 0; flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .collection-card { position: relative; min-width: 0; min-height: 0; border: 1px solid #6288a5; border-radius: 13px; background: radial-gradient(ellipse at 50% 65%, color-mix(in srgb, var(--pokemon-color, #386082) 10%, transparent), transparent 65%), linear-gradient(#0e2c43, #041628 80%); box-shadow: inset 0 0 0 2px #081a2c, inset 0 2px 6px #c8edff18, 0 2px 3px #0008; }
 .collection-card.is-selected { border: 2px solid #b8f48c; background: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--pokemon-color) 40%, #092418), #041826 80%); box-shadow: 0 0 9px #79f85a77, inset 0 0 0 2px #183c2b; }
 .collection-card__type { position: absolute; top: 6px; left: 6px; width: 21px; height: 21px; display: grid; place-items: center; z-index: 1; border: 1px solid #bcf0a488; border-radius: 50%; background: color-mix(in srgb, var(--pokemon-color) 70%, #071b25); font-size: 13px; line-height: 1; box-shadow: 0 1px 2px #000; }
@@ -56,8 +74,8 @@
 .collection-no-results { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 20px; text-align: center; background: #05152366; color: #b3c7d9; pointer-events: none; }
 .collection-no-results > strong { font-size: 14px; }
 .collection-no-results > span { font-size: 11px; }
-.collection-pagination { height: 34px; padding: 0; }
-.collection-detail { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 12px 10px; }
+.collection-pagination { height: 28px; padding: 0; }
+.collection-detail { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 9px 8px; }
 .collection-detail > header { position: relative; min-height: 30px; flex-shrink: 0; display: flex; gap: 7px; align-items: center; padding-right: 26px; }
 .collection-detail > header > svg { width: 23px; height: 23px; color: var(--pokemon-color); }
 .collection-detail h3 { margin: 0; font-size: 15px; line-height: 1.2; overflow-wrap: anywhere; }
@@ -88,7 +106,6 @@
 .collection-summary > div > p { display: flex; justify-content: space-between; border-bottom: 1px solid #49698255; padding: 5px; }
 .collection-summary small { font-size: 10px; color: #94aec5; }
 @media (min-width: 701px) and (max-width: 1100px) {
-  .collection-window { padding-inline: 12px; }
   .collection-body { grid-template-columns: 157px minmax(0, 1fr) 213px; gap: 9px; }
   .collection-tabs { margin-left: 166px; margin-right: 0; }
   .collection-tabs > button { font-size: 11px; gap: 5px; }
@@ -106,7 +123,7 @@
   .collection-toolbar select { width: 106px; font-size: 9px; padding-inline: 3px; }
   .collection-toolbar > button { font-size: 0; padding: 5px; }
   .collection-toolbar input { font-size: 10px; }
-  .collection-progress { gap: 7px; padding: 8px; min-height: 62px; }
+  .collection-progress { gap: 7px; padding: 7px 8px; min-height: 50px; }
   .collection-progress > svg { width: 28px; height: 28px; }
   .collection-progress strong { font-size: 11px; }
   .collection-progress__row { gap: 8px; }
@@ -117,18 +134,21 @@
   .collection-details-button { font-size: 14px !important; }
 }
 @media (min-width: 701px) and (max-height: 650px) {
-  .collection-window { grid-template-rows: 48px 38px minmax(0, 1fr); gap: 7px; padding-bottom: 10px; }
-  .collection-window .inventory-heading__title { height: 49px; }
-  .collection-sidebar > button { min-height: 29px; padding-block: 4px; }
+  .collection-window { grid-template-rows: 44px 34px minmax(0, 1fr); gap: 6px; }
+  .collection-window .inventory-heading__title { height: 44px; }
+  .collection-window .inventory-heading h2 { font-size: 22px; }
+  .collection-sidebar > button { min-height: 27px; padding-block: 4px; }
   .collection-sidebar { gap: 3px; }
-  .collection-progress { min-height: 56px; padding-block: 6px; }
+  .collection-progress { min-height: 50px; padding-block: 6px; }
   .collection-main { gap: 7px; }
-  .collection-detail { padding: 8px; }
+  .collection-detail { padding: 7px; }
   .collection-detail__data > p { padding-block: 4px; }
 }
 @media (max-width: 700px) {
-  .collection-window { grid-template-rows: 48px 38px minmax(0, 1fr); gap: 7px; }
+  .collection-window { grid-template-rows: 48px 38px minmax(0, 1fr); gap: 7px; padding: 0 10px 10px; border: 2px solid #dfc57d; border-radius: 34px 34px 27px 27px; background: radial-gradient(ellipse at 50% -5%, #36557033, transparent 50%), linear-gradient(145deg, #1c0b3c, #0c0420 55%, #140733); box-shadow: 0 18px 75px #000a, 0 0 0 3px #150a29; }
+  .collection-window .inventory-heading { justify-content: center; padding: 0; }
   .collection-window .inventory-heading__title { height: 48px; }
+  .collection-window .inventory-close { top: 6px; right: 2px; border: 1px solid #c6b274; border-radius: 11px; background: linear-gradient(#23394b, #0a1c2b); color: #ffe18b !important; }
   .collection-book { width: 33px; height: 33px; }
   .collection-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 1fr; margin: 0; gap: 4px; }
   .collection-tabs > button { font-size: 9px; gap: 3px; }
@@ -184,3 +204,36 @@
   .collection-details-button { height: 29px; }
   .collection-progress { min-height: 43px; }
 }
+
+/* Paleta interna da Coleção/Pokédex harmonizada com a moldura HDD. */
+.collection-window .inventory-panel { border: 1px solid #cf9f4b; border-radius: 14px; background: linear-gradient(150deg, rgba(64, 26, 116, .86), rgba(28, 10, 58, .92)); box-shadow: inset 0 0 0 2px rgba(24, 8, 50, .6), inset 0 2px 8px #0007, 0 4px 12px #0005; }
+.collection-window .collection-tabs > button { gap: 7px; border: 1px solid #b98d3f; border-radius: 12px; background: linear-gradient(#3b1c74, rgba(36, 16, 72, .8)); box-shadow: inset 0 0 0 2px #1a0a3a, inset 0 2px 5px #ffffff14; color: #ffeecb; }
+.collection-window .collection-tabs > button svg { color: #ffd77f; }
+.collection-window .collection-tabs > button[aria-pressed="true"] { border-color: #ffe08f; background: linear-gradient(#7b4bc4, #4b2590); box-shadow: inset 0 0 0 2px #3a1a72, 0 0 12px #ffcf5e77; color: #fff6dd; }
+.collection-window .collection-tabs > button:nth-child(n+2) svg { color: #ffd77f; }
+.collection-window .collection-sidebar > button { border-color: #a98544; background: linear-gradient(#3a1c6e, #210f45); box-shadow: inset 0 1px 0 #f7dd9a22; }
+.collection-window .collection-sidebar > button[aria-pressed="true"] { border-color: #ffe08f; background: linear-gradient(#6d40b6, #46218a); box-shadow: inset 0 0 0 2px #381a6e, 0 0 10px #ffcf5e66; }
+.collection-window .collection-sidebar > footer { border: 1px solid #cf9f4b66; border-radius: 10px; background: rgba(24, 8, 50, .85); }
+.collection-window .collection-sidebar > footer span { color: #d9b9ff; }
+.collection-window .collection-progress { color: #ffeed0; }
+.collection-window .collection-progress__row > div { border-color: #c9a65d; background: #1c0b3c; }
+.collection-window .collection-toolbar label { border-color: #a98544; box-shadow: inset 0 0 0 3px #2a1150; background: #1c0b3c; }
+.collection-window .collection-toolbar select, .collection-window .collection-toolbar > button, .collection-window .collection-filter-options button, .collection-window .collection-filter-options select { border-color: #b18c48; background: linear-gradient(#3a1c6e, #1f0e43); color: #ffeed0; }
+.collection-window select option { background: #2a1150; }
+.collection-window .collection-card { border-color: #a5834b; background: radial-gradient(ellipse at 50% 65%, color-mix(in srgb, var(--pokemon-color, #7b4bc4) 14%, transparent), transparent 65%), linear-gradient(#2e1459, #170935 85%); box-shadow: inset 0 0 0 2px #1a0a3a, inset 0 2px 6px #ffffff14, 0 2px 3px #0008; }
+.collection-window .collection-card.is-selected { border-color: #ffe08f; box-shadow: 0 0 10px #ffcf5e88, inset 0 0 0 2px #4a2b86; }
+.collection-window .collection-card__select > small { color: #d9b9ff; }
+.collection-window .collection-no-results { background: #1c0b3c66; color: #e3cfae; }
+.collection-window .collection-detail__data { border-color: #a98544; background: rgba(24, 8, 50, .8); }
+.collection-window .collection-detail__data > p { border-bottom-color: #a9854444; }
+.collection-window .collection-detail__tools > button { border-color: #b18c48; background: linear-gradient(#3a1c6e, #210f45); color: #ffeed0; }
+.collection-window .collection-no-selection { color: #e0cdf5; }
+.collection-window .collection-pagination > span { padding: 3px 12px; border: 1px solid #e3b95f; border-radius: 9px; background: rgba(24, 8, 50, .92); color: #ffeecb; font-weight: 700; }
+.collection-window .collection-pagination > button { border: 1px solid #c9a65d; background: linear-gradient(#3a1c6e, #1f0e43); }
+.collection-window .collection-summary p { color: #e0cdf5; }
+.collection-window .collection-inline-details { color: #e0cdf5; }
+
+/* Cards um pouco maiores dentro da aba reduzida. */
+.collection-window .collection-card__select { padding: 22px 4px 6px; }
+.collection-window .collection-card__select > img, .collection-window .collection-card__select > .collection-sheet { width: min(94%, 96px); max-width: min(94%, 96px); max-height: 110px; }
+.collection-window .collection-card__select > strong { font-size: 12px; }

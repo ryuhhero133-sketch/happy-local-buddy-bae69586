@@ -1,0 +1,10 @@
+PACOTE HUD MOCHILA ROXA - POKE EMERALD SAGA
+
+Arquivos PNG RGBA individuais extraídos da imagem original (1536x1024).
+Cada imagem tem exterior transparente; botões mantêm seus próprios fundos coloridos.
+Há recortes inteiros de alguns componentes, pois a arte original era achatada em uma imagem só.
+Não são camadas-fonte recuperadas do original: alguns recortes com ornamentos podem manter pixels do fundo nas bordas.
+Para montar no jogo, use o arquivo posicoes_originais.json; x/y são posições relativas à arte de referência.
+Use 01_Molduras/moldura_com_fundo_limpo.png como base; 02_Cabecalho/topo_ornamental_completo.png como cabeçalho,
+e sobreponha os tabs, botões, slots e ícones PNG individuais.
+Prefira texto em HTML/CSS em versões futuras para inventário dinâmico e localização.

@@ -233,6 +233,9 @@ import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
+import { ElementalSynergyScreen } from "@/components/ElementalSynergyScreen";
+import { CRYSTAL_MAX_LEVEL, CRYSTAL_NODES, CRYSTAL_TIER_NODES, crystalBonuses, crystalCost, crystalTierBonuses, crystalTierCost, type CrystalElement, type CrystalNetwork, type CrystalTier, type CrystalTiers } from "@/game/elementalNetwork";
+import synergyDockIcon from "@/assets/synergy2/c-core.png";
 import { GuildPanel } from "@/components/GuildPanel";
 import { QuestBookPanel } from "@/components/QuestBookPanel";
 import type { Guild, GuildElement } from "@/game/guild";
@@ -485,10 +488,18 @@ import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Tor
 import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
 import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.png";
 import laboratorioUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio.png";
+import mapaIniUrl from "@/ambiente/mascara colisao/mapa original/ini.png";
+import editorSnowTreeUrl from "@/ambiente/editsprite/ARV NV.png";
+import editorGrassUrl from "@/ambiente/editsprite/ARV1.gif";
+import editorTreeUrl from "@/ambiente/editsprite/DH.png";
+import editorTreeVariantUrl from "@/ambiente/editsprite/c0406398-d011-45d5-a577-e36db41a2466 (2).png";
+import editorBushUrl from "@/ambiente/editsprite/MY.png";
 import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.png";
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
 import saUrl from "@/ambiente/mascara colisao/sa.png";
+import arvUrl from "@/skill/srg/arv.png";
+import arvMapDefault from "@/game/maps/arv.default.json";
 import { isMapBlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
@@ -858,6 +869,8 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 
 const IDLE_KEY = "rubym.idle.v1";
+const MAP_EDITOR_KEY = "rubym.map-editor.v1";
+const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
@@ -1019,6 +1032,8 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapa_orange: { name: "Mapa Orange", diff: "Difícil+", bg: mapaOrangeUrl, rate: 2.2, minLevel: 60, maxLevel: 100, element: "Fogo", stars: 3 },
   elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   laboratorio: { name: "Laboratório", diff: "Especial", bg: laboratorioUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  ini: { name: "INI (Teste)", diff: "Exploração", bg: mapaIniUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
+  arv: { name: "arv", diff: "Exploração", bg: arvUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
   // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
   iceblow: { name: "Iceblow", diff: "Especial", bg: PROF_MAP_BY_ID.iceblow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 2 },
@@ -1700,6 +1715,48 @@ const HEAL_SHEET = "fada";
     return ordered[0];
   };
 
+type EditorObstacle = Obstacle & { name: string; assetId?: string; baseW?: number; baseH?: number; harvestable?: boolean; harvestSpecies?: Species; choppingUntil?: number; choppedAt?: number };
+const EMPTY_EDITOR_OBSTACLES: EditorObstacle[] = [];
+type EditorPokemonSpawn = { id: number; x: number; y: number; species: Species; level: number; rarity: Rarity; radius: number; respawnSeconds?: number; sizePercent?: number; raid?: boolean };
+type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; harvestable?: boolean };
+const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
+  { id: "casa1", name: "Casa 1", src: casa1Url, w: 140, h: 120, blocks: true, collideR: 38 },
+  { id: "casa2", name: "Casa 2", src: casa2Url, w: 140, h: 120, blocks: true, collideR: 38 },
+  { id: "arvore", name: "Árvore", src: treeOakUrl, w: 110, h: 124, blocks: false, collideR: 0 },
+  { id: "pinheiro", name: "Pinheiro", src: treePineUrl, w: 90, h: 132, blocks: false, collideR: 0 },
+  { id: "arvore_madeira", name: "Árvore de madeira", src: treeFullUrl, w: 150, h: 150, blocks: false, collideR: 0, harvestable: true },
+  { id: "pedra", name: "Pedra", src: rockBoulderUrl, w: 90, h: 78, blocks: true, collideR: 20 },
+  { id: "mato", name: "Mato", src: matoFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.08 } },
+  { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
+  { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
+  { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
+  { id: "editor_snow_tree", name: "Pinheiro nevado", src: editorSnowTreeUrl, w: 157, h: 207, blocks: false, collideR: 0 },
+  { id: "editor_grass", name: "Capim", src: editorGrassUrl, w: 140, h: 140, blocks: false, collideR: 0 },
+  { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
+  { id: "editor_tree_variant", name: "Árvore verde 2", src: editorTreeVariantUrl, w: 173, h: 211, blocks: false, collideR: 0 },
+  { id: "editor_bush", name: "Moita", src: editorBushUrl, w: 183, h: 134, blocks: false, collideR: 0 },
+];
+function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[]> {
+  if (!raw || typeof raw !== "object") return {};
+  return Object.fromEntries(Object.entries(raw as Record<string, unknown>).map(([mapId, objects]) => [mapId,
+    Array.isArray(objects) ? objects.map((saved: EditorObstacle) => {
+      const asset = MAP_EDITOR_ASSETS.find((item) => item.id === saved.assetId || item.src === saved.src);
+      if (!asset) return saved;
+      const hasSize = typeof saved.baseW === "number" && typeof saved.baseH === "number";
+      return { ...saved, src: asset.src, assetId: asset.id, name: asset.name,
+        w: hasSize ? saved.w : asset.w, h: hasSize ? saved.h : asset.h, baseW: hasSize ? saved.baseW : asset.w,
+        baseH: hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
+        collideR: saved.collideR ?? asset.collideR, bgAnim: asset.bgAnim,
+        harvestable: saved.harvestable ?? asset.harvestable, harvestSpecies: saved.harvestSpecies ?? "pinsir" };
+    }) : [],
+  ]));
+}
+// Edição publicada do mapa ARV. O localStorage continua tendo prioridade quando
+// o jogador já possuir uma edição própria para não sobrescrevê-la.
+const DEFAULT_MAP_EDITOR_OBJECTS = normalizeMapEditorObjects({ arv: arvMapDefault.objects });
+const DEFAULT_MAP_EDITOR_SPAWNS: Record<string, EditorPokemonSpawn[]> = {
+  arv: arvMapDefault.spawns as unknown as EditorPokemonSpawn[],
+};
 // ============ Obstáculos com colisão ============
 type Obstacle = {
   id: number;
@@ -1717,6 +1774,8 @@ type Obstacle = {
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
+  // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
+  if (mapId === "arv") return [];
   // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
   if (mapId === "arena" || mapId === "arena" || mapId === "arena" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
   // Revoland (mapinha11): colisão invisível no lago (3 círculos ao longo da água)
@@ -2058,6 +2117,9 @@ type IdleState = {
   seenSpecies: Species[];
   collection?: CollectionEntry[];
   items: Record<string, number>;
+  /** Rede de cristais: separada da sinergia entre Pokémon do time. */
+  crystalNetwork?: CrystalNetwork;
+  crystalTiers?: CrystalTiers;
   bank: { gold: number; crystals: number };
   gold?: number;
   crystals?: number;
@@ -2711,8 +2773,16 @@ function IdlePage() {
     const entry = uid ? (state.collection ?? []).find((p) => p.uid === uid && p.event === "ancestral") : null;
     return entry?.traits ?? [];
   };
-  const computeCombatSynergies = (currentTeam: PetInstance[]) =>
-    computeTeamSynergies(currentTeam, activeAncestralTraits());
+  const computeCombatSynergies = (currentTeam: PetInstance[]) => {
+    const pack = computeTeamSynergies(currentTeam, activeAncestralTraits());
+    const crystal = crystalBonuses(idleRef.current.crystalNetwork);
+    const tiers = crystalTierBonuses(idleRef.current.crystalTiers);
+    pack.hpMult += crystal.hpMult + tiers.hpMult;
+    pack.dmgMult += crystal.dmgMult + tiers.dmgMult;
+    pack.defMult += crystal.defMult + tiers.defMult;
+    pack.atkSpeedMult += crystal.atkSpeedMult;
+    return pack;
+  };
   const benchRef = useRef(restingBench);
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
@@ -3214,6 +3284,48 @@ const confirmName = () => {
   const [statsCardPet, setStatsCardPet] = useState<PetInstance | null>(null);
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
+  const [mapEditorOpen, setMapEditorOpen] = useState(false);
+  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon">("sprites");
+  const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
+  const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
+  const [mapEditorSelectedSpawnId, setMapEditorSelectedSpawnId] = useState<number | null>(null);
+  const [mapEditorMove, setMapEditorMove] = useState(false);
+  const editorDragRef = useRef<{ kind: "object" | "pokemon"; id: number; pointerId: number; clientX: number; clientY: number; x: number; y: number } | null>(null);
+  const [mapEditorPokemon, setMapEditorPokemon] = useState<Species>("charmander");
+  const [mapEditorPokemonSearch, setMapEditorPokemonSearch] = useState("");
+  const [mapEditorPokemonLevel, setMapEditorPokemonLevel] = useState(1);
+  const [mapEditorPokemonRarity, setMapEditorPokemonRarity] = useState<Rarity>("common");
+  const [mapEditorRespawnSeconds, setMapEditorRespawnSeconds] = useState(60);
+  const [mapEditorPokemonSize, setMapEditorPokemonSize] = useState(100);
+  const [mapEditorPokemonRaid, setMapEditorPokemonRaid] = useState(false);
+  const [mapEditorObjectMode, setMapEditorObjectMode] = useState<"none" | "solid" | "harvest">("none");
+  const [mapEditorHarvestSpecies, setMapEditorHarvestSpecies] = useState<Species>("pinsir");
+  const [mapEditorSpawns, setMapEditorSpawns] = useState<Record<string, EditorPokemonSpawn[]>>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_EDITOR_SPAWNS_KEY);
+      const saved = raw ? JSON.parse(raw) : {};
+      if (!saved || typeof saved !== "object") return DEFAULT_MAP_EDITOR_SPAWNS;
+      const merged = { ...DEFAULT_MAP_EDITOR_SPAWNS, ...saved } as Record<string, EditorPokemonSpawn[]>;
+      // Versões anteriores podiam salvar `arv: []` antes de o mapa padrão
+      // existir. Esse estado vazio não deve esconder a edição publicada.
+      if (!Array.isArray(saved.arv) || saved.arv.length === 0) merged.arv = DEFAULT_MAP_EDITOR_SPAWNS.arv;
+      return merged;
+    } catch { return DEFAULT_MAP_EDITOR_SPAWNS; }
+  });
+  const [mapEditorObjects, setMapEditorObjects] = useState<Record<string, EditorObstacle[]>>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_EDITOR_KEY);
+      const saved = raw ? normalizeMapEditorObjects(JSON.parse(raw)) : {};
+      const merged = { ...DEFAULT_MAP_EDITOR_OBJECTS, ...saved };
+      if (!Array.isArray(saved.arv) || saved.arv.length === 0) merged.arv = DEFAULT_MAP_EDITOR_OBJECTS.arv;
+      return merged;
+    } catch { return DEFAULT_MAP_EDITOR_OBJECTS; }
+  });
+  const mapEditorObjectsRef = useRef(mapEditorObjects);
+  useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
+  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* storage indisponível */ } }, [mapEditorObjects]);
+  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
+  useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -3334,7 +3446,7 @@ const confirmName = () => {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; editorSpawnId?: number; editorSizePercent?: number; editorRaid?: boolean; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const enemiesRef = useRef<Enemy[]>([]);
   useEffect(() => { enemiesRef.current = enemies; }, [enemies]);
@@ -3348,12 +3460,55 @@ const confirmName = () => {
   const [chests, setChests] = useState<Chest[]>([]);
   
   const enemyIdRef = useRef(1);
+  const editorSpawnLastAt = useRef<Record<number, number>>({});
+  // Cada ponto ocupa no máximo um Pokémon. Depois de derrotado/capturado,
+  // reaparece apenas após o intervalo configurado; os pontos são locais ao mapa.
+  useEffect(() => {
+    const syncSpawns = () => {
+      const spawns = mapEditorSpawns[idle.currentMap] ?? [];
+      const ids = new Set(spawns.map((spawn) => spawn.id));
+      const clock = Date.now();
+      setEnemies((current) => {
+        const remaining = current.filter((enemy) => enemy.editorSpawnId == null || (ids.has(enemy.editorSpawnId) && enemy.hp > 0)).map((enemy) => {
+          const spawn = spawns.find((point) => point.id === enemy.editorSpawnId);
+          if (!spawn || (enemy.sp === spawn.species && enemy.level === spawn.level && enemy.rarity === spawn.rarity &&
+            enemy.spawnX === spawn.x && enemy.spawnY === spawn.y && enemy.wanderRadius === spawn.radius &&
+            (enemy.editorSizePercent ?? 100) === (spawn.sizePercent ?? 100) && !!enemy.editorRaid === !!spawn.raid)) return enemy;
+          const combatChanged = enemy.sp !== spawn.species || enemy.level !== spawn.level || enemy.rarity !== spawn.rarity || !!enemy.editorRaid !== !!spawn.raid;
+          const hp = combatChanged ? Math.round(calcIdleMaxHp(makePet(spawn.species, spawn.level, spawn.rarity)) * (spawn.raid ? 2.6 : 1)) : enemy.hp;
+          return { ...enemy, sp: spawn.species, level: spawn.level, rarity: spawn.rarity, hp,
+            maxHp: combatChanged ? hp : enemy.maxHp, elite: !!spawn.raid, editorRaid: !!spawn.raid,
+            editorSizePercent: spawn.sizePercent ?? 100, x: spawn.x, y: spawn.y,
+            spawnX: spawn.x, spawnY: spawn.y, wanderRadius: spawn.radius };
+        });
+        const existing = new Set(remaining.filter((enemy) => enemy.hp > 0).map((enemy) => enemy.editorSpawnId));
+        const created: Enemy[] = [];
+        for (const spawn of spawns) {
+          if (existing.has(spawn.id)) continue;
+          const delay = Math.max(1, spawn.respawnSeconds ?? 60) * 1000;
+          if (editorSpawnLastAt.current[spawn.id] && clock - editorSpawnLastAt.current[spawn.id] < delay) continue;
+          const pet = makePet(spawn.species, spawn.level, spawn.rarity);
+          const hp = Math.round(calcIdleMaxHp(pet) * (spawn.raid ? 2.6 : 1));
+          created.push({ sp: spawn.species, hp, maxHp: hp, id: enemyIdRef.current++, editorSpawnId: spawn.id,
+            editorRaid: !!spawn.raid, editorSizePercent: spawn.sizePercent ?? 100, elite: !!spawn.raid,
+            x: spawn.x, y: spawn.y, face: "left", level: spawn.level, rarity: spawn.rarity,
+            spawnX: spawn.x, spawnY: spawn.y, wanderRadius: spawn.radius, detectionRadius: 230,
+            maxChaseDistance: Math.max(260, spawn.radius * 3), aiState: "WANDER", behavior: "wander", nextSkillAt: clock + 3000 });
+          editorSpawnLastAt.current[spawn.id] = clock;
+        }
+        return created.length || remaining.length !== current.length || remaining.some((enemy, index) => enemy !== current[index]) ? [...remaining, ...created] : current;
+      });
+    };
+    syncSpawns();
+    const timer = window.setInterval(syncSpawns, 1000);
+    return () => window.clearInterval(timer);
+  }, [idle.currentMap, mapEditorSpawns]);
   const chestIdRef = useRef(1);
   const fxIdRef = useRef(1);
   const isFirstSpawnRef = useRef(true);
   const lastSpawnAtRef = useRef(0);
   const orbIdRef = useRef(1);
-  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
+  const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "sinergia" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
   const [hudTargetsOpen, setHudTargetsOpen] = useState(false);
 
   // ===== Guilda & Livro de Missões (painéis externos religados) =====
@@ -4276,6 +4431,27 @@ const confirmName = () => {
       }, 30 * 60_000);
     }, 900);
   };
+  const chopEditorObject = (object: EditorObstacle) => {
+    const mapId = idle.currentMap;
+    const latest = mapEditorObjectsRef.current[mapId]?.find((item) => item.id === object.id);
+    if (!latest?.harvestable || (latest.choppingUntil && latest.choppingUntil > Date.now()) ||
+        (latest.choppedAt && Date.now() - latest.choppedAt < 30 * 60_000)) return;
+    const required = latest.harvestSpecies ?? "pinsir";
+    const hasPokemon = (teamRef.current ?? []).some((pet) => speciesBaseOf(pet.species) === required) ||
+      (idle.caughtSpecies ?? []).some((species) => speciesBaseOf(species as Species) === required);
+    if (!hasPokemon) { pushChat(`🪓 Você precisa de ${required.replace(/_/g, " ")} para coletar aqui!`, "info"); return; }
+    if ((trainerEnergy ?? 0) < 1) { pushChat("⚡ Sem energia para cortar (precisa 1).", "info"); return; }
+    setTrainerEnergy((energy) => Math.max(0, (energy ?? 0) - 1));
+    playSfx(sfxTreeChopUrl);
+    pushFxAt(object.x, object.y - object.h / 2, "🪓", "xp");
+    setMapEditorObjects((prev) => ({ ...prev, [mapId]: (prev[mapId] ?? []).map((item) => item.id === object.id ? { ...item, choppingUntil: Date.now() + 900, choppedAt: undefined } : item) }));
+    window.setTimeout(() => {
+      if (!mapEditorObjectsRef.current[mapId]?.some((item) => item.id === object.id)) return;
+      setMapEditorObjects((prev) => ({ ...prev, [mapId]: (prev[mapId] ?? []).map((item) => item.id === object.id ? { ...item, choppingUntil: undefined, choppedAt: Date.now() } : item) }));
+      setIdle((state) => ({ ...state, items: { ...state.items, lenha: (state.items.lenha ?? 0) + 1 } }));
+      pushChat("🪵 +1 Lenha! (-1 ⚡). O toco volta em 30 min.", "info");
+    }, 900);
+  };
   const renderChopTrees = () => {
     if (idle.currentMap !== "land_revo") return null;
     return (
@@ -5156,6 +5332,21 @@ const confirmName = () => {
 
   // WASD
   const keysRef = useRef<Set<string>>(new Set());
+  const joystickRef = useRef({ x: 0, y: 0 });
+  const onJoystickMove = (x: number, y: number) => {
+    if (mapLoadingRef.current) { joystickRef.current = { x: 0, y: 0 }; return; }
+    joystickRef.current = { x, y };
+    if (x === 0 && y === 0) return;
+    // O movimento por toque usa o mesmo loop, colisão e direção do WASD.
+    autoRef.current = false;
+    setAuto(false);
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    const target = attackTargetIdRef.current;
+    if (target != null) blacklistRef.current.set(target, Date.now() + 25000);
+    if (manualTargetRef.current == null && target != null) setAttackTargetId(null);
+    if (pvpTargetUserIdRef.current != null) setPvpTargetUserId(null);
+  };
   useEffect(() => {
     const kd = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -5194,6 +5385,7 @@ const confirmName = () => {
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
+    arv: arvUrl,
     mapinha5: mapinha5Url,
     mapinha6: mapinha6Url,
     mapinha7: mapinha7Url,
@@ -5226,6 +5418,7 @@ const confirmName = () => {
     mapa_orange: mapaOrangeUrl,
     elementure: elementureUrl,
     laboratorio: laboratorioUrl,
+    ini: mapaIniUrl,
     iceblow: PROF_MAP_BY_ID.iceblow.bg,
     monte_floreto: PROF_MAP_BY_ID.monte_floreto.bg,
     rayow: PROF_MAP_BY_ID.rayow.bg,
@@ -5267,10 +5460,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
+  const FREE_WALK_MAPS = ["arv","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","ini","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
+  const NO_HIGH_EVENT_MAPS = ["arv","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","ini","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -5412,7 +5605,56 @@ const confirmName = () => {
   }, []);
 
   // ---- Obstáculos com colisão (posições determinísticas) ----
-  const obstacles = useMemo(() => buildObstacles(curWorldW, curWorldH, idle.currentMap), [idle.currentMap, curWorldW, curWorldH]);
+  const editorObstacles = mapEditorObjects[idle.currentMap] ?? EMPTY_EDITOR_OBSTACLES;
+  const selectedMapEditorObject = editorObstacles.find((object) => object.id === mapEditorSelectedId) ?? null;
+  const selectedMapEditorSpawn = (mapEditorSpawns[idle.currentMap] ?? []).find((spawn) => spawn.id === mapEditorSelectedSpawnId) ?? null;
+  const editorPokemonSearch = mapEditorPokemonSearch.trim().toLowerCase().replace(/[ _-]/g, "");
+  const editorPokemonOptions = Object.keys(SPECIES_BASE)
+    .filter((species) => !!GIF[species as Species])
+    .filter((species) => !editorPokemonSearch || species.toLowerCase().replace(/[ _-]/g, "").includes(editorPokemonSearch))
+    .sort();
+  const selectedEditorPokemon = selectedMapEditorSpawn?.species ?? mapEditorPokemon;
+  const visibleEditorPokemonOptions = editorPokemonOptions.includes(selectedEditorPokemon)
+    ? editorPokemonOptions
+    : [selectedEditorPokemon, ...editorPokemonOptions];
+  const startEditorDrag = (event: React.PointerEvent<HTMLElement>, kind: "object" | "pokemon", id: number, x: number, y: number) => {
+    if (!mapEditorOpen || mapEditorAsset || mapEditorMove || event.button !== 0 || (kind === "object" ? mapEditorTab !== "sprites" : mapEditorTab !== "pokemon")) return;
+    event.stopPropagation();
+    if (kind === "object") setMapEditorSelectedId(id);
+    else setMapEditorSelectedSpawnId(id);
+    editorDragRef.current = { kind, id, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, x, y };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const dragEditorEntity = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = editorDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.stopPropagation();
+    const x = Math.round(drag.x + (event.clientX - drag.clientX) / zoom);
+    const y = Math.round(drag.y + (event.clientY - drag.clientY) / zoom);
+    if (x === drag.x && y === drag.y) return;
+    if (drag.kind === "object") setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === drag.id ? { ...item, x, y } : item) }));
+    else setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === drag.id ? { ...item, x, y } : item) }));
+  };
+  const endEditorDrag = (event: React.PointerEvent<HTMLElement>) => {
+    if (editorDragRef.current?.pointerId !== event.pointerId) return;
+    editorDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    event.stopPropagation();
+  };
+  const removeEditorObject = (id: number) => {
+    setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
+    setMapEditorSelectedId((selected) => selected === id ? null : selected);
+    setMapEditorMove(false);
+  };
+  const updateEditorObject = (id: number, changes: Partial<EditorObstacle>) => {
+    setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === id ? { ...item, ...changes } : item) }));
+  };
+  const removeEditorSpawn = (id: number) => {
+    setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
+    setMapEditorSelectedSpawnId((selected) => selected === id ? null : selected);
+    setMapEditorMove(false);
+  };
+  const obstacles = useMemo(() => [...buildObstacles(curWorldW, curWorldH, idle.currentMap), ...editorObstacles], [idle.currentMap, curWorldW, curWorldH, editorObstacles]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
@@ -5420,6 +5662,14 @@ const confirmName = () => {
 
   const TRAINER_R = 10; // raio do treinador
   const collidesWithAny = (x: number, y: number) => {
+    // Os objetos do editor precisam valer até em mapas com máscara nativa.
+    // Ao ser cortada, a árvore vira toco e libera o caminho por 30 minutos.
+    for (const object of editorObstacles) {
+      if (!object.blocks && !object.harvestable) continue;
+      if (object.harvestable && object.choppedAt && Date.now() - object.choppedAt < 30 * 60_000) continue;
+      const radius = object.collideR > 0 ? object.collideR : Math.max(14, Math.min(90, Math.round(object.w * 0.22)));
+      if (Math.hypot(x - object.x, y - object.y) < radius + TRAINER_R) return true;
+    }
     if (idle.currentMap === "mapinha6") {
       return !isWalkable("mapinha6", x, y);
     }
@@ -5432,6 +5682,7 @@ const confirmName = () => {
     }
     for (const o of obstacles) {
       if (!o.blocks) continue;
+      if (editorObstacles.some((object) => object.id === o.id)) continue;
       if (Math.hypot(x - o.x, y - o.y) < o.collideR + TRAINER_R) return true;
     }
     return false;
@@ -8541,7 +8792,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     if (allowed) {
       setEnemies((prev) => {
         if (prev.length === 0) return prev;
-        const filtered = prev.filter((e) => allowed.includes(e.sp));
+        const filtered = prev.filter((e) => e.editorSpawnId != null || allowed.includes(e.sp));
         return filtered.length !== prev.length ? filtered : prev;
       });
     }
@@ -8609,6 +8860,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (keys.has("s") || keys.has("arrowdown")) dy += 1;
         if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
         if (keys.has("d") || keys.has("arrowright")) dx += 1;
+        dx += joystickRef.current.x;
+        dy += joystickRef.current.y;
         if (dx === 0 && dy === 0) { if (moving) setMoving(false); return; }
         if (!moving) setMoving(true);
         const mag = Math.hypot(dx, dy) || 1;
@@ -8619,8 +8872,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const speed = boatTierNow
           ? 7 * 0.62 * BOAT_BY_TIER[boatTierNow].speed * (1 + honeyBonusNow())
           : 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
-        const stepX = (dx / mag) * speed;
-        const stepY = (dy / mag) * speed;
+        const stepX = (dx / mag) * speed * Math.min(1, mag);
+        const stepY = (dy / mag) * speed * Math.min(1, mag);
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
           ? (dx > 0 ? "right" : "left")
           : (dy > 0 ? "down" : "up");
@@ -15018,6 +15271,52 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       .filter((id): id is number => id !== null)
   );
 
+  const upgradeCrystal = (element: CrystalElement) => {
+      const data = CRYSTAL_NODES[element];
+      const current = idle.crystalNetwork?.[element] ?? 0;
+      const required = crystalCost(current);
+      const activeNodes = Object.values(idle.crystalNetwork ?? {}).filter((value) => (value ?? 0) > 0).length;
+      if (element === "earth" && activeNodes < 3) {
+        pushChat("🪨 O Cristal da Terra será liberado quando três elementos estiverem ativos.", "info");
+        return;
+      }
+      if (current >= CRYSTAL_MAX_LEVEL) { pushChat(`✨ ${data.label} já chegou ao nível máximo.`, "info"); return; }
+      if ((idle.items?.[data.stone] ?? 0) < required) {
+        pushChat(`💎 Faltam ${required} ${data.label === "NATUREZA" ? "Pedras da Natureza" : `Pedras de ${data.label[0] + data.label.slice(1).toLowerCase()}`} para aprimorar.`, "info");
+        return;
+      }
+      setIdle((state) => {
+        const level = state.crystalNetwork?.[element] ?? 0;
+        const cost = crystalCost(level);
+        if (level >= CRYSTAL_MAX_LEVEL || (state.items?.[data.stone] ?? 0) < cost) return state;
+        return {
+          ...state,
+          items: { ...state.items, [data.stone]: (state.items[data.stone] ?? 0) - cost },
+          crystalNetwork: { ...state.crystalNetwork, [element]: level + 1 },
+        };
+      });
+      pushChat(`✨ Cristal ${data.label} aprimorado para Nv. ${current + 1}!`, "cap");
+  };
+  const upgradeCrystalTier = (tier: CrystalTier) => {
+    const data = CRYSTAL_TIER_NODES[tier];
+    const level = idle.crystalTiers?.[tier] ?? 0;
+    const cost = crystalTierCost(tier, level);
+    if (level >= CRYSTAL_MAX_LEVEL) return;
+    if (data.stones.some((stone) => (idle.items?.[stone] ?? 0) < cost)) {
+      pushChat(`Faltam pedras para aprimorar o cristal ${data.label}.`, "info");
+      return;
+    }
+    setIdle((state) => {
+      const current = state.crystalTiers?.[tier] ?? 0;
+      const needed = crystalTierCost(tier, current);
+      if (current >= CRYSTAL_MAX_LEVEL || data.stones.some((stone) => (state.items?.[stone] ?? 0) < needed)) return state;
+      const items = { ...state.items };
+      for (const stone of data.stones) items[stone] = (items[stone] ?? 0) - needed;
+      return { ...state, items, crystalTiers: { ...state.crystalTiers, [tier]: current + 1 } };
+    });
+    pushChat(`Cristal ${data.label} aprimorado para Nv. ${level + 1}!`, "cap");
+  };
+
   return (
     <div className="revo-game" style={{
       height: "100vh",
@@ -15586,6 +15885,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         </div>
       )}
       <GameHud
+        onJoystickMove={onJoystickMove}
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}
         viewportWidth={viewSize.w}
         target={(() => {
@@ -15632,11 +15932,17 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           hunger: Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100)), fainted: !!pet.faintedAt,
         }))}
         selectedPetUid={petDetailUid} onSelectPet={(uid) => { playClick(); setPetDetailUid(uid); }}
-        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
+        icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: synergyDockIcon, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
         forgeNotification={Object.values(forgeNotifications).some(Boolean)}
         onTab={(next) => { playClick(); if (next === "market") { pushChat("🛒 Mercado temporariamente bloqueado.", "info"); return; } setTab((current) => current === next ? "batalha" : next); }}
         onProfile={() => { playClick(); setTrainerCardOpen(true); }}
         onMap={() => { playClick(); setMapTeleportOpen(true); }}
+        onEvents={() => { playClick(); setTab("evento"); }}
+        mapEditorActive={mapEditorOpen}
+        // O editor existe apenas no Vite local; jogadores na versão publicada
+        // recebem o mapa pronto, sem controles para alterar objetos ou spawns.
+        mapEditorEnabled={import.meta.env.DEV}
+        onMapEditor={() => { if (!import.meta.env.DEV) return; playClick(); setMapEditorOpen((open) => !open); setAuto(false); setTab("batalha"); }}
         onBigMap={() => { playClick(); setBigMapOpen(true); }}
         onSettings={() => { playClick(); setTab("config"); }}
         onCombatSettings={() => { playClick(); setShowAutoSettings((open) => !open); }}
@@ -16231,6 +16537,47 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           onClick={(e) => {
             // LOADING de teleport: nenhuma interação com o mapa.
             if (mapLoadingRef.current) { e.stopPropagation(); return; }
+            if (mapEditorOpen) {
+              if (e.detail > 1) { e.stopPropagation(); return; }
+              const target = e.target as HTMLElement;
+              // Nunca deixa clique em HUD, painel, botão ou Pokémon cair no mapa.
+              const onEditorEntity = !!target.closest("[data-editor-entity]");
+              if (!onEditorEntity || !mapEditorAsset && !mapEditorMove) {
+                if (target.closest("button, a, input, select, textarea, [data-editor-ui], [data-editor-entity], .revo-hud")) return;
+              }
+              const rect = viewportRef.current?.getBoundingClientRect();
+              if (!rect) return;
+              const wx = Math.round(renderCamX + (e.clientX - rect.left - centerOffX) / zoom);
+              const wy = Math.round(renderCamY + (e.clientY - rect.top - centerOffY) / zoom);
+              if (mapEditorMove) {
+                if (mapEditorTab === "pokemon" && mapEditorSelectedSpawnId != null) {
+                  setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((spawn) => spawn.id === mapEditorSelectedSpawnId ? { ...spawn, x: wx, y: wy } : spawn) }));
+                } else if (mapEditorSelectedId != null) {
+                  setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((object) => object.id === mapEditorSelectedId ? { ...object, x: wx, y: wy } : object) }));
+                }
+                setMapEditorMove(false); e.stopPropagation(); return;
+              }
+              const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+              if (mapEditorTab === "pokemon") {
+                if (!mapEditorAsset) return;
+                setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []),
+                  { id, x: wx, y: wy, species: mapEditorPokemon, level: mapEditorPokemonLevel,
+                    rarity: mapEditorPokemonRarity, radius: 90, respawnSeconds: mapEditorRespawnSeconds,
+                    sizePercent: mapEditorPokemonSize, raid: mapEditorPokemonRaid }] }));
+                setMapEditorSelectedSpawnId(null);
+              } else {
+                const asset = MAP_EDITOR_ASSETS.find((item) => item.id === mapEditorAsset);
+                if (!asset) return;
+                setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []),
+                  { id, x: wx, y: wy, name: asset.name, src: asset.src, w: asset.w, h: asset.h,
+                    baseW: asset.w, baseH: asset.h, blocks: mapEditorObjectMode !== "none",
+                    collideR: Math.max(asset.collideR, Math.round(asset.w * 0.22)),
+                    assetId: asset.id, bgAnim: asset.bgAnim,
+                    harvestable: mapEditorObjectMode === "harvest", harvestSpecies: mapEditorHarvestSpecies }] }));
+                setMapEditorSelectedId(null);
+              }
+              playClick(); e.stopPropagation(); return;
+            }
             const t = e.target as HTMLElement;
             if (t.closest && t.closest("button, a, input, select, textarea")) return;
             const rect = viewportRef.current?.getBoundingClientRect();
@@ -18696,9 +19043,31 @@ A sucata afundou com o casco.
             )}
 
             {/* Obstáculos (árvores, pedras, plantas animadas) — z-index pela BASE (y) para o treinador passar por trás */}
+            {mapEditorOpen && mapEditorTab === "pokemon" && (mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => (
+              <button key={`editor-spawn-${spawn.id}`} type="button" data-editor-entity="spawn"
+                onClick={(event) => { if (mapEditorAsset || mapEditorMove) return; event.stopPropagation(); setMapEditorSelectedSpawnId(spawn.id); }}
+                onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); removeEditorSpawn(spawn.id); }}
+                onPointerDown={(event) => startEditorDrag(event, "pokemon", spawn.id, spawn.x, spawn.y)}
+                onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag}
+                title={`Selecionar ${spawn.species} Lv.${spawn.level}`}
+                style={{ position: "absolute", left: spawn.x - spawn.radius, top: spawn.y - spawn.radius,
+                  width: spawn.radius * 2, height: spawn.radius * 2, border: `2px dashed ${mapEditorSelectedSpawnId === spawn.id ? "#ffe08a" : "#fb7185"}`,
+                  borderRadius: "50%", background: "rgba(251,113,133,0.10)", cursor: mapEditorAsset ? "crosshair" : "grab", touchAction: "none",
+                  zIndex: Math.round(spawn.y) + 10, color: "#fff", fontSize: 10, fontWeight: 900,
+                  textShadow: "0 1px 3px #000", pointerEvents: "auto" }}>
+                {spawn.raid && <span style={{ color: "#ffac78" }}>⚔ RAID<br /></span>}{spawn.species.replace(/_/g, " ")}<br />Lv.{spawn.level}
+              </button>
+            ))}
             {obstacles.map((o) => {
+              const editorObject = editorObstacles.find((object) => object.id === o.id);
+              const editorStump = !!editorObject?.harvestable && !!editorObject.choppedAt && now - editorObject.choppedAt < 30 * 60_000;
+              const editorChopping = !!editorObject?.harvestable && !!editorObject.choppingUntil && now < editorObject.choppingUntil;
+              const objectImage = editorStump ? treeStumpUrl : editorChopping ? treeChopUrl : o.src;
+              const objectW = editorStump ? Math.round(o.w * 0.55) : o.w;
+              const objectH = editorStump ? Math.round(o.h * 0.45) : o.h;
+              const isGroundDecoration = [editorGrassUrl, editorBushUrl, matoFramesUrl, gramaFramesUrl, floresFramesUrl, folhasFramesUrl].includes(o.src);
               // Animação por sprite sheet (CSS steps + background-position)
-              if (o.bgAnim) {
+              if (o.bgAnim && !editorStump && !editorChopping) {
                 const { cols, rows, frames, ms } = o.bgAnim;
                 const delay = -((o.id * 0.35) % ms);
                 const style: React.CSSProperties = {
@@ -18707,8 +19076,8 @@ A sucata afundou com o casco.
                   top: o.y - o.h + 8, // âncora na base
                   width: o.w, height: o.h,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
-                  pointerEvents: "none",
-                  zIndex: Math.round(o.y),
+                  pointerEvents: (mapEditorOpen && editorObject) || editorObject?.harvestable ? "auto" : "none",
+                  zIndex: isGroundDecoration ? 2 : Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                   backgroundImage: `url(${o.src})`,
                   backgroundSize: `${cols * 100}% ${rows * 100}%`,
@@ -18719,22 +19088,31 @@ A sucata afundou com o casco.
                   animationDelay: `${delay}s`,
                   ...({ "--sa-plant-end": `${-o.w * cols}px` } as React.CSSProperties),
                 };
-                return <div key={`obs-${o.id}`} style={style} />;
+                return <div key={`obs-${o.id}`} data-editor-entity={editorObject ? "object" : undefined} style={{ ...style, outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #ffe08a" : undefined, cursor: mapEditorOpen && editorObject ? mapEditorAsset ? "crosshair" : "grab" : undefined, touchAction: "none" }}
+                  onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); setMapEditorSelectedId(o.id); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
+                  onContextMenu={(event) => { if (mapEditorOpen && editorObject) { event.preventDefault(); event.stopPropagation(); removeEditorObject(o.id); } }}
+                  onPointerDown={(event) => { if (editorObject) startEditorDrag(event, "object", o.id, o.x, o.y); }}
+                  onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag} />;
               }
               // Imagem normal (árvore / pedra)
               return (
-                <img key={`obs-${o.id}`} src={o.src} alt="" style={{
+                <img key={`obs-${o.id}`} data-editor-entity={editorObject ? "object" : undefined} src={objectImage} alt="" title={editorObject?.harvestable ? editorStump ? "Toco — volta em 30 min" : `Coletar com ${editorObject.harvestSpecies ?? "pinsir"} (-1 ⚡, +1 🪵)` : undefined} style={{
                   position: "absolute",
-                  left: o.x - o.w / 2,
-                  top: o.y - o.h + 8, // âncora na base
-                  width: o.w, height: o.h,
+                  left: o.x - objectW / 2,
+                  top: o.y - objectH + 8, // âncora na base
+                  width: objectW, height: objectH,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
                   imageRendering: "pixelated",
-                  pointerEvents: "none",
+                  pointerEvents: (mapEditorOpen && editorObject) || editorObject?.harvestable ? "auto" : "none",
                   transition: "opacity 120ms linear",
-                  zIndex: Math.round(o.y),
+                  zIndex: isGroundDecoration ? 2 : Math.round(o.y),
+                  outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #ffe08a" : undefined,
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
-                }} />
+                  cursor: mapEditorOpen && editorObject ? mapEditorAsset ? "crosshair" : "grab" : undefined, touchAction: "none",
+                }} onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); setMapEditorSelectedId(o.id); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
+                  onContextMenu={(event) => { if (mapEditorOpen && editorObject) { event.preventDefault(); event.stopPropagation(); removeEditorObject(o.id); } }}
+                  onPointerDown={(event) => { if (editorObject) startEditorDrag(event, "object", o.id, o.x, o.y); }}
+                  onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag} />
               );
             })}
 
@@ -19379,7 +19757,7 @@ A sucata afundou com o casco.
               const face = e.face ?? "left";
               const sx = SPRITE_SHEET[showSp] ? 1 : (face === "left" ? 1 : -1);
               const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2 : (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
-              const size = safariWild ? (e.sp === "aerodactyl" ? 88 : 72) : Math.round(46 * scale * (e.giant ? 2 : 1));
+              const size = Math.round((safariWild ? (e.sp === "aerodactyl" ? 88 : 72) : 46 * scale * (e.giant ? 2 : 1)) * (e.editorSizePercent ?? 100) / 100);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
                 common: "rgba(200,200,200,0.55)",
@@ -19413,9 +19791,12 @@ A sucata afundou com o casco.
                 : e.rarity === "epic" ? "#c084fc"
                 : "#6bd4ff";
               return (
-                <div key={e.id}
-                  onClick={(ev) => { ev.stopPropagation(); if (!dead) throwBallAt(e.id); }}
-                  title="Clique para lançar Pokébola"
+                 <div key={e.id} data-editor-entity={mapEditorOpen ? "pokemon" : undefined}
+                   onClick={(ev) => { if (mapEditorOpen) { if (mapEditorAsset || mapEditorMove) return; ev.stopPropagation(); if (e.editorSpawnId != null) { setMapEditorTab("pokemon"); setMapEditorSelectedSpawnId(e.editorSpawnId); } return; } ev.stopPropagation(); if (!dead) throwBallAt(e.id); }}
+                   onContextMenu={(ev) => { if (mapEditorOpen && e.editorSpawnId != null) { ev.preventDefault(); ev.stopPropagation(); removeEditorSpawn(e.editorSpawnId); } }}
+                   onPointerDown={(ev) => { if (mapEditorTab === "pokemon" && e.editorSpawnId != null) startEditorDrag(ev, "pokemon", e.editorSpawnId, e.spawnX ?? e.x, e.spawnY ?? e.y); }}
+                   onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag}
+                   title={mapEditorOpen ? "Selecionar Pokémon do editor" : "Clique para lançar Pokébola"}
                   style={{
                   position: "absolute", left: e.x, top: e.y,
                   width: size, height: size,
@@ -19428,7 +19809,7 @@ A sucata afundou com o casco.
                       ? `drop-shadow(0 0 ${Math.round(auraStrength * 0.55)}px ${auraColor}aa) drop-shadow(0 2px 3px rgba(0,0,0,0.45))`
                       : (e.aggressive ? "drop-shadow(0 0 6px rgba(255,60,60,0.9)) drop-shadow(0 3px 2px rgba(0,0,0,0.55))" : "drop-shadow(0 3px 2px rgba(0,0,0,0.55))")),
                   zIndex: Math.round(e.y),
-                  cursor: dead ? "default" : "pointer",
+                   cursor: dead ? "default" : mapEditorOpen && !mapEditorAsset ? "grab" : "pointer",
                 }}>
                   {/* MIRA do alvo travado — só o anel dourado girando */}
                   {safariWild && <>
@@ -19668,6 +20049,7 @@ A sucata afundou com o casco.
                     animation: isShinyE ? "pulse 1.2s ease-in-out infinite" : undefined,
                   }}>
                     <span style={{ fontSize: 9 }}>{crystal}</span>
+                    {e.editorRaid && <span style={{ color: "#ff9f6c", fontWeight: 900 }}>⚔ RAID</span>}
                     {isShinyE && <span>{e.sp.replace(/_/g, " ").toUpperCase()} </span>}Lv.{e.level}
                     {(throwsPerEnemy[e.id] ?? 0) > 0 && (
                       <span style={{ fontSize: 8, fontWeight: 900, color: "#ffd23f", textShadow: "1px 1px 0 #000" }}>🎯{throwsPerEnemy[e.id]}/10</span>
@@ -20804,6 +21186,162 @@ A sucata afundou com o casco.
           })()}
 
 
+          {mapEditorOpen && (
+            <div data-editor-ui="panel" onClick={(event) => event.stopPropagation()}
+              style={{ position: "fixed", top: 72, right: 12, width: "min(330px, calc(100vw - 24px))",
+                maxHeight: "calc(100dvh - 160px)", overflowY: "auto", zIndex: 6000, pointerEvents: "auto",
+                background: "linear-gradient(145deg, #25103f, #10091e)", border: "2px solid #d9b46b", borderRadius: 12,
+                boxShadow: "0 12px 35px #000b", color: "#f7e9ce", padding: 12, fontSize: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <strong style={{ color: "#ffe08a" }}>⌂ EDITOR DE MAPA · {IDLE_MAPS[idle.currentMap]?.name}</strong>
+                <button type="button" onClick={() => setMapEditorOpen(false)} aria-label="Fechar editor">✕</button>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                {(["sprites", "pokemon"] as const).map((mode) => <button type="button" key={mode}
+                  onClick={() => { setMapEditorTab(mode); setMapEditorAsset(null); setMapEditorMove(false); }}
+                  style={{ flex: 1, padding: 6, borderRadius: 7, color: "#fff", cursor: "pointer",
+                    border: `1px solid ${mapEditorTab === mode ? "#ffe08a" : "#61477f"}`,
+                    background: mapEditorTab === mode ? "#5b3573" : "#261a3b" }}>
+                  {mode === "sprites" ? "🌳 OBJETOS" : "⚡ POKÉMON"}
+                </button>)}
+              </div>
+              <div style={{ color: "#d8c8e8", fontSize: 11, marginBottom: 8 }}>
+                {mapEditorMove ? "Clique no mapa para mover o selecionado." : mapEditorAsset ? "Clique no mapa para adicionar, mesmo perto de outros itens. Botão direito remove." : "Arraste para mover. Botão direito remove. Para adicionar, escolha um item."}
+              </div>
+              {mapEditorTab === "sprites" ? <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5, maxHeight: 190, overflowY: "auto" }}>
+                  <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(false); }} style={{ border: `2px solid ${mapEditorAsset == null ? "#ffe08a" : "#49395b"}`, background: "#20152e", color: "#fff", borderRadius: 6, cursor: "pointer" }}>☝ Selecionar</button>
+                  {MAP_EDITOR_ASSETS.map((asset) => <button type="button" key={asset.id} title={asset.name} onClick={() => { setMapEditorAsset(asset.id); setMapEditorObjectMode(asset.harvestable ? "harvest" : asset.blocks ? "solid" : "none"); setMapEditorSelectedId(null); setMapEditorMove(false); }}
+                    style={{ padding: 3, border: `2px solid ${mapEditorAsset === asset.id ? "#ffe08a" : "#49395b"}`,
+                      borderRadius: 6, background: "#20152e", color: "#fff", fontSize: 9, cursor: "pointer" }}>
+                    <img src={asset.src} alt="" style={{ display: "block", margin: "auto", width: 45, height: 44, objectFit: "contain", imageRendering: "pixelated" }} />{asset.name}
+                  </button>)}
+                </div>
+                {(mapEditorAsset || selectedMapEditorObject) && (() => {
+                  const editing = mapEditorAsset ? null : selectedMapEditorObject;
+                  const mode = editing ? editing.harvestable ? "harvest" : editing.blocks ? "solid" : "none" : mapEditorObjectMode;
+                  return <div style={{ marginTop: 8, padding: 8, background: "#160f2a", border: "1px solid #665080", borderRadius: 8, display: "grid", gap: 6 }}>
+                    <strong style={{ color: "#ffe08a" }}>{editing ? `CONFIGURAR ${editing.name.toUpperCase()}` : "CONFIGURAR PRÓXIMOS OBJETOS"}</strong>
+                    <label>Interação
+                      <select value={mode} onChange={(event) => {
+                        const next = event.target.value as "none" | "solid" | "harvest";
+                        if (editing) updateEditorObject(editing.id, { blocks: next !== "none", harvestable: next === "harvest" });
+                        else setMapEditorObjectMode(next);
+                      }} style={{ width: "100%" }}>
+                        <option value="none">Visual — sem colisão</option>
+                        <option value="solid">Colisão — bloqueia passagem</option>
+                        <option value="harvest">Colisão + coleta — vira toco</option>
+                      </select>
+                    </label>
+                    {mode === "harvest" && <label>Pokémon necessário para coletar
+                      <select value={editing?.harvestSpecies ?? mapEditorHarvestSpecies} onChange={(event) => {
+                        const species = event.target.value as Species;
+                        if (editing) updateEditorObject(editing.id, { harvestSpecies: species });
+                        else setMapEditorHarvestSpecies(species);
+                      }} style={{ width: "100%" }}>
+                        {Object.keys(SPECIES_BASE).filter((species) => speciesBaseOf(species as Species) === species).sort().map((species) => <option key={species} value={species}>{species.replace(/_/g, " ")}</option>)}
+                      </select>
+                      <small style={{ display: "block", color: "#cbb9dc" }}>Precisa desse Pokémon; gasta 1 ⚡, dá 1 🪵 e o toco regenera em 30 min.</small>
+                    </label>}
+                    {editing && mode !== "none" && <label>Raio da colisão (px)
+                      <input type="number" min="12" max="140" value={editing.collideR || Math.max(14, Math.round(editing.w * 0.22))}
+                        onChange={(event) => updateEditorObject(editing.id, { collideR: Math.max(12, Math.min(140, Number(event.target.value) || 12)) })} style={{ width: "100%" }} />
+                    </label>}
+                  </div>;
+                })()}
+                {selectedMapEditorObject && (() => {
+                  const baseW = selectedMapEditorObject.baseW ?? selectedMapEditorObject.w;
+                  const baseH = selectedMapEditorObject.baseH ?? selectedMapEditorObject.h;
+                  const scale = Math.round(selectedMapEditorObject.w / Math.max(1, baseW) * 100);
+                  const resize = (percent: number) => setMapEditorObjects((prev) => ({ ...prev,
+                    [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorObject.id
+                      ? { ...item, baseW, baseH, w: Math.round(baseW * percent / 100), h: Math.round(baseH * percent / 100) } : item) }));
+                  return <div style={{ marginTop: 10, padding: 8, background: "#160f2a", borderRadius: 8 }}>
+                    <strong>{selectedMapEditorObject.name} · {scale}%</strong>
+                    <input aria-label="Tamanho do objeto" type="range" min="25" max="300" value={scale} onChange={(e) => resize(Number(e.target.value))} style={{ width: "100%" }} />
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(true); }}>Mover no mapa</button>
+                      <button type="button" onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== selectedMapEditorObject.id) })); setMapEditorSelectedId(null); setMapEditorMove(false); }}>Remover</button>
+                    </div>
+                  </div>;
+                })()}
+              </> : <>
+                <div style={{ display: "flex", gap: 6, marginBottom: 7 }}>
+                  <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(false); }}
+                    style={{ flex: 1, padding: 7, cursor: "pointer", background: mapEditorAsset === null ? "#63395b" : "#261a3b", border: "1px solid #d9b46b", color: "#fff", borderRadius: 6 }}>☝ Selecionar / arrastar</button>
+                  <button type="button" onClick={() => { setMapEditorAsset("pokemon"); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }}
+                    style={{ flex: 1, padding: 7, cursor: "pointer", background: mapEditorAsset === "pokemon" ? "#63395b" : "#261a3b", border: "1px solid #d9b46b", color: "#fff", borderRadius: 6 }}>+ Colocar Pokémon</button>
+                </div>
+                <label style={{ display: "block", marginBottom: 6, color: "#ffe8b0", fontWeight: 800 }}>🔎 Pesquisar Pokémon
+                  <input type="search" value={mapEditorPokemonSearch} onChange={(e) => setMapEditorPokemonSearch(e.target.value)}
+                    placeholder="Digite: charizard, pinsir..." autoComplete="off"
+                    style={{ display: "block", boxSizing: "border-box", width: "100%", marginTop: 4, padding: "8px 9px", border: "1px solid #d9b46b", borderRadius: 6, background: "#120b22", color: "#fff7da", fontSize: 13, outline: "none" }} />
+                </label>
+                <label style={{ display: "block", color: "#ffe8b0", fontWeight: 800 }}>Pokémon <span style={{ color: "#cbb9dc", fontWeight: 500 }}>({editorPokemonOptions.length} encontrado{editorPokemonOptions.length === 1 ? "" : "s"})</span>
+                  <select value={selectedEditorPokemon} size={7} onChange={(e) => {
+                    const species = e.target.value as Species; setMapEditorPokemon(species);
+                    if (selectedMapEditorSpawn) setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn.id ? { ...item, species } : item) }));
+                  }} style={{ display: "block", boxSizing: "border-box", width: "100%", marginTop: 4, padding: 4, border: "1px solid #d9b46b", borderRadius: 6, background: "#120b22", color: "#fff7da", fontSize: 13, lineHeight: 1.6 }}>
+                    {visibleEditorPokemonOptions.map((species) => <option key={species} value={species} style={{ background: "#160f2a", color: "#fff7da", padding: 4 }}>{species.replace(/_/g, " ")}</option>)}
+                  </select>
+                </label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 7 }}>
+                  <label>Nível<input type="number" min="1" max="1000" value={selectedMapEditorSpawn?.level ?? mapEditorPokemonLevel} onChange={(e) => {
+                    const level = Math.max(1, Math.min(1000, Number(e.target.value) || 1)); setMapEditorPokemonLevel(level);
+                    if (selectedMapEditorSpawn) setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn.id ? { ...item, level } : item) }));
+                  }} style={{ width: "100%" }} /></label>
+                  <label>Raridade<select value={selectedMapEditorSpawn?.rarity ?? mapEditorPokemonRarity} onChange={(e) => {
+                    const rarity = e.target.value as Rarity; setMapEditorPokemonRarity(rarity);
+                    if (selectedMapEditorSpawn) setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn.id ? { ...item, rarity } : item) }));
+                  }} style={{ width: "100%" }}>
+                    {(["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"] as Rarity[]).map((rarity) => <option key={rarity} value={rarity}>{RARITY_NAME[rarity]}</option>)}
+                  </select></label>
+                  <label>Respawn (segundos)<input type="number" min="1" max="3600" value={selectedMapEditorSpawn?.respawnSeconds ?? mapEditorRespawnSeconds} onChange={(e) => {
+                    const respawnSeconds = Math.max(1, Math.min(3600, Number(e.target.value) || 1)); setMapEditorRespawnSeconds(respawnSeconds);
+                    if (selectedMapEditorSpawn) setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn.id ? { ...item, respawnSeconds } : item) }));
+                  }} style={{ width: "100%" }} /></label>
+                  <label>Raio (px)<input type="number" min="20" max="500" value={selectedMapEditorSpawn?.radius ?? 90} disabled={!selectedMapEditorSpawn} onChange={(e) => {
+                    const radius = Math.max(20, Math.min(500, Number(e.target.value) || 20));
+                    setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn?.id ? { ...item, radius } : item) }));
+                  }} style={{ width: "100%" }} /></label>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8, padding: 8, background: "#160f2a", border: "1px solid #665080", borderRadius: 8 }}>
+                  <label>Tamanho do Pokémon (%)
+                    <input type="number" min="50" max="400" value={selectedMapEditorSpawn?.sizePercent ?? mapEditorPokemonSize} onChange={(event) => {
+                      const sizePercent = Math.max(50, Math.min(400, Number(event.target.value) || 50));
+                      setMapEditorPokemonSize(sizePercent);
+                      if (selectedMapEditorSpawn) setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn.id ? { ...item, sizePercent } : item) }));
+                    }} style={{ width: "100%" }} />
+                  </label>
+                  <label style={{ alignSelf: "center", cursor: "pointer" }}>
+                    <input type="checkbox" checked={selectedMapEditorSpawn?.raid ?? mapEditorPokemonRaid} onChange={(event) => {
+                      const raid = event.target.checked;
+                      setMapEditorPokemonRaid(raid);
+                      if (selectedMapEditorSpawn) setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorSpawn.id ? { ...item, raid } : item) }));
+                    }} /> ⚔ Modo Raid
+                    <small style={{ display: "block", color: "#cbb9dc" }}>Elite · 2,6× HP</small>
+                  </label>
+                </div>
+                {selectedMapEditorSpawn && <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                  <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(true); }}>Mover selecionado</button>
+                  <button type="button" onClick={() => { setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== selectedMapEditorSpawn.id) })); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }}>Remover selecionado</button>
+                </div>}
+                <div style={{ maxHeight: 100, overflowY: "auto", marginTop: 8 }}>
+                  {(mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => <button type="button" key={spawn.id} onClick={() => { setMapEditorSelectedSpawnId(spawn.id); setMapEditorAsset(null); }}
+                    style={{ display: "block", width: "100%", textAlign: "left", color: selectedMapEditorSpawn?.id === spawn.id ? "#ffe08a" : "#e2d2ec", background: "#221733", border: "1px solid #594779", marginBottom: 3, cursor: "pointer" }}>
+                    {spawn.raid ? "⚔ RAID · " : ""}{spawn.species.replace(/_/g, " ")} · Lv.{spawn.level} · {spawn.sizePercent ?? 100}% · {spawn.respawnSeconds ?? 60}s
+                  </button>)}
+                </div>
+              </>}
+              <button type="button" onClick={() => {
+                const json = JSON.stringify({ version: 3, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [] }, null, 2);
+                const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+                const link = document.createElement("a"); link.href = url; link.download = `mapa-${idle.currentMap}.json`; link.click();
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }} style={{ marginTop: 8, width: "100%", padding: 6, background: "#22412a", border: "1px solid #b9d881", color: "#fff", borderRadius: 6, cursor: "pointer" }}>⬇ Exportar mapa JSON</button>
+              <small style={{ display: "block", marginTop: 5, color: "#b8a8cb" }}>Salvo automaticamente neste navegador e nesta região.</small>
+            </div>
+          )}
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
           {/* Mobile: botão VOLTAR (visível só ≤768px; bottom-nav fica oculta) */}
           {tab !== "batalha" && (
@@ -20814,7 +21352,10 @@ A sucata afundou com o casco.
               ← VOLTAR
             </button>
           )}
-          {tab !== "batalha" && (
+          {tab === "sinergia" && <div className="revo-synergy-overlay" onClick={(event) => event.stopPropagation()}>
+            <ElementalSynergyScreen network={idle.crystalNetwork ?? {}} tiers={idle.crystalTiers ?? {}} items={idle.items ?? {}} onUpgrade={upgradeCrystal} onUpgradeTier={upgradeCrystalTier} onClose={() => setTab("batalha")} />
+          </div>}
+          {tab !== "batalha" && tab !== "sinergia" && (
             <TabOverlay
               tab={tab}
               onClose={() => setTab("batalha")}
@@ -21126,7 +21667,7 @@ A sucata afundou com o casco.
                   setTrainerPos({ x: ax, y: ay });
                   // Remove inimigos que excedem o teto do novo mapa
                   const cap = IDLE_MAPS[g.target].maxLevel;
-                  if (cap != null) setEnemies((prev) => prev.filter((e) => (e.level ?? 1) <= cap));
+                  if (cap != null) setEnemies((prev) => prev.filter((e) => e.editorSpawnId != null || (e.level ?? 1) <= cap));
                   pushChat(`Chegou em ${targetMap.name}!`, "cap");
                 });
               };
@@ -21984,7 +22525,7 @@ A sucata afundou com o casco.
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-              const base = ["mapinha6","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
+               const base = ["mapinha6","ini","arv","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -22358,7 +22899,6 @@ A sucata afundou com o casco.
               </span>
             </button>
             {([
-              { id: "melhorias",label: "Melhorias",img: navMelhorias },
               { id: "market",   label: "Marketplace", img: navMarket, disabled: true },
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
             ] as const).map((t) => {
@@ -22651,7 +23191,7 @@ A sucata afundou com o casco.
 onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setTab("pokemon");
+                setTab("batalha");
               }}
               style={{ position: "absolute", top: 15, right: 20, background: "rgba(0,0,0,0.3)", border: "2px solid #f5cf6b", color: "#f5cf6b", width: 32, height: 32, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 20, cursor: "pointer", fontWeight: 900, zIndex: 10, boxShadow: "0 0 10px rgba(245,207,107,0.3)" }}
             >
@@ -23948,7 +24488,6 @@ onClick={(e) => {
             { id: "mochila", icon: "🎒", label: "Mochila" },
             { id: "colecao", icon: "📖", label: "Coleção" },
             { id: "pokedex", icon: "📕", label: "Pokédex" },
-            { id: "melhorias", icon: "⚙️", label: "Melhorias" },
             { id: "wallet", icon: "🏦", label: "Banco" },
           ] as const).map((m) => (
             <button
@@ -24159,8 +24698,7 @@ onClick={(e) => {
             box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
           }
           /* Aba Pokémon: compacta para caber sem rolar */
-          .mob-tab-pokemon { padding: 8px 6px 12px !important; }
-          .mob-tab-pokemon .mob-syn-grid { grid-template-columns: 1fr !important; }
+                    .mob-tab-pokemon .mob-syn-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 480px) {
           .mob-center { min-height: 320px !important; height: calc(100dvh - 230px) !important; }
@@ -27198,7 +27736,7 @@ function TabOverlay({
   };
   return (
     <div
-      className={`mob-taboverlay${["mochila", "colecao", "pokedex"].includes(tab) ? " revo-inventory-overlay" : ""}`}
+      className={`mob-taboverlay${["mochila", "colecao", "pokedex", "pokemon", "tarefas", "guilda", "wallet"].includes(tab) ? " revo-inventory-overlay" : ""}`}
       onClick={(e) => e.stopPropagation()}
       style={{
       position: "absolute", inset: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? 6 : 12,
@@ -27207,7 +27745,7 @@ function TabOverlay({
       zIndex: 20, padding: (tab === "mochila" || tab === "loja" || tab === "pokemon" || tab === "tarefas") ? 8 : 16, overflowY: "auto",
       display: (tab === "mochila" || tab === "loja") ? "grid" : undefined, placeItems: (tab === "mochila" || tab === "loja") ? "center" : undefined,
     }}>
-      {tab !== "mochila" && tab !== "colecao" && tab !== "pokedex" && tab !== "loja" && tab !== "pokemon" && (
+      {tab !== "mochila" && tab !== "colecao" && tab !== "pokedex" && tab !== "loja" && tab !== "pokemon" && tab !== "tarefas" && tab !== "guilda" && tab !== "wallet" && (
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 20, color: "#f5cf6b" }}>{title}</h2>
         <button onClick={onClose} style={{ ...smallBtn, background: "#c92a2a", color: "#fff", border: "none", padding: "6px 14px" }}>
@@ -27217,29 +27755,14 @@ function TabOverlay({
       )}
 
       {tab === "pokemon" && leader && (
-        <div
-          className="mob-tab-pokemon"
-          style={{
-          position: "relative",
-          padding: "14px 12px 18px",
-          borderRadius: 18,
-          border: "3px solid #6b3fa0",
-          background: `linear-gradient(180deg, rgba(20,10,35,0.82) 0%, rgba(30,15,50,0.9) 45%, rgba(20,10,35,0.95) 100%), url(${pokemonTabBg}) center/cover no-repeat`,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.55), inset 0 0 40px rgba(192,132,252,0.15), 0 0 22px rgba(192,132,252,0.25)",
-          overflow: "hidden",
-        }}>
+        <div className="mob-tab-pokemon">
           {/* decorative sparkles overlay */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
             background: "radial-gradient(circle at 12% 10%, rgba(255,151,225,0.18), transparent 45%), radial-gradient(circle at 88% 90%, rgba(192,132,252,0.18), transparent 45%)",
           }} />
-          <div style={{
-            position: "absolute", top: 8, right: 14,
-            fontSize: 10, fontWeight: 900, letterSpacing: 3,
-            color: "#ff97e1", textShadow: "0 0 8px rgba(255,151,225,0.7)",
-            opacity: 0.85,
-          }}>�S� MEW �S�</div>
-          <div style={{ position: "relative" }}>
+
+          <div className="mob-tab-pokemon__body" style={{ position: "relative" }}>
           {/* B�NUS movido para dentro de SEU TIME como filtro � sem repetir figura */}
 
 
@@ -27255,12 +27778,12 @@ function TabOverlay({
             };
             return (
               <div style={{
-                marginTop: 18,
-                padding: "14px 16px",
-                background: "linear-gradient(135deg, #2a1638 0%, #1a0f26 50%, #251638 100%)",
-                border: "3px solid #f5cf6b",
-                borderRadius: 16,
-                boxShadow: "0 6px 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(245,207,107,0.4), 0 0 24px rgba(245,207,107,0.12)",
+                marginTop: 0,
+                padding: 0,
+                background: "transparent",
+                border: "none",
+                borderRadius: 0,
+                boxShadow: "none",
                 position: "relative", overflow: "hidden",
               }}>
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 20%, rgba(245,207,107,0.15), transparent 60%)", pointerEvents: "none" }} />
@@ -27545,6 +28068,7 @@ function TabOverlay({
 
 
       {tab === "tarefas" && (
+        <div className="revo-service-window revo-service-window--quest">
         <QuestBookPanel
           idle={idle}
           tasks={idle.tasks}
@@ -27568,11 +28092,13 @@ function TabOverlay({
           onClaimTask={onClaimTask}
           onClose={onClose}
         />
+        </div>
       )}
 
       {tab === "guilda" && (
-        <div style={{ maxWidth: 760, margin: "0 auto", maxHeight: "72vh", overflowY: "auto" }}>
-          <GuildPanel {...guildPanelProps} />
+        <div className="revo-service-window revo-service-window--guild">
+          <button className="revo-service-close" onClick={onClose} aria-label="Fechar guilda">×</button>
+          <div className="revo-service-content"><GuildPanel {...guildPanelProps} portraits={gifMap} /></div>
         </div>
       )}
 
@@ -27764,14 +28290,14 @@ function TabOverlay({
           book_exp: { cost: 3, level: 10, label: "EXP Raro" }, book_exp_big: { cost: 3, level: 25, label: "EXP Lendário" },
           book_vip: { cost: 5, level: 20, label: "VIP 30d" }, book_vip_30: { cost: 3, level: 40, label: "VIP 60d" },
         };
-        const slotIcons: Record<EquipmentSlot, string> = { head: "🪖", body: "🦺", weapon: "🗡️", feet: "🥾", necklace: "📿", ring: "💍" };
+        const slotIcons: Record<EquipmentSlot, string> = { head: "🛡️", body: "🦺", weapon: "🗡️", feet: "🥾", necklace: "📿", ring: "💍" };
         const inventoryItems: InventoryItem[] = entries.map(([id, quantity]) => {
           const category = inventoryCategory(id);
           const usable = directUse.has(id);
           const rule = upgrades[id];
           const hint = category === "balls" ? "As Pokébolas são usadas automaticamente em combate." : "Use este item no sistema correspondente do jogo.";
           return {
-            key: id, id, quantity, name: NAMES[id] ?? id, description: id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : `${ITEM_DESC[id] ?? "Item do universo IdleMon."}${usable ? "" : ` ${hint}`}`,
+             key: id, id, quantity, name: NAMES[id] ?? id, description: id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : `${ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}${usable ? "" : ` ${hint}`}`,
             image: PROFILE_SPRITES.books[id as keyof typeof PROFILE_SPRITES.books] ?? ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id],
             color: EGG_COLORS[id] ?? ITEM_COLORS[id], rarity: inventoryRarity(id), category, source: "bag", usable,
             bulk: ["potion", "book_atk", "book_def"].includes(id), actionLabel: usable ? category === "eggs" ? "Chocar" : "Usar" : category === "balls" ? "Uso em combate" : "Uso no sistema",
@@ -27792,7 +28318,7 @@ function TabOverlay({
         }
         if (tab === "mochila") return <InventoryPanel
           items={inventoryItems} bagImage={bagIconImg} selectedKey={bagSel} onSelect={setBagSel} onClose={onClose}
-          renderIcon={(item, size) => item.image ? <img src={item.image} alt="" width={size} height={size} /> : item.source === "equipment" ? <span style={{ fontSize: size * .65 }}>{slotIcons[eqInfo(item.id)!.slot]}</span> : <ItemPixelIcon id={item.id} size={size} color={item.color} />}
+          renderIcon={(item, size) => item.image ? <img src={item.image} alt="" width={size} height={size} /> : <ItemPixelIcon id={item.id} size={size} color={item.color} />}
           onUse={(item, quantity) => {
             if (item.source === "equipment") { const eq = eqInfo(item.id); if (eq) { if (equippedItems[eq.slot] === item.id) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); } return; }
             if (item.source !== "bag") return;
@@ -28191,7 +28717,7 @@ function TabOverlay({
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ color: "#9adcff", fontWeight: 900, fontSize: 12, letterSpacing: 1, textShadow: "1px 1px 0 #000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dispName(id)}</div>
                           <div style={{ color: "#d8ecff", fontSize: 10.5, lineHeight: 1.35, maxHeight: 44, overflowY: "auto", marginTop: 2 }}>
-                            {ITEM_DESC[id] ?? "Item do universo IdleMon."}
+                            {ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}
                           </div>
                         </div>
                       </div>
@@ -28265,7 +28791,7 @@ function TabOverlay({
               const color = isEgg ? (EGG_COLORS[id] ?? P.goldLight) : (ITEM_COLORS[id] ?? P.goldLight);
               const img = ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id];
               const name = NAMES[id] ?? id;
-              const desc = ITEM_DESC[id] ?? "Item do universo IdleMon. Ainda sem descrição detalhada.";
+              const desc = ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga. Ainda sem descrição detalhada.";
               const count = items[id] ?? 0;
               const sellPrice = marketSellPrices[id] ?? 0;
               return (
@@ -29270,7 +29796,7 @@ function TabOverlay({
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
-        const ancestrals = collectionForDisplay.filter((p) => p.event === "ancestral" && (p.traits?.length ?? 0) >= 12);
+        const ancestrals = collection.filter((p) => p.event === "ancestral" && (p.traits?.length ?? 0) >= 12);
         const activeAncestral = ancestrals.find((p) => p.uid === idle.activeAncestralUid) ?? null;
         const ancestralStoneCost = 30;
         const ancestralPepitaCost = 30;
@@ -29549,7 +30075,10 @@ function TabOverlay({
 
 
       {tab === "wallet" && (
-        <WalletScreen 
+        <div className="revo-service-window revo-service-window--bank">
+        <button className="revo-service-close" onClick={onClose} aria-label="Fechar banco">×</button>
+        <div className="revo-service-content">
+        <WalletScreen
           bank={bank} 
           items={items}
           collection={collection}
@@ -29557,6 +30086,7 @@ function TabOverlay({
           onOpenColecaoDetail={onOpenColecaoDetail}
           onExchange={onExchange} 
         />
+        </div></div>
       )}
 
       {tab === "market" && (
@@ -29941,7 +30471,7 @@ function WalletScreen({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 780 }}>
+    <div className="revo-bank-content" style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", height: "100%", minHeight: 0, overflow: "hidden" }}>
       {/* Header do Banco */}
       <div style={{
         position: "relative",
@@ -29952,32 +30482,32 @@ function WalletScreen({
         backgroundImage: `url(${walletHero})`,
         backgroundSize: "cover",
         backgroundPosition: "center 30%",
-        minHeight: 160,
+        minHeight: 88, flexShrink: 0,
       }}>
         <div style={{
           position: "absolute", inset: 0,
           background: "linear-gradient(180deg, rgba(11,5,16,0.15) 0%, rgba(11,5,16,0.55) 55%, rgba(11,5,16,0.95) 100%)",
         }} />
-        <div style={{ position: "relative", padding: "16px 18px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 10 }}>
+        <div style={{ position: "relative", padding: "8px 12px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 5 }}>
           <div>
-            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 22, letterSpacing: 2, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ BANCO MEDIEVAL</div>
-            <div style={{ color: "#dcc8e0", fontSize: 12, marginTop: 3, textShadow: "1px 1px 0 #000" }}>Gerencie seus bens e visualize suas reservas no cofre real.</div>
+            <div style={{ color: "#ffe58a", fontWeight: 900, fontSize: 18, letterSpacing: 1, textShadow: "2px 2px 0 #000, 0 0 12px #f5cf6b66" }}>✦ BANCO MEDIEVAL</div>
+            <div style={{ color: "#dcc8e0", fontSize: 11, marginTop: 2, textShadow: "1px 1px 0 #000" }}>Gerencie seus bens e visualize suas reservas no cofre real.</div>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #f5cf6b88", borderRadius: 8, padding: "6px 12px", color: "#f5cf6b", fontWeight: 800 }}>💰 {bank.gold.toLocaleString()}</div>
-            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #8fd0ff88", borderRadius: 8, padding: "6px 12px", color: "#8fd0ff", fontWeight: 800 }}>💎 {bank.crystals.toLocaleString()}</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #f5cf6b88", borderRadius: 8, padding: "3px 9px", color: "#f5cf6b", fontWeight: 800 }}>💰 {bank.gold.toLocaleString()}</div>
+            <div style={{ background: "rgba(14,8,24,0.85)", backdropFilter: "blur(4px)", border: "1px solid #8fd0ff88", borderRadius: 8, padding: "3px 9px", color: "#8fd0ff", fontWeight: 800 }}>💎 {bank.crystals.toLocaleString()}</div>
           </div>
         </div>
       </div>
 
       {/* Navegação Interna */}
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
         {(["cambio", "itens", "pokemon"] as const).map((v) => (
           <button
             key={v}
             onClick={() => setActiveView(v)}
             style={{
-              flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #f5cf6b44",
+              flex: 1, padding: "6px", borderRadius: 8, border: "1px solid #f5cf6b44",
               background: activeView === v ? "linear-gradient(180deg, #f5cf6b, #b8862a)" : "#1a0f26",
               color: activeView === v ? "#0e0818" : "#f5cf6b",
               fontWeight: 900, cursor: "pointer", fontSize: 12, transition: "0.2s"
@@ -29988,9 +30518,9 @@ function WalletScreen({
         ))}
       </div>
 
-      <div style={{ background: "rgba(14,8,24,0.4)", borderRadius: 12, padding: 2, minHeight: 300 }}>
+      <div style={{ background: "rgba(14,8,24,0.4)", borderRadius: 12, padding: 2, minHeight: 0, flex: 1, overflow: "hidden" }}>
         {activeView === "cambio" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, padding: 12 }}>
+          <div className="revo-bank-exchange" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, padding: 12 }}>
             <div style={{ background: "#1a0f26", border: "1px solid #8fd0ff55", borderRadius: 10, padding: 14 }}>
               <div style={{ color: "#8fd0ff", fontWeight: 800, marginBottom: 6 }}>Comprar 💎</div>
               <input type="number" min={1} value={buyAmt} onChange={(e) => setBuyAmt(Math.max(1, parseInt(e.target.value) || 1))}
@@ -30015,7 +30545,7 @@ function WalletScreen({
         )}
 
         {activeView === "itens" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, padding: 12, maxHeight: 400, overflowY: "auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, padding: 12, height: "100%", overflowY: "auto", alignContent: "start" }}>
             {Object.entries(items).filter(([_, qty]) => qty > 0).map(([id, qty]) => (
               <div key={id} style={{ background: "#1a0f26", border: "1px solid #f5cf6b33", borderRadius: 8, padding: 10, textAlign: "center" }}>
                 <div style={{ fontSize: 24 }}>📦</div>
@@ -30027,7 +30557,7 @@ function WalletScreen({
         )}
 
         {activeView === "pokemon" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10, padding: 12, maxHeight: 400, overflowY: "auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 10, padding: 12, height: "100%", overflowY: "auto", alignContent: "start" }}>
             {collection.map((entry) => (
               <div 
                 key={entry.uid} 
@@ -30043,20 +30573,6 @@ function WalletScreen({
         )}
       </div>
 
-      <div style={{
-        background: "linear-gradient(160deg, #2a1a0a, #3d2b0f)",
-        border: "1px solid #ff9d3d88", borderRadius: 12, padding: 16,
-        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16
-      }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ color: "#ff9d3d", fontWeight: 900, fontSize: 14 }}>🏛️ COFRE DE RESGATE</div>
-          <div style={{ color: "#c8a878", fontSize: 11 }}>Sincronize seus bens preciosos com o cofre do reino.</div>
-        </div>
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "Banco Medieval", body: "Recursos sincronizados!", tone: "success" } }))}
-          style={{ padding: "10px 20px", background: "linear-gradient(180deg, #ff9d3d, #c67100)", color: "#fff", border: "none", borderRadius: 8, fontWeight: 900, cursor: "pointer" }}
-        >RESGATAR TUDO</button>
-      </div>
     </div>
   );
 }

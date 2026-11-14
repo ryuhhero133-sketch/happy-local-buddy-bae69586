@@ -127,7 +127,7 @@ const PRODUCTS: Product[] = [
     badge: "⭐ EDIÇÃO LIMITADA",
     limited: 30,
     description:
-      "O ovo mais raro já lançado no IdleMon. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
+      "O ovo mais raro já lançado no Poke Emerald Saga. Possui Pokémon exclusivos, nunca voltará à loja. Quem comprar fará parte da primeira geração de treinadores lendários.",
     link: PAYMENT_LINK_BLACK,
     accent: "from-yellow-400 via-amber-500 to-yellow-600",
   },
@@ -1402,7 +1402,7 @@ function SupportChat({
             <div className="text-white font-black text-sm">
               {isAdmin
                 ? (adminTargetUid ? `Ticket · ${adminTargetName || "Treinador"}` : "Painel Admin")
-                : "Suporte IdleMon"}
+                : "Suporte Poke Emerald Saga"}
             </div>
             <div className="text-emerald-300 text-[10px] flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

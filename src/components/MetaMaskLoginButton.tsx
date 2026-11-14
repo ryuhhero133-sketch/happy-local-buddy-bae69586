@@ -25,7 +25,7 @@ export default function MetaMaskLoginButton() {
       // uri    = https://revo-emerald.ryuhhero133.workers.dev
       const { error } = await supabase.auth.signInWithWeb3({
         chain: 'ethereum',
-        statement: 'Sign in to IDLE MON REVO.',
+        statement: 'Sign in to Poke Emerald Saga.',
         options: {
           url: window.location.origin,
         },
