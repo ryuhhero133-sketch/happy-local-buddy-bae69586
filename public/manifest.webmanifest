@@ -5,6 +5,7 @@
   "id": "/idle",
   "start_url": "/idle",
   "scope": "/",
+  "display_override": ["fullscreen", "standalone"],
   "display": "standalone",
   "orientation": "landscape",
   "background_color": "#071426",

@@ -3511,6 +3511,26 @@ const confirmName = () => {
   const orbIdRef = useRef(1);
   const [tab, setTab] = useState<"pokemon" | "mochila" | "batalha" | "melhorias" | "sinergia" | "colecao" | "pokedex" | "loja" | "wallet" | "market" | "config" | "tarefas" | "evento" | "eventoLiga" | "guilda">("batalha");
   const [hudTargetsOpen, setHudTargetsOpen] = useState(false);
+  const [fullscreenActive, setFullscreenActive] = useState(false);
+  const [pwaStandalone, setPwaStandalone] = useState(false);
+  useEffect(() => {
+    const updateDisplayMode = () => {
+      setFullscreenActive(!!document.fullscreenElement);
+      setPwaStandalone(window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
+    };
+    updateDisplayMode();
+    document.addEventListener("fullscreenchange", updateDisplayMode);
+    return () => document.removeEventListener("fullscreenchange", updateDisplayMode);
+  }, []);
+  const toggleGameFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      else throw new Error("unsupported");
+    } catch {
+      pushChat("Tela cheia não é suportada neste navegador. Instale o jogo na tela inicial para abrir sem a barra de endereço.", "info");
+    }
+  };
 
   // ===== Guilda & Livro de Missões (painéis externos religados) =====
   const myId = (identity as any)?.id ?? "local";
@@ -12092,10 +12112,32 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   // Usar item da mochila
   const useItem = (id: string, qty: number = 1) => {
-    const l = team[0]; if (!l) return;
     const have = (idle.items[id] ?? 0);
     if (have <= 0) { pushChat(`Você não tem ${id}.`, "info"); return; }
     const useQty = Math.max(1, Math.min(qty, have));
+    const food = TRAINER_FOOD_VALUES[id];
+
+    // Alimentos restauram recursos do TREINADOR, não do líder. Portanto eles
+    // devem funcionar inclusive antes de o jogador escolher/ter um Pokémon.
+    // Usar o catálogo como fonte única evita que novos alimentos sejam exibidos
+    // na mochila mas acabem sem efeito por faltar nesta lista.
+    if (food) {
+      const { now } = trustedNow();
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, [id]: Math.max(0, (s.items[id] ?? 0) - 1) },
+        trainerHunger: Math.max(0, Math.min(TRAINER_HUNGER_MAX, (s.trainerHunger ?? TRAINER_HUNGER_MAX) + food.hunger)),
+        trainerLastFedAt: now,
+      }));
+      setTrainerEnergy((energy) => Math.min(TRAINER_ENERGY_MAX, Math.max(0, energy ?? 0) + food.energy));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${food.hunger} 🍖 +${food.energy} ⚡`, "gold");
+      pushChat(`Você usou ${food.label}: +${food.hunger} fome e +${food.energy} energia.`, "cap");
+      bumpSagaCounter("feed_trainer");
+      return;
+    }
+
+    const l = team[0];
+    if (!l) { pushChat("Escolha um Pokémon líder para usar este item.", "info"); return; }
     const maxHp = calcIdleMaxHp(l);
     if (id === "potion") {
       if (leaderHp <= 0) { pushChat(`Poção não revive. Reviva por 50 ouro.`, "info"); return; }
@@ -12112,22 +12154,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `HP CHEIO!`, "gold");
       pushChat(`Você usou Berry (HP totalmente restaurado).`, "info");
-    } else if (id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "maca" || id === "banana" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") {
-      // 🍖 Alimentação do treinador: registra o momento real (atende o ciclo).
-      const fv = TRAINER_FOOD_VALUES[id];
-      if (!fv) { pushChat(`Alimento desconhecido.`, "info"); return; }
-      const { now } = trustedNow();
-      setIdle((s) => ({
-        ...s,
-        items: { ...s.items, [id]: have - 1 },
-        trainerHunger: Math.max(0, Math.min(TRAINER_HUNGER_MAX, (s.trainerHunger ?? TRAINER_HUNGER_MAX) + fv.hunger)),
-        trainerLastFedAt: now,
-      }));
-      setTrainerEnergy((e) => Math.max(0, Math.min(100, e + fv.energy)));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${fv.hunger} 🍖 +${fv.energy} ⚡`, "gold");
-      pushChat(`Você se alimentou (${fv.label}). Ciclo registrado às ${new Date(now).toLocaleTimeString()}.`, "cap");
-      // �x Saga: progresso de alimentação do treinador
-      bumpSagaCounter("feed_trainer");
     } else if (id === "morango" || id === "limao") {
       // 🍓 Cuidado Pokémon: alimenta o líder (fome + lealdade, ciclo ~3h).
       const fed = feedPet(team[0] as CaredPet, id as "morango" | "limao", trustedNow().now);
@@ -28296,8 +28322,9 @@ function TabOverlay({
           const usable = directUse.has(id);
           const rule = upgrades[id];
           const hint = category === "balls" ? "As Pokébolas são usadas automaticamente em combate." : "Use este item no sistema correspondente do jogo.";
+          const food = TRAINER_FOOD_VALUES[id];
           return {
-             key: id, id, quantity, name: NAMES[id] ?? id, description: id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : `${ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}${usable ? "" : ` ${hint}`}`,
+             key: id, id, quantity, name: NAMES[id] ?? id, description: id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : food ? `Restaura +${food.hunger} fome e +${food.energy} energia do treinador.` : `${ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}${usable ? "" : ` ${hint}`}`,
             image: PROFILE_SPRITES.books[id as keyof typeof PROFILE_SPRITES.books] ?? ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id],
             color: EGG_COLORS[id] ?? ITEM_COLORS[id], rarity: inventoryRarity(id), category, source: "bag", usable,
             bulk: ["potion", "book_atk", "book_def"].includes(id), actionLabel: usable ? category === "eggs" ? "Chocar" : "Usar" : category === "balls" ? "Uso em combate" : "Uso no sistema",
@@ -30269,6 +30296,24 @@ function TabOverlay({
             <div style={{ fontSize: 11, color: "#8a7a9c" }}>
               Cada poção custa {POTION_PRICE} ouro na Loja e recupera {Math.round(POTION_HEAL_PCT * 100)}% de HP.
             </div>
+          </div>
+
+          <div style={{
+            background: "linear-gradient(160deg, #102d26, #123e35)",
+            border: "1px solid rgba(74,222,128,0.42)", borderRadius: 12, padding: 16,
+            display: "flex", flexDirection: "column", gap: 10,
+          }}>
+            <div style={{ color: "#dcfce7", fontWeight: 800 }}>📱 Tela cheia e aplicativo</div>
+            <button type="button" onClick={() => void toggleGameFullscreen()} style={{ minHeight: 42, borderRadius: 8, border: "1px solid #86efac", background: "#166534", color: "#fff", fontWeight: 800, cursor: "pointer" }}>
+              {fullscreenActive ? "SAIR DA TELA CHEIA" : "ABRIR EM TELA CHEIA"}
+            </button>
+            {pwaStandalone ? (
+              <div style={{ fontSize: 11, color: "#bbf7d0" }}>✓ O jogo já está aberto como aplicativo, sem a barra de endereço.</div>
+            ) : (
+              <div style={{ fontSize: 11, color: "#d1fae5", lineHeight: 1.45 }}>
+                Para abrir sempre sem o link/barra do navegador: no Android, use o menu do navegador e escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>. No iPhone/iPad, abra no Safari, toque em Compartilhar e escolha <b>Adicionar à Tela de Início</b>.
+              </div>
+            )}
           </div>
 
           <div style={{ fontSize: 11, color: "#8a7a9c" }}>
