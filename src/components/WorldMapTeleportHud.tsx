@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isMapBlocked } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked } from "@/game/mapAccess";
 import { Map, Sparkles, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ballImg from "@/assets/items/icon-pokeball.png";
@@ -56,9 +56,6 @@ const elementIcon = (element?: string) => {
   if (key.includes("planta") || key.includes("grama")) return "🌿";
   return "✨";
 };
-
-const LOCKED_MAPS = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure", "rota_pinsir", "deserto_alaka"]);
-const EVENT_LOCKED = new Set(["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"]);
 
 // ===== Filtros do Mapa Mundi =====
 // VILLAGE = cidades e hubs (Revoland, Pokemarkt, casas, laboratório...).
@@ -121,7 +118,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <div className="world-atlas__grid">
           {visible.map((destination) => {
             const isCurrent = currentMap === destination.id;
-            const isLocked = LOCKED_MAPS.has(destination.id) || isMapBlocked(destination.id);
+            const isLocked = !isWorldMapDestinationUnlocked(destination.id) || isMapBlocked(destination.id);
             const previewImage = imageForDestination(destination);
             return (
               <article className={`world-destination ${isCurrent ? "is-current" : ""}`} key={destination.id}>
@@ -140,7 +137,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                 <div className="world-destination__content">
                   <div>
                     <h3 style={isLocked ? { filter: "grayscale(1)" } : undefined}>{destination.name}</h3>
-                    <p>{isLocked ? (EVENT_LOCKED.has(destination.id) ? "Só pela aba EVENTO · Torre Elemental" : "Bloqueado") : `${destination.diff} · Lv.${destination.minLevel} · ${destination.element || "Normal"}`}</p>
+                    <p>{isLocked ? "Bloqueado" : `${destination.diff} · Lv.${destination.minLevel} · ${destination.element || "Normal"}`}</p>
                   </div>
                   <Button
                     type="button"
@@ -160,7 +157,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <footer className="world-atlas__footer">
           <Sparkles aria-hidden="true" />
           <span>Escolha um destino ilustrado</span>
-          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland: grátis · Pokémarkt: grátis · outros: 5 ⚡</span>
+          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland · Pokémarkt · Verdejante · Valley Plume: grátis</span>
         </footer>
       </section>
     </div>

@@ -182,6 +182,8 @@ export const TELEPORT_ENERGY_LAND_COST = 1;
 export const LAB_MAP_ENERGY_COST = 10;
 /** Custo de energia por destino: Revoland = 0, Pokémarkt = 0, lands novas = 1, demais = 5. */
 export function teleportEnergyCostFor(mapId: string): number {
+  // Progressão inicial do Mapa Mundi: sempre gratuita.
+  if (mapId === "mapinha6" || mapId === "mapinha10" || mapId === "mapinha13" || mapId === "valley_plume") return 0;
   if (mapId === "arv") return 0; // novo mapa livre no Mapa Mundi
   if (mapId === "ini") return 0; // mapa de teste acessível gratuitamente pelo Mapa Mundi
   if (mapId === TELEPORT_HOME_MAP_ID) return TELEPORT_ENERGY_HOME_COST;

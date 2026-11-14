@@ -502,7 +502,7 @@ import arvMapDefault from "@/game/maps/arv.default.json";
 const arvUrl = import.meta.env.DEV
   ? "/src/skill/srg/arv.png"
   : (import.meta.env.VITE_ARV_MAP_URL ?? "https://raw.githubusercontent.com/ryuhhero133-sketch/happy-local-buddy-bae69586/main/src/skill/srg/arv.png");
-import { isMapBlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
 import safariSnorlaxMythicSheet from "@/ambiente/xz/Snorlax Mitico.png";
@@ -22564,6 +22564,10 @@ A sucata afundou com o casco.
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
                   onTeleport={(destination) => {
+                    if (!isWorldMapDestinationUnlocked(destination.id)) {
+                      pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
+                      return;
+                    }
                     const entryError = mapEntryError(idleRef.current, destination.id);
                     if (entryError) { pushChat(entryError, "info"); return; }
                     const m = IDLE_MAPS[destination.id];
@@ -22577,7 +22581,6 @@ A sucata afundou com o casco.
                       pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi — entre só pela aba EVENTO!`, "info");
                       return;
                     }
-                    if ((idle.trainerLevel ?? 1) < m.minLevel) { pushChat(`🔒 ${m.name} exige Lv ${m.minLevel}`, "info"); return; }
                     const tpCost = teleportEnergyCostFor(destination.id);
                     if (trainerEnergy < tpCost) { pushChat(`�a� Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
                     playClick();

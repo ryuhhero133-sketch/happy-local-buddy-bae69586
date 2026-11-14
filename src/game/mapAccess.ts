@@ -1,3 +1,10 @@
+// Mapa Mundi público: somente a progressão inicial fica disponível no atlas.
+// Os demais mapas continuam existentes, mas não podem ser escolhidos por este
+// teleporte até uma liberação futura explícita.
+export const WORLD_MAP_FREE_DESTINATION_IDS = ["mapinha6", "mapinha10", "mapinha13", "valley_plume"] as const;
+export const isWorldMapDestinationUnlocked = (id: string) =>
+  (WORLD_MAP_FREE_DESTINATION_IDS as readonly string[]).includes(id);
+
 // Altere esta lista para liberar os mapas novamente; vale para todas as viagens.
 export const BLOCKED_LAB_MAPS = ["map_0000", "map_0055", "map_0066", "map_0077", "map_xz"] as const;
 export const isMapBlocked = (id: string) => (BLOCKED_LAB_MAPS as readonly string[]).includes(id);
