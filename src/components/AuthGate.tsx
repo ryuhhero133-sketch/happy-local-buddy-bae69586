@@ -1418,11 +1418,11 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#9adcff" }}>
           {mode !== "login" ? (
             <button type="button" onClick={() => switchMode("login")} className="underline">
-              JÁ TENHO CONTA
+              VOLTAR AO LOGIN LEGADO
             </button>
           ) : (
-            <button type="button" onClick={() => switchMode("signup")} className="underline">
-              CRIAR CONTA
+            <button type="button" onClick={() => { setShowLegacyAuth(false); setError(null); setInfo(null); }} className="underline">
+              VOLTAR AO GOOGLE
             </button>
           )}
           {mode !== "reset" ? (
