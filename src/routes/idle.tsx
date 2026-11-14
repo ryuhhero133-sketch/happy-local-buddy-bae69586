@@ -498,7 +498,6 @@ import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laborat
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
 import saUrl from "@/ambiente/mascara colisao/sa.png";
-import arvUrl from "@/skill/srg/arv.png";
 import arvMapDefault from "@/game/maps/arv.default.json";
 import { isMapBlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
@@ -1179,6 +1178,12 @@ import {
   type SealedEgg,
 } from "@/game/ancestralEggs";
 import type { AncestralEggKind } from "@/game/traits";
+
+// O Pages limita assets individuais a 25 MiB. Em desenvolvimento o PNG local
+// é usado normalmente; em produção o mesmo arquivo sem perda vem do R2.
+const arvUrl = import.meta.env.DEV
+  ? "/src/skill/srg/arv.png"
+  : (import.meta.env.VITE_ARV_MAP_URL ?? "");
 
 const GIF: Partial<Record<Species, string>> = {
   kabutops: safariKabutopsIcon, kabutops_shiny: safariKabutopsShinyIcon, aerodactyl: safariAerodactylIcon,
