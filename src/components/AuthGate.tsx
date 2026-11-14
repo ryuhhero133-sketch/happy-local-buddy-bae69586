@@ -798,20 +798,10 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
     return <ResetPasswordScreen onDone={() => setRecoveryMode(false)} />;
   }
 
-  if (typeof window !== "undefined" && window.location.search.includes("login")) return <PanelShell title="ENTRAR"><form className="space-y-3"><MetaMaskLoginButton />{import.meta.env.DEV && <OfflineTestButton />}<button type="button" onClick={() => window.location.href="/?login=1"} className="w-full py-2 bg-amber-600 text-black font-black">RECARREGAR LOGIN</button></form></PanelShell>;
-  // Sem sessão: SOMENTE MetaMask (fluxo convidado "ENTRAR NO MUNDO" removido).
+  // Sem sessão: login público por Google, com MetaMask como alternativa.
+  // AuthScreen preserva a entrada por senha somente para contas legadas.
   if (!session) {
-    return (
-      <PanelShell title="ENTRAR">
-        <div className="space-y-3">
-          <p className="text-xs" style={{ color: "#fecaca" }}>
-            Conecte sua carteira MetaMask para jogar. Cada carteira tem seu próprio treinador.
-          </p>
-          <MetaMaskLoginButton />
-          {import.meta.env.DEV && <OfflineTestButton />}
-        </div>
-      </PanelShell>
-    );
+    return <AuthScreen />;
   }
 
   if (bootstrapping) return <SplashScreen label="Carregando perfil..." />;
