@@ -1153,6 +1153,9 @@ function InfoBox({ message }: { message: string | null }) {
 
 function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
   const [mode, setMode] = useState<Mode>("login");
+  // Senha continua disponível somente para contas antigas durante a migração.
+  // Novos jogadores entram pelo provedor Google.
+  const [showLegacyAuth, setShowLegacyAuth] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [betaKey, setBetaKey] = useState("");
@@ -1185,6 +1188,22 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
     setResetCode("");
     setNewPassword("");
     setNewPasswordConfirm("");
+  };
+
+  const continueWithGoogle = async () => {
+    setError(null);
+    setInfo(null);
+    setBusy(true);
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (oauthError) throw oauthError;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível iniciar o login com Google.");
+      setBusy(false);
+    }
   };
 
   const submit = async (e: FormEvent) => {
@@ -1280,8 +1299,37 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
       : "CONFIRMAR E ENTRAR";
 
   return (
-    <PanelShell title={title}>
+    <PanelShell title={showLegacyAuth ? title : "ENTRAR"}>
       <form onSubmit={submit} className="space-y-3">
+        <button
+          type="button"
+          onClick={continueWithGoogle}
+          disabled={busy}
+          className="w-full min-h-12 rounded-lg font-bold text-sm flex items-center justify-center gap-3 disabled:opacity-60"
+          style={{ background: "#fff", color: "#1f1f1f", border: "1px solid #dadce0", boxShadow: "0 1px 2px rgba(0,0,0,.18)" }}
+        >
+          <span aria-hidden="true" style={{ color: "#4285f4", fontFamily: "Arial, sans-serif", fontSize: 22, fontWeight: 700 }}>G</span>
+          {busy ? "REDIRECIONANDO..." : "CONTINUAR COM GOOGLE"}
+        </button>
+        <p className="text-center text-[10px] leading-relaxed" style={{ color: "#9adcff" }}>
+          Usamos apenas sua identidade Google para entrar no jogo.
+        </p>
+
+        {kickedMessage && <ErrorBox message={kickedMessage} />}
+        <ErrorBox message={error} />
+        <InfoBox message={info} />
+
+        {!showLegacyAuth ? (
+          <button
+            type="button"
+            onClick={() => { setShowLegacyAuth(true); setError(null); setInfo(null); }}
+            className="w-full text-[10px] tracking-[1px] underline"
+            style={{ color: "#9adcff" }}
+          >
+            JÁ POSSUI UMA CONTA ANTIGA? ENTRAR COM SENHA
+          </button>
+        ) : <>
+        <div className="flex items-center gap-2 py-1" aria-hidden="true"><span className="h-px flex-1" style={{ background: "#31536e" }} /><span className="text-[9px]" style={{ color: "#9adcff" }}>ACESSO LEGADO</span><span className="h-px flex-1" style={{ background: "#31536e" }} /></div>
 
         <Field
           label="E-mail"
@@ -1361,10 +1409,6 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           </>
         )}
 
-        {kickedMessage && <ErrorBox message={kickedMessage} />}
-        <ErrorBox message={error} />
-        <InfoBox message={info} />
-
         <PrimaryButton disabled={busy}>
           {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
@@ -1389,6 +1433,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
             <span />
           )}
         </div>
+        </>}
 
       </form>
     </PanelShell>
