@@ -17,12 +17,13 @@ import { canUseOfflineTest, enterOfflineTest, exitOfflineTest, isOfflineTest } f
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken, clearActiveSession } from "@/lib/session.functions";
+import pokeEmeraldLoginPng from "@/ambiente/POKE EMERALD.png";
 
 
 const loginBgAsset = { url: "/login-bg.png" };
-// Arte nova IDLEMON REVO — salve a imagem como public/login-splash.jpg.
-// Se o arquivo ainda não existir, o CSS cai para /login-bg.png sozinho.
-const loginSplashUrl = "/login-splash.jpg";
+// Arte oficial da entrada. Importada pelo Vite para não depender de arquivo
+// público ausente e para receber URL versionada no deploy.
+const loginSplashUrl = pokeEmeraldLoginPng;
 
 export const IDENTITY_KEY = "rubym.identity.v1";
 export const GUEST_KEY = "rubym.guest.v1";
@@ -1082,6 +1083,34 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
   );
 }
 
+/** Tela de abertura: evita exibir provedores de login antes da ação "Jogar". */
+function WelcomeScreen({ onPlay }: { onPlay: () => void }) {
+  return (
+    <main
+      className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-6"
+      style={{ background: "#020915", fontFamily: '"Press Start 2P", ui-monospace, monospace' }}
+    >
+      <style>{`
+        @keyframes revo-welcome-float { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.008); } }
+        @keyframes revo-welcome-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(79, 241, 198, .35), 0 12px 28px rgba(0,0,0,.65); } 50% { box-shadow: 0 0 0 10px rgba(79, 241, 198, 0), 0 16px 34px rgba(0,0,0,.75); } }
+      `}</style>
+      <div aria-hidden className="absolute -inset-8 opacity-45" style={{ backgroundImage: `url(${loginSplashUrl})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(20px) saturate(1.25) brightness(.55)", transform: "scale(1.08)" }} />
+      <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(3,16,34,.08), rgba(1,5,16,.88) 88%)" }} />
+      <section className="relative w-full" style={{ maxWidth: 1180 }} aria-label="Poke Emerald Saga">
+        <div style={{ animation: "revo-welcome-float 5s ease-in-out infinite", borderRadius: 18, overflow: "hidden", border: "2px solid rgba(122,255,229,.8)", boxShadow: "0 24px 72px rgba(0,0,0,.82), 0 0 34px rgba(69,224,255,.42)" }}>
+          <img src={loginSplashUrl} alt="Poke Emerald Saga" className="block w-full" style={{ maxHeight: "70vh", minHeight: 250, objectFit: "cover", objectPosition: "center" }} />
+        </div>
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center text-center" style={{ padding: "clamp(14px, 4vw, 38px)", background: "linear-gradient(transparent, rgba(1,7,18,.92) 35%)" }}>
+          <h1 style={{ color: "#fff2b0", fontSize: "clamp(19px, 4vw, 36px)", letterSpacing: "clamp(2px, .7vw, 8px)", textShadow: "3px 3px 0 #08233a, 5px 5px 0 #000, 0 0 20px #34d9ff", margin: 0 }}>POKE EMERALD</h1>
+          <p style={{ color: "#d9fbff", fontFamily: "ui-monospace, monospace", fontWeight: 800, fontSize: "clamp(10px, 1.4vw, 14px)", margin: "12px 0 18px", textShadow: "1px 1px 2px #000" }}>UMA NOVA JORNADA ESTÁ PRESTES A COMEÇAR</p>
+          <button type="button" onClick={onPlay} autoFocus style={{ animation: "revo-welcome-pulse 2.1s ease-in-out infinite", minWidth: "min(280px, 78vw)", minHeight: 58, padding: "0 28px", borderRadius: 12, border: "2px solid #e8ffd0", color: "#062415", background: "linear-gradient(180deg, #fff29a 0%, #78f7bd 48%, #1db979 100%)", fontSize: "clamp(16px, 3vw, 22px)", fontWeight: 900, letterSpacing: 5, cursor: "pointer", textShadow: "0 1px rgba(255,255,255,.8)" }}>JOGAR</button>
+          <span style={{ color: "#d3f5ff", fontFamily: "ui-monospace, monospace", fontSize: 11, marginTop: 12 }}>Toque para escolher como entrar</span>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 
 function PrimaryButton({
   children,
@@ -1143,6 +1172,7 @@ function InfoBox({ message }: { message: string | null }) {
 
 function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
   const [mode, setMode] = useState<Mode>("login");
+  const [showLoginOptions, setShowLoginOptions] = useState(false);
   // Senha continua disponível somente para contas antigas durante a migração.
   // Novos jogadores entram pelo provedor Google.
   const [showLegacyAuth, setShowLegacyAuth] = useState(false);
@@ -1287,6 +1317,8 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
       : resetStep === "email"
       ? "ENVIAR CÓDIGO"
       : "CONFIRMAR E ENTRAR";
+
+  if (!showLoginOptions) return <WelcomeScreen onPlay={() => setShowLoginOptions(true)} />;
 
   return (
     <PanelShell title={showLegacyAuth ? title : "ENTRAR"}>
