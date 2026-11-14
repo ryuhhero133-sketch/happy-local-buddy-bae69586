@@ -21,8 +21,8 @@ export default function MetaMaskLoginButton() {
       // A lib monta domain = host e uri = url usada. Sem `options.url`, ela usa
       // window.location.href (COM path, ex. /idle) e o servidor rejeita a URI
       // ("signed for another app"). Com origin, domain e URI batem com o Site URL:
-      // domain = revo-emerald.ryuhhero133.workers.dev
-      // uri    = https://revo-emerald.ryuhhero133.workers.dev
+      // domain e URI vêm de window.location.origin, portanto acompanham o
+      // domínio oficial (pokeemerald.app) e o endereço temporário de teste.
       const { error } = await supabase.auth.signInWithWeb3({
         chain: 'ethereum',
         statement: 'Sign in to Poke Emerald Saga.',

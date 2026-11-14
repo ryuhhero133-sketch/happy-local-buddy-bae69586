@@ -1314,6 +1314,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         <p className="text-center text-[10px] leading-relaxed" style={{ color: "#9adcff" }}>
           Usamos apenas sua identidade Google para entrar no jogo.
         </p>
+        <MetaMaskLoginButton />
 
         {kickedMessage && <ErrorBox message={kickedMessage} />}
         <ErrorBox message={error} />
@@ -1412,8 +1413,6 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
         <PrimaryButton disabled={busy}>
           {busy ? "AGUARDE..." : primaryLabel}
         </PrimaryButton>
-
-        <MetaMaskLoginButton />
 
         <div className="flex justify-between text-[10px] tracking-[2px]" style={{ color: "#9adcff" }}>
           {mode !== "login" ? (
