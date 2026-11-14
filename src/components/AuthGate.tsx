@@ -18,6 +18,7 @@ import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken, clearActiveSession } from "@/lib/session.functions";
 import pokeEmeraldLoginPng from "@/ambiente/POKE EMERALD.png";
+import introMapMusicMp3 from "@/ambiente/Mapa random.mp3";
 
 
 const loginBgAsset = { url: "/login-bg.png" };
@@ -1085,6 +1086,30 @@ function PanelShell({ children, title }: { children: ReactNode; title?: string }
 
 /** Tela de abertura: evita exibir provedores de login antes da ação "Jogar". */
 function WelcomeScreen({ onPlay }: { onPlay: () => void }) {
+  const [entering, setEntering] = useState(false);
+  const introMusicRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const music = new Audio(introMapMusicMp3);
+    music.loop = true;
+    music.volume = 0.32;
+    music.preload = "auto";
+    introMusicRef.current = music;
+    // Alguns navegadores permitem autoplay; Chrome/Safari podem recusá-lo até
+    // o primeiro toque. Nesse caso, o clique na arte inicia a música.
+    const autoplay = music.play();
+    void autoplay.catch(() => undefined);
+    return () => { music.pause(); music.currentTime = 0; };
+  }, []);
+
+  const enterGame = () => {
+    if (entering) return;
+    const play = introMusicRef.current?.play();
+    void play?.catch(() => undefined);
+    setEntering(true);
+    window.setTimeout(onPlay, 780);
+  };
+
   return (
     <main
       className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-6"
@@ -1092,21 +1117,20 @@ function WelcomeScreen({ onPlay }: { onPlay: () => void }) {
     >
       <style>{`
         @keyframes revo-welcome-float { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.008); } }
-        @keyframes revo-welcome-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(79, 241, 198, .35), 0 12px 28px rgba(0,0,0,.65); } 50% { box-shadow: 0 0 0 10px rgba(79, 241, 198, 0), 0 16px 34px rgba(0,0,0,.75); } }
+        @keyframes revo-water-ripple { from { transform: translate(-50%, -50%) scale(.05); opacity: .95; } to { transform: translate(-50%, -50%) scale(2.4); opacity: 0; } }
+        @keyframes revo-water-shimmer { 0%,100% { opacity: .2; } 50% { opacity: .78; } }
       `}</style>
       <div aria-hidden className="absolute -inset-8 opacity-45" style={{ backgroundImage: `url(${loginSplashUrl})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(20px) saturate(1.25) brightness(.55)", transform: "scale(1.08)" }} />
       <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(3,16,34,.08), rgba(1,5,16,.88) 88%)" }} />
-      <section className="relative w-full" style={{ maxWidth: 1180 }} aria-label="Poke Emerald Saga">
-        <div style={{ animation: "revo-welcome-float 5s ease-in-out infinite", borderRadius: 18, overflow: "hidden", border: "2px solid rgba(122,255,229,.8)", boxShadow: "0 24px 72px rgba(0,0,0,.82), 0 0 34px rgba(69,224,255,.42)" }}>
-          <img src={loginSplashUrl} alt="Poke Emerald Saga" className="block w-full" style={{ maxHeight: "70vh", minHeight: 250, objectFit: "cover", objectPosition: "center" }} />
-        </div>
-        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center text-center" style={{ padding: "clamp(14px, 4vw, 38px)", background: "linear-gradient(transparent, rgba(1,7,18,.92) 35%)" }}>
+      <button type="button" onClick={enterGame} disabled={entering} className="relative block p-0 text-left" aria-label="Entrar no Poke Emerald Saga" style={{ width: "min(100%, calc(177.78vh - 50px))", maxWidth: 1180, aspectRatio: "16 / 9", animation: entering ? undefined : "revo-welcome-float 5s ease-in-out infinite", borderRadius: 18, overflow: "hidden", border: "2px solid rgba(122,255,229,.8)", background: "#020915", boxShadow: "0 24px 72px rgba(0,0,0,.82), 0 0 34px rgba(69,224,255,.42)", cursor: entering ? "wait" : "pointer" }}>
+        <img src={loginSplashUrl} alt="Poke Emerald Saga — toque na imagem para jogar" className="absolute inset-0 w-full h-full" style={{ objectFit: "contain", objectPosition: "center" }} />
+        <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(transparent 48%, rgba(1,7,18,.84) 100%)" }} />
+        {entering && <><span aria-hidden className="absolute left-1/2 top-1/2 rounded-full" style={{ width: "42%", aspectRatio: "1", border: "4px solid rgba(157,246,255,.96)", boxShadow: "0 0 20px #4de4ff, inset 0 0 22px rgba(74,220,255,.55)", animation: "revo-water-ripple .78s ease-out forwards" }} /><span aria-hidden className="absolute left-1/2 top-1/2 rounded-full" style={{ width: "26%", aspectRatio: "1", border: "3px solid rgba(225,255,255,.9)", animation: "revo-water-ripple .78s .12s ease-out forwards" }} /><span aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(132,244,255,.62), rgba(21,126,210,.2) 36%, transparent 70%)", animation: "revo-water-shimmer .38s ease-in-out infinite" }} /></>}
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center text-center" style={{ padding: "clamp(14px, 4vw, 34px)" }}>
           <h1 style={{ color: "#fff2b0", fontSize: "clamp(19px, 4vw, 36px)", letterSpacing: "clamp(2px, .7vw, 8px)", textShadow: "3px 3px 0 #08233a, 5px 5px 0 #000, 0 0 20px #34d9ff", margin: 0 }}>POKE EMERALD</h1>
-          <p style={{ color: "#d9fbff", fontFamily: "ui-monospace, monospace", fontWeight: 800, fontSize: "clamp(10px, 1.4vw, 14px)", margin: "12px 0 18px", textShadow: "1px 1px 2px #000" }}>UMA NOVA JORNADA ESTÁ PRESTES A COMEÇAR</p>
-          <button type="button" onClick={onPlay} autoFocus style={{ animation: "revo-welcome-pulse 2.1s ease-in-out infinite", minWidth: "min(280px, 78vw)", minHeight: 58, padding: "0 28px", borderRadius: 12, border: "2px solid #e8ffd0", color: "#062415", background: "linear-gradient(180deg, #fff29a 0%, #78f7bd 48%, #1db979 100%)", fontSize: "clamp(16px, 3vw, 22px)", fontWeight: 900, letterSpacing: 5, cursor: "pointer", textShadow: "0 1px rgba(255,255,255,.8)" }}>JOGAR</button>
-          <span style={{ color: "#d3f5ff", fontFamily: "ui-monospace, monospace", fontSize: 11, marginTop: 12 }}>Toque para escolher como entrar</span>
+          <span style={{ color: "#d9fbff", fontFamily: "ui-monospace, monospace", fontWeight: 800, fontSize: "clamp(10px, 1.4vw, 14px)", marginTop: 12, textShadow: "1px 1px 2px #000" }}>{entering ? "ABRINDO PORTAL..." : "TOQUE NA IMAGEM PARA JOGAR"}</span>
         </div>
-      </section>
+      </button>
     </main>
   );
 }
