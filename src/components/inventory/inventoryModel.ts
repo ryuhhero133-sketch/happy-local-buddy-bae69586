@@ -21,7 +21,7 @@ export type InventoryItem = {
   upgrade?: { label: string; enabled: boolean; hint: string };
 };
 
-export const INVENTORY_PAGE_SIZE = 24;
+export const INVENTORY_PAGE_SIZE = 30;
 export const INVENTORY_TIERS: Record<InventoryRarity, { color: string; label: string }> = {
   common: { color: "#7f9eae", label: "Comum" },
   uncommon: { color: "#7ccea5", label: "Incomum" },

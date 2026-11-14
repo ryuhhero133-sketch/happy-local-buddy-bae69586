@@ -1,0 +1,984 @@
+{
+  "referencia": "image(20261109-221451).png",
+  "tamanho_referencia_px": [
+    1672,
+    941
+  ],
+  "quantidade_arquivos_png": 73,
+  "componentes": [
+    {
+      "arquivo": "00_Moldura_e_Paineis/moldura_principal_sem_icones.png",
+      "tamanho": [
+        710,
+        912
+      ],
+      "tipo": "moldura recriada limpa e com transparencia externa; painel sem itens; nao possui conteudo encoberto"
+    },
+    {
+      "arquivo": "00_Moldura_e_Paineis/cabecalho_mochila_original.png",
+      "origem_xyxy": [
+        1090,
+        0,
+        1552,
+        119
+      ],
+      "tamanho": [
+        486,
+        143
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "00_Moldura_e_Paineis/placa_titulo_mochila.png",
+      "origem_xyxy": [
+        1121,
+        47,
+        1515,
+        112
+      ],
+      "tamanho": [
+        410,
+        81
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "01_Abas/aba_itens.png",
+      "origem_xyxy": [
+        1004,
+        111,
+        1114,
+        203
+      ],
+      "tamanho": [
+        128,
+        110
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "01_Abas/aba_pokebolas.png",
+      "origem_xyxy": [
+        1108,
+        113,
+        1240,
+        201
+      ],
+      "tamanho": [
+        150,
+        106
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "01_Abas/aba_materiais.png",
+      "origem_xyxy": [
+        1238,
+        113,
+        1371,
+        201
+      ],
+      "tamanho": [
+        151,
+        106
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "01_Abas/aba_evolucao.png",
+      "origem_xyxy": [
+        1370,
+        113,
+        1503,
+        201
+      ],
+      "tamanho": [
+        151,
+        106
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "01_Abas/aba_especiais.png",
+      "origem_xyxy": [
+        1504,
+        113,
+        1637,
+        201
+      ],
+      "tamanho": [
+        151,
+        106
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_todos.png",
+      "origem_xyxy": [
+        1537,
+        211,
+        1638,
+        301
+      ],
+      "tamanho": [
+        117,
+        106
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_pocoes.png",
+      "origem_xyxy": [
+        1545,
+        297,
+        1630,
+        374
+      ],
+      "tamanho": [
+        101,
+        93
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_pokebolas.png",
+      "origem_xyxy": [
+        1545,
+        370,
+        1630,
+        456
+      ],
+      "tamanho": [
+        101,
+        102
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_frutas.png",
+      "origem_xyxy": [
+        1545,
+        453,
+        1630,
+        537
+      ],
+      "tamanho": [
+        101,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_folhas.png",
+      "origem_xyxy": [
+        1545,
+        532,
+        1630,
+        616
+      ],
+      "tamanho": [
+        101,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_discos.png",
+      "origem_xyxy": [
+        1545,
+        610,
+        1630,
+        688
+      ],
+      "tamanho": [
+        101,
+        94
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "03_Filtro_Lateral/filtro_especiais.png",
+      "origem_xyxy": [
+        1545,
+        678,
+        1630,
+        750
+      ],
+      "tamanho": [
+        101,
+        88
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l01_c01.png",
+      "origem_xyxy": [
+        1065,
+        213,
+        1181,
+        314
+      ],
+      "tamanho": [
+        134,
+        119
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l01_c02.png",
+      "origem_xyxy": [
+        1177,
+        218,
+        1264,
+        311
+      ],
+      "tamanho": [
+        105,
+        111
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l01_c03.png",
+      "origem_xyxy": [
+        1266,
+        218,
+        1356,
+        311
+      ],
+      "tamanho": [
+        108,
+        111
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l01_c04.png",
+      "origem_xyxy": [
+        1358,
+        218,
+        1447,
+        311
+      ],
+      "tamanho": [
+        107,
+        111
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l01_c05.png",
+      "origem_xyxy": [
+        1450,
+        218,
+        1538,
+        311
+      ],
+      "tamanho": [
+        106,
+        111
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l02_c01.png",
+      "origem_xyxy": [
+        1078,
+        312,
+        1178,
+        393
+      ],
+      "tamanho": [
+        118,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l02_c02.png",
+      "origem_xyxy": [
+        1177,
+        312,
+        1264,
+        393
+      ],
+      "tamanho": [
+        105,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l02_c03.png",
+      "origem_xyxy": [
+        1266,
+        312,
+        1356,
+        393
+      ],
+      "tamanho": [
+        108,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l02_c04.png",
+      "origem_xyxy": [
+        1358,
+        312,
+        1447,
+        393
+      ],
+      "tamanho": [
+        107,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l02_c05.png",
+      "origem_xyxy": [
+        1450,
+        312,
+        1538,
+        393
+      ],
+      "tamanho": [
+        106,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l03_c01.png",
+      "origem_xyxy": [
+        1078,
+        396,
+        1178,
+        478
+      ],
+      "tamanho": [
+        118,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l03_c02.png",
+      "origem_xyxy": [
+        1177,
+        396,
+        1264,
+        478
+      ],
+      "tamanho": [
+        105,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l03_c03.png",
+      "origem_xyxy": [
+        1266,
+        396,
+        1356,
+        478
+      ],
+      "tamanho": [
+        108,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l03_c04.png",
+      "origem_xyxy": [
+        1358,
+        396,
+        1447,
+        478
+      ],
+      "tamanho": [
+        107,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l03_c05.png",
+      "origem_xyxy": [
+        1450,
+        396,
+        1538,
+        478
+      ],
+      "tamanho": [
+        106,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l04_c01.png",
+      "origem_xyxy": [
+        1078,
+        481,
+        1178,
+        562
+      ],
+      "tamanho": [
+        118,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l04_c02.png",
+      "origem_xyxy": [
+        1177,
+        481,
+        1264,
+        562
+      ],
+      "tamanho": [
+        105,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l04_c03.png",
+      "origem_xyxy": [
+        1266,
+        481,
+        1356,
+        562
+      ],
+      "tamanho": [
+        108,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l04_c04.png",
+      "origem_xyxy": [
+        1358,
+        481,
+        1447,
+        562
+      ],
+      "tamanho": [
+        107,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l04_c05.png",
+      "origem_xyxy": [
+        1450,
+        481,
+        1538,
+        562
+      ],
+      "tamanho": [
+        106,
+        99
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l05_c01.png",
+      "origem_xyxy": [
+        1078,
+        565,
+        1178,
+        647
+      ],
+      "tamanho": [
+        118,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l05_c02.png",
+      "origem_xyxy": [
+        1177,
+        565,
+        1264,
+        647
+      ],
+      "tamanho": [
+        105,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l05_c03.png",
+      "origem_xyxy": [
+        1266,
+        565,
+        1356,
+        647
+      ],
+      "tamanho": [
+        108,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l05_c04.png",
+      "origem_xyxy": [
+        1358,
+        565,
+        1447,
+        647
+      ],
+      "tamanho": [
+        107,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l05_c05.png",
+      "origem_xyxy": [
+        1450,
+        565,
+        1538,
+        647
+      ],
+      "tamanho": [
+        106,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l06_c01.png",
+      "origem_xyxy": [
+        1078,
+        648,
+        1178,
+        728
+      ],
+      "tamanho": [
+        118,
+        98
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l06_c02.png",
+      "origem_xyxy": [
+        1177,
+        648,
+        1264,
+        728
+      ],
+      "tamanho": [
+        105,
+        98
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l06_c03.png",
+      "origem_xyxy": [
+        1266,
+        648,
+        1356,
+        728
+      ],
+      "tamanho": [
+        108,
+        98
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l06_c04.png",
+      "origem_xyxy": [
+        1358,
+        648,
+        1447,
+        728
+      ],
+      "tamanho": [
+        107,
+        98
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_l06_c05.png",
+      "origem_xyxy": [
+        1450,
+        648,
+        1538,
+        728
+      ],
+      "tamanho": [
+        106,
+        98
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_selecionado_brilho.png",
+      "origem_xyxy": [
+        1063,
+        212,
+        1183,
+        316
+      ],
+      "tamanho": [
+        144,
+        128
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "02_Slots/slot_vazio_padrao.png",
+      "origem_xyxy": [
+        1450,
+        648,
+        1538,
+        728
+      ],
+      "tamanho": [
+        108,
+        100
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/painel_detalhes_completo.png",
+      "origem_xyxy": [
+        593,
+        208,
+        1039,
+        724
+      ],
+      "tamanho": [
+        470,
+        540
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/icone_pocao_com_moldura.png",
+      "origem_xyxy": [
+        621,
+        233,
+        736,
+        350
+      ],
+      "tamanho": [
+        133,
+        135
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/titulo_pocao.png",
+      "origem_xyxy": [
+        744,
+        238,
+        1012,
+        336
+      ],
+      "tamanho": [
+        282,
+        112
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/descricao_pocao.png",
+      "origem_xyxy": [
+        623,
+        350,
+        1020,
+        443
+      ],
+      "tamanho": [
+        413,
+        109
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/quadro_atributos.png",
+      "origem_xyxy": [
+        628,
+        437,
+        1007,
+        583
+      ],
+      "tamanho": [
+        395,
+        162
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/botao_usar.png",
+      "origem_xyxy": [
+        621,
+        604,
+        756,
+        704
+      ],
+      "tamanho": [
+        151,
+        116
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/botao_mover.png",
+      "origem_xyxy": [
+        753,
+        605,
+        884,
+        702
+      ],
+      "tamanho": [
+        147,
+        113
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "04_Detalhes_Item/botao_favoritar.png",
+      "origem_xyxy": [
+        880,
+        604,
+        1015,
+        701
+      ],
+      "tamanho": [
+        151,
+        113
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "05_Botoes_Rodape/rodape_ordenar.png",
+      "origem_xyxy": [
+        1015,
+        812,
+        1194,
+        878
+      ],
+      "tamanho": [
+        195,
+        82
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "05_Botoes_Rodape/rodape_organizar.png",
+      "origem_xyxy": [
+        1200,
+        812,
+        1380,
+        878
+      ],
+      "tamanho": [
+        196,
+        82
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "05_Botoes_Rodape/rodape_mover.png",
+      "origem_xyxy": [
+        1382,
+        808,
+        1477,
+        882
+      ],
+      "tamanho": [
+        111,
+        90
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "05_Botoes_Rodape/rodape_expandir.png",
+      "origem_xyxy": [
+        1483,
+        810,
+        1579,
+        882
+      ],
+      "tamanho": [
+        112,
+        88
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "05_Botoes_Rodape/contador_gold.png",
+      "origem_xyxy": [
+        1114,
+        730,
+        1286,
+        787
+      ],
+      "tamanho": [
+        186,
+        71
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "05_Botoes_Rodape/contador_diamante.png",
+      "origem_xyxy": [
+        1380,
+        728,
+        1519,
+        790
+      ],
+      "tamanho": [
+        153,
+        76
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "06_HUD_Exploracao/perfil_treinador.png",
+      "origem_xyxy": [
+        15,
+        10,
+        281,
+        88
+      ],
+      "tamanho": [
+        284,
+        96
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "06_HUD_Exploracao/minimapa.png",
+      "origem_xyxy": [
+        17,
+        89,
+        282,
+        263
+      ],
+      "tamanho": [
+        285,
+        194
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "06_HUD_Exploracao/botoes_tutoriais.png",
+      "origem_xyxy": [
+        19,
+        864,
+        606,
+        915
+      ],
+      "tamanho": [
+        601,
+        65
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "06_HUD_Exploracao/acessos_equipe.png",
+      "origem_xyxy": [
+        281,
+        16,
+        528,
+        78
+      ],
+      "tamanho": [
+        259,
+        74
+      ],
+      "tipo": "recorte da imagem de referencia com fundo externo transparente"
+    },
+    {
+      "arquivo": "07_Modelos_Vazios/botao_sem_icone_normal.png",
+      "tamanho": [
+        222,
+        107
+      ],
+      "tipo": "modelo sem texto ou icone e com transparencia externa"
+    },
+    {
+      "arquivo": "07_Modelos_Vazios/botao_sem_icone_hover.png",
+      "tamanho": [
+        222,
+        107
+      ],
+      "tipo": "modelo sem texto ou icone e com transparencia externa"
+    },
+    {
+      "arquivo": "07_Modelos_Vazios/slot_sem_item.png",
+      "tamanho": [
+        152,
+        152
+      ],
+      "tipo": "modelo sem item e com transparencia externa"
+    },
+    {
+      "arquivo": "07_Modelos_Vazios/slot_base_sem_icone.png",
+      "tamanho": [
+        152,
+        152
+      ],
+      "tipo": "modelo sem item e com transparencia externa"
+    },
+    {
+      "arquivo": "07_Modelos_Vazios/slot_hover_sem_icone.png",
+      "tamanho": [
+        152,
+        152
+      ],
+      "tipo": "modelo sem item e com transparencia externa"
+    },
+    {
+      "arquivo": "00_Moldura_e_Paineis/painel_detalhes_limpo.png",
+      "tamanho": [
+        448,
+        522
+      ],
+      "tipo": "painel de detalhes reconstruido sem texto ou item"
+    },
+    {
+      "arquivo": "00_Moldura_e_Paineis/moldura_com_cabecalho_sem_botoes.png",
+      "tamanho": [
+        710,
+        912
+      ],
+      "tipo": "moldura limpa com cabecalho de referencia, sem botoes nem itens"
+    },
+    {
+      "arquivo": "00_Moldura_e_Paineis/grade_inventario_sem_itens.png",
+      "tamanho": [
+        503,
+        525
+      ],
+      "tipo": "grade nova limpa com slots completos, sem itens"
+    }
+  ],
+  "instrucoes": {
+    "moldura": "A moldura_principal_sem_icones.png foi reconstruida limpa porque a tela de referencia original e uma unica imagem achatada com parte da borda escondida pelo painel de pocao.",
+    "montagem": "Use posicao absolute sobre o conteiner do HUD, e transforme ou redimensione cada elemento separadamente; os elementos recortados incluem uma pequena margem transparente para nao cortar efeitos.",
+    "slots": "Slots individuais da imagem original incluem item e contagem quando presentes; use slot_sem_item.png e os icones nativos do seu jogo para itens dinamicos.",
+    "limitacao": "Recortes de partes presentes na imagem mantem os pixels que estavam originalmente visiveis; nao e possivel recuperar camadas invisiveis sob botoes, textos, painel flutuante ou efeitos a partir deste unico PNG."
+  }
+}

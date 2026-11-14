@@ -139,6 +139,7 @@
 .revo-throws-icon { color: #ff7a82; }
 .revo-systems { position: absolute; top: 20px; right: 18px; display: flex; align-items: center; gap: 6px; pointer-events: auto; }
 .revo-systems > .revo-icon:nth-child(-n+2) { color: var(--hud-gold); }
+.revo-event-icon { width: 100%; height: 100%; object-fit: contain; }
 .revo-clock { height: 38px; padding-inline: 12px; gap: 8px; font-size: 13px; font-weight: bold; }
 .revo-clock svg { color: #ffcd42; fill: #ffbd25; width: 23px; height: 23px; }
 .revo-notices { position: absolute; top: 68px; right: 18px; width: 280px; z-index: 5; overflow: hidden; }
@@ -259,9 +260,6 @@
 .revo-auto > strong { position: relative; margin-top: -11px; padding: 2px 15px; background: linear-gradient(#243f62, #0a1b34); border: 1px solid #6e91b8; border-radius: 11px; font-size: 16px; }
 .revo-actions__secondary { position: absolute; right: 0; bottom: 109px; display: flex; flex-direction: column; gap: 7px; }
 .revo-actions__secondary .revo-icon { width: 39px; height: 39px; border-radius: 50%; border-color: #ae9e66; }
-.revo-forge { position: absolute; bottom: 0; right: 0; width: 78px; height: 87px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border-color: var(--hud-gold); border-radius: 18px; }
-.revo-forge > svg { width: 35px; height: 35px; color: #f8c365; fill: #c0832b55; filter: drop-shadow(0 2px 2px #000); }
-.revo-forge > strong { font-size: 13px; }
 
 /* Legacy dialogs remain mounted in their original ownership, above the HUD. */
 .revo-game .revo-auto-settings { position: fixed !important; left: auto !important; right: 185px !important; bottom: 120px !important; transform: none !important; z-index: 6000; pointer-events: auto; }
@@ -453,11 +451,9 @@
 .revo-dock__item:not([aria-disabled="true"]):hover > img { transform: translateY(-3px) scale(1.08); filter: drop-shadow(0 2px 5px #8dcaff66); }
 .revo-team__card:hover { transform: translateX(2px); border-color: var(--pet-tier); }
 .revo-team__card:hover .revo-team__portrait > img { transform: translateY(-2px); }
-.revo-hud .revo-icon:active, .revo-hud .revo-dock__item:active, .revo-hud .revo-team__card:active, .revo-hud .revo-forge:active { transform: scale(.96); }
+.revo-hud .revo-icon:active, .revo-hud .revo-dock__item:active, .revo-hud .revo-team__card:active { transform: scale(.96); }
 .revo-auto:not(:disabled):hover > span { border-color: #90e4f0; }
 .revo-auto.is-active > span { animation: revo-auto-breathe 3.4s ease-in-out infinite; }
-.revo-forge:hover > svg { transform: rotate(-6deg) translateY(-2px); }
-.revo-forge > svg { transition: transform .22s ease; }
 @keyframes revo-auto-breathe { 0%, 100% { box-shadow: inset 0 0 0 5px #030c16, inset 0 0 0 7px #38bcb3, 0 0 10px #54f0ee22; } 50% { box-shadow: inset 0 0 0 5px #030c16, inset 0 0 0 7px #65d7d0, 0 0 20px #54f0ee44; } }
 @media (max-width: 1000px) and (min-width: 769px) {
   .revo-team { top: 198px; max-height: calc(100% - 463px); }

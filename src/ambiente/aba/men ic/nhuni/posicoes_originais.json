@@ -1,0 +1,656 @@
+{
+  "canvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "assets": [
+    {
+      "arquivo": "01_Molduras/moldura_externa_vazada.png",
+      "x": 10,
+      "y": 296,
+      "largura": 1174,
+      "altura": 617,
+      "recorte": "vazada",
+      "observacao": "Moldura exterior; centro transparente para conteúdo montado em HTML/CSS"
+    },
+    {
+      "arquivo": "01_Molduras/fundo_roxo_painel_limpo.png",
+      "x": 10,
+      "y": 296,
+      "largura": 1174,
+      "altura": 617,
+      "recorte": "painel",
+      "observacao": "Fundo violeta limpo reconstituído para permitir inserir slots e botões"
+    },
+    {
+      "arquivo": "01_Molduras/moldura_com_fundo_limpo.png",
+      "x": 10,
+      "y": 296,
+      "largura": 1174,
+      "altura": 617,
+      "recorte": "painel",
+      "observacao": "Base pronta sem os controles originais"
+    },
+    {
+      "arquivo": "01_Molduras/painel_original_recortado.png",
+      "x": 11,
+      "y": 292,
+      "largura": 1169,
+      "altura": 623,
+      "recorte": "rounded",
+      "observacao": "Prévia completa, com controles incorporados à imagem; usar como referência"
+    },
+    {
+      "arquivo": "02_Cabecalho/topo_ornamental_completo.png",
+      "x": 24,
+      "y": 0,
+      "largura": 1174,
+      "altura": 219,
+      "recorte": "polygon",
+      "observacao": "Cabeçalho ornamental completo; borda de recorte manual"
+    },
+    {
+      "arquivo": "02_Cabecalho/mochila_emblema_topo.png",
+      "x": 215,
+      "y": 0,
+      "largura": 260,
+      "altura": 204,
+      "recorte": "polygon",
+      "observacao": "Recorte recortado na área da mochila; efeito ornamental original"
+    },
+    {
+      "arquivo": "02_Cabecalho/titulo_mochila_faixa.png",
+      "x": 455,
+      "y": 42,
+      "largura": 595,
+      "altura": 165,
+      "recorte": "polygon",
+      "observacao": "Faixa original com texto Mochila, ornamento e brilho"
+    },
+    {
+      "arquivo": "03_Abas_Superiores/aba_itens.png",
+      "x": 30,
+      "y": 216,
+      "largura": 224,
+      "altura": 68,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "03_Abas_Superiores/aba_pokebolas.png",
+      "x": 257,
+      "y": 214,
+      "largura": 195,
+      "altura": 70,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "03_Abas_Superiores/aba_materiais.png",
+      "x": 448,
+      "y": 215,
+      "largura": 189,
+      "altura": 66,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "03_Abas_Superiores/aba_evolucao.png",
+      "x": 638,
+      "y": 214,
+      "largura": 191,
+      "altura": 67,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "03_Abas_Superiores/aba_consumiveis.png",
+      "x": 820,
+      "y": 215,
+      "largura": 197,
+      "altura": 67,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "03_Abas_Superiores/aba_especiais.png",
+      "x": 1015,
+      "y": 215,
+      "largura": 184,
+      "altura": 67,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_todos.png",
+      "x": 71,
+      "y": 339,
+      "largura": 201,
+      "altura": 66,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_usaveis.png",
+      "x": 66,
+      "y": 407,
+      "largura": 207,
+      "altura": 51,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_materiais.png",
+      "x": 65,
+      "y": 455,
+      "largura": 210,
+      "altura": 50,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_evolucao.png",
+      "x": 65,
+      "y": 505,
+      "largura": 210,
+      "altura": 51,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_ovos.png",
+      "x": 66,
+      "y": 551,
+      "largura": 208,
+      "altura": 57,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_fragmentos.png",
+      "x": 66,
+      "y": 602,
+      "largura": 208,
+      "altura": 51,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_minerios.png",
+      "x": 66,
+      "y": 650,
+      "largura": 209,
+      "altura": 55,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_eventos.png",
+      "x": 65,
+      "y": 701,
+      "largura": 210,
+      "altura": 52,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_outros.png",
+      "x": 66,
+      "y": 749,
+      "largura": 210,
+      "altura": 57,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "04_Categorias_Laterais/categoria_equipamentos.png",
+      "x": 67,
+      "y": 800,
+      "largura": 205,
+      "altura": 50,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "05_Slots/slot_selecionado.png",
+      "x": 296,
+      "y": 400,
+      "largura": 108,
+      "altura": 111,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "05_Slots/slot_normal.png",
+      "x": 408,
+      "y": 407,
+      "largura": 89,
+      "altura": 103,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "05_Slots/slot_vazio.png",
+      "x": 411,
+      "y": 512,
+      "largura": 90,
+      "altura": 95,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "05_Slots/slot_bloqueado.png",
+      "x": 1368,
+      "y": 757,
+      "largura": 82,
+      "altura": 95,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "05_Slots/slot_ativo_dourado.png",
+      "x": 1199,
+      "y": 753,
+      "largura": 86,
+      "altura": 102,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "05_Slots/slot_ativo_rosa.png",
+      "x": 1450,
+      "y": 752,
+      "largura": 82,
+      "altura": 103,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/cartao_detalhes_completo.png",
+      "x": 870,
+      "y": 332,
+      "largura": 274,
+      "altura": 536,
+      "recorte": "rounded",
+      "observacao": "Cartão de detalhes com item e texto fixo da arte"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/faixa_epico.png",
+      "x": 938,
+      "y": 544,
+      "largura": 143,
+      "altura": 47,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/botao_usar.png",
+      "x": 891,
+      "y": 776,
+      "largura": 239,
+      "altura": 82,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/contador_menos.png",
+      "x": 888,
+      "y": 715,
+      "largura": 52,
+      "altura": 48,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/contador_mais.png",
+      "x": 995,
+      "y": 713,
+      "largura": 55,
+      "altura": 52,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/contador_max.png",
+      "x": 1060,
+      "y": 713,
+      "largura": 66,
+      "altura": 50,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/botao_pesquisar.png",
+      "x": 649,
+      "y": 343,
+      "largura": 58,
+      "altura": 49,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "06_Detalhes_Item/botao_expandir.png",
+      "x": 713,
+      "y": 340,
+      "largura": 149,
+      "altura": 55,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "07_Botoes_Acoes/botao_confirmar.png",
+      "x": 55,
+      "y": 921,
+      "largura": 277,
+      "altura": 82,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "07_Botoes_Acoes/botao_cancelar.png",
+      "x": 339,
+      "y": 921,
+      "largura": 261,
+      "altura": 82,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "07_Botoes_Acoes/botao_organizar.png",
+      "x": 608,
+      "y": 918,
+      "largura": 256,
+      "altura": 84,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "07_Botoes_Acoes/botao_filtrar.png",
+      "x": 867,
+      "y": 921,
+      "largura": 266,
+      "altura": 81,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/seta_pagina_anterior.png",
+      "x": 440,
+      "y": 815,
+      "largura": 71,
+      "altura": 51,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/seta_pagina_proxima.png",
+      "x": 654,
+      "y": 817,
+      "largura": 74,
+      "altura": 47,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/pagina_1_de_1.png",
+      "x": 531,
+      "y": 811,
+      "largura": 103,
+      "altura": 50,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/seta_extra_anterior.png",
+      "x": 1200,
+      "y": 902,
+      "largura": 80,
+      "altura": 67,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/seta_extra_proxima.png",
+      "x": 1407,
+      "y": 899,
+      "largura": 84,
+      "altura": 71,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/fechar_vermelho.png",
+      "x": 1410,
+      "y": 25,
+      "largura": 109,
+      "altura": 100,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "08_Navegacao/ferramenta_azul.png",
+      "x": 1292,
+      "y": 26,
+      "largura": 103,
+      "altura": 102,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "09_Enfeites/faixa_roxa_vazia.png",
+      "x": 1215,
+      "y": 161,
+      "largura": 309,
+      "altura": 78,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "09_Enfeites/faixa_clara_vazia.png",
+      "x": 1215,
+      "y": 251,
+      "largura": 301,
+      "altura": 60,
+      "recorte": "pill",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "09_Enfeites/enfeite_folhas_cristal.png",
+      "x": 1209,
+      "y": 314,
+      "largura": 316,
+      "altura": 73,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "09_Enfeites/fita_roxa_vazia.png",
+      "x": 1210,
+      "y": 384,
+      "largura": 312,
+      "altura": 87,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "09_Enfeites/divisor_pokebola.png",
+      "x": 1210,
+      "y": 467,
+      "largura": 312,
+      "altura": 60,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "09_Enfeites/luz_de_cristal.png",
+      "x": 1210,
+      "y": 526,
+      "largura": 312,
+      "altura": 47,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/gem_verde.png",
+      "x": 1222,
+      "y": 584,
+      "largura": 54,
+      "altura": 55,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/gem_azul.png",
+      "x": 1280,
+      "y": 583,
+      "largura": 53,
+      "altura": 56,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/gem_roxa.png",
+      "x": 1339,
+      "y": 583,
+      "largura": 58,
+      "altura": 59,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/gem_dourada.png",
+      "x": 1401,
+      "y": 584,
+      "largura": 53,
+      "altura": 54,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/gem_vermelha.png",
+      "x": 1460,
+      "y": 585,
+      "largura": 52,
+      "altura": 52,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_pokebola.png",
+      "x": 1194,
+      "y": 649,
+      "largura": 85,
+      "altura": 87,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_pocao.png",
+      "x": 1275,
+      "y": 651,
+      "largura": 64,
+      "altura": 89,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_mochila.png",
+      "x": 1334,
+      "y": 648,
+      "largura": 91,
+      "altura": 85,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_bau.png",
+      "x": 1428,
+      "y": 650,
+      "largura": 96,
+      "altura": 88,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_espada.png",
+      "x": 504,
+      "y": 412,
+      "largura": 85,
+      "altura": 93,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_cristal.png",
+      "x": 409,
+      "y": 411,
+      "largura": 92,
+      "altura": 95,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_bota.png",
+      "x": 694,
+      "y": 418,
+      "largura": 82,
+      "altura": 85,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_anel.png",
+      "x": 785,
+      "y": 420,
+      "largura": 77,
+      "altura": 81,
+      "recorte": "ellipse",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_colete.png",
+      "x": 596,
+      "y": 411,
+      "largura": 88,
+      "altura": 94,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_colar.png",
+      "x": 311,
+      "y": 512,
+      "largura": 82,
+      "altura": 88,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_bau_grade.png",
+      "x": 305,
+      "y": 407,
+      "largura": 94,
+      "altura": 100,
+      "recorte": "rounded",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_bau_preview.png",
+      "x": 923,
+      "y": 374,
+      "largura": 188,
+      "altura": 143,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    },
+    {
+      "arquivo": "10_Icones/icone_bolsa_topo.png",
+      "x": 228,
+      "y": 0,
+      "largura": 231,
+      "altura": 207,
+      "recorte": "polygon",
+      "observacao": "Recorte direto da arte original com transparência exterior"
+    }
+  ]
+}

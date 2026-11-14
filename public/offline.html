@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071426">
+<title>Poke Emerald Saga — Sem conexão</title>
+<body style="margin:0;min-height:100dvh;display:grid;place-items:center;background:#071426;color:#ffe5a0;font:16px system-ui;text-align:center">
+  <main style="padding:24px"><img src="/idle-mon-icon.png" width="88" height="88" alt=""><h1>Sem conexão</h1><p id="message">Conecte-se à internet para jogar Poke Emerald Saga.</p><button onclick="retry()" style="padding:12px 24px;border:1px solid #dfc57d;border-radius:12px;background:#163b47;color:white">Tentar novamente</button></main>
+  <script>
+    const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (local) document.getElementById('message').textContent = 'O servidor local não está disponível. Inicie o jogo e tente novamente.';
+    async function retry() {
+      if (local && 'serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+      location.reload();
+    }
+  </script>
+</body>
+</html>

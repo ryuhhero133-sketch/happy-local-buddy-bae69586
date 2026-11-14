@@ -22,6 +22,11 @@ export function getHudMapBounds(
 
 /** Preserve the compact HUD size, scaling down further only when the map needs it. */
 export function getHudScale(bounds: HudMapBounds, viewportWidth: number): number {
+  // No celular deitado, o layout tem posições próprias e precisa de medidas reais.
+  // Não altera notebooks/PCs com janela estreita.
+  if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse) and (orientation: landscape) and (max-height: 650px)").matches) {
+    return Math.min(1, bounds.width / 640, bounds.height / 320);
+  }
   const mobile = viewportWidth <= 768;
   const preferred = mobile ? 1 : viewportWidth <= 1000 ? 0.9 : 0.8;
   return Math.min(preferred, bounds.width / (mobile ? 360 : 1000), bounds.height / (mobile ? 600 : 680));

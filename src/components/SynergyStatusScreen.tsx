@@ -123,7 +123,7 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
   const src = gifMap[main.species];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", maxWidth: 600, margin: "0 auto", maxHeight: "calc(100vh - 210px)", overflowY: "hidden", padding: "2px 2px 4px", boxSizing: "border-box" as any, fontFamily: '"Press Start 2P", monospace', imageRendering: "pixelated" as any, zoom: 0.85 as any, transformOrigin: "top center" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", margin: "0 auto", padding: "2px 2px 4px", boxSizing: "border-box" as any, fontFamily: '"Press Start 2P", monospace', imageRendering: "pixelated" as any }}>
       {/* HEADER — muda com a aba */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -157,10 +157,10 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
         ))}
       </div>
       {activePanel==="pokemon" && (
-      <div className="mob-syn-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 6, border: "4px solid #1a0f2a", borderTop: "none", borderBottom: "none", background: "#1a0f2a", padding: "0 6px" }}>
+      <div className="mob-syn-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 6, border: "4px solid #c9a65d", borderTop: "none", borderBottom: "none", background: "#241043", padding: "0 6px" }}>
         {/* Left Pokemon card */}
         <div style={{
-          background: "#b8a8e8", borderRight: "4px solid #1a0f2a",
+          background: "linear-gradient(160deg, #3d1e78, #210f45)", borderRight: "4px solid #c9a65d",
           padding: 8, display: "flex", flexDirection: "column", gap: 6,
         }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -171,36 +171,28 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
             </div>
             <div style={{
               alignSelf: "flex-start",
-              background: meta.color, color: "#fff", border: "2px solid #1a0f2a",
+              background: meta.color, color: "#fff", border: "2px solid #c9a65d",
               borderRadius: 6, padding: "2px 6px", fontSize: 8, display: "flex", alignItems: "center", gap: 4, fontWeight: 900,
             }}>
               <span>{meta.emoji}</span> {meta.label}
             </div>
           </div>
-          <div style={{
-            background: "#fff", border: "3px solid #1a0f2a", borderRadius: 6,
-            height: 84, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          <div className="pokemon-status-portrait" style={{
+            background: `radial-gradient(ellipse at 50% 78%, color-mix(in srgb, ${meta.color} 48%, transparent), transparent 63%), radial-gradient(circle at 50% 35%, #fff4dd 0%, #dbf4eb 47%, #a4d7c9 100%)`,
+            border: "3px solid #e6c777", borderRadius: 12,
+            height: 144, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
             position: "relative", overflow: "hidden",
-            boxShadow: "inset 0 0 0 3px #d8d0f0, 0 0 18px rgba(245,207,107,0.55), 0 0 42px rgba(255,151,225,0.35)",
+            boxShadow: "inset 0 0 0 3px #ffffff99, inset 0 -12px 20px #134e4440, 0 0 14px #f5cf6b66",
           }}>
-            {/* pokeball glow atrás do sprite */}
-            <div style={{
-              position: "absolute", width: 96, height: 96, borderRadius: 999,
-              border: "8px solid #e8e0f8", background: "radial-gradient(circle at 50% 35%, #fff 0%, #ffe9a8 55%, #e8e0f8 100%)",
-              opacity: 0.95, boxShadow: "0 0 24px rgba(245,207,107,0.7), 0 0 60px rgba(255,151,225,0.4)",
-              animation: "rubym-ballspin 6s linear infinite",
-            }}>
-              <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: 5, background: "#1a0f2a", transform: "translateY(-50%)" }} />
-              <div style={{ position: "absolute", left: "50%", top: "50%", width: 17, height: 17, background: "#fff", border: "3px solid #1a0f2a", borderRadius: 999, transform: "translate(-50%,-50%)", boxShadow: "0 0 10px #fff" }} />
-            </div>
-            <style>{`@keyframes rubym-ballspin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }`}</style>
-            {src ? <img src={src} alt="" width={92} height={92} style={{ imageRendering: "pixelated", position: "relative", zIndex: 1, filter: "drop-shadow(0 2px 0 #1a0f2a)" }} /> : <span style={{ fontSize: 10, color: "#1a0f2a" }}>SEM SPRITE</span>}
+            <div aria-hidden="true" style={{ position: "absolute", width: 126, height: 126, border: `2px solid color-mix(in srgb, ${meta.color} 45%, #fff)`, borderRadius: "50%", background: "#ffffff55", boxShadow: "0 0 26px #fff9" }} />
+            <div aria-hidden="true" style={{ position: "absolute", bottom: 8, width: 116, height: 14, borderRadius: "50%", background: "#143d3d44", filter: "blur(5px)" }} />
+            {src ? <img className="pokemon-status-portrait__sprite" src={src} alt={main.species.replace(/_/g, " ")} style={{ width: "auto", height: "auto", maxWidth: "min(72%, 154px)", maxHeight: 124, objectFit: "contain", imageRendering: "pixelated", position: "relative", zIndex: 1, filter: "drop-shadow(0 4px 3px #153e4d77)" }} /> : <span style={{ fontSize: 10, color: "#254a46", position: "relative" }}>SEM SPRITE</span>}
           </div>
           {/* 💿 Slot de disco do Pokémon — mostra qual disco está em uso e a habilidade */}
           {(() => {
             const disc = discDefByItem(main.skillDisc);
             return (
-              <div style={{ background: disc ? "#fff8dc" : "rgba(0,0,0,0.25)", border: "2px solid #1a0f2a", borderRadius: 6, padding: 4, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ background: disc ? "#fff8dc" : "rgba(0,0,0,0.4)", border: "2px solid #c9a65d", borderRadius: 6, padding: 4, display: "flex", alignItems: "center", gap: 6 }}>
                 {disc ? (
                   <>
                     <img src={disc.img} alt={disc.name} width={40} height={34} style={{ imageRendering: "pixelated", borderRadius: 4, flexShrink: 0 }} />
@@ -218,7 +210,7 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
         </div>
 
         {/* Right stats */}
-        <div style={{ background: "#ffe9a8", padding: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ background: "linear-gradient(160deg, #2c1252, #1b0a3a)", padding: 8, display: "flex", flexDirection: "column", gap: 6 }}>
           {/* HP row */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -226,9 +218,9 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
                 background: "#5a4a6a", color: "#fff", padding: "4px 12px", borderRadius: 999, fontSize: 9, fontWeight: 900,
                 border: "2px solid #1a0f2a", minWidth: 70, textAlign: "center",
               }}>HP</div>
-              <div style={{ flex: 1, textAlign: "right", fontSize: 12, color: "#1a0f2a", fontWeight: 900 }}>{petMax}/{petMax}</div>
+              <div style={{ flex: 1, textAlign: "right", fontSize: 12, color: "#ffe9a8", fontWeight: 900 }}>{petMax}/{petMax}</div>
             </div>
-            <div style={{ height: 14, background: "#1a0f2a", borderRadius: 999, padding: 2, border: "2px solid #1a0f2a" }}>
+            <div style={{ height: 14, background: "#120726", borderRadius: 999, padding: 2, border: "2px solid #c9a65d" }}>
               <div style={{ width: `${hpPct}%`, height: "100%", background: hpColor, borderRadius: 999, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)" }} />
             </div>
           </div>
@@ -247,8 +239,8 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
                 textShadow: "0 1px 0 rgba(255,255,255,0.4)", imageRendering: "pixelated" as any,
               }}>{label}</div>
               <div style={{
-                flex: 1, background: "#fff8dc", border: "2px solid #1a0f2a", borderRadius: 6,
-                padding: "4px 8px", fontSize: 11, fontWeight: 900, color: "#1a0f2a", textAlign: "right",
+                flex: 1, background: "#1c0b3c", border: "2px solid #c9a65d", borderRadius: 6,
+                padding: "4px 8px", fontSize: 11, fontWeight: 900, color: "#ffe9a8", textAlign: "right",
               }}>{val}</div>
             </div>
           ))}
@@ -258,50 +250,50 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
       {activePanel==="sinergia" && (
       <div style={{
         display: "grid", gridTemplateColumns: "1.6fr 0.9fr",
-        background: "#ffe9a8", border: "4px solid #1a0f2a", borderTop: "none",
+        background: "linear-gradient(160deg, #2c1252, #1b0a3a)", border: "4px solid #c9a65d", borderTop: "none",
         padding: 8, gap: 8,
       }}>
-        <div style={{ background: "#fff8dc", border: "3px solid #1a0f2a", borderRadius: 8, padding: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ background: "#241043", border: "3px solid #c9a65d", borderRadius: 8, padding: 8, display: "flex", flexDirection: "column", gap: 4 }}>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <div style={{ background: "#5a4a6a", color: "#fff", padding: "4px 10px", borderRadius: 999, fontSize: 9, fontWeight: 900, border: "2px solid #1a0f2a" }}>SINERGIA</div>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "#1a0f2a" }}>{info.name}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "#ffe9a8" }}>{info.name}</div>
           </div>
-          <div style={{ fontSize: 10, color: "#1a0f2a", fontWeight: 700, lineHeight: 1.4 }}>{info.desc}</div>
+          <div style={{ fontSize: 10, color: "#e6d8ff", fontWeight: 700, lineHeight: 1.4 }}>{info.desc}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-            <span style={{ fontSize: 8, color: "#5a4a6a", fontWeight: 900 }}>LEALDADE {main.species.replace(/_/g, " ").toUpperCase()}</span>
+            <span style={{ fontSize: 8, color: "#c9b8e8", fontWeight: 900 }}>LEALDADE {main.species.replace(/_/g, " ").toUpperCase()}</span>
             <div style={{ flex: 1, height: 8, background: "#1a0f2a", borderRadius: 999, padding: 1, border: "1px solid #1a0f2a" }}>
               <div style={{ width: `${Math.max(0, Math.min(100, (main as any).lealdade ?? 100))}%`, height: "100%", background: "linear-gradient(90deg,#ff9de0,#ff5ec7)", borderRadius: 999 }} />
             </div>
-            <span style={{ fontSize: 8, fontWeight: 900, color: "#1a0f2a" }}>{Math.round((main as any).lealdade ?? 100)}%</span>
+            <span style={{ fontSize: 8, fontWeight: 900, color: "#ffe9a8" }}>{Math.round((main as any).lealdade ?? 100)}%</span>
             <button onClick={() => onViewCard(main)} title="Abrir ficha para alimentar" style={{ fontSize: 8, color: "#1a0f2a", background: "#ffe9a8", border: "2px solid #1a0f2a", borderRadius: 6, padding: "3px 8px", fontWeight: 900, cursor: "pointer" }}>🍖 ALIMENTAR</button>
           </div>
         </div>
-        <div style={{ background: "#fff8dc", border: "3px solid #1a0f2a", borderRadius: 8, padding: 8, display: "flex", flexDirection: "column", gap: 4, justifyContent: "center" }}>
-          <div style={{ fontSize: 10, fontWeight: 900, color: "#1a0f2a", textAlign: "center", letterSpacing: 1 }}>BÔNUS ELEMENTAIS</div>
+        <div style={{ background: "#241043", border: "3px solid #c9a65d", borderRadius: 8, padding: 8, display: "flex", flexDirection: "column", gap: 4, justifyContent: "center" }}>
+          <div style={{ fontSize: 10, fontWeight: 900, color: "#ffe9a8", textAlign: "center", letterSpacing: 1 }}>BÔNUS ELEMENTAIS</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
             {(() => {
               const ents = (Object.entries(syn.byElement) as [string, number][]).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1]);
-              if (ents.length===0) return <span style={{fontSize:9, color:"#1a0f2a", fontWeight:700}}>SEM ELEMENTO</span>;
+              if (ents.length===0) return <span style={{fontSize:9, color:"#e6d8ff", fontWeight:700}}>SEM ELEMENTO</span>;
               return ents.map(([el,n])=>{
                 const m=(ELEMENT_META as any)[el];
                 return <span key={el} style={{fontSize:9, padding:"4px 8px", borderRadius:4, background:m.color, color:"#1a0f2a", border:"2px solid #1a0f2a", fontWeight:900, boxShadow:"inset 0 1px 0 rgba(255,255,255,0.5), 2px 2px 0 #1a0f2a", imageRendering:"pixelated" as any}}>{m.emoji} {m.label} ×{n}</span>;
               });
             })()}
           </div>
-          <div style={{ fontSize: 9, color: "#1a0f2a", fontWeight: 700, textAlign: "center", lineHeight: 1.35 }}>{syn.effects.slice(0,2).join(" • ") || "Monte um time para ativar"}</div>
+          <div style={{ fontSize: 9, color: "#e6d8ff", fontWeight: 700, textAlign: "center", lineHeight: 1.35 }}>{syn.effects.slice(0,2).join(" • ") || "Monte um time para ativar"}</div>
         </div>
       </div>
       )}
       {activePanel==="bonus" && (
       <div style={{
         display: "grid", gridTemplateColumns: "1fr 1.3fr",
-        background: "#b8a8e8", border: "4px solid #1a0f2a", borderTop: "none",
+        background: "#2c1252", border: "4px solid #c9a65d", borderTop: "none",
         borderRadius: "0 0 10px 10px", overflow: "hidden",
       }}>
         {/* Partner */}
-        <div style={{ background: "#d8d0f0", borderRight: "4px solid #1a0f2a", padding: 8, display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ background: "#241043", borderRight: "4px solid #c9a65d", padding: 8, display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{
-            width: 72, height: 72, background: "#fff", border: "3px solid #1a0f2a", borderRadius: 8,
+            width: 72, height: 72, background: "#fff", border: "3px solid #c9a65d", borderRadius: 8,
             display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
           }}>
             {partner && gifMap[partner.species] ? (
@@ -312,7 +304,7 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
           </div>
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ background: "#5a4a6a", color: "#fff", padding: "2px 8px", borderRadius: 999, fontSize: 8, fontWeight: 900, border: "2px solid #1a0f2a", alignSelf: "flex-start" }}>PARCEIRO</div>
-            <div style={{ fontSize: 10, fontWeight: 900, color: "#1a0f2a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: "#ffe9a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {partner ? partner.species.replace(/_/g, " ").toUpperCase() : "—"}
             </div>
             {partner && (
@@ -325,7 +317,7 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
             <div style={{
               marginTop: 2, background: syn.combos.length > 0 ? "#2ecc71" : "#8a7a9c",
               color: "#fff", fontSize: 8, fontWeight: 900, padding: "3px 8px", borderRadius: 999,
-              border: "2px solid #1a0f2a", display: "inline-flex", alignItems: "center", gap: 4, alignSelf: "flex-start",
+              border: "2px solid #c9a65d", display: "inline-flex", alignItems: "center", gap: 4, alignSelf: "flex-start",
             }}>
               <span style={{ width: 12, height: 12, background: "#fff", borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", color: syn.combos.length > 0 ? "#2ecc71" : "#8a7a9c", fontSize: 8 }}>✓</span>
               {syn.combos.length > 0 ? "SINERGIA ATIVA" : "SEM SINERGIA"}
@@ -423,8 +415,8 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
               title={`Posição ${i + 1} — ver status`}
               style={{
                 width: 48, height: 48, borderRadius: 8,
-                background: sel ? "#ffe9a8" : "#d8d0f0",
-                border: sel ? "3px solid #f5cf6b" : "2px solid #1a0f2a",
+                background: sel ? "#ffe9a8" : "#2a1150",
+                border: sel ? "3px solid #f5cf6b" : "2px solid #a98544",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer", position: "relative",
                 boxShadow: sel ? "0 0 0 2px #1a0f2a, 0 0 10px rgba(245,207,107,0.6)" : "none",
@@ -455,7 +447,7 @@ export function SynergyStatusScreen({ team, selectedIndex, onSelect, leaderHp, g
 
       {/* Footer hint */}
       <div style={{
-        marginTop: 6, background: "#1a1040", border: "2px solid #1a0f2a", borderRadius: 8,
+        marginTop: 6, background: "#1a1040", border: "2px solid #c9a65d", borderRadius: 8,
         padding: "6px 10px", display: "flex", alignItems: "center", gap: 8, color: "#ffe9a8", fontSize: 8,
       }}>
         <span>▶</span> Selecione um parceiro para fortalecer a sinergia.

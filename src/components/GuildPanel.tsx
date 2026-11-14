@@ -23,6 +23,7 @@ type Props = {
   myLevel: number;
   myGold: number;
   mySpecies: string | null;
+  portraits?: Partial<Record<string, string>>;
   onCreateGuild: (name: string, element: GuildElement) => void;
   onInviteUsername: (username: string) => void;
   onAcceptInvite: (inv: GuildInvite) => void;
@@ -101,20 +102,20 @@ export function GuildPanel(p: Props) {
   );
 
   return (
-    <div style={{
-      background: "linear-gradient(180deg, #0d2240 0%, #081428 60%, #060d1a 100%)",
-      border: "3px solid #060d18", borderRadius: 14, padding: 10,
-      maxWidth: 740, width: "100%", margin: "0 auto",
+    <div className="guild-panel" style={{
+      background: "linear-gradient(160deg, #38255c, #211339 65%, #192a38)",
+      border: "1px solid #d7ac74", borderRadius: 16, padding: 12,
+      width: "100%", margin: "0 auto",
       fontFamily: '"Pixelify Sans", ui-monospace, monospace',
     }}>
       {/* Cabeçalho da guilda */}
       {!g ? (
-        <div style={{ background: "rgba(0,0,0,0.35)", border: "2px solid #3a6a9a", borderRadius: 10, padding: 10 }}>
+        <div className="guild-create" style={{ background: "rgba(0,0,0,0.35)", border: "2px solid #3a6a9a", borderRadius: 10, padding: 10 }}>
           <div style={{ color: "#ffe9a8", fontWeight: 900, fontSize: 13, letterSpacing: 1, marginBottom: 4 }}>🏰 CRIAR GUILDA <span style={{ fontSize: 9, color: "#9ab8d8" }}>(5000 ouro)</span></div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+          <div className="guild-create__name" style={{ display: "flex", gap: 6, marginBottom: 6 }}>
             <input value={newGuildName} onChange={(e) => setNewGuildName(e.target.value)} placeholder="Nome da guilda" maxLength={18} style={inputStyle} />
           </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+          <div className="guild-create__elements" style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
             {GUILD_ELEMENTS.map((el) => (
               <button
                 key={el.id}
@@ -129,11 +130,11 @@ export function GuildPanel(p: Props) {
               ><img src={el.image} alt={el.label} width={36} height={36} style={{ imageRendering: "pixelated" }} /></button>
             ))}
           </div>
-          <button
+          <button className="guild-create__submit"
             style={{ ...btn("linear-gradient(180deg, #7dd87d, #3a9a4a)"), width: "100%" }}
             onClick={() => { if (newGuildName.trim()) p.onCreateGuild(newGuildName.trim(), newGuildEl); }}
           >FUNDAR GUILDA</button>
-          <div style={{ fontSize: 9, color: "#8fb8dd", marginTop: 6, fontStyle: "italic" }}>
+          <div className="guild-create__hint" style={{ fontSize: 9, color: "#8fb8dd", marginTop: 6, fontStyle: "italic" }}>
             Sem guilda? As missões abaixo contam do mesmo jeito — o XP de guilda entra quando você entrar numa.
           </div>
         </div>
@@ -239,6 +240,9 @@ export function GuildPanel(p: Props) {
                 return (
                   <div key={m.id} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(140,200,255,0.3)", borderRadius: 8, padding: 6, marginBottom: 4 }}>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <span className="guild-member-avatar" aria-label={`Retrato de ${m.name}`}>
+                        {m.leaderSpecies && p.portraits?.[m.leaderSpecies] ? <img src={p.portraits[m.leaderSpecies]} alt="" /> : m.name.slice(0, 1).toUpperCase()}
+                      </span>
                       <span style={{ flex: 1, fontSize: 10, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {m.name} <span style={{ color: "#9ab8d8" }}>Lv.{m.level}</span>
                       </span>

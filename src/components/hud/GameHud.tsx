@@ -1,13 +1,17 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { Anvil, Bell, BookOpen, ChevronDown, ChevronUp, CloudUpload, Coins, Compass, Crosshair, Gift, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Users, Utensils, Zap } from "lucide-react";
+import { Bell, ChevronDown, ChevronUp, Coins, Compass, Crosshair, Home, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Zap } from "lucide-react";
 import { ChatHud, type HudMessage } from "./ChatHud";
 import { QuestTracker, type HudQuest } from "./QuestTracker";
 import { TeamHud, type HudTeamMember } from "./TeamHud";
 import { TargetHud, type HudTarget } from "./TargetHud";
 import { getHudScale, type HudMapBounds } from "./hudLayout";
+import { MainMenu } from "./MainMenu";
+import { TouchJoystick } from "./TouchJoystick";
+import eventIcon from "@/skill/srg/ICONE DE EVENTO.png";
 import "./hud.css";
+import "./mobile-landscape.css";
 
-export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias" | "market" | "wallet";
+export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias" | "sinergia" | "market" | "wallet";
 type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
@@ -20,14 +24,16 @@ export type GameHudProps = {
   activeTab: string; vip: boolean; questReset: string; quests: HudQuest[]; messages: HudMessage[];
   icons: Record<HudTab | "ball" | "crystal" | "ruby" | "potion", string>;
   forgeNotification: boolean; onTab: (tab: HudTab) => void; onProfile: () => void;
-  onMap: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
+  onMap: () => void; onEvents: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
   onQuests: () => void; onClaimQuest: (id: string) => void; onAuto: () => void;
   onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number;
+  onMapEditor: () => void; mapEditorActive: boolean; mapEditorEnabled?: boolean;
   onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
   onForge: () => void; onSave: () => void; onShop: () => void; onGuild: () => void; onCode: () => void;
   onZoom: (direction: 1 | -1) => void;
   team: HudTeamMember[]; selectedPetUid: string | null; onSelectPet: (uid: string) => void;
+  onJoystickMove: (x: number, y: number) => void;
   mapBounds: HudMapBounds; viewportWidth: number; target: HudTarget | null;
 };
 
@@ -91,42 +97,9 @@ function MinimapHud({ hud }: { hud: GameHudProps }) {
   </section>;
 }
 
-function BottomDock({ hud }: { hud: GameHudProps }) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const items: { id: HudTab; label: string; key?: string; unavailable?: boolean }[] = [
-    { id: "pokemon", label: "Pokémon" }, { id: "mochila", label: "Mochila", key: "B" },
-    { id: "colecao", label: "Coleção", key: "C" }, { id: "pokedex", label: "Pokédex" },
-    { id: "melhorias", label: "Melhorias" }, { id: "market", label: "Marketplace", unavailable: true },
-    { id: "wallet", label: "Banco" },
-  ];
-  return <nav className={`revo-dock ${collapsed ? "is-collapsed" : ""}`} aria-label="Menu principal do jogo">
-    <button type="button" className="revo-dock__toggle revo-panel" aria-label={collapsed ? "Expandir menu" : "Recolher menu"} aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)}>{collapsed ? <ChevronUp /> : <ChevronDown />}</button>
-    {!collapsed && <div className="revo-dock__items revo-panel">{items.map((item) => <button key={item.id} type="button" className={`revo-dock__item ${hud.activeTab === item.id ? "is-active" : ""}`} aria-pressed={hud.activeTab === item.id} aria-disabled={item.unavailable} title={`${item.label}${item.key ? ` (${item.key})` : ""}${item.unavailable ? " · Em breve" : ""}`} onClick={() => hud.onTab(item.id)}>
-      <img src={hud.icons[item.id]} alt="" />
-      {item.unavailable && <span className="revo-coming-soon">EM BREVE</span>}
-      <span>{item.label}</span>
-    </button>)}
-      <div className="revo-dock__more-wrap">
-        <button type="button" className="revo-dock__more" title="Mais sistemas" aria-label="Mais sistemas" aria-expanded={moreOpen} onClick={() => setMoreOpen(!moreOpen)}><ChevronUp /></button>
-        {moreOpen && <><button type="button" className="revo-menu-dismiss" aria-label="Fechar mais sistemas" onClick={() => setMoreOpen(false)} /><div className="revo-more-menu revo-panel">
-          {[
-            { text: "Livro de missões", icon: <BookOpen />, action: hud.onQuests },
-            { text: "Guilda", icon: <Users />, action: hud.onGuild },
-            { text: "Ranking", icon: <Trophy />, action: hud.onRank },
-            { text: "Lojinha Cash", icon: <Shield />, action: hud.onShop },
-            { text: "Resgatar código", icon: <Gift />, action: hud.onCode },
-            { text: "Salvar na nuvem", icon: <CloudUpload />, action: hud.onSave },
-          ].map((item) => <button type="button" key={item.text} onClick={() => { item.action(); setMoreOpen(false); }}>{item.icon}{item.text}</button>)}
-          <div className="revo-more-menu__hunger"><Utensils /> Saciedade <strong>{Math.round(hud.hunger)}%</strong></div>
-        </div></>}
-      </div>
-    </div>}
-  </nav>;
-}
-
 export function GameHud(hud: GameHudProps) {
   const [noticesOpen, setNoticesOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const readyQuests = hud.quests.filter((quest) => !quest.claimed && quest.progress >= quest.target && (!quest.vipOnly || hud.vip)).length;
   const inPanel = hud.activeTab !== "batalha";
   const scale = getHudScale(hud.mapBounds, hud.viewportWidth);
@@ -134,10 +107,11 @@ export function GameHud(hud: GameHudProps) {
     <div className={`revo-hud ${inPanel ? "has-panel" : ""} ${hud.target ? "has-target" : ""}`} style={{ "--hud-scale": scale } as CSSProperties} onKeyDown={(event) => {
     if ((event.key === " " || event.key === "Enter") && (event.target as HTMLElement).closest("button")) event.stopPropagation();
   }}>
+    {!menuOpen && <>
     <PlayerHud hud={hud} />
     <ResourceBar hud={hud} />
     <div className="revo-systems" aria-label="Atalhos do jogo">
-      <IconButton label="Mapa Mundi" onClick={hud.onMap}><Map /></IconButton>
+      <IconButton label="Eventos" onClick={hud.onEvents}><img className="revo-event-icon" src={eventIcon} alt="" /></IconButton>
       <IconButton label="Ranking" onClick={hud.onRank}><Trophy /></IconButton>
       <IconButton label="Notificações" active={noticesOpen} badge={readyQuests > 0 || hud.forgeNotification} onClick={() => setNoticesOpen(!noticesOpen)}><Bell /></IconButton>
       <IconButton label="Configurações" onClick={hud.onSettings}><Settings /></IconButton>
@@ -156,6 +130,7 @@ export function GameHud(hud: GameHudProps) {
         <QuestTracker quests={hud.quests} region={hud.region} resetIn={hud.questReset} vip={hud.vip} onClaim={hud.onClaimQuest} onOpen={hud.onQuests} />
       </div>
       <ChatHud messages={hud.messages} />
+      <TouchJoystick onMove={hud.onJoystickMove} />
       <div className="revo-actions" aria-label="Ações de combate">
         <button type="button" className={`revo-auto ${hud.auto ? "is-active" : ""} ${hud.pvpTargeted ? "is-pvp-targeted" : ""}`} onClick={hud.onAuto} aria-pressed={hud.auto} title={hud.pvpTargeted ? "Alvo PvP marcado — clique em Auto para atacar" : (hud.auto ? "Desligar batalha automática (Espaço)" : "Ligar batalha automática (Espaço)")}>
           <span><img src={hud.icons.ball} alt="" /></span><strong>Auto</strong>
@@ -164,15 +139,16 @@ export function GameHud(hud: GameHudProps) {
           <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong>
         </button>
         <div className="revo-actions__secondary">
+          {hud.mapEditorEnabled && <IconButton label="Editor de mapa: objetos e Pokémon" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>}
           <IconButton label="Mostrar ou recolher alvos próximos" active={hud.targetsOpen} onClick={hud.onTargets}><Crosshair /></IconButton>
           <IconButton label={`PvP: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`} active={hud.pvpMode !== "peace"} onClick={hud.onPvpMode}><Shield /></IconButton>
           <IconButton label="Alternar captura automática" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>
           <IconButton label="Configurar combate automático" onClick={hud.onCombatSettings}><Settings /></IconButton>
         </div>
-        <button type="button" className="revo-forge revo-panel" onClick={hud.onForge} title="Abrir Forja"><Anvil /><strong>Forja</strong>{hud.forgeNotification && <span className="revo-badge" />}</button>
       </div>
     </>}
-    <BottomDock hud={hud} />
+    </>}
+    <MainMenu hud={hud} open={menuOpen} onOpenChange={setMenuOpen} />
     </div>
   </div>;
 }

@@ -1,0 +1,16 @@
+{
+  "name": "Poke Emerald Saga",
+  "short_name": "Emerald Saga",
+  "description": "Aventura Pokémon em modo paisagem no celular.",
+  "id": "/idle",
+  "start_url": "/idle",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#071426",
+  "theme_color": "#071426",
+  "icons": [
+    { "src": "/idle-mon-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/idle-mon-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

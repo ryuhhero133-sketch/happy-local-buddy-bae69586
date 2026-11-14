@@ -231,12 +231,12 @@ export function QuestBookPanel(props: QuestBookPanelProps) {
   const countFor = (id: string) => id === "all" ? entries.length : entries.filter((e) => e.cat === id).length;
 
   return (
-    <div style={{
-      maxWidth: 660, margin: "0 auto", fontFamily: '"Press Start 2P", monospace',
-      imageRendering: "pixelated" as any, maxHeight: "72vh", display: "flex", flexDirection: "column",
+    <div className="quest-book" style={{
+      width: "100%", height: "100%", margin: "0 auto", fontFamily: '"Trebuchet MS", sans-serif',
+      display: "flex", flexDirection: "column",
     }}>
       {/* Capa: header */}
-      <div style={{
+      <div className="quest-book__header" style={{
         background: "linear-gradient(180deg,#ffe9a8 0%,#f5d06a 100%)",
         border: "4px solid #1a0f2a", borderRadius: "10px 10px 0 0",
         padding: "8px 10px", boxShadow: "inset 0 2px 0 rgba(255,255,255,0.7), 0 2px 0 #1a0f2a",
@@ -251,14 +251,14 @@ export function QuestBookPanel(props: QuestBookPanelProps) {
       </div>
 
       {/* Corpo do livro */}
-      <div style={{
+      <div className="quest-book__body" style={{
         display: "grid", gridTemplateColumns: "118px 1fr 1.15fr",
         background: "#3a2415", border: "4px solid #1a0f2a", borderTop: "none",
         borderRadius: "0 0 10px 10px", overflow: "hidden",
         boxShadow: "0 4px 0 #1a0f2a", minHeight: 0, flex: 1,
       }}>
         {/* Lombada: categorias */}
-        <div style={{
+        <div className="quest-book__categories" style={{
           background: "linear-gradient(180deg,#2a1a3a 0%,#1a0f2a 100%)",
           borderRight: "3px solid #f5cf6b", padding: 6,
           display: "flex", flexDirection: "column", gap: 4,
@@ -290,7 +290,7 @@ export function QuestBookPanel(props: QuestBookPanelProps) {
         </div>
 
         {/* Página esquerda: lista */}
-        <div style={{
+        <div className="quest-book__list" style={{
           background: "#f5e6c4", padding: 8, overflowY: "auto", minHeight: 0,
           maxHeight: "60vh", display: "flex", flexDirection: "column", gap: 6,
           borderRight: "3px solid #8a6a3a",
@@ -350,7 +350,7 @@ export function QuestBookPanel(props: QuestBookPanelProps) {
         </div>
 
         {/* Página direita: detalhes */}
-        <div style={{ background: "#f5e6c4", padding: 10, overflowY: "auto", minHeight: 0, maxHeight: "60vh" }}>
+        <div className="quest-book__details" style={{ background: "#f5e6c4", padding: 10, overflowY: "auto", minHeight: 0, maxHeight: "60vh" }}>
           {!sel ? (
             <div style={{ fontSize: 9, color: "#5a4a6a", textAlign: "center", paddingTop: 30 }}>
               Selecione uma missão 📖

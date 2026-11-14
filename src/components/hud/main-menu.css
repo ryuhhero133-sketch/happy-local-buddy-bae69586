@@ -1,0 +1,52 @@
+.revo-main-menu-trigger { position: absolute; right: 94px; bottom: 20px; width: 70px; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 4px; border: 3px ridge #ffd969; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #314f56, #052522 65%, #042018); box-shadow: inset 0 0 0 3px #fff5ab66, 0 4px 14px #000b, 0 0 12px #ebc45399; color: #fff3be; font-family: Georgia, serif; font-weight: 900; font-size: 13px; text-shadow: 1px 2px #251206; pointer-events: auto; cursor: pointer; z-index: 130; }
+.revo-main-menu-trigger svg { width: 34px; height: 34px; stroke: #ffe18c; stroke-width: 2.5; filter: drop-shadow(0 2px 2px #0009); }
+.revo-main-menu-trigger__art { width: 48px; height: 48px; object-fit: contain; filter: drop-shadow(0 2px 3px #0009); }
+.revo-main-menu-trigger:hover, .revo-main-menu-trigger:focus-visible { box-shadow: inset 0 0 0 3px #fff5abbb, 0 0 22px #ffc62b; transform: translateY(-2px); }
+.revo-mobile-bag { position: absolute; right: 174px; bottom: 20px; width: 70px; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 4px; border: 3px ridge #ffd969; border-radius: 50%; background: radial-gradient(circle at 38% 25%, #285945, #082c28 75%); box-shadow: inset 0 0 0 3px #fff5ab66, 0 4px 14px #000b, 0 0 12px #ebc45399; color: #fff3be; font: 900 11px Georgia, serif; text-shadow: 1px 2px #251206; pointer-events: auto; cursor: pointer; z-index: 130; }
+.revo-mobile-bag img { display: block; width: 43px; height: 43px; object-fit: contain; image-rendering: auto; }
+.revo-mobile-bag:hover, .revo-mobile-bag:focus-visible { box-shadow: inset 0 0 0 3px #fff5abbb, 0 0 22px #ffc62b; transform: translateY(-2px); }
+.revo-main-menu-backdrop { position: fixed; inset: 0; z-index: 10050; display: flex; justify-content: flex-end; align-items: center; padding: 12px clamp(12px, 3vw, 48px); box-sizing: border-box; background: transparent; }
+.revo-main-menu { position: relative; z-index: 1; width: min(350px, calc(100vw - 24px), calc((100dvh - 24px) * .75)); aspect-ratio: 1086 / 1448; flex: none; overflow: hidden; background-size: 100% 100%; container-type: inline-size; filter: drop-shadow(0 12px 20px #000a); animation: revo-menu-in .5s cubic-bezier(.17, .84, .3, 1.05) both; }
+.revo-main-menu::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 56% 36% at 50% 58%, #04182baa, #04182b55 58%, transparent 80%); backdrop-filter: blur(3px) saturate(.75); -webkit-backdrop-filter: blur(3px) saturate(.75); -webkit-mask-image: radial-gradient(ellipse 56% 36% at 50% 58%, #000 0%, #000 55%, transparent 80%); mask-image: radial-gradient(ellipse 56% 36% at 50% 58%, #000 0%, #000 55%, transparent 80%); }
+.revo-main-menu::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0; background: linear-gradient(115deg, transparent 34%, #fff9e088 46%, #ffffffcc 50%, #fff9e088 54%, transparent 66%); background-size: 340% 100%; background-repeat: no-repeat; animation: revo-menu-sweep .8s .12s ease-in-out both; }
+.revo-main-menu__close { position: absolute; z-index: 2; top: 11.8%; left: 84.5%; width: 9%; height: 7.5%; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; animation: revo-pop-in .4s .5s cubic-bezier(.2, .8, .3, 1.35) backwards; }
+.revo-main-menu__close:hover, .revo-main-menu__close:focus-visible { box-shadow: 0 0 1.7cqw .4cqw #ffe78e; }
+.revo-main-menu__item { position: absolute; left: var(--menu-x); top: var(--menu-y); width: 25%; height: 13%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5cqw; padding: 0; border: 0; background: transparent; color: #fff5cf; font-family: Georgia, serif; font-size: 3.1cqw; font-weight: 900; text-shadow: -1px -1px 2px #10253e, 1px 2px 3px #10253e, 0 0 5px #061d35; white-space: nowrap; cursor: pointer; }
+.revo-main-menu__symbol { position: relative; z-index: 1; display: grid; place-items: center; width: 58%; aspect-ratio: 1; flex: none; border: 0; border-radius: 50%; background: transparent; box-shadow: none; animation: revo-pop-in .45s cubic-bezier(.2, .8, .3, 1.4) backwards; }
+.revo-main-menu__symbol img { width: 96%; height: 96%; object-fit: contain; filter: drop-shadow(0 3px 3px #04203acc) drop-shadow(0 0 2px #04203a99); transition: filter .2s ease, transform .2s ease; }
+.revo-main-menu__label { position: relative; z-index: 1; }
+.revo-main-menu__item:nth-of-type(12) .revo-main-menu__label { font-size: 2.35cqw; }
+.revo-main-menu__item::before { content: ""; position: absolute; inset: -12% -6%; background: var(--menu-effect) center / contain no-repeat; opacity: 0; pointer-events: none; }
+.revo-main-menu__item:hover::before, .revo-main-menu__item:focus-visible::before { opacity: 1; }
+.revo-main-menu__item:hover .revo-main-menu__symbol, .revo-main-menu__item:focus-visible .revo-main-menu__symbol { transform: translateY(-2px) scale(1.08); }
+.revo-main-menu__item:hover .revo-main-menu__symbol img, .revo-main-menu__item:focus-visible .revo-main-menu__symbol img { filter: drop-shadow(0 3px 3px #04203acc) drop-shadow(0 0 1.4cqw #ffe27e); }
+.revo-main-menu__item:focus-visible, .revo-main-menu__close:focus-visible { outline: 2px solid #ffdf75; outline-offset: 2px; }
+.revo-main-menu__item:nth-of-type(2) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(3) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(4) .revo-main-menu__symbol { animation-delay: .3s; }
+.revo-main-menu__item:nth-of-type(5) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(6) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(7) .revo-main-menu__symbol { animation-delay: .38s; }
+.revo-main-menu__item:nth-of-type(8) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(9) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(10) .revo-main-menu__symbol { animation-delay: .46s; }
+.revo-main-menu__item:nth-of-type(11) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(12) .revo-main-menu__symbol, .revo-main-menu__item:nth-of-type(13) .revo-main-menu__symbol { animation-delay: .54s; }
+.revo-main-menu__extras { position: absolute; left: 12%; right: 12%; bottom: 5.5%; display: flex; flex-wrap: wrap; gap: .6cqw; justify-content: center; animation: revo-item-in .5s .68s ease both; }
+.revo-main-menu__extras button { display: inline-flex; align-items: center; gap: .5cqw; padding: .4cqw 1.2cqw; border: .18cqw solid #e8bb64; border-radius: 2cqw; background: linear-gradient(#134d33ee, #07301ff5); box-shadow: inset 0 1px #ffeb9677, 0 2px 5px #2c160c99; color: #fff6d5; font-family: Georgia, serif; font-size: 2.6cqw; font-weight: bold; text-shadow: 1px 2px #1d210d; cursor: pointer; }
+.revo-main-menu__extras button img { width: 3.6cqw; height: 3.6cqw; object-fit: contain; filter: drop-shadow(0 1px 1px #0009); }
+.revo-main-menu__extras button:hover, .revo-main-menu__extras button:focus-visible { background: linear-gradient(#2a8c5a, #075034); box-shadow: 0 0 1.4cqw #fce176; }
+@media (max-width: 768px) { .revo-main-menu-trigger { right: 12px; bottom: 92px; width: 53px; height: 53px; font-size: 10px; } .revo-main-menu-trigger svg { width: 27px; height: 27px; } }
+
+@keyframes revo-menu-in {
+  0% { opacity: 0; transform: translateY(34px) scale(.84); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes revo-menu-sweep {
+  0% { background-position: 145% 0; opacity: 0; }
+  20% { opacity: 1; }
+  100% { background-position: -80% 0; opacity: 0; }
+}
+@keyframes revo-pop-in {
+  0% { opacity: 0; transform: scale(.45) rotate(-10deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes revo-item-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* O efeito de entrada roda sempre: é o pedido visual do menu. */

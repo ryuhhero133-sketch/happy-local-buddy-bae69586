@@ -22,7 +22,6 @@ const TABS: { id: InventoryTab; label: string; icon: typeof Backpack }[] = [
   { id: "balls", label: "Pokébolas", icon: CircleDot },
   { id: "materials", label: "Materiais", icon: Boxes },
   { id: "evolution", label: "Evolução", icon: WandSparkles },
-  { id: "consumables", label: "Consumíveis", icon: FlaskConical },
   { id: "special", label: "Especiais", icon: Sparkles },
 ];
 const CATEGORIES: { id: InventoryCategory; label: string; icon: typeof Backpack }[] = [
@@ -69,7 +68,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
   const changeTab = (next: InventoryTab) => { setTab(next); setCategory("all"); setPage(0); };
   const changeCategory = (next: InventoryCategory) => { setCategory(next); setTab("items"); setPage(0); };
 
-  return <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="revo-inventory-title" className={`revo-inventory ${expanded ? "is-expanded" : ""}`} onKeyDown={(event) => {
+  return <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="revo-inventory-title" className={`revo-inventory inventory-bag ${expanded ? "is-expanded" : ""}`} onKeyDown={(event) => {
     event.stopPropagation();
     if (event.key === "Escape") { event.preventDefault(); if (appearanceOpen) setAppearanceOpen(false); else props.onClose(); return; }
     if (event.key === "Tab") {
@@ -82,7 +81,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
     if ((event.target as HTMLElement).closest("input, textarea, summary, details[open]") || appearanceOpen) return;
     if (event.key.toLowerCase() === "z") { event.preventDefault(); activateSelected(); }
     if (event.key.toLowerCase() === "x" && selected?.source === "bag") { event.preventDefault(); props.onDiscard(selected); }
-    const deltas: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -6, ArrowDown: 6 };
+    const deltas: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -5, ArrowDown: 5 };
     const delta = deltas[event.key];
     if (delta != null && filtered.length) {
       event.preventDefault();
@@ -100,31 +99,10 @@ export function InventoryPanel(props: InventoryPanelProps) {
     </header>
 
     <nav className="inventory-tabs" aria-label="Bolsos da mochila">
-      {TABS.map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={tab === id} onClick={() => changeTab(id)}><Icon /><span>{label}</span></button>)}
+      {TABS.map(({ id, label, icon: Icon }) => <button type="button" key={id} data-tab={id} aria-pressed={tab === id} onClick={() => changeTab(id)}><Icon /><span>{label}</span></button>)}
     </nav>
 
     <div className="inventory-body">
-      <aside className="inventory-categories inventory-panel" aria-label="Categorias de itens">
-        <div className="inventory-categories__list">{CATEGORIES.map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-pressed={category === id} onClick={() => changeCategory(id)}><Icon /><span>{label}</span></button>)}</div>
-        <button type="button" className="inventory-appearance" onClick={() => setAppearanceOpen(true)}><Shirt /><span>Visuais e equipamentos</span></button>
-      </aside>
-
-      <section className="inventory-storage inventory-panel" aria-label="Itens do inventário">
-        <header className="inventory-storage__header"><h3>Inventário <span>({props.items.filter(item => item.source !== "vault").length} tipos)</span></h3>
-          <button type="button" className="inventory-search-toggle" title="Buscar itens" aria-label="Buscar itens" aria-expanded={searchOpen} onClick={() => { setSearchOpen(!searchOpen); setQuery(""); setPage(0); }}><Search /></button>
-          <button type="button" className="inventory-expand" aria-pressed={expanded} title="Ampliar a janela, sem alterar a capacidade do inventário" onClick={() => setExpanded(!expanded)}>{expanded ? <Minimize2 /> : <Plus />}<span>{expanded ? "Reduzir" : "Expandir"}</span></button>
-        </header>
-        {searchOpen && <label className="inventory-search"><Search /><input autoFocus value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Buscar um item..." aria-label="Nome do item" /></label>}
-        <div ref={gridRef} className="inventory-grid" aria-label="Grade de itens">
-          {visible.map(item => <button type="button" key={item.key} className={`inventory-slot ${item.key === selected?.key ? "is-selected" : ""}`} style={{ "--item-tier": INVENTORY_TIERS[item.rarity].color } as CSSProperties} data-item={item.id} data-source={item.source} data-rarity={item.rarity} aria-label={`${item.name}, ${item.quantity} unidades${item.source === "vault" ? ", no cofre" : ""}`} aria-pressed={item.key === selected?.key} tabIndex={item.key === selected?.key ? 0 : -1} onClick={() => choose(item)} title={`${item.name} · ×${item.quantity.toLocaleString("pt-BR")}`}>
-            {props.renderIcon(item, 58)}<b>×{item.quantity.toLocaleString("pt-BR")}</b>{item.source === "vault" && <small>Cofre</small>}
-          </button>)}
-          {Array.from({ length: INVENTORY_PAGE_SIZE - visible.length }, (_, index) => <span key={`empty-${index}`} className="inventory-slot inventory-slot--empty" aria-hidden="true" />)}
-          {!visible.length && <div className="inventory-empty"><Backpack /><strong>{query ? "Nenhum item encontrado" : "Nada por aqui ainda"}</strong><span>{query ? "Tente outro nome." : "Explore o mundo para encontrar novos itens."}</span></div>}
-        </div>
-        <footer className="inventory-pagination"><button type="button" aria-label="Página anterior" disabled={safePage === 0} onClick={() => setPage(safePage - 1)}><ChevronLeft /></button><span aria-live="polite">{safePage + 1} / {pages}</span><button type="button" aria-label="Próxima página" disabled={safePage + 1 === pages} onClick={() => setPage(safePage + 1)}><ChevronRight /></button></footer>
-      </section>
-
       <section className="inventory-detail inventory-panel" aria-label="Detalhes do item" style={{ "--item-tier": tier.color } as CSSProperties}>
         {selected ? <>
           <details className="inventory-extra-actions" key={selected.key}><summary aria-label="Mais ações do item" title="Mais ações"><MoreHorizontal /></summary><div>
@@ -146,6 +124,27 @@ export function InventoryPanel(props: InventoryPanelProps) {
           <button type="button" className="inventory-use" disabled={!selected.usable} title={selected.actionHint ?? "Usar item (Z)"} onClick={activateSelected}>{selected.category === "eggs" ? <Egg /> : selected.source === "equipment" ? <Shield /> : <Sparkles />}<span>{selected.actionLabel}</span></button>
         </> : <div className="inventory-detail__empty"><Backpack /><strong>Selecione um item</strong><p>Os detalhes e as ações aparecerão aqui.</p></div>}
       </section>
+
+      <section className="inventory-storage inventory-panel" aria-label="Itens do inventário">
+        <header className="inventory-storage__header"><h3>Inventário <span>({props.items.filter(item => item.source !== "vault").length} tipos)</span></h3>
+          <button type="button" className="inventory-search-toggle" title="Buscar itens" aria-label="Buscar itens" aria-expanded={searchOpen} onClick={() => { setSearchOpen(!searchOpen); setQuery(""); setPage(0); }}><Search /></button>
+          <button type="button" className="inventory-expand" aria-pressed={expanded} title="Ampliar a janela, sem alterar a capacidade do inventário" onClick={() => setExpanded(!expanded)}>{expanded ? <Minimize2 /> : <Plus />}<span>{expanded ? "Reduzir" : "Expandir"}</span></button>
+        </header>
+        {searchOpen && <label className="inventory-search"><Search /><input autoFocus value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Buscar um item..." aria-label="Nome do item" /></label>}
+        <div ref={gridRef} className="inventory-grid" aria-label="Grade de itens">
+          {visible.map(item => <button type="button" key={item.key} className={`inventory-slot ${item.key === selected?.key ? "is-selected" : ""}`} style={{ "--item-tier": INVENTORY_TIERS[item.rarity].color } as CSSProperties} data-item={item.id} data-source={item.source} data-rarity={item.rarity} aria-label={`${item.name}, ${item.quantity} unidades${item.source === "vault" ? ", no cofre" : ""}`} aria-pressed={item.key === selected?.key} tabIndex={item.key === selected?.key ? 0 : -1} onClick={() => choose(item)} title={`${item.name} · ×${item.quantity.toLocaleString("pt-BR")}`}>
+            {props.renderIcon(item, 58)}<b>×{item.quantity.toLocaleString("pt-BR")}</b>{item.source === "vault" && <small>Cofre</small>}
+          </button>)}
+          {Array.from({ length: INVENTORY_PAGE_SIZE - visible.length }, (_, index) => <span key={`empty-${index}`} className="inventory-slot inventory-slot--empty" aria-hidden="true" />)}
+          {!visible.length && <div className="inventory-empty"><Backpack /><strong>{query ? "Nenhum item encontrado" : "Nada por aqui ainda"}</strong><span>{query ? "Tente outro nome." : "Explore o mundo para encontrar novos itens."}</span></div>}
+        </div>
+        <footer className="inventory-pagination"><button type="button" aria-label="Página anterior" disabled={safePage === 0} onClick={() => setPage(safePage - 1)}><ChevronLeft /></button><span aria-live="polite">{safePage + 1} / {pages}</span><button type="button" aria-label="Próxima página" disabled={safePage + 1 === pages} onClick={() => setPage(safePage + 1)}><ChevronRight /></button></footer>
+      </section>
+
+      <aside className="inventory-categories inventory-panel" aria-label="Categorias de itens">
+        <div className="inventory-categories__list">{CATEGORIES.map(({ id, label, icon: Icon }) => <button type="button" key={id} data-cat={id} aria-pressed={category === id} onClick={() => changeCategory(id)} title={label}><Icon /><span>{label}</span></button>)}</div>
+        <button type="button" className="inventory-appearance" onClick={() => setAppearanceOpen(true)}><Shirt /><span>Visuais e equipamentos</span></button>
+      </aside>
     </div>
 
     {appearanceOpen && <div className="inventory-appearance-backdrop" onClick={() => setAppearanceOpen(false)}><section className="inventory-appearance-dialog inventory-panel" role="dialog" aria-modal="true" aria-label="Visuais e equipamentos" onClick={event => event.stopPropagation()}><header><h3>Visuais e equipamentos</h3><button type="button" onClick={() => setAppearanceOpen(false)} aria-label="Fechar visuais"><X /></button></header>{props.appearance}</section></div>}
