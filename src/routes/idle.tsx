@@ -21446,6 +21446,9 @@ A sucata afundou com o casco.
               setAutoHeal={(next) => setIdle((s) => ({ ...s, autoHeal: next }))}
               audioSettings={audioSettings}
               setAudioSettings={setAudioSettings}
+              fullscreenActive={fullscreenActive}
+              pwaStandalone={pwaStandalone}
+              onToggleFullscreen={toggleGameFullscreen}
               tasks={idle.tasks}
               onClaimTask={claimTask}
               onAcceptSideQuest={acceptSideQuest}
@@ -27567,7 +27570,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 // ============ Overlay das abas ============
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, trainerEnergy, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
-  bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings,
+  bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings, fullscreenActive, pwaStandalone, onToggleFullscreen,
   tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   onSagaClaim, onSagaTalk, onSagaLocate, onAcceptSideQuest, onClaimSideQuest,
   idle, setIdle, pushChat,
@@ -27611,6 +27614,9 @@ function TabOverlay({
   setAutoHeal: (next: { enabled: boolean; threshold: number }) => void;
   audioSettings: { music: boolean; sfx: boolean; musicVol: number; sfxVol: number };
   setAudioSettings: React.Dispatch<React.SetStateAction<{ music: boolean; sfx: boolean; musicVol: number; sfxVol: number }>>;
+  fullscreenActive: boolean;
+  pwaStandalone: boolean;
+  onToggleFullscreen: () => Promise<void>;
   tasks: Task[];
   onClaimTask: (tid: string) => void;
   onAcceptSideQuest: (qid: string) => void;
@@ -30307,7 +30313,7 @@ function TabOverlay({
             display: "flex", flexDirection: "column", gap: 10,
           }}>
             <div style={{ color: "#dcfce7", fontWeight: 800 }}>📱 Tela cheia e aplicativo</div>
-            <button type="button" onClick={() => void toggleGameFullscreen()} style={{ minHeight: 42, borderRadius: 8, border: "1px solid #86efac", background: "#166534", color: "#fff", fontWeight: 800, cursor: "pointer" }}>
+            <button type="button" onClick={() => void onToggleFullscreen()} style={{ minHeight: 42, borderRadius: 8, border: "1px solid #86efac", background: "#166534", color: "#fff", fontWeight: 800, cursor: "pointer" }}>
               {fullscreenActive ? "SAIR DA TELA CHEIA" : "ABRIR EM TELA CHEIA"}
             </button>
             {pwaStandalone ? (
