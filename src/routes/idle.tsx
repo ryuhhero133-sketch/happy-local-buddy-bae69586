@@ -488,7 +488,6 @@ import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Tor
 import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
 import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.png";
 import laboratorioUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio.png";
-import mapaIniUrl from "@/ambiente/mascara colisao/mapa original/ini.png";
 import editorSnowTreeUrl from "@/ambiente/editsprite/ARV NV.png";
 import editorGrassUrl from "@/ambiente/editsprite/ARV1.gif";
 import editorTreeUrl from "@/ambiente/editsprite/DH.png";
@@ -1184,6 +1183,9 @@ import type { AncestralEggKind } from "@/game/traits";
 const arvUrl = import.meta.env.DEV
   ? "/src/skill/srg/arv.png"
   : (import.meta.env.VITE_ARV_MAP_URL ?? "");
+const mapaIniUrl = import.meta.env.DEV
+  ? "/src/ambiente/mascara colisao/mapa original/ini.png"
+  : (import.meta.env.VITE_INI_MAP_URL ?? "");
 
 const GIF: Partial<Record<Species, string>> = {
   kabutops: safariKabutopsIcon, kabutops_shiny: safariKabutopsShinyIcon, aerodactyl: safariAerodactylIcon,
