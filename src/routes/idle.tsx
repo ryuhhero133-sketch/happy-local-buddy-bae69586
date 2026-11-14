@@ -488,7 +488,6 @@ import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Tor
 import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
 import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.png";
 import laboratorioUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio.png";
-import mapaIniUrl from "@/ambiente/mascara colisao/mapa original/ini.png";
 import editorSnowTreeUrl from "@/ambiente/editsprite/ARV NV.png";
 import editorGrassUrl from "@/ambiente/editsprite/ARV1.gif";
 import editorTreeUrl from "@/ambiente/editsprite/DH.png";
@@ -1031,7 +1030,6 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapa_orange: { name: "Mapa Orange", diff: "Difícil+", bg: mapaOrangeUrl, rate: 2.2, minLevel: 60, maxLevel: 100, element: "Fogo", stars: 3 },
   elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   laboratorio: { name: "Laboratório", diff: "Especial", bg: laboratorioUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
-  ini: { name: "INI (Teste)", diff: "Exploração", bg: mapaIniUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   arv: { name: "arv", diff: "Exploração", bg: arvUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
   // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
@@ -5423,7 +5421,6 @@ const confirmName = () => {
     mapa_orange: mapaOrangeUrl,
     elementure: elementureUrl,
     laboratorio: laboratorioUrl,
-    ini: mapaIniUrl,
     iceblow: PROF_MAP_BY_ID.iceblow.bg,
     monte_floreto: PROF_MAP_BY_ID.monte_floreto.bg,
     rayow: PROF_MAP_BY_ID.rayow.bg,
@@ -5465,10 +5462,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["arv","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","ini","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
+  const FREE_WALK_MAPS = ["arv","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["arv","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","ini","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
+  const NO_HIGH_EVENT_MAPS = ["arv","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -22530,7 +22527,7 @@ A sucata afundou com o casco.
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["mapinha6","ini","arv","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
+               const base = ["mapinha6","arv","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
