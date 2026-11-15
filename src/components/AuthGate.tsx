@@ -1596,7 +1596,12 @@ function CreateCharacterScreen({
         (supabase as any).from("pokemon_collection").select("id").eq("user_id", userId).limit(1),
         (supabase as any).from("game_saves").select("data").eq("user_id", userId).maybeSingle(),
       ]);
-      if (pokeRes.error || saveRes.error) {
+      // Algumas instalações usam apenas game_saves e não possuem a tabela
+      // normalizada legada. Só toleramos a ausência explícita dessa tabela;
+      // falhas de rede, permissão ou leitura do save continuam bloqueando.
+      const pokemonErrorCode = pokeRes.error?.code;
+      const pokemonTableMissing = pokemonErrorCode === "42P01" || pokemonErrorCode === "PGRST205";
+      if (saveRes.error || (pokeRes.error && !pokemonTableMissing)) {
         throw new Error("Não foi possível verificar seu Pokémon salvo. Confira sua conexão e tente novamente.");
       }
       const snap = saveRes?.data?.data as { team?: unknown[]; restingBench?: unknown[]; party?: unknown[]; idle?: { collection?: unknown[] } } | null;
