@@ -20762,7 +20762,8 @@ A sucata afundou com o casco.
               }
               const leader = team[0];
               if (!leader) return null;
-              const leaderSrc = GIF[leader.species];
+              const leaderSp = leader.species;
+              const leaderSrc = GIF[leaderSp];
               if (!leaderSrc) return null;
               const leaderMax = calcIdleMaxHp(leader);
               const hpPct = Math.max(0, (leaderHp / leaderMax) * 100);
