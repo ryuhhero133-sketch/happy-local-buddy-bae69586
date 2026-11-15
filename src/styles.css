@@ -1665,6 +1665,21 @@ html, body, #root {
   animation: bmpStarOrbit 9s linear infinite;
 }
 .bmp-star.s-lg { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; box-shadow: 0 0 12px #c58bff, 0 0 22px rgba(160,80,255,.8); }
+/* Ovo Ancestral: mesma aura do Black Mítico, em dourado. */
+.anc-aura .bmp-aura-glow {
+  background: radial-gradient(circle, rgba(255,217,77,.65) 0%, rgba(180,115,12,.38) 45%, transparent 72%);
+}
+.anc-aura .bmp-aura-ring {
+  border-color: rgba(255,230,128,.65);
+  box-shadow: 0 0 20px rgba(255,200,53,.7), inset 0 0 24px rgba(205,135,19,.55);
+}
+.anc-aura .bmp-star {
+  background: radial-gradient(circle, #fff6c8 0%, #ffcb46 55%, transparent 70%);
+  box-shadow: 0 0 8px #ffe277, 0 0 14px rgba(255,190,40,.75);
+}
+.anc-aura .bmp-star.s-lg {
+  box-shadow: 0 0 12px #fff0a0, 0 0 22px rgba(255,192,42,.8);
+}
 .bmp-card-bg {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background-size: 200% 200%;

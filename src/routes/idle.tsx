@@ -1152,7 +1152,7 @@ function eventualMapWindow(now: number = Date.now()): { open: boolean; msUntilCh
   return { open: false, msUntilChange: CYCLE - t };
 }
 
-// ═══ Sprites dos ANCESTRAIS (Egg Selado) — PNGs de src/ambiente/ANCESTRAIS ═══
+// ═══ Ancestrais: sheets 4×4 para o mapa, quadros recortados para painéis ═══
 import ancGiratinaPng from "@/ambiente/ANCESTRAIS/Giratina.png";
 import ancCresseliaPng from "@/ambiente/ANCESTRAIS/Cresselia.png";
 import ancKyuremPng from "@/ambiente/ANCESTRAIS/Kyurem.png";
@@ -1168,6 +1168,21 @@ import ancLugiaAncestralShinyPng from "@/ambiente/ANCESTRAIS/Lugia Ancestral Shi
 import ancLugiaAncestralPng from "@/ambiente/ANCESTRAIS/Lugia Ancestral.png";
 import ancMegaCharizardPng from "@/ambiente/ANCESTRAIS/Mega Charizard.png";
 import ancCharizardMegaXPng from "@/ambiente/ANCESTRAIS/Charizard Mega x.png";
+import ancGiratinaFrame from "@/ambiente/ANCESTRAIS/frames/Giratina.png";
+import ancCresseliaFrame from "@/ambiente/ANCESTRAIS/frames/Cresselia.png";
+import ancKyuremFrame from "@/ambiente/ANCESTRAIS/frames/Kyurem.png";
+import ancReshiramFrame from "@/ambiente/ANCESTRAIS/frames/Reshiram.png";
+import ancZekromFrame from "@/ambiente/ANCESTRAIS/frames/Zekrom.png";
+import ancGroudonShinyFrame from "@/ambiente/ANCESTRAIS/frames/Groudon Shiny.png";
+import ancRayquazaShinyFrame from "@/ambiente/ANCESTRAIS/frames/Rayquaza Shiny.png";
+import ancDragoniteMgFrame from "@/ambiente/ANCESTRAIS/frames/Dragonite MG.png";
+import ancLatiasAncestralFrame from "@/ambiente/ANCESTRAIS/frames/Latias Ancestral.png";
+import ancLatiosAncestralFrame from "@/ambiente/ANCESTRAIS/frames/Latios Ancestral.png";
+import ancLugiaShinyFrame from "@/ambiente/ANCESTRAIS/frames/Lugia Shiny.png";
+import ancLugiaAncestralShinyFrame from "@/ambiente/ANCESTRAIS/frames/Lugia Ancestral Shiny.png";
+import ancLugiaAncestralFrame from "@/ambiente/ANCESTRAIS/frames/Lugia Ancestral.png";
+import ancMegaCharizardFrame from "@/ambiente/ANCESTRAIS/frames/Mega Charizard.png";
+import ancCharizardMegaXFrame from "@/ambiente/ANCESTRAIS/frames/Charizard Mega x.png";
 // ═══ EGG SELADO ANCESTRAL — arte dos 3 ovos (aba ANCESTRAL do Professor) ═══
 import eggSeladoAncPng from "@/ambiente/Egg selado ancestral.png";
 import eggAncPlusPng from "@/ambiente/Egg Ancestral Plus.png";
@@ -1263,15 +1278,15 @@ const GIF: Partial<Record<Species, string>> = {
   riolu: rioluUrl,
   raichu: raichuUrl,
   rayquaza: rayquazaUrl,
-  // Ancestrais (Egg Selado) — sprites dos PNGs src/ambiente/ANCESTRAIS
-  giratina: ancGiratinaPng, cresselia: ancCresseliaPng, kyurem: ancKyuremPng,
-  reshiram: ancReshiramPng, zekrom: ancZekromPng,
-  groudon_shiny: ancGroudonShinyPng, rayquaza_shiny: ancRayquazaShinyPng,
-  dragonite_mg: ancDragoniteMgPng,
-  latias_ancestral: ancLatiasAncestralPng, latios_ancestral: ancLatiosAncestralPng,
-  lugia_m_shiny: ancLugiaShinyPng, lugia_shiny_ancestral: ancLugiaAncestralShinyPng,
-  mega_lugia_ancestral: ancLugiaAncestralPng,
-  mega_charizard: ancMegaCharizardPng, charizard_mega_x: ancCharizardMegaXPng,
+  // Um quadro por imagem: evita mostrar as 16 poses encolhidas na Coleção/HUD.
+  giratina: ancGiratinaFrame, cresselia: ancCresseliaFrame, kyurem: ancKyuremFrame,
+  reshiram: ancReshiramFrame, zekrom: ancZekromFrame,
+  groudon_shiny: ancGroudonShinyFrame, rayquaza_shiny: ancRayquazaShinyFrame,
+  dragonite_mg: ancDragoniteMgFrame,
+  latias_ancestral: ancLatiasAncestralFrame, latios_ancestral: ancLatiosAncestralFrame,
+  lugia_m_shiny: ancLugiaShinyFrame, lugia_shiny_ancestral: ancLugiaAncestralShinyFrame,
+  mega_lugia_ancestral: ancLugiaAncestralFrame,
+  mega_charizard: ancMegaCharizardFrame, charizard_mega_x: ancCharizardMegaXFrame,
   venusaur: bulbasaurFlowerPng,
   venusaur_shiny: bulbasaurOrangePng,
   bulbasaur_shiny: bulbasaurGif,
@@ -1286,25 +1301,15 @@ const GIF: Partial<Record<Species, string>> = {
 
 
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
-// Ancestrais (Egg Selado): PNGs ESTÁTICOS (sem GIF, sem sheet 4x4). Sem passo
-// visual eles "escorregam" parados enquanto andam — damos bob de andar
-// sincronizado com o walkStep do treinador (frames 0..3, 180ms), mesmo ritmo
-// dos sheets dos mapas iniciais.
-const ANC_STATIC_SPECIES: ReadonlySet<Species> = new Set<Species>([
-  "giratina", "cresselia", "kyurem", "reshiram", "zekrom", "groudon_shiny",
-  "rayquaza_shiny", "dragonite_mg", "latias_ancestral", "latios_ancestral",
-  "lugia_m_shiny", "lugia_shiny_ancestral", "mega_lugia_ancestral",
-  "mega_charizard", "charizard_mega_x",
-]);
-// Frame 0 = contato com o chão (parado = sem deslocamento).
-const WALK_BOB_Y = [0, -3, 0, -2] as const;
-const WALK_BOB_SY = [1, 0.97, 1, 0.98] as const;
-const walkBobTransform = (step: number): string => {
-  const s = (((step | 0) % 4) + 4) % 4;
-  return `translateY(${WALK_BOB_Y[s]}px) scaleY(${WALK_BOB_SY[s]})`;
-};
-
 const SPRITE_SHEET: Partial<Record<Species, string>> = {
+  giratina: ancGiratinaPng, cresselia: ancCresseliaPng, kyurem: ancKyuremPng,
+  reshiram: ancReshiramPng, zekrom: ancZekromPng,
+  groudon_shiny: ancGroudonShinyPng, rayquaza_shiny: ancRayquazaShinyPng,
+  dragonite_mg: ancDragoniteMgPng,
+  latias_ancestral: ancLatiasAncestralPng, latios_ancestral: ancLatiosAncestralPng,
+  lugia_m_shiny: ancLugiaShinyPng, lugia_shiny_ancestral: ancLugiaAncestralShinyPng,
+  mega_lugia_ancestral: ancLugiaAncestralPng,
+  mega_charizard: ancMegaCharizardPng, charizard_mega_x: ancCharizardMegaXPng,
   snorlax: safariSnorlaxSheet, snorlax_mythic: safariSnorlaxMythicSheet,
   kabutops: safariKabutopsSheet, kabutops_shiny: safariKabutopsShinySheet, aerodactyl: safariAerodactylSheet,
   lucario: lucarioAuraUrl,
@@ -21009,7 +21014,7 @@ A sucata afundou com o casco.
                       ) : pvpLeaderSp && SPRITE_SHEET[pvpLeaderSp] ? (
                         <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${SPRITE_SHEET[pvpLeaderSp]})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
                       ) : (
-                        <img src={rpLeaderSrc} alt={`Pokémon líder de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated", transform: (pvpLeaderSp && ANC_STATIC_SPECIES.has(pvpLeaderSp)) ? walkBobTransform(rp.step) : undefined }} />
+                        <img src={rpLeaderSrc} alt={`Pokémon líder de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated" }} />
                       )}
                       {remotePvp && <span aria-label={`HP ${remotePvp.hp} de ${remotePvp.max_hp}`} style={{ position: "absolute", left: 1, right: 1, bottom: -3, height: 4, border: "1px solid #220308", borderRadius: 3, background: "#220308", overflow: "hidden" }}><i style={{ display: "block", width: `${Math.max(0, remotePvp.hp / Math.max(1, remotePvp.max_hp) * 100)}%`, height: "100%", background: remoteLowHp ? "#ff1935" : "#62db72", boxShadow: remoteLowHp ? "0 0 7px #ff1935" : undefined }} /></span>}
                     </button>
@@ -21065,9 +21070,10 @@ A sucata afundou com o casco.
                const pvpFainted = ownPvpPresence?.hp === 0;
                const fainted = leaderHp <= 0 || pvpFainted;
               const faceScale = pokemonFace === "right" ? -1 : 1;
-              const auraOn = Date.now() - leveledAt < 1400;
-              const leaderEvent = String((leader as any).event ?? "");
-              const isBMP = leaderEvent.includes("black_mitic");
+               const auraOn = Date.now() - leveledAt < 1400;
+               const leaderEvent = String((leader as any).event ?? "");
+               const isBMP = leaderEvent.includes("black_mitic");
+               const isAncestral = leaderEvent === "ancestral";
               // Lunge: avança 45% do caminho até o alvo e volta (curva senoidal)
               let lungeX = 0, lungeY = 0;
               if (attackAnim) {
@@ -21079,7 +21085,7 @@ A sucata afundou com o casco.
               const leaderX = renderFollowerX + lungeX;
               const leaderY = renderFollowerY + lungeY;
               return (
-                <div style={{
+                <div className={isAncestral ? "anc-aura" : undefined} style={{
                   position: "absolute",
                   left: leaderX, top: leaderY,
                   width: 54, height: 54,
@@ -21090,7 +21096,7 @@ A sucata afundou com o casco.
                   zIndex: Math.round(leaderY),
                 }}>
                   {pvpFainted && <span aria-label="Pokémon derrotado" style={{ position: "absolute", left: 11, top: 8, fontSize: 34, zIndex: 20, filter: "drop-shadow(0 2px 3px #000)" }}>💀</span>}
-                  {isBMP && (
+                   {(isBMP || isAncestral) && (
                     <div>
                       <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
                       <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
@@ -21145,11 +21151,7 @@ A sucata afundou com o casco.
                       style={{
                         width: "100%", imageRendering: "pixelated",
                         "--face-scale": faceScale,
-                        transform: `scaleX(${faceScale})${
-                          followerState.moving && !fainted && ANC_STATIC_SPECIES.has(leaderSp)
-                            ? ` ${walkBobTransform(walkStep)}`
-                            : ""
-                        }`,
+                         transform: `scaleX(${faceScale})`,
                       } as React.CSSProperties} />
                   ))}
 
@@ -29616,9 +29618,10 @@ function TabOverlay({
                  const fragDisabled = inTeam || locked;
                  const isSelected = bulkSel.has(entry.uid);
                  const canBulkPick = !inTeam && !locked;
-                 const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
-                 const isBrilhant = !!entry.event && entry.event.includes("brilhant");
-                 const bmpAccent = isBrilhant ? "#ff97e1" : "#a066ff";
+                  const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
+                  const isAncestral = entry.event === "ancestral";
+                  const isBrilhant = !!entry.event && entry.event.includes("brilhant");
+                  const bmpAccent = isAncestral ? "#ffd94d" : isBrilhant ? "#ff97e1" : "#a066ff";
                  return (
                    <div
                      key={entry.uid}
@@ -29628,14 +29631,14 @@ function TabOverlay({
                        toggleBulk(entry.uid);
                      }}
                      style={{
-                        background: isBMP
-                          ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
-                          : "linear-gradient(180deg, #1a0f26, #251638)",
-                        border: `2.5px solid ${isBMP ? bmpAccent : (isSelected ? "#c084fc" : locked ? "#ffd94d" : (isCurrent ? "#5ec26a" : "#c084fc"))}`,
+                         background: isBMP || isAncestral
+                           ? isAncestral ? "linear-gradient(160deg, #3b2704 0%, #171003 55%, #090704 100%)" : "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                           : "linear-gradient(180deg, #1a0f26, #251638)",
+                         border: `2.5px solid ${isBMP || isAncestral ? bmpAccent : (isSelected ? "#c084fc" : locked ? "#ffd94d" : (isCurrent ? "#5ec26a" : "#c084fc"))}`,
                         borderRadius: 12, padding: 10, textAlign: "center",
                        position: "relative",
                        overflow: "hidden",
-                        boxShadow: isBMP
+                        boxShadow: isBMP || isAncestral
                           ? `0 4px 14px rgba(0,0,0,0.6), 0 0 22px ${bmpAccent}88, inset 0 0 26px ${bmpAccent}33`
                           : `0 4px 14px rgba(0,0,0,0.4), 0 0 15px rgba(192,132,252,0.25), inset 0 0 12px ${rColor}22${locked ? ", 0 0 10px rgba(255,217,77,0.5)" : ""}${isSelected ? ", 0 0 14px rgba(192,132,252,0.7)" : ""}`,
                        display: "grid",
@@ -29647,7 +29650,7 @@ function TabOverlay({
                        cursor: bulkMode ? (canBulkPick ? "pointer" : "not-allowed") : "default",
                      }}
                    >
-                     {isBMP && (
+                      {(isBMP || isAncestral) && (
                        <div style={{
                          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
                          background: `radial-gradient(circle at 50% 20%, ${bmpAccent}55, transparent 60%), radial-gradient(circle at 80% 90%, ${bmpAccent}33, transparent 55%)`,
@@ -29693,8 +29696,8 @@ function TabOverlay({
                        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
-                       {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
-                       <div style={{ fontSize: 11, marginTop: 2, color: isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                        {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP || isAncestral ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                        <div style={{ fontSize: 11, marginTop: 2, color: isAncestral ? "#fff0ad" : isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
                      {/* Raridade / Badge BMP */}
