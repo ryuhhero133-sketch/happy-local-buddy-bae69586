@@ -494,3 +494,11 @@
   .safari-wild-aura, .safari-wild-aura *, .safari-wild-aura::before, .safari-wild-aura::after { animation: none !important; }
   .safari-wild-aura > span { opacity: .6; }
 }
+.revo-hud .revo-capture-toggle.is-active, .revo-hud .revo-event-highlight {
+  border-color: #ffdb70;
+  background: linear-gradient(145deg, #775010, #352106);
+  box-shadow: 0 0 7px #ffd14e, 0 0 16px rgba(255, 183, 40, .65), inset 0 0 8px rgba(255, 221, 105, .4);
+}
+.revo-hud .revo-capture-toggle.is-active img, .revo-hud .revo-event-highlight img {
+  filter: drop-shadow(0 0 5px #ffdd68);
+}

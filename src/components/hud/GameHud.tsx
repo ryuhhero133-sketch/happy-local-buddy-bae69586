@@ -37,10 +37,10 @@ export type GameHudProps = {
   mapBounds: HudMapBounds; viewportWidth: number; target: HudTarget | null;
 };
 
-function IconButton({ label, children, onClick, active = false, badge = false }: {
-  label: string; children: ReactNode; onClick: () => void; active?: boolean; badge?: boolean;
+function IconButton({ label, children, onClick, active = false, badge = false, className = "" }: {
+  label: string; children: ReactNode; onClick: () => void; active?: boolean; badge?: boolean; className?: string;
 }) {
-  return <button type="button" className={`revo-icon ${active ? "is-active" : ""}`} title={label} aria-label={label} aria-pressed={active} onClick={onClick}>
+  return <button type="button" className={`revo-icon ${active ? "is-active" : ""} ${className}`} title={label} aria-label={label} aria-pressed={active} onClick={onClick}>
     {children}{badge && <span className="revo-badge" />}
   </button>;
 }
@@ -111,7 +111,7 @@ export function GameHud(hud: GameHudProps) {
     <PlayerHud hud={hud} />
     <ResourceBar hud={hud} />
     <div className="revo-systems" aria-label="Atalhos do jogo">
-      <IconButton label="Eventos" onClick={hud.onEvents}><img className="revo-event-icon" src={eventIcon} alt="" /></IconButton>
+      <IconButton label="Eventos" className="revo-event-highlight" onClick={hud.onEvents}><img className="revo-event-icon" src={eventIcon} alt="" /></IconButton>
       <IconButton label="Ranking" onClick={hud.onRank}><Trophy /></IconButton>
       <IconButton label="Notificações" active={noticesOpen} badge={readyQuests > 0 || hud.forgeNotification} onClick={() => setNoticesOpen(!noticesOpen)}><Bell /></IconButton>
       <IconButton label="Configurações" onClick={hud.onSettings}><Settings /></IconButton>
@@ -142,7 +142,7 @@ export function GameHud(hud: GameHudProps) {
           {hud.mapEditorEnabled && <IconButton label="Editor de mapa: objetos e Pokémon" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>}
           <IconButton label="Mostrar ou recolher alvos próximos" active={hud.targetsOpen} onClick={hud.onTargets}><Crosshair /></IconButton>
           <IconButton label={`PvP: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`} active={hud.pvpMode !== "peace"} onClick={hud.onPvpMode}><Shield /></IconButton>
-          <IconButton label="Alternar captura automática" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>
+          <IconButton label={hud.autoCapture ? "Captura automática ligada" : "Captura automática desligada"} className="revo-capture-toggle" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>
           <IconButton label="Configurar combate automático" onClick={hud.onCombatSettings}><Settings /></IconButton>
         </div>
       </div>

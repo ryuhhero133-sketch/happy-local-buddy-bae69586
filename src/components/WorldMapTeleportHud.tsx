@@ -157,7 +157,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <footer className="world-atlas__footer">
           <Sparkles aria-hidden="true" />
           <span>Escolha um destino ilustrado</span>
-          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Revoland · Pokémarkt · Verdejante · Valley Plume: grátis</span>
+          <span className="world-atlas__footer-cost"><Zap aria-hidden="true" /> Destinos liberados: grátis</span>
         </footer>
       </section>
     </div>
