@@ -1667,18 +1667,27 @@ html, body, #root {
 .bmp-star.s-lg { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; box-shadow: 0 0 12px #c58bff, 0 0 22px rgba(160,80,255,.8); }
 /* Ancestrais: aura do Black Mítico Plus com halo solar dourado. */
 .anc-aura .bmp-aura-glow {
-  background: radial-gradient(circle, rgba(255,217,77,.65) 0%, rgba(180,115,12,.38) 45%, transparent 72%);
+  background: radial-gradient(circle, rgba(255,247,184,.83) 0%, rgba(255,203,52,.68) 30%, rgba(178,100,10,.38) 58%, transparent 76%);
+  filter: blur(8px);
 }
 .anc-aura .bmp-aura-ring {
-  border-color: rgba(255,230,128,.65);
-  box-shadow: 0 0 20px rgba(255,200,53,.7), inset 0 0 24px rgba(205,135,19,.55);
+  border: 3px solid rgba(255,234,133,.9);
+  background: radial-gradient(circle, transparent 50%, rgba(255,208,65,.25) 70%, transparent 76%);
+  box-shadow: 0 0 8px #fff2aa, 0 0 26px rgba(255,190,33,.85), inset 0 0 20px rgba(255,217,77,.65);
 }
 .anc-aura .bmp-star {
-  background: radial-gradient(circle, #fff6c8 0%, #ffcb46 55%, transparent 70%);
-  box-shadow: 0 0 8px #ffe277, 0 0 14px rgba(255,190,40,.75);
+  background: radial-gradient(circle, #fffbea 0%, #ffe075 45%, #ffb720 75%, transparent 90%);
+  box-shadow: 0 0 9px #fff0b2, 0 0 20px rgba(255,190,40,.9);
 }
 .anc-aura .bmp-star.s-lg {
-  box-shadow: 0 0 12px #fff0a0, 0 0 22px rgba(255,192,42,.8);
+  box-shadow: 0 0 15px #fff0a0, 0 0 26px rgba(255,192,42,.9);
+}
+.bmp-star.anc-gold-star {
+  background: radial-gradient(circle, #fffbea 0%, #ffe075 50%, #ffbc32 80%, transparent 95%);
+  box-shadow: 0 0 10px #fff0a0, 0 0 20px #ffc43b;
+}
+.bmp-star.anc-gold-star.s-lg {
+  box-shadow: 0 0 14px #fff8d5, 0 0 28px #ffca45;
 }
 @keyframes ancGoldTurn {
   to { transform: rotate(360deg); }
@@ -1724,10 +1733,13 @@ html, body, #root {
 .anc-collection-sprite .anc-gold-halo {
   inset: -8px;
 }
+.anc-stats-portrait .anc-gold-halo {
+  inset: -14px;
+}
 @media (prefers-reduced-motion: reduce) {
   .anc-gold-halo::before, .anc-gold-halo::after,
   .anc-aura .bmp-aura-glow, .anc-aura .bmp-aura-ring,
-  .anc-aura .bmp-star { animation: none; }
+  .anc-aura .bmp-star, .anc-gold-star { animation: none; }
 }
 .bmp-card-bg {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;

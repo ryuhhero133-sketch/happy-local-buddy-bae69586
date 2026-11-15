@@ -55,6 +55,7 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
   );
 
   const isBMP = !!pet.event && pet.event.startsWith("black_mitic_plus");
+  const isAncestral = pet.event === "ancestral";
   const isBrilhant = !!pet.event && pet.event.includes("brilhant");
   const bmpLabel = isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS";
 
@@ -66,25 +67,35 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
         width: "min(560px, 96vw)", maxHeight: "92vh", overflowY: "auto",
-        background: isBMP
+        background: isAncestral
+          ? "linear-gradient(160deg, #312008 0%, #170d04 55%, #090704 100%)"
+          : isBMP
           ? "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
           : `linear-gradient(160deg, ${meta.color}22 0%, #1a0f26 40%, #0b0510 100%)`,
-        border: `3px solid ${isBMP ? "#a066ff" : rc}`,
+        border: `3px solid ${isAncestral ? "#ffd65c" : isBMP ? "#a066ff" : rc}`,
         borderRadius: 20,
-        boxShadow: isBMP
+        boxShadow: isAncestral
+          ? "0 20px 60px rgba(0,0,0,0.85), 0 0 48px rgba(255,194,52,0.55), inset 0 1px 0 rgba(255,244,184,0.6)"
+          : isBMP
           ? "0 20px 60px rgba(0,0,0,0.85), 0 0 60px rgba(160,80,255,0.55), inset 0 1px 0 rgba(200,140,255,0.4)"
           : `0 20px 60px rgba(0,0,0,0.8), 0 0 40px ${rc}55, inset 0 1px 0 ${rc}44`,
         position: "relative", overflow: "hidden",
       }}>
         {/* Fundo animado Black Mitic Plus */}
-        {isBMP && (
+        {(isBMP || isAncestral) && (
           <>
-            <div className="bmp-card-bg" style={{ backgroundImage: `url(${blackMiticBg})` }} />
+            <div className="bmp-card-bg" style={{
+              backgroundImage: isAncestral
+                ? "radial-gradient(circle at 50% 30%, rgba(255,212,89,.28), transparent 55%), linear-gradient(120deg, #1d1205, #44300b, #160c04)"
+                : `url(${blackMiticBg})`,
+            }} />
             <div style={{
               position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
-              background: "radial-gradient(circle at 50% 30%, rgba(160,80,255,0.35), transparent 65%)",
+              background: isAncestral
+                ? "radial-gradient(circle at 50% 30%, rgba(255,222,106,0.38), transparent 65%)"
+                : "radial-gradient(circle at 50% 30%, rgba(160,80,255,0.35), transparent 65%)",
             }} />
-            {/* Estrelas negras orbitando */}
+            {/* Mesma órbita do Black Mítico Plus, com paleta dourada no ancestral. */}
             {[
               { a: 0,   r: 180, d: 9,  cls: "" },
               { a: 45,  r: 220, d: 11, cls: "s-lg" },
@@ -95,7 +106,7 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
               { a: 270, r: 170, d: 9,  cls: "" },
               { a: 315, r: 200, d: 11, cls: "s-lg" },
             ].map((s, i) => (
-              <span key={i} className={`bmp-star ${s.cls}`} style={{
+              <span key={i} className={`bmp-star ${isAncestral ? "anc-gold-star" : ""} ${s.cls}`} style={{
                 ["--a" as string]: `${s.a}deg`,
                 ["--r" as string]: `${s.r}px`,
                 animationDuration: `${s.d}s`,
@@ -120,14 +131,16 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center", flexWrap: "wrap" }}>
               <span style={{
-                background: isBMP
-                  ? "linear-gradient(180deg, #a066ff, #4a1080)"
-                  : `linear-gradient(180deg, ${rc}, ${rc}aa)`,
-                color: isBMP ? "#fff5ff" : "#0b0510",
+                 background: isAncestral
+                   ? "linear-gradient(180deg, #fff2a8, #b87318)"
+                   : isBMP
+                   ? "linear-gradient(180deg, #a066ff, #4a1080)"
+                   : `linear-gradient(180deg, ${rc}, ${rc}aa)`,
+                 color: isBMP ? "#fff5ff" : "#0b0510",
                 fontSize: 9, fontWeight: 900, letterSpacing: 1,
                 padding: "3px 8px", borderRadius: 999, border: "1px solid rgba(0,0,0,0.4)",
-                boxShadow: isBMP ? "0 0 10px rgba(160,80,255,0.8)" : undefined,
-              }}>{isBMP ? bmpLabel : RARITY_NAME[pet.rarity]}</span>
+                 boxShadow: isAncestral ? "0 0 12px rgba(255,214,92,0.8)" : isBMP ? "0 0 10px rgba(160,80,255,0.8)" : undefined,
+               }}>{isAncestral ? "✦ ANCESTRAL ✦" : isBMP ? bmpLabel : RARITY_NAME[pet.rarity]}</span>
               <span style={{ fontSize: 11, color: "#f5cf6b", fontWeight: 900 }}>Lv {pet.level}</span>
               {elems.map((e) => {
                 const em = ELEMENT_META[e];
@@ -151,14 +164,20 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
         <div style={{ padding: 16, position: "relative", display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Portrait + Power */}
           <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <div style={{
-              width: 140, height: 140, borderRadius: 20,
-              background: `radial-gradient(circle at 30% 25%, ${meta.color}55, ${meta.color}15 60%, rgba(0,0,0,0.6))`,
-              border: `2.5px solid ${meta.color}`,
-              boxShadow: `inset 0 0 24px ${meta.color}55, 0 0 24px ${meta.color}88`,
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}>
-              {gifSrc && <img src={gifSrc} alt="" width={110} height={110} style={{ imageRendering: "pixelated", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.8))" }} />}
+             <div className={isAncestral ? "anc-stats-portrait" : undefined} style={{
+               width: 140, height: 140, borderRadius: 20,
+               background: isAncestral
+                 ? "radial-gradient(circle, #f5c65b77, #8b520c33 65%, rgba(0,0,0,0.6))"
+                 : `radial-gradient(circle at 30% 25%, ${meta.color}55, ${meta.color}15 60%, rgba(0,0,0,0.6))`,
+               border: `2.5px solid ${isAncestral ? "#ffe18a" : meta.color}`,
+               boxShadow: isAncestral
+                 ? "inset 0 0 30px #ffdb6c88, 0 0 28px #ffcb4f99"
+                 : `inset 0 0 24px ${meta.color}55, 0 0 24px ${meta.color}88`,
+               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+               position: "relative",
+             }}>
+               {isAncestral && <span className="anc-gold-halo" aria-hidden="true" />}
+               {gifSrc && <img src={gifSrc} alt="" width={110} height={110} style={{ position: "relative", imageRendering: "pixelated", filter: isAncestral ? "drop-shadow(0 0 9px #ffe38b) drop-shadow(0 4px 8px #000)" : "drop-shadow(0 4px 8px rgba(0,0,0,0.8))" }} />}
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
