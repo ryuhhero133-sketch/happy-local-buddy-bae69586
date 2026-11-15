@@ -4,6 +4,7 @@ import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META, computeTeamSynergies } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
+import { AncestralOrbitAura } from "@/components/AncestralOrbitAura";
 import blackMiticBg from "@/assets/black-mitic-card-bg.jpg";
 
 interface Props {
@@ -177,7 +178,8 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
                position: "relative",
              }}>
                {isAncestral && <span className="anc-gold-halo" aria-hidden="true" />}
-               {gifSrc && <img src={gifSrc} alt="" width={110} height={110} style={{ position: "relative", imageRendering: "pixelated", filter: isAncestral ? "drop-shadow(0 0 9px #ffe38b) drop-shadow(0 4px 8px #000)" : "drop-shadow(0 4px 8px rgba(0,0,0,0.8))" }} />}
+               {isAncestral && <AncestralOrbitAura />}
+               {gifSrc && <img src={gifSrc} alt="" width={110} height={110} style={{ position: "relative", zIndex: 2, imageRendering: "pixelated", filter: isAncestral ? "drop-shadow(0 0 9px #ffe38b) drop-shadow(0 4px 8px #000)" : "drop-shadow(0 4px 8px rgba(0,0,0,0.8))" }} />}
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>

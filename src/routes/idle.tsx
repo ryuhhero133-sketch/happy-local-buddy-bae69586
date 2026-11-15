@@ -127,6 +127,7 @@ import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs, rollRewardMythicEggTraits } from "@/components/BlackMiticEggPet";
+import { AncestralOrbitAura } from "@/components/AncestralOrbitAura";
 import { PreregEggHud } from "@/components/PreregEggHud";
 import { hasStarterProgress } from "@/game/starterGuard";
 import { EmeraldEggSprite, EmeraldEggHud, EMERALD_EGG_ITEM_ID } from "@/components/EmeraldEggPet";
@@ -2322,7 +2323,7 @@ const ITEM_IMG: Record<string, string> = {
   morango: morangoBagImg, banana: bananaBagImg,
   certificado: assetUrlFromJson(certificadoBagAsset),
   egg_sprigatito: cardEggUrl,
-  egg_mew_7: cardEggUrl, egg_lucario_7: cardEggUrl,
+  egg_mew_7: cardEggUrl, egg_lucario_7: cardEggUrl, egg_ditto_shiny_1: cardEggUrl,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -7043,6 +7044,7 @@ const confirmName = () => {
   const LEVEL_RESET_CODE = "RESETLV10TREINADOR";
   const levelResetBusyRef = useRef(false);
   const mythicEggCodeBusyRef = useRef(false);
+  const blackAwakeningCodeBusyRef = useRef(false);
   const normalizeCode = (value: string) => value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -7079,6 +7081,53 @@ const confirmName = () => {
       }
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
+
+    if (raw === "DESPERTARBLACK6") {
+      if (blackAwakeningCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      blackAwakeningCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Salvando progresso e entregando o pacote…" });
+      void (async () => {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getSession();
+          const userId = authData.session?.user?.id;
+          if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
+          if ((idleRef.current.collection ?? []).length >= MAX_COLLECTION) {
+            throw new Error("Coleção cheia. Libere uma vaga antes de resgatar.");
+          }
+          if (!(await pushCloudSaveNow(buildFullBlob()))) {
+            throw new Error("Não foi possível salvar seu progresso. Tente novamente.");
+          }
+          const { error } = await (supabase as any).rpc("claim_black_awakening_reward", { p_code: raw });
+          if (error) throw error;
+          // Rebaseia o SaveManager na versão da transação antes do autosave local.
+          const snapshot = await fetchCloudSave(userId) as
+            | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
+            | null;
+          if (!snapshot?.idle || !Array.isArray(snapshot.team) || !Array.isArray(snapshot.restingBench)) {
+            throw new Error("Pacote salvo no servidor. Recarregue o jogo para atualizar a tela.");
+          }
+          idleRef.current = snapshot.idle;
+          teamRef.current = snapshot.team;
+          setIdle(snapshot.idle);
+          setTeam(snapshot.team);
+          setRestingBench(snapshot.restingBench);
+          saveIdleStamped(snapshot.idle);
+          try { localStorage.setItem(`rubym.code.${userId}.${raw}.used`, "1"); } catch { /* ignore */ }
+          setCodeInput("");
+          setCodeMsg({ kind: "ok", text: "Pacote entregue! 6 Ovos Ditto Shiny na Mochila e Articuno Mítico Lv.1 na Coleção." });
+          pushChat("🎁 Pacote entregue: stones, recursos, frutas, bolas, 6 ovos Ditto Shiny e Articuno Mítico Lv.1!", "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha no resgate." });
+        } finally {
+          blackAwakeningCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
 
     const mythicCodeEgg = ({
       OVOMITICOMEW7: { item: "egg_mew_7", name: "Mew" },
@@ -12655,7 +12704,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       } else {
         pushChat(`Livro VIP usado (+${Math.round(newMult*100)}% ouro e EXP por ${cfg.label}).`, "cap");
       }
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_lugia" || id === "egg_dragonite" || id === "egg_mew_7" || id === "egg_lucario_7") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_lugia" || id === "egg_dragonite" || id === "egg_mew_7" || id === "egg_lucario_7" || id === "egg_ditto_shiny_1") {
       openEgg(id as EggId);
     } else if (id === "egg_anc_selado" || id === "egg_anc_plus" || id === "egg_anc_luck") {
       // Ovos Ancestrais NÃO chocam na mochila: selam um pokémon ESCOLHIDO
@@ -12805,7 +12854,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_lugia" | "egg_dragonite" | "egg_mew_7" | "egg_lucario_7";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_lugia" | "egg_dragonite" | "egg_mew_7" | "egg_lucario_7" | "egg_ditto_shiny_1";
   // Ovos ancestrais: NÃO chocam sozinhos (selam o pokémon escolhido na aba ANCESTRAL).
   type AncEggId = "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
@@ -12820,6 +12869,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     egg_dragonite: { weights: { mythic: 100 } },
     egg_mew_7: { weights: { mythic: 100 } },
     egg_lucario_7: { weights: { mythic: 100 } },
+    egg_ditto_shiny_1: { weights: { mythic_shiny: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
@@ -12831,6 +12881,32 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     return "common";
   };
   const openEgg = (eggId: EggId) => {
+    if (eggId === "egg_ditto_shiny_1") {
+      const base = idleRef.current;
+      if ((base.items[eggId] ?? 0) <= 0) return;
+      if ((base.collection ?? []).length >= MAX_COLLECTION) {
+        pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Ovo mantido na Mochila.`, "info");
+        return;
+      }
+      const pet = makePet("ditto_shiny", 1, "mythic_shiny");
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, [eggId]: base.items[eggId] - 1 },
+        caughtSpecies: base.caughtSpecies.includes("ditto_shiny") ? base.caughtSpecies : [...base.caughtSpecies, "ditto_shiny"],
+        seenSpecies: base.seenSpecies.includes("ditto_shiny") ? base.seenSpecies : [...base.seenSpecies, "ditto_shiny"],
+        collection: [...(base.collection ?? []), {
+          uid: pet.uid, species: pet.species, level: 1, xp: pet.xp, rarity: pet.rarity,
+          traits: pet.traits ?? [], capturedAt: Date.now(), event: "hatch_shop:ditto_shiny_1",
+        }],
+      };
+      idleRef.current = next;
+      saveIdleStamped(next);
+      setIdle(next);
+      void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+      setEggOpenResult({ sp: "ditto_shiny", rarity: "mythic_shiny" });
+      pushChat("🥚 Nasceu DITTO SHINY Mítico Shiny Lv.1! Foi para a Coleção.", "cap");
+      return;
+    }
     if (eggId === "egg_mew_7" || eggId === "egg_lucario_7") {
       const base = idleRef.current;
       if ((base.items[eggId] ?? 0) <= 0) return;
@@ -21073,7 +21149,8 @@ A sucata afundou com o casco.
                const auraOn = Date.now() - leveledAt < 1400;
                const leaderEvent = String((leader as any).event ?? "");
                const isBMP = leaderEvent.includes("black_mitic");
-               const isAncestral = leaderEvent === "ancestral";
+                const isAncestral = leaderEvent === "ancestral"
+                  || (idle.collection ?? []).some((entry) => entry.uid === leader.uid && entry.event === "ancestral");
               // Lunge: avança 45% do caminho até o alvo e volta (curva senoidal)
               let lungeX = 0, lungeY = 0;
               if (attackAnim) {
@@ -21100,7 +21177,8 @@ A sucata afundou com o casco.
                      <div style={{ pointerEvents: "none" }}>
                        {isAncestral && <div className="anc-gold-halo" aria-hidden="true" />}
                        <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
-                      <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
+                       <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
+                       {isAncestral && <AncestralOrbitAura />}
                       {[
                         { a: 0,   r: 34, d: 6, cls: "" },
                         { a: 90,  r: 30, d: 7, cls: "s-lg" },
@@ -21138,9 +21216,10 @@ A sucata afundou com o casco.
                       ))}
                     </div>
                   )}
-                  {!pvpFainted && (SPRITE_SHEET[leaderSp] ? (
-                    <div style={{
-                      width: "100%", height: "100%",
+                   {!pvpFainted && (SPRITE_SHEET[leaderSp] ? (
+                     <div style={{
+                       position: "relative", zIndex: isAncestral ? 2 : undefined,
+                       width: "100%", height: "100%",
                       backgroundImage: `url(${SPRITE_SHEET[leaderSp]})`,
                       backgroundSize: "400% 400%",
                       backgroundPosition: `${(followerState.moving ? walkStep : 0) * 33.333}% ${DIR_ROW[followerState.dir] * 33.333}%`,
@@ -28685,6 +28764,7 @@ function TabOverlay({
           chave_ruby: "Chave Ruby 🔴",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico", egg_lugia: "Ovo de Lugia ✦",
           egg_mew_7: "Ovo Mítico de Mew ✦", egg_lucario_7: "Ovo Mítico de Lucario ✦",
+          egg_ditto_shiny_1: "Ovo Raro de Ditto Shiny ✨",
           egg_sprigatito: "Ovo Sprigatito 🌱",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
@@ -28754,6 +28834,7 @@ function TabOverlay({
           egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
           egg_mew_7: "Ovo Mítico de Mew · ao chocar nasce Mew Mítico com 7 traits aleatórios, sorteados na abertura.",
           egg_lucario_7: "Ovo Mítico de Lucario · ao chocar nasce Lucario Mítico com 7 traits aleatórios, sorteados na abertura.",
+          egg_ditto_shiny_1: "Ovo Raro · ao abrir nasce Ditto Shiny Mítico Shiny nível 1 na Coleção. Não é consumido se a Coleção estiver cheia.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
           egg_charizard_epic: "Ovo do Charizard Épico · choca sempre um Charizard ÉPICO (não shiny) Lv 50.",
           egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
@@ -28797,7 +28878,7 @@ function TabOverlay({
           oleo: "Óleo · combustível bruto.",
           certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_ditto_shiny_1: "#ff97e1", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
         if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
@@ -28854,7 +28935,7 @@ function TabOverlay({
         const directUse = new Set([
           "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet",
           "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
-          "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7",
+          "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1",
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
         ]);
@@ -29700,7 +29781,8 @@ function TabOverlay({
                          {gifMap[sp] && (isAncestral ? (
                            <span className="anc-collection-sprite">
                              <span className="anc-gold-halo" aria-hidden="true" />
-                             <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", position: "relative", filter: "drop-shadow(0 0 7px #ffe27b)" }} />
+                             <AncestralOrbitAura />
+                             <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", position: "relative", zIndex: 2, filter: "drop-shadow(0 0 7px #ffe27b)" }} />
                            </span>
                          ) : <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />)}
                         <div style={{ fontSize: 11, marginTop: 2, color: isAncestral ? "#fff0ad" : isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>

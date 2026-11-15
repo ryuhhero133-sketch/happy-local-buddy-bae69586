@@ -1736,10 +1736,73 @@ html, body, #root {
 .anc-stats-portrait .anc-gold-halo {
   inset: -14px;
 }
+/* Esferas do ovo Black Mítico reinterpretadas como órbitas solares do ancestral. */
+@keyframes ancOrbitRingPulse {
+  0%, 100% { opacity: .38; transform: scale(.84); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes ancOrbitTravel {
+  from { transform: rotate(var(--orbit-angle)) translateX(var(--anc-orbit-radius)); }
+  to { transform: rotate(calc(var(--orbit-angle) + 360deg)) translateX(var(--anc-orbit-radius)); }
+}
+.anc-orbit-field {
+  --anc-orbit-radius: 39px;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.anc-orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ancOrbitRingPulse 2.8s ease-in-out infinite;
+}
+.anc-orbit-ring--outer {
+  inset: -20px;
+  border: 2px solid rgba(255,215,87,.8);
+  box-shadow: 0 0 12px #ffc544, inset 0 0 13px #ffd76b;
+}
+.anc-orbit-ring--inner {
+  inset: -8px;
+  border: 2px solid rgba(255,246,179,.85);
+  box-shadow: 0 0 10px #fff0a5, 0 0 20px #ffbf35;
+  animation-delay: -1.4s;
+}
+.anc-orbit-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fffef1, #ffe17a 48%, #e89813 85%);
+  box-shadow: 0 0 5px #fff8cc, 0 0 13px #ffc333, 0 0 23px #e99d1e;
+  transform: rotate(var(--orbit-angle)) translateX(var(--anc-orbit-radius));
+  animation: ancOrbitTravel 8s linear infinite;
+}
+.anc-orbit-orb--large {
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  box-shadow: 0 0 8px #fff8cc, 0 0 18px #ffd44b, 0 0 28px #e99d1e;
+}
+.anc-collection-sprite .anc-orbit-field {
+  --anc-orbit-radius: 35px;
+}
+.anc-collection-sprite .anc-orbit-ring--outer { inset: -8px; }
+.anc-collection-sprite .anc-orbit-ring--inner { inset: 3px; }
+.anc-stats-portrait .anc-orbit-field {
+  --anc-orbit-radius: 60px;
+}
+.anc-stats-portrait .anc-orbit-ring--outer { inset: -7px; }
+.anc-stats-portrait .anc-orbit-ring--inner { inset: 11px; }
 @media (prefers-reduced-motion: reduce) {
   .anc-gold-halo::before, .anc-gold-halo::after,
   .anc-aura .bmp-aura-glow, .anc-aura .bmp-aura-ring,
-  .anc-aura .bmp-star, .anc-gold-star { animation: none; }
+  .anc-aura .bmp-star, .anc-gold-star, .anc-orbit-orb,
+  .anc-orbit-ring { animation: none; }
 }
 .bmp-card-bg {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
