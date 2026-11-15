@@ -12257,9 +12257,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       clearEnemyThrows(enemyId);
       setIdle((s) => {
         const prev = s.collection ?? [];
+        const captureTasks = s.tasks.map((task) => task.id === "t3" && !task.done
+          ? { ...task, progress: Math.min(task.target, task.progress + 1), done: task.progress + 1 >= task.target }
+          : task);
         if (prev.length >= MAX_COLLECTION) {
           queueMicrotask(() => pushChat(`�a� Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
-          return { ...s, totals: { ...s.totals, captured: s.totals.captured + 1 } };
+          return { ...s, tasks: captureTasks, totals: { ...s.totals, captured: s.totals.captured + 1 } };
         }
         const isOddishEvent = s.currentMap === "arena" || s.currentMap === "arena" || s.currentMap === "arena";
         const isGrassOddish = s.currentMap === "arena";
@@ -12272,6 +12275,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         }
         return {
           ...s,
+          tasks: captureTasks,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
           grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddish ? 1 : 0),
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
