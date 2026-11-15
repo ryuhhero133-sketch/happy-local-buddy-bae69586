@@ -41,6 +41,8 @@ import navInicio from "@/assets/icons/nav-inicio.png";
 import navPokemon from "@/assets/icons/nav-pokemon.png";
 import navMochila from "@/assets/icons/nav-mochila.png";
 import { InventoryPanel } from "@/components/inventory/InventoryPanel";
+import trainerLevelUpAnimation from "@/lands/UPEI.gif";
+import mapLoadingImage from "@/game/maps/01.png";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { collectionProgress, pokemonName, pokemonNumber, type PokemonRecord } from "@/components/collection/collectionModel";
 import { inventoryCategory, inventoryRarity, type InventoryItem } from "@/components/inventory/inventoryModel";
@@ -331,7 +333,7 @@ import suicuneAsset from "@/assets/legends/suicune.gif.asset.json";
 import suicuneShinyAsset from "@/assets/legends/suicune-shiny.gif.asset.json";
 import luxrayFAsset from "@/assets/legends/luxray-f.gif.asset.json";
 import blackMiticPlusEggIcon from "@/assets/black-mitic-plus-egg-icon.png.asset.json";
-const levelUpGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6OXFwNnpqYTN6eGphYTN6eGphYTN6eGphYTN6eGphYTN6eGphJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKMGpxP5O01F3xe/giphy.gif";
+const levelUpGif = trainerLevelUpAnimation;
 
 
 
@@ -6772,6 +6774,7 @@ const confirmName = () => {
   const [bmpSwapTarget, setBmpSwapTarget] = useState<Species | null>(null);
   const [bmpSwapMsg, setBmpSwapMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [cashShopOpen, setCashShopOpen] = useState(false);
+  const [temporarilyClosed, setTemporarilyClosed] = useState<"Ranking" | "Loja Cash" | null>(null);
 
   // ESC global: fecha modais / painéis abertos, ou volta pra tela de batalha.
   useEffect(() => {
@@ -6781,6 +6784,7 @@ const confirmName = () => {
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       // Prioridade: modais → painéis → tabs secundárias.
+      if (temporarilyClosed) { setTemporarilyClosed(null); return; }
       if (statsCardPet) { setStatsCardPet(null); return; }
       if (pokemarktShopOpen) { setPokemarktShopOpen(false); return; }
       if (cashShopOpen) { setCashShopOpen(false); return; }
@@ -6796,7 +6800,7 @@ const confirmName = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [statsCardPet, pokemarktShopOpen, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
+  }, [temporarilyClosed, statsCardPet, pokemarktShopOpen, cashShopOpen, blackEggHudOpen, governanteOpen, bmpSwapOpen, showAutoSettings, oddishNoStone, oddishConfirm, oddishRankOpen, grassOddishSplash, tab]);
 
 
 
@@ -8235,7 +8239,7 @@ const confirmName = () => {
 
   // PK: sem alvo manual, marca automaticamente o líder PvP mais perto.
   useEffect(() => {
-    if (idle.pvpMode !== "pk" || pvpTargetUserId || !identity?.id) return;
+    if ((idle.trainerLevel ?? 1) <= 10 || idle.pvpMode !== "pk" || pvpTargetUserId || !identity?.id) return;
     const me = trainerPosRef.current;
     const nearest = pvpPresence
       .filter((p) => p.user_id !== identity.id && p.hp > 0)
@@ -8243,7 +8247,7 @@ const confirmName = () => {
       .filter((x) => x.d <= 600)
       .sort((a, b) => a.d - b.d)[0]?.p;
     if (nearest) setPvpTargetUserId(nearest.user_id);
-  }, [idle.pvpMode, pvpPresence, pvpTargetUserId, identity?.id]);
+  }, [idle.pvpMode, idle.trainerLevel, pvpPresence, pvpTargetUserId, identity?.id]);
 
   // Presença de combate é separada da presença visual: HP nunca vem do cliente.
   useEffect(() => {
@@ -8308,7 +8312,7 @@ const confirmName = () => {
     if (!pvpTargetUserId || !identity?.id) return;
     let cancelled = false;
     const attack = async () => {
-      if (!autoRef.current || !(autoBattleRef.current?.enabled ?? true)) return;
+      if ((idleRef.current.trainerLevel ?? 1) <= 10 || !autoRef.current || !(autoBattleRef.current?.enabled ?? true)) return;
       const { data } = await (gameDb as any).rpc("pvp_attack", { p_target_user_id: pvpTargetUserId });
       const result = Array.isArray(data) ? data[0] : data;
       if (cancelled || !result) return;
@@ -8400,9 +8404,9 @@ const confirmName = () => {
     try { keysRef.current.clear(); } catch { /* ignore */ }
     // FASE 3: contadores 0/10 zeram na troca de mapa.
     try { throwsPerEnemyRef.current.clear(); setThrowsPerEnemy({}); } catch { /* ignore */ }
-    // LOADING 7s com imagem aleatória da pasta load (Esfera Ancestral usa a própria).
+    // A mesma arte de loading em todas as trocas de mapa.
     if (mapLoadTimerRef.current) clearTimeout(mapLoadTimerRef.current);
-    const img = cur === "esfera_ancestral" ? aspecLoadImg : LOAD_IMGS[Math.floor(Math.random() * LOAD_IMGS.length)];
+    const img = mapLoadingImage;
     // Esfera Ancestral começa com 100% de zoom.
     if (cur === "esfera_ancestral") { try { setZoom(1); } catch { /* ignore */ } }
     mapLoadingRef.current = true;
@@ -8482,7 +8486,7 @@ const confirmName = () => {
 
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setMapTeleportOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); setRankOpen(true); return; }
+      if (k === "r") { e.preventDefault(); setTemporarilyClosed("Ranking"); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
@@ -15351,6 +15355,17 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      {temporarilyClosed && <div role="dialog" aria-modal="true" aria-labelledby="temporarily-closed-title" onClick={() => setTemporarilyClosed(null)} style={{ position: "fixed", inset: 0, zIndex: 30000, display: "grid", placeItems: "center", padding: 20, background: "rgba(0,0,0,.8)" }}>
+        <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 100%)", padding: 24, border: "2px solid #f5cf6b", borderRadius: 16, background: "linear-gradient(160deg,#172638,#111324)", boxShadow: "0 0 35px rgba(245,207,107,.3)", textAlign: "center" }}>
+          <h2 id="temporarily-closed-title" style={{ color: "#ffe18b", fontSize: 20, fontWeight: 900 }}>{temporarilyClosed} indisponível</h2>
+          <p style={{ color: "#fff", margin: "14px 0 20px", lineHeight: 1.5 }}>🔒 Em breve! A previsão de abertura é em 24 horas.</p>
+          <button type="button" onClick={() => setTemporarilyClosed(null)} style={{ minHeight: 44, padding: "0 28px", borderRadius: 8, background: "#f5cf6b", color: "#17202a", fontWeight: 900 }}>ENTENDI</button>
+        </div>
+      </div>}
+      {teleportTransition && !mapLoading && <div role="status" aria-label="Carregando mapa" style={{ position: "fixed", inset: 0, zIndex: 20000, background: "#050b14", display: "grid", placeItems: "center", pointerEvents: "auto" }}>
+        <img src={mapLoadingImage} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", position: "absolute", inset: 0 }} />
+        <span style={{ position: "absolute", bottom: "5%", color: "#fff", fontWeight: 900, letterSpacing: 3, textShadow: "0 2px 8px #000" }}>CARREGANDO...</span>
+      </div>}
       {/* 🌿 MODAL — Confirmar entrada no Evento Grass Oddish */}
       {oddishConfirm && (
         <div
@@ -15942,6 +15957,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         }}
         onPvpMode={() => {
           const current = idle.pvpMode ?? "peace";
+          if ((idle.trainerLevel ?? 1) <= 10 && current === "peace") {
+            pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
+            return;
+          }
           const next = current === "peace" ? "offensive" : current === "offensive" ? "pk" : "peace";
           setIdle((s) => ({ ...s, pvpMode: next }));
           if (next === "peace") setPvpTargetUserId(null);
@@ -15972,7 +15991,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onBigMap={() => { playClick(); setBigMapOpen(true); }}
         onSettings={() => { playClick(); setTab("config"); }}
         onCombatSettings={() => { playClick(); setShowAutoSettings((open) => !open); }}
-        onRank={() => { playClick(); setRankOpen(true); }}
+        onRank={() => { playClick(); setTemporarilyClosed("Ranking"); }}
         onQuests={() => { playClick(); setTab("tarefas"); }}
         onClaimQuest={claimQuest}
         onAuto={() => {
@@ -15986,7 +16005,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onCapture={() => { playClick(); setIdle((state) => ({ ...state, autoBattle: { ...(state.autoBattle ?? { enabled: true, preferredBall: "auto", captureHpPct: 1 }), useBall: !(state.autoBattle?.useBall ?? true) } })); }}
         targetsOpen={hudTargetsOpen} onTargets={() => setHudTargetsOpen((open) => !open)}
         onForge={() => { playClick(); setForgeWindowOpen(true); setForgeMinimized(false); setForgeShowOrbit(false); }}
-        onSave={() => { void tryManualCloudSave(); }} onShop={() => setCashShopOpen(true)} onGuild={() => setTab("guilda")}
+        onSave={() => { void tryManualCloudSave(); }} onShop={() => setTemporarilyClosed("Loja Cash")} onGuild={() => setTab("guilda")}
         onCode={() => { setCodeOpen(true); setCodeMsg(null); }}
         onZoom={(direction) => {
           const levels = [0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5];
@@ -18105,7 +18124,7 @@ A sucata afundou com o casco.
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); setRankOpen(true); }}
+              onClick={() => { playClick(); setTemporarilyClosed("Ranking"); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -20451,6 +20470,10 @@ A sucata afundou com o casco.
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
+                if ((idle.trainerLevel ?? 1) <= 10) {
+                  pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
+                  return;
+                }
                 if ((idle.pvpMode ?? "peace") === "peace") {
                   pushChat("🕊️ Você está em modo Paz. Mude para Ofensivo ou PK para atacar jogadores.", "info");
                   return;
@@ -22735,7 +22758,7 @@ A sucata afundou com o casco.
                   </div>
                 </div>
                 <button
-                  onClick={() => setCashShopOpen(true)}
+                  onClick={() => setTemporarilyClosed("Loja Cash")}
                   className="lojinha-btn-glow"
                   style={{
                     marginTop: 4, width: "100%",
@@ -23231,6 +23254,7 @@ onClick={(e) => {
             </button>
             <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
               <div style={{ fontSize: 26, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 10px rgba(245,207,107,0.5)" }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
+              <p style={{ color: "#e1f9dd", fontSize: 13, marginTop: 8 }}>🌍 A jornada do treinador e a liberação do mundo aberto começam a partir do nível 30.</p>
             </div>
 
             <div style={{ 

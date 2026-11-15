@@ -168,7 +168,8 @@ export function PokemarktNpcShop({
   const moneyOk = balance >= total;
   const left = stockOf(selected.id);
   const soldOut = left <= 0;
-  const canBuy = moneyOk && !soldOut;
+  const enoughStock = quantity <= left;
+  const canBuy = moneyOk && !soldOut && enoughStock;
   const resetIn = Math.max(0, (Date.now() >= stock.resetAt ? STOCK_WINDOW_MS : stock.resetAt - Date.now()));
   const coin = selected.currency === "gold" ? "🪙" : "💎";
   const coinName = selected.currency === "gold" ? "ouro" : "cristais";
@@ -183,10 +184,10 @@ export function PokemarktNpcShop({
     <div className="fixed inset-0 z-[10020] grid place-items-center bg-black/80 p-2 sm:p-4" onClick={onClose}>
       <section
         aria-label="Loja do Pokémarkt"
-        className="relative w-full max-w-[980px] overflow-hidden rounded-md border-2 border-sky-200 bg-slate-950 shadow-2xl animate-scale-in"
+        className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-[980px] flex-col overflow-y-auto overscroll-contain rounded-md border-2 border-sky-200 bg-slate-950 shadow-2xl animate-scale-in"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative">
+        <div className="relative shrink-0">
           <img src={lojinhaImg} alt="Vitrine do Pokémarkt" className="block h-auto w-full select-none" draggable={false} />
 
           <div className="absolute left-[21%] right-[20%] top-[18%] flex h-[9%] items-center justify-center overflow-hidden px-2 text-center font-mono text-[clamp(10px,1.7vw,18px)] font-black text-white [text-shadow:2px_2px_0_#064e3b]">
@@ -295,7 +296,7 @@ export function PokemarktNpcShop({
             onClick={doBuy}
             className="h-12 bg-emerald-500 px-5 font-mono text-sm font-black text-slate-950 hover:bg-emerald-400"
           >
-            {soldOut ? "ESGOTADO" : canBuy ? `COMPRAR ×${quantity} · ${(total).toLocaleString("pt-BR")} ${coin}` : `FALTAM ${coinName.toUpperCase()}`}
+            {soldOut ? "ESGOTADO" : !enoughStock ? "ESTOQUE INSUFICIENTE" : canBuy ? `COMPRAR ×${quantity} · ${(total).toLocaleString("pt-BR")} ${coin}` : `FALTAM ${coinName.toUpperCase()}`}
           </Button>
         </div>
       </section>
