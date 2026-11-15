@@ -3190,7 +3190,7 @@ function IdlePage() {
     void hatchPreregEgg();
   }, [cloudBlobReady, preregReward?.pokemon_id, preregReward?.hatched_at, preregNow]);
   useEffect(() => {
-    if (!cloudBlobReady) return;
+    if (!cloudBlobReady || levelResetBusyRef.current) return;
     const blob = buildFullBlob();
     scheduleCloudSync(blob);
     // Cofre de emergência (IndexedDB): cópia local em segundo plano,
@@ -7026,6 +7026,8 @@ const confirmName = () => {
   const MYTHIC_EGG2_CODE_KEY = "rubym.mythicEgg2Code.used";
   const CHARIZARD_EGG_CODE_KEY = "rubym.charizardEggCode.used";
   const ULTRA200_CODE_KEY = "rubym.ultra200CodeUsed";
+  const LEVEL_RESET_CODE = "RESETLV10TREINADOR";
+  const levelResetBusyRef = useRef(false);
   const normalizeCode = (value: string) => value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -7062,6 +7064,67 @@ const confirmName = () => {
       }
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
+
+    // Recomeço voluntário: altera apenas XP/níveis, sem recriar Pokémon ou apagar progressos.
+    if (raw === LEVEL_RESET_CODE) {
+      if (levelResetBusyRef.current) return;
+      if (!cloudBlobReady || serverSync.status !== "ready" || !identity?.id || identity.id.startsWith("guest-")) {
+        setCodeMsg({ kind: "err", text: "Entre na sua conta e aguarde os saves carregarem." });
+        return;
+      }
+      if (!window.confirm("Confirmar recomeço? O treinador voltará ao nível 1 (0 XP) e TODOS os Pokémon da coleção, time e banco ficarão no nível 10 (0 XP). Pokémon, itens e demais progressos serão mantidos. Esta alteração não pode ser desfeita.")) return;
+      levelResetBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Salvando o recomeço na nuvem…" });
+      void (async () => {
+        try {
+          if (idleRef.current.redeemedCodes?.[raw]) throw new Error("Código já utilizado nesta conta.");
+          if (!(await pushCloudSaveNow(buildFullBlob()))) {
+            throw new Error("Falha ao salvar seu progresso atual. Nenhum nível foi alterado.");
+          }
+          const { data, error } = await (supabase as any).rpc("claim_level_reset_reward", { p_code: raw });
+          if (error) throw error;
+          // Adota a versão nova do checkpoint antes de disparar o autosave local.
+          const adopted = await fetchCloudSave(identity.id) as
+            | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
+            | null;
+          const snapshot = adopted ?? data as { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] };
+          if (!snapshot?.idle || !Array.isArray(snapshot.team) || !Array.isArray(snapshot.restingBench)) {
+            throw new Error("Recomeço salvo no servidor. Recarregue o jogo para atualizar a tela.");
+          }
+          const resetPet = (pet: PetInstance): PetInstance => {
+            const leveled = { ...pet, level: 10, xp: 0 };
+            const maxHp = calcIdleMaxHp(leveled);
+            return { ...leveled, maxHp, hp: Math.min(pet.hp, maxHp) };
+          };
+          const nextTeam = snapshot.team.map(resetPet);
+          const nextBench = snapshot.restingBench.map(resetPet);
+          const next: IdleState = snapshot.idle;
+          maxLevelRef.current = Object.fromEntries(
+            [...(next.collection ?? []), ...nextTeam, ...nextBench].map((pet) => [pet.uid, 10]),
+          );
+          prevLevelRef.current = nextTeam[0]?.level ?? 0;
+          idleRef.current = next;
+          teamRef.current = nextTeam;
+          setIdle(next);
+          setTeam(nextTeam);
+          setRestingBench(nextBench);
+          if (nextTeam[0]) setLeaderHp((hp) => Math.min(hp, nextTeam[0].maxHp));
+          saveIdleStamped(next);
+          const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+          saveNow({ ...save, party: [...nextTeam, ...nextBench], activeTeam: nextTeam, restingBench: nextBench });
+          try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+          setCodeMsg({ kind: "ok", text: "Treinador nível 1; coleção, time e banco nível 10. Seus Pokémon e demais progressos foram mantidos." });
+          setCodeInput("");
+          pushChat("🔄 Recomeço concluído: treinador nível 1 e todos os Pokémon nível 10.", "cap");
+          void serverSync.pushNow();
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Não foi possível salvar o recomeço." });
+        } finally {
+          levelResetBusyRef.current = false;
+        }
+      })();
+      return;
+    }
 
     // 🎫 TICKETANC1 — 1× Ticket Ancestral. USO ÚNICO GLOBAL (uma conta só):
     // a trava fica no SERVIDOR (tabela promo_code_uses), então outra conta
