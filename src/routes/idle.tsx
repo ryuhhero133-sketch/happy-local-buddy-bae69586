@@ -3101,10 +3101,18 @@ function IdlePage() {
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
           | null;
         if (cancelled || !blob) return;
-        
+
         cloudBlobHydratedRef.current = true;
-        
+
         if (blob.idle) {
+          // Um resgate autoritativo de recomeço é a exceção ao anti-downgrade:
+          // não restaurar níveis antigos do cache deste aparelho após o login.
+          const applyingLevelReset = !!blob.idle.redeemedCodes?.RESETLV10TREINADOR
+            && !idleRef.current.redeemedCodes?.RESETLV10TREINADOR;
+          if (applyingLevelReset) {
+            maxLevelRef.current = {};
+            prevLevelRef.current = blob.team?.[0]?.level ?? 0;
+          }
           setIdle((prev) => {
             // Nunca diminuir level/XP/espécie vindos do servidor (evita downgrade por snapshot antigo)
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
@@ -3117,7 +3125,7 @@ function IdlePage() {
             merged.unlockedSkins = uskins;
             merged.autoHeal = { ...(merged.autoHeal ?? { threshold: 0.5, enabled: true }), enabled: merged.autoHeal?.enabled ?? true };
             // Preserva level/XP mais alto (servidor pode ter stale)
-            if (typeof prev.trainerLevel === "number" && typeof merged.trainerLevel === "number") {
+            if (!applyingLevelReset && typeof prev.trainerLevel === "number" && typeof merged.trainerLevel === "number") {
               if (merged.trainerLevel < prev.trainerLevel) merged.trainerLevel = prev.trainerLevel;
               if (merged.trainerLevel === prev.trainerLevel && (merged.trainerXp ?? 0) < (prev.trainerXp ?? 0)) merged.trainerXp = prev.trainerXp;
             }
@@ -7057,7 +7065,7 @@ const confirmName = () => {
     const codeKey = scopedCodeKey(raw);
     const alreadyUsed = Boolean(idleRef.current.redeemedCodes?.[raw]);
     try {
-      if (!alreadyUsed && localStorage.getItem(codeKey) === "1") {
+      if (raw !== LEVEL_RESET_CODE && !alreadyUsed && localStorage.getItem(codeKey) === "1") {
         setIdle((s) => ({ ...s, redeemedCodes: { ...(s.redeemedCodes ?? {}), [raw]: true } }));
         setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." });
         return;
@@ -7068,8 +7076,8 @@ const confirmName = () => {
     // Recomeço voluntário: altera apenas XP/níveis, sem recriar Pokémon ou apagar progressos.
     if (raw === LEVEL_RESET_CODE) {
       if (levelResetBusyRef.current) return;
-      if (!cloudBlobReady || serverSync.status !== "ready" || !identity?.id || identity.id.startsWith("guest-")) {
-        setCodeMsg({ kind: "err", text: "Entre na sua conta e aguarde os saves carregarem." });
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save principal da nuvem carregar e tente novamente." });
         return;
       }
       if (!window.confirm("Confirmar recomeço? O treinador voltará ao nível 1 (0 XP) e TODOS os Pokémon da coleção, time e banco ficarão no nível 10 (0 XP). Pokémon, itens e demais progressos serão mantidos. Esta alteração não pode ser desfeita.")) return;
@@ -7077,6 +7085,9 @@ const confirmName = () => {
       setCodeMsg({ kind: "ok", text: "Salvando o recomeço na nuvem…" });
       void (async () => {
         try {
+          const { data: authData, error: authError } = await supabase.auth.getSession();
+          const userId = authData.session?.user?.id;
+          if (authError || !userId) throw new Error("Entre na sua conta para usar este código.");
           if (idleRef.current.redeemedCodes?.[raw]) throw new Error("Código já utilizado nesta conta.");
           if (!(await pushCloudSaveNow(buildFullBlob()))) {
             throw new Error("Falha ao salvar seu progresso atual. Nenhum nível foi alterado.");
@@ -7084,7 +7095,7 @@ const confirmName = () => {
           const { data, error } = await (supabase as any).rpc("claim_level_reset_reward", { p_code: raw });
           if (error) throw error;
           // Adota a versão nova do checkpoint antes de disparar o autosave local.
-          const adopted = await fetchCloudSave(identity.id) as
+          const adopted = await fetchCloudSave(userId) as
             | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
             | null;
           const snapshot = adopted ?? data as { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] };
@@ -7112,7 +7123,7 @@ const confirmName = () => {
           saveIdleStamped(next);
           const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
           saveNow({ ...save, party: [...nextTeam, ...nextBench], activeTeam: nextTeam, restingBench: nextBench });
-          try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+          try { localStorage.setItem(`rubym.code.${userId}.${raw}.used`, "1"); } catch { /* ignore */ }
           setCodeMsg({ kind: "ok", text: "Treinador nível 1; coleção, time e banco nível 10. Seus Pokémon e demais progressos foram mantidos." });
           setCodeInput("");
           pushChat("🔄 Recomeço concluído: treinador nível 1 e todos os Pokémon nível 10.", "cap");
