@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode, type FormEvent }
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
 import { restoreLocalSave } from "@/lib/localSave";
+import { hasStarterProgress } from "@/game/starterGuard";
 import { claimSnapshotOwner, clearSnapshotOwner } from "@/lib/saveManager";
 import { computeIsExisting, saveShowsProgress } from "@/lib/accountExists";
 import { recoverVaultIdentity, readVault } from "@/lib/emergencyVault";
@@ -227,8 +228,7 @@ async function preloadCloudSave(userId: string) {
           restoreLocalSave({ party: [...party, ...restingBench], activeTeam: party, restingBench });
           // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
           // não pode reabrir o modal de starter em outro navegador/F5.
-          const collection = (cloudIdle as { collection?: unknown[] } | undefined)?.collection;
-          if (party.length || (Array.isArray(cloud.restingBench) && cloud.restingBench.length) || (Array.isArray(collection) && collection.length)) {
+          if (hasStarterProgress(cloud)) {
             try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
           }
         }
@@ -274,8 +274,7 @@ async function restoreVaultIntoStorageIfEmpty(uid: string): Promise<void> {
       const restingBench = Array.isArray(blob.restingBench) ? blob.restingBench : [];
       restoreLocalSave({ party: [...party, ...restingBench], activeTeam: party, restingBench });
       try {
-        const collection = (blob.idle as { collection?: unknown[] } | undefined)?.collection;
-        if (party.length || (Array.isArray(blob.restingBench) && blob.restingBench.length) || (Array.isArray(collection) && collection.length)) {
+        if (hasStarterProgress(blob)) {
           localStorage.setItem("rubym.starter.chosen", "1");
         }
         localStorage.setItem("rubym.setup.done", "1");
@@ -1605,10 +1604,9 @@ function CreateCharacterScreen({
         throw new Error("Não foi possível verificar seu Pokémon salvo. Confira sua conexão e tente novamente.");
       }
       const snap = saveRes?.data?.data as { team?: unknown[]; restingBench?: unknown[]; party?: unknown[]; idle?: { collection?: unknown[] } } | null;
-      const snapTeam = Array.isArray(snap?.team) ? snap.team : [];
       const hasCollection = Array.isArray(pokeRes?.data) && pokeRes.data.length > 0;
       // Nunca presumir que um Charmander existente é falso: pode ser do jogador.
-      const teamReal = snapTeam.length > 0 || (snap?.restingBench?.length ?? 0) > 0 || (snap?.party?.length ?? 0) > 0 || (snap?.idle?.collection?.length ?? 0) > 0;
+      const teamReal = hasStarterProgress(snap);
       const serverHasTeam = hasCollection || teamReal;
       // Servidor PRIMEIRO: sem isso, nada está criado.
       // Tenta completo (com skin); se o banco rejeitar a coluna, cai no

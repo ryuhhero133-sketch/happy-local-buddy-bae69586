@@ -122,15 +122,18 @@ export function EmeraldEggSprite(props: {
   trainerY: number;
   visible: boolean;
   onClick: () => void;
+  offsetX?: number;
+  title?: string;
 }) {
   const { trainerX, trainerY, visible, onClick } = props;
-  const [pos, setPos] = useState({ x: trainerX + 44, y: trainerY + 6 });
+  const offsetX = props.offsetX ?? 44;
+  const [pos, setPos] = useState({ x: trainerX + offsetX, y: trainerY + 6 });
   const posRef = useRef(pos);
-  const targetRef = useRef({ x: trainerX + 44, y: trainerY + 6 });
+  const targetRef = useRef({ x: trainerX + offsetX, y: trainerY + 6 });
   const rafRef = useRef<number | null>(null);
   const [tick, setTick] = useState(0);
 
-  useEffect(() => { targetRef.current = { x: trainerX + 44, y: trainerY + 6 }; }, [trainerX, trainerY]);
+  useEffect(() => { targetRef.current = { x: trainerX + offsetX, y: trainerY + 6 }; }, [trainerX, trainerY, offsetX]);
 
   useEffect(() => {
     if (!visible) return;
@@ -165,7 +168,7 @@ export function EmeraldEggSprite(props: {
         zIndex: Math.round(trainerY) + 1,
         cursor: "pointer", pointerEvents: "auto",
       }}
-      title="EGG Emerald — clique para abrir"
+      title={props.title ?? "EGG Emerald — clique para abrir"}
     >
       <div style={{
         position: "absolute", inset: -16, borderRadius: "50%",

@@ -127,6 +127,9 @@ import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs } from "@/components/BlackMiticEggPet";
+import { TrainerGuide } from "@/components/TrainerGuide";
+import { PreregEggHud } from "@/components/PreregEggHud";
+import { hasStarterProgress } from "@/game/starterGuard";
 import { EmeraldEggSprite, EmeraldEggHud, EMERALD_EGG_ITEM_ID } from "@/components/EmeraldEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
@@ -2132,6 +2135,7 @@ type IdleState = {
   autoHeal: { enabled: boolean; threshold: number };
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball" | "safariball"; captureHpPct: number };
   trainerLevel?: number;
+  preregRewardDeliveredId?: string;
   trainerXp?: number;
   unlockedSkins?: string[];
   redeemedCodes?: Record<string, boolean>;
@@ -2669,6 +2673,14 @@ export const Route = createFileRoute("/idle")({
 // ============ Page ============
 function IdlePage() {
   const identity = loadIdentity();
+  type PreregReward = { user_id: string; hatch_at: string; species: string; pokemon_id: string; hatched_at: string | null };
+  const [preregReward, setPreregReward] = useState<PreregReward | null>(null);
+  const [preregChecked, setPreregChecked] = useState(false);
+  const [preregCode, setPreregCode] = useState("");
+  const [preregBusy, setPreregBusy] = useState(false);
+  const [preregError, setPreregError] = useState("");
+  const [preregNow, setPreregNow] = useState(Date.now());
+  const [preregHudOpen, setPreregHudOpen] = useState(false);
   const navigate = useNavigate();
   const [team, setTeam] = useState<PetInstance[]>(() => loadTeam());
   const [mapId, setMapId] = useState<IdleMapId>(() => {
@@ -3015,6 +3027,41 @@ function IdlePage() {
   const cloudBlobHydratedRef = useRef(false);
   const [cloudBlobReady, setCloudBlobReady] = useState(false);
   useEffect(() => {
+    if (!cloudBlobReady || !identity?.id) return;
+    let cancelled = false;
+    void (supabase as any).from("prereg_egg_rewards").select("user_id,hatch_at,species,pokemon_id,hatched_at").eq("user_id", identity.id).maybeSingle()
+      .then(({ data, error }: { data: PreregReward | null; error: { message: string } | null }) => {
+        if (!cancelled && !error) { setPreregReward(data); setPreregChecked(true); }
+      });
+    return () => { cancelled = true; };
+  }, [cloudBlobReady, identity?.id]);
+  useEffect(() => {
+    if (!preregReward || preregReward.hatched_at) return;
+    const timer = window.setInterval(() => setPreregNow(Date.now()), 15_000);
+    return () => window.clearInterval(timer);
+  }, [preregReward?.hatch_at, preregReward?.hatched_at]);
+  // A linha do servidor é a fonte da recompensa. Reconciliar pelo UUID fixo
+  // recupera eclosões mesmo se a aba fechar antes de salvar a coleção.
+  useEffect(() => {
+    if (!cloudBlobReady || !preregReward?.hatched_at || !SPECIES_BASE[preregReward.species as Species]) return;
+    const reward = preregReward;
+    setIdle((current) => {
+      if (current.preregRewardDeliveredId === reward.pokemon_id) return current;
+      if ((current.collection ?? []).some((entry) => entry.uid === reward.pokemon_id)
+        || teamRef.current.some((pet) => pet.uid === reward.pokemon_id)
+        || restingBench.some((pet) => pet.uid === reward.pokemon_id)) return { ...current, preregRewardDeliveredId: reward.pokemon_id };
+      if ((current.collection ?? []).length >= MAX_COLLECTION) return current;
+      const pet = { ...makePet(reward.species as Species, 1, "epic"), uid: reward.pokemon_id };
+      return {
+        ...current,
+        preregRewardDeliveredId: reward.pokemon_id,
+        collection: [...(current.collection ?? []), { uid: pet.uid, species: pet.species, level: pet.level, xp: pet.xp, rarity: pet.rarity, capturedAt: Date.parse(reward.hatched_at!), event: "prereg" }],
+        caughtSpecies: current.caughtSpecies.includes(pet.species) ? current.caughtSpecies : [...current.caughtSpecies, pet.species],
+        seenSpecies: current.seenSpecies.includes(pet.species) ? current.seenSpecies : [...current.seenSpecies, pet.species],
+      };
+    });
+  }, [cloudBlobReady, preregReward?.hatched_at, preregReward?.pokemon_id, idle.collection?.length, restingBench]);
+  useEffect(() => {
     if (cloudBlobHydratedRef.current) return;
     let cancelled = false;
     (async () => {
@@ -3092,6 +3139,45 @@ function IdlePage() {
     restingBench,
     savedAt: Date.now(),
   }), [restingBench]);
+  const claimPreregEgg = async () => {
+    if (preregBusy || preregReward || !cloudBlobReady) return;
+    setPreregBusy(true);
+    setPreregError("");
+    try {
+      // Nível é conferido novamente pelo banco, nunca pelo input do navegador.
+      if (!(await pushCloudSaveNow(buildFullBlob()))) throw new Error("Salve seu progresso na nuvem e tente novamente.");
+      const { data, error } = await (supabase as any).rpc("claim_prereg_egg", { p_code: preregCode });
+      if (error) throw error;
+      setPreregReward(data as PreregReward);
+      setPreregCode("");
+      pushChat("🥚 Ovo épico resgatado! Ele acompanha você e choca em 30 minutos.", "cap");
+    } catch (error) {
+      setPreregError(error instanceof Error ? error.message : "Não foi possível resgatar o ovo.");
+    } finally { setPreregBusy(false); }
+  };
+  const hatchPreregEgg = async () => {
+    if (preregBusy || !preregReward || preregReward.hatched_at) return;
+    setPreregBusy(true);
+    setPreregError("");
+    try {
+      const { data, error } = await (supabase as any).rpc("hatch_prereg_egg");
+      if (error) throw error;
+      setPreregReward(data as PreregReward);
+      pushChat((idleRef.current.collection ?? []).length >= MAX_COLLECTION
+        ? "✨ O ovo chocou! Libere espaço na Coleção para receber o Pokémon épico."
+        : `✨ O ovo chocou! ${String(data.species).toUpperCase()} épico foi para a Coleção.`, "cap");
+    } catch (error) {
+      setPreregError(error instanceof Error ? error.message : "Não foi possível chocar o ovo.");
+    } finally { setPreregBusy(false); }
+  };
+  const preregAutoHatchAttemptRef = useRef("");
+  useEffect(() => {
+    if (!cloudBlobReady || !preregReward || preregReward.hatched_at
+      || Date.parse(preregReward.hatch_at) > preregNow
+      || preregAutoHatchAttemptRef.current === preregReward.pokemon_id) return;
+    preregAutoHatchAttemptRef.current = preregReward.pokemon_id;
+    void hatchPreregEgg();
+  }, [cloudBlobReady, preregReward?.pokemon_id, preregReward?.hatched_at, preregNow]);
   useEffect(() => {
     if (!cloudBlobReady) return;
     const blob = buildFullBlob();
@@ -3242,19 +3328,15 @@ const confirmName = () => {
     if (typeof window === "undefined") return true;
     try {
       if (localStorage.getItem("rubym.starter.chosen")) return true;
-      // Fallback: se já existe party salvo (cloud ou local), considera escolhido
-      // e persiste a flag para não reabrir o modal no próximo login/F5.
-      const raw = localStorage.getItem("rubym.save.v2");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.party) && parsed.party.length > 0) {
-          try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
-          return true;
-        }
+      const save = loadLatestValid<SaveShape>();
+      if (hasStarterProgress({ ...(save ?? {}), idle: loadIdle() })) {
+        localStorage.setItem("rubym.starter.chosen", "1");
+        return true;
       }
       return false;
     } catch { return true; }
   });
+  const [starterGuardError, setStarterGuardError] = useState("");
   const starterChosenRef = useRef(starterChosen);
   useEffect(() => { starterChosenRef.current = starterChosen; }, [starterChosen]);
   // Se já existe time/coleção no servidor, nunca mostrar escolha de inicial novamente (mesmo sem flag local)
@@ -3266,9 +3348,12 @@ const confirmName = () => {
         const { data } = await supabase.auth.getSession();
         const uid = data.session?.user?.id;
         if (!uid) return;
-        const { data: poke } = await (supabase as any).from("pokemon_collection").select("id").eq("user_id", uid).limit(1);
+        const [pokeResult, saveResult] = await Promise.all([
+          (supabase as any).from("pokemon_collection").select("id").eq("user_id", uid).limit(1),
+          (supabase as any).from("game_saves").select("data").eq("user_id", uid).maybeSingle(),
+        ]);
         if (cancelled) return;
-        if (poke && poke.length > 0) {
+        if ((pokeResult.data?.length ?? 0) > 0 || hasStarterProgress(saveResult.data?.data)) {
           try { localStorage.setItem("rubym.starter.chosen", "1"); } catch {}
           setStarterChosen(true);
         }
@@ -5380,6 +5465,13 @@ const confirmName = () => {
     if (manualTargetRef.current == null && target != null) setAttackTargetId(null);
     if (pvpTargetUserIdRef.current != null) setPvpTargetUserId(null);
   };
+  useEffect(() => {
+    if (!cloudBlobReady || !preregChecked || !identity?.id || (idle.trainerLevel ?? 1) < 10 || preregReward) return;
+    const key = `rubym.prereg.notice.${identity.id}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+    pushChat("🥚 Nível 10 alcançado! Abra Eventos para resgatar seu ovo épico de pré-registro.", "info");
+  }, [cloudBlobReady, preregChecked, identity?.id, idle.trainerLevel, preregReward]);
   useEffect(() => {
     const kd = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -8212,6 +8304,8 @@ const confirmName = () => {
     [pvpPresence, identity?.id],
   );
   useEffect(() => {
+    // Ausência temporária no realtime não significa que o servidor reviveu.
+    if (!ownPvpPresence) return;
     const fainted = ownPvpPresence?.hp === 0;
     ownPvpFaintedRef.current = fainted;
     if (fainted) {
@@ -8223,29 +8317,43 @@ const confirmName = () => {
       combatMoveRef.current = null;
       setAuto(false);
       setIdle((s) => ({ ...s, autoBattle: { ...(s.autoBattle ?? { useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: false } }));
-      // Executa somente na transição vivo → morto: tira o líder derrotado do time.
+      // Mantém o MESMO Pokémon no time: a morte bloqueia combate pelo HP
+      // autoritativo do PvP, mas não altera UID, posição ou atributos do time.
       if (!ownPvpWasFaintedRef.current && teamRef.current[0]) {
         const fallen = teamRef.current[0];
         const pos = followerStateRef.current;
         setIdle((s) => ({ ...s, pvpFaintedLeader: { uid: fallen.uid, x: pos.x, y: pos.y, diedAt: Date.now() } }));
-        setTeam((tm) => tm.filter((pet) => pet.uid !== fallen.uid));
       }
-    } else if (ownPvpWasFaintedRef.current) {
+    } else if (ownPvpWasFaintedRef.current || (cloudBlobReady && !!idleRef.current.pvpFaintedLeader)) {
       // O RPC só muda hp de 0 para 100 após os cinco minutos.
+      // Também recupera saves antigos recarregados com líder fora do time.
       const fallenUid = idleRef.current.pvpFaintedLeader?.uid;
-      const entry = fallenUid ? (idleRef.current.collection ?? []).find((p) => p.uid === fallenUid) : null;
-      if (entry) {
-        const revived = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
-        const revivedHp = calcIdleMaxHp(revived);
-        setTeam((tm) => tm.some((pet) => pet.uid === revived.uid) ? tm : [revived, ...tm].slice(0, 6));
+      const existing = fallenUid ? teamRef.current.find((pet) => pet.uid === fallenUid) : teamRef.current[0];
+      if (existing) {
+        const revivedHp = calcIdleMaxHp(existing);
         leaderHpRef.current = revivedHp;
         setLeaderHp(revivedHp);
+      } else if (fallenUid) {
+        // Recupera apenas saves antigos, nos quais a morte removia o líder.
+        // Nunca remove outro Pokémon do time se os seis espaços já estão ocupados.
+        const entry = (idleRef.current.collection ?? []).find((pet) => pet.uid === fallenUid);
+        if (entry && teamRef.current.length < 6 && !benchRef.current.some((pet) => pet.uid === fallenUid)) {
+          const recovered = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
+          setTeam((tm) => tm.some((pet) => pet.uid === fallenUid) || tm.length >= 6 ? tm : [recovered, ...tm]);
+          leaderHpRef.current = calcIdleMaxHp(recovered);
+          setLeaderHp(calcIdleMaxHp(recovered));
+        }
+      }
+      if (leaderHpRef.current <= 0 && teamRef.current[0]) {
+        const hp = calcIdleMaxHp(teamRef.current[0]);
+        leaderHpRef.current = hp;
+        setLeaderHp(hp);
       }
       setIdle((s) => ({ ...s, pvpFaintedLeader: undefined }));
       pushChat("✨ Seu Pokémon líder reviveu após a derrota PvP.", "info");
     }
     ownPvpWasFaintedRef.current = fainted;
-  }, [ownPvpPresence?.hp]);
+  }, [ownPvpPresence?.hp, cloudBlobReady, idle.pvpFaintedLeader?.uid]);
 
   // PK: sem alvo manual, marca automaticamente o líder PvP mais perto.
   useEffect(() => {
@@ -11582,9 +11690,32 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     setIdle((s) => {
       const col = s.collection ?? [];
       const active = [...team, ...restingBench];
-      const byUid = new Map(active.map((p) => [p.uid, p]));
+      const byUid = new Map([...restingBench, ...team].map((p) => [p.uid, p]));
+      // Saves antigos podem conter duas linhas para o mesmo UID após morte/revive.
+      // UID identifica UM indivíduo; preserva o maior progresso e seus atributos.
+      const unique = new Map<string, CollectionEntry>();
       let changed = false;
-      const nextCol = col.map((e) => {
+      for (const entry of col) {
+        const previous = unique.get(entry.uid);
+        if (!previous) { unique.set(entry.uid, entry); continue; }
+        changed = true;
+        const live = byUid.get(entry.uid);
+        const best = live?.species === entry.species ? entry
+          : live?.species === previous.species ? previous
+            : (entry.level ?? 1) > (previous.level ?? 1) ? entry : previous;
+        unique.set(entry.uid, {
+          ...best,
+          level: Math.max(previous.level ?? 1, entry.level ?? 1),
+          xp: Math.max(previous.xp ?? 0, entry.xp ?? 0),
+          rarity: (["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"].indexOf(previous.rarity)
+            >= ["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"].indexOf(entry.rarity))
+            ? previous.rarity : entry.rarity,
+          traits: [...new Set([...(previous.traits ?? []), ...(entry.traits ?? [])])],
+          event: best.event ?? previous.event ?? entry.event,
+          capturedAt: Math.min(previous.capturedAt ?? Date.now(), entry.capturedAt ?? Date.now()),
+        });
+      }
+      const nextCol = [...unique.values()].map((e) => {
         const live = byUid.get(e.uid);
         if (!live) return e;
         const level = Math.max(e.level ?? 1, live.level ?? 1);
@@ -11607,7 +11738,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       if (!changed && missing.length === 0) return s;
       return { ...s, collection: [...nextCol, ...missing] };
     });
-  }, [team, restingBench]);
+  }, [team, restingBench, idle.collection]);
 
   // Atualiza o time ativo assim que muda; saveNow faz flush ao sair da página.
   // Não gravar antes da hidratação para não substituir o time da nuvem por [].
@@ -15073,11 +15204,34 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   // ===== pickStarter (starterChosen state está declarada no topo) =====
 
-  const pickStarter = (sp: "charmander" | "bulbasaur" | "squirtle") => {
-    if (starterChosenRef.current || teamRef.current.length > 0 || (idleRef.current.collection ?? []).length > 0) {
-      pushChat("Você já possui Pokémon. Escolha seu time na Coleção.", "info");
+  const starterPickPendingRef = useRef(false);
+  const pickStarter = async (sp: "charmander" | "bulbasaur" | "squirtle") => {
+    if (starterPickPendingRef.current || starterChosenRef.current) return;
+    setStarterGuardError("");
+    if (hasStarterProgress({ idle: idleRef.current, team: teamRef.current, restingBench: benchRef.current })) {
+      setStarterGuardError("Esta conta já tem progresso. Escolha seu time na Coleção.");
+      setStarterChosen(true);
       return;
     }
+    if (!cloudBlobReady) {
+      setStarterGuardError("Aguarde a restauração do seu save antes de escolher.");
+      return;
+    }
+    starterPickPendingRef.current = true;
+    try {
+      if (identity && !identity.id.startsWith("guest-")) {
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || session.session?.user?.id !== identity.id) throw new Error("Sessão não confirmada. Entre novamente antes de escolher.");
+        const { data, error } = await (supabase as any).from("game_saves").select("data").eq("user_id", identity.id).maybeSingle();
+        if (error) throw new Error("Não foi possível verificar seu save. Tente novamente.");
+        if (hasStarterProgress(data?.data)) {
+          localStorage.setItem("rubym.starter.chosen", "1");
+          setStarterChosen(true);
+          setStarterGuardError("Seu inicial já foi escolhido. Abra a Coleção para organizar o time.");
+          return;
+        }
+      }
+      if (starterChosenRef.current || hasStarterProgress({ idle: idleRef.current, team: teamRef.current, restingBench: benchRef.current })) return;
     const pet = makePet(sp, 5);
     starterChosenRef.current = true;
     setTeam([pet]);
@@ -15089,6 +15243,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     } catch { /* ignore */ }
     setStarterChosen(true);
     pushChat(`Você escolheu ${sp.toUpperCase()} como seu Pokémon inicial!`, "cap");
+    } catch (error) {
+      setStarterGuardError(error instanceof Error ? error.message : "Não foi possível verificar o save.");
+    } finally {
+      starterPickPendingRef.current = false;
+    }
   };
 
   // ===== Reset da conta (Laboratório) =====
@@ -20419,6 +20578,14 @@ A sucata afundou com o casco.
               visible={(idle.items?.[BLACK_EGG_ITEM_ID] ?? 0) > 0 && !isWaterMap(idle.currentMap)}
               onClick={openBlackEggHud}
             />
+            <EmeraldEggSprite
+              trainerX={renderTrainerX}
+              trainerY={renderTrainerY}
+              visible={!!preregReward && !preregReward.hatched_at && !isWaterMap(idle.currentMap)}
+              onClick={() => { setPreregHudOpen(true); setPreregNow(Date.now()); }}
+              title="Ovo épico de pré-registro — clique para abrir"
+              offsetX={88}
+            />
 
             {/* EGG Emerald — pet flutuante (lado direito) */}
             <EmeraldEggSprite
@@ -20594,9 +20761,9 @@ A sucata afundou com o casco.
                 }}>💀</div>;
               }
               const leader = team[0];
-              const leaderSp = leader?.species ?? "charmander";
-              const leaderSrc = GIF[leaderSp];
-              if (!leaderSrc || !leader) return null;
+              if (!leader) return null;
+              const leaderSrc = GIF[leader.species];
+              if (!leaderSrc) return null;
               const leaderMax = calcIdleMaxHp(leader);
               const hpPct = Math.max(0, (leaderHp / leaderMax) * 100);
               const xpNeeded = 100 + leader.level * 20;
@@ -23270,6 +23437,23 @@ onClick={(e) => {
               <div style={{ fontSize: 26, fontWeight: 900, color: "#f5cf6b", letterSpacing: 2, textShadow: "0 0 10px rgba(245,207,107,0.5)" }}>📅 CALENDÁRIO DE RECOMPENSAS</div>
               <p style={{ color: "#e1f9dd", fontSize: 13, marginTop: 8 }}>🌍 A jornada do treinador e a liberação do mundo aberto começam a partir do nível 30.</p>
             </div>
+            <section aria-label="Ovo épico de pré-registro" style={{ position: "relative", zIndex: 2, padding: 10, marginBottom: 10, background: "#171727ed", border: "1px solid #f5cf6b", borderRadius: 10, color: "#fff4d5", textAlign: "center" }}>
+              <strong>🥚 Ovo épico de pré-registro</strong>
+              <div style={{ fontSize: 12, margin: "5px 0" }}>
+                {preregReward?.hatched_at ? idle.preregRewardDeliveredId === preregReward.pokemon_id
+                  ? "Resgatado e chocado — Pokémon entregue na Coleção."
+                  : "Ovo chocado! Libere espaço na Coleção para receber o Pokémon."
+                  : preregReward ? `Incubando: ${Math.max(0, Math.ceil((Date.parse(preregReward.hatch_at) - preregNow) / 60000))} min restantes.`
+                    : (idle.trainerLevel ?? 1) >= 10 ? "Informe seu código para resgatar um ovo por conta." : "Disponível a partir do nível 10."}
+              </div>
+              {!preregReward && preregChecked && (idle.trainerLevel ?? 1) >= 10 && <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>
+                <input aria-label="Código de pré-registro" value={preregCode} onChange={(event) => setPreregCode(event.target.value)} placeholder="Código de pré-registro" maxLength={40} autoComplete="off" style={{ padding: 7, borderRadius: 6, maxWidth: "100%" }} />
+                <button type="button" disabled={preregBusy || !cloudBlobReady} onClick={() => void claimPreregEgg()}>Resgatar ovo</button>
+              </div>}
+              {preregReward && !preregReward.hatched_at && Date.parse(preregReward.hatch_at) <= preregNow && <button type="button" disabled={preregBusy} onClick={() => void hatchPreregEgg()}>Chocar ovo ✨</button>}
+              {preregReward && <button type="button" onClick={() => { setPreregNow(Date.now()); setPreregHudOpen(true); }} style={{ marginLeft: 6 }}>Ver ovo</button>}
+              {preregError && <div role="alert" style={{ fontSize: 12, color: "#ff9b9b" }}>{preregError}</div>}
+            </section>
 
             <div style={{ 
               display: "grid", 
@@ -26181,13 +26365,15 @@ onClick={(e) => {
             <div style={{ color: "#b8a8c8", fontSize: 13, textAlign: "center", marginBottom: 22 }}>
               Você vai começar a jornada com este Pokémon (nível 5).
             </div>
+            {!cloudBlobReady && <p style={{ color: "#f5cf6b", textAlign: "center" }}>Verificando seu save antes de escolher...</p>}
+            {starterGuardError && <p role="alert" style={{ color: "#ff9b9b", textAlign: "center" }}>{starterGuardError}</p>}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
               {([
                 { sp: "charmander" as const, name: "Charmander", img: charmanderGif, color: "#ff6b3d", desc: "Fogo — ataque forte" },
                 { sp: "bulbasaur"  as const, name: "Bulbasaur",  img: bulbasaurGif,  color: "#5ec26a", desc: "Planta — equilibrado" },
                 { sp: "squirtle"   as const, name: "Squirtle",   img: squirtleGif,   color: "#6bd4ff", desc: "Água — defensivo" },
               ]).map((c) => (
-                <button key={c.sp} onClick={() => pickStarter(c.sp)}
+                <button key={c.sp} disabled={!cloudBlobReady} onClick={() => void pickStarter(c.sp)}
                   style={{
                     background: "linear-gradient(160deg, #1a0f26 0%, #251638 100%)",
                     border: `2px solid ${c.color}`, borderRadius: 12, padding: 16,
@@ -26818,6 +27004,8 @@ onClick={(e) => {
       })()}
 
       {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
+      {identity?.id && starterChosen && <TrainerGuide accountId={identity.id} />}
+      <PreregEggHud open={preregHudOpen} onClose={() => setPreregHudOpen(false)} reward={preregReward} now={preregNow} busy={preregBusy} error={preregError} delivered={!!preregReward && idle.preregRewardDeliveredId === preregReward.pokemon_id} onHatch={() => void hatchPreregEgg()} />
 
       {/* ============ LOJINHA CASH ============ */}
       <CashShopModal
