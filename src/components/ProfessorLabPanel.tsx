@@ -1762,6 +1762,18 @@ export function ProfessorLabPanel(props: Props) {
                   não têm nível de treinador; os demais cobram 10 de energia por
                   entrada após o desbloqueio.
                 </div>
+                <div style={{ ...cut(10), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", padding: 12, marginBottom: 12, background: "rgba(25,92,140,0.24)", border: "1px solid #57c9f2" }}>
+                  <div>
+                    <strong style={{ color: "#9be7ff", fontFamily: MONO, fontSize: 12 }}>🌊 AZULANTE · JORNADA DOS NAVEGANTES</strong>
+                    <div style={{ color: "#d0ecf4", fontSize: 10, marginTop: 4 }}>
+                      {ship?.tier ? "Barco pronto · entrada por 10⚡ de energia." : "Compre um barco na aba BARCO para navegar. A entrada custa 10⚡ de energia."}
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => ship?.tier ? props.onTravel("azulante") : setTab("barcos")}
+                    style={{ ...cut(8), padding: "9px 12px", background: "#57c9f2", border: "1px solid #b5efff", color: "#04141a", fontFamily: MONO, fontSize: 10, fontWeight: 900, cursor: "pointer" }}>
+                    {ship?.tier ? "🌊 VIAJAR PARA AZULANTE" : "⛵ VER BARCOS"}
+                  </button>
+                </div>
                 <div
                   style={{
                     display: "grid",
@@ -1771,6 +1783,7 @@ export function ProfessorLabPanel(props: Props) {
                 >
                   {PROF_MAPS.map((c) => {
                     const m = ELEMENT_META[c.element];
+                    const needsBoat = c.continent === "JORNADA DOS NAVEGANTES" && !ship?.tier;
                     const lockedPts = c.reqPts != null && scrapBankPts < c.reqPts;
                     const lockedLv = c.reqLevel != null && (trainerLevel ?? 1) < c.reqLevel;
                     const locked = lockedPts || lockedLv || isMapBlocked(c.id);
@@ -1958,7 +1971,7 @@ export function ProfessorLabPanel(props: Props) {
                               padding: "4px 6px",
                             }}
                           >
-                            {c.free ? "SEM OURO · GRÁTIS · SEM NÍVEL" : MAP_TAGS}
+                             {needsBoat ? "⛵ BARCO NECESSÁRIO · 10⚡" : c.free ? "SEM OURO · GRÁTIS · SEM NÍVEL" : MAP_TAGS}
                           </div>
                           <div
                             style={{
@@ -1971,7 +1984,7 @@ export function ProfessorLabPanel(props: Props) {
                             {c.desc}
                           </div>
                           <button
-                            onClick={() => props.onTravel(c.id)}
+                             onClick={() => needsBoat ? setTab("barcos") : props.onTravel(c.id)}
                             style={{
                               ...cut(8),
                               padding: "9px 10px",
@@ -1986,7 +1999,7 @@ export function ProfessorLabPanel(props: Props) {
                               boxShadow: "0 0 14px rgba(126,242,122,0.5)",
                             }}
                           >
-                            {c.free ? "🚀 VIAJAR · GRÁTIS" : "🚀 VIAJAR · 10⚡"}
+                             {needsBoat ? "⛵ VER BARCOS" : c.free ? "🚀 VIAJAR · GRÁTIS" : "🚀 VIAJAR · 10⚡"}
                           </button>
                             </>
                           )}
@@ -2087,6 +2100,7 @@ export function ProfessorLabPanel(props: Props) {
                       <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
                         <BoatBtn label="⛽ ABASTECER (1 Óleo)" color="#ffb347" onClick={onRefuel} disabled={(oil ?? 0) <= 0 || fuel >= maxFuel} />
                         <BoatBtn label={`🔧 REPARAR (${Math.floor(maxHp * 0.25)} 🪙)`} color="#7cffb2" onClick={onRepair} disabled={hp >= maxHp} />
+                        <BoatBtn label="🌊 VIAJAR PARA AZULANTE · 10⚡" color="#57c9f2" onClick={() => props.onTravel("azulante")} />
                       </div>
                     </div>
                   );
