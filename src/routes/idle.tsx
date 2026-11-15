@@ -524,7 +524,7 @@ import matoFramesUrl from "@/ambiente/xz/mato-frames.png";
 import gramaFramesUrl from "@/ambiente/xz/grama-frames.png";
 import floresFramesUrl from "@/ambiente/xz/flores-frames.png";
 import folhasFramesUrl from "@/ambiente/xz/folhas-frames.png";
-import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT } from "@/game/collision";
+import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT, POKEMARKT_EXIT_APPROACH_Y } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
 import { claimPromoCodeOnce } from "@/lib/promoCodes";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
@@ -5891,7 +5891,7 @@ const confirmName = () => {
     const imageX = trainerPos.x * 1324 / curWorldW;
     const imageY = trainerPos.y * 1188 / curWorldH;
     const onExit = imageX >= POKEMARKT_EXIT.x0 && imageX <= POKEMARKT_EXIT.x1 &&
-      imageY >= POKEMARKT_EXIT.y0 && imageY <= POKEMARKT_EXIT.y1;
+      imageY >= POKEMARKT_EXIT_APPROACH_Y && imageY <= POKEMARKT_EXIT.y1;
     if (!onExit) {
       pokemarktExitTriggeredRef.current = false;
     } else if (!pokemarktExitTriggeredRef.current && !teleportTransition) {
@@ -18748,9 +18748,9 @@ A sucata afundou com o casco.
               <div aria-hidden="true" style={{
                 position: "absolute",
                 left: POKEMARKT_EXIT.x0 * curWorldW / 1324,
-                top: POKEMARKT_EXIT.y0 * curWorldH / 1188,
+                top: POKEMARKT_EXIT_APPROACH_Y * curWorldH / 1188,
                 width: (POKEMARKT_EXIT.x1 - POKEMARKT_EXIT.x0) * curWorldW / 1324,
-                height: (POKEMARKT_EXIT.y1 - POKEMARKT_EXIT.y0) * curWorldH / 1188,
+                height: (POKEMARKT_EXIT.y1 - POKEMARKT_EXIT_APPROACH_Y) * curWorldH / 1188,
                 borderRadius: "50%",
                 background: "radial-gradient(ellipse, #fff5b154 0%, #ffd97724 55%, transparent 78%)",
                 boxShadow: "0 0 15px 6px #ffe19b3d",
@@ -21890,7 +21890,11 @@ A sucata afundou com o casco.
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
                 if (idle.currentMap === "mapinha10" && g.key === "to-revoland") {
-                  goTo("saída do Pokemarkt", g.x, g.y);
+                  goTo("saída do Pokemarkt", g.x, g.y, () => {
+                    pokemarktExitTriggeredRef.current = true;
+                    setPokemarktExitOpen(true);
+                    setAuto(false);
+                  });
                   return; // A luz abre a confirmação; nunca teleporta sem consentimento.
                 }
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
@@ -22029,7 +22033,12 @@ A sucata afundou com o casco.
                     return (
                       <button
                         key={g.key}
-                        onClick={interactive ? () => { setPendingGate({ target: g.target, gate: g, fromBig: big }); } : undefined}
+                        onClick={interactive ? () => {
+                          if (idle.currentMap === "mapinha10" && g.key === "to-revoland") {
+                            travelToGate(g); // Saída física gratuita: sem janela de custo do teleporte.
+                            if (big) setBigMapOpen(false);
+                          } else setPendingGate({ target: g.target, gate: g, fromBig: big });
+                        } : undefined}
                         title={label}
                         className={interactive ? "map-pulse-dot" : undefined}
                         style={{

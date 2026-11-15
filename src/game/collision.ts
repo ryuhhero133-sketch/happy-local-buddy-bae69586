@@ -23,6 +23,7 @@ type Grid = { cols: number; rows: number; walk: Uint8Array; zone: Uint8Array };
 // Coordenadas da porta vermelha no PNG original (1324 × 1188).
 // Apenas esta faixa escura da máscara deve permitir a passagem.
 export const POKEMARKT_EXIT = { x0: 350, x1: 470, y0: 1075, y1: 1125 } as const;
+export const POKEMARKT_EXIT_APPROACH_Y = 1035;
 
 const cache = new Map<CollisionMapId, Grid>();
 const loading = new Map<CollisionMapId, Promise<Grid>>();
