@@ -126,7 +126,7 @@ import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
-import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs } from "@/components/BlackMiticEggPet";
+import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs, rollRewardMythicEggTraits } from "@/components/BlackMiticEggPet";
 import { PreregEggHud } from "@/components/PreregEggHud";
 import { hasStarterProgress } from "@/game/starterGuard";
 import { EmeraldEggSprite, EmeraldEggHud, EMERALD_EGG_ITEM_ID } from "@/components/EmeraldEggPet";
@@ -2317,6 +2317,7 @@ const ITEM_IMG: Record<string, string> = {
   morango: morangoBagImg, banana: bananaBagImg,
   certificado: assetUrlFromJson(certificadoBagAsset),
   egg_sprigatito: cardEggUrl,
+  egg_mew_7: cardEggUrl, egg_lucario_7: cardEggUrl,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -7036,6 +7037,7 @@ const confirmName = () => {
   const ULTRA200_CODE_KEY = "rubym.ultra200CodeUsed";
   const LEVEL_RESET_CODE = "RESETLV10TREINADOR";
   const levelResetBusyRef = useRef(false);
+  const mythicEggCodeBusyRef = useRef(false);
   const normalizeCode = (value: string) => value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -7072,6 +7074,49 @@ const confirmName = () => {
       }
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
+
+    const mythicCodeEgg = ({
+      OVOMITICOMEW7: { item: "egg_mew_7", name: "Mew" },
+      OVOMITICOLUCARIO7: { item: "egg_lucario_7", name: "Lucario" },
+    } as const)[raw as "OVOMITICOMEW7" | "OVOMITICOLUCARIO7"];
+    if (mythicCodeEgg) {
+      if (mythicEggCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      mythicEggCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Salvando seu ovo mítico…" });
+      void (async () => {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getSession();
+          const userId = authData.session?.user?.id;
+          if (authError || !userId) throw new Error("Entre na sua conta para resgatar o ovo.");
+          const base = idleRef.current;
+          if (base.redeemedCodes?.[raw]) throw new Error("Código já utilizado nesta conta.");
+          const next: IdleState = {
+            ...base,
+            items: { ...base.items, [mythicCodeEgg.item]: (base.items[mythicCodeEgg.item] ?? 0) + 1 },
+            redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+          };
+          if (!(await pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() }))) {
+            throw new Error("Não foi possível salvar o ovo na nuvem. Tente novamente.");
+          }
+          idleRef.current = next;
+          saveIdleStamped(next);
+          setIdle(next);
+          try { localStorage.setItem(`rubym.code.${userId}.${raw}.used`, "1"); } catch { /* ignore */ }
+          setCodeMsg({ kind: "ok", text: `🥚 Ovo Mítico de ${mythicCodeEgg.name} entregue! Abra na Mochila para sortear 7 traits.` });
+          setCodeInput("");
+          pushChat(`🥚 Ovo Mítico de ${mythicCodeEgg.name} entregue na Mochila!`, "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o ovo." });
+        } finally {
+          mythicEggCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
 
     // Recomeço voluntário: altera apenas XP/níveis, sem recriar Pokémon ou apagar progressos.
     if (raw === LEVEL_RESET_CODE) {
@@ -12605,7 +12650,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       } else {
         pushChat(`Livro VIP usado (+${Math.round(newMult*100)}% ouro e EXP por ${cfg.label}).`, "cap");
       }
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_lugia" || id === "egg_dragonite") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_lugia" || id === "egg_dragonite" || id === "egg_mew_7" || id === "egg_lucario_7") {
       openEgg(id as EggId);
     } else if (id === "egg_anc_selado" || id === "egg_anc_plus" || id === "egg_anc_luck") {
       // Ovos Ancestrais NÃO chocam na mochila: selam um pokémon ESCOLHIDO
@@ -12755,7 +12800,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_lugia" | "egg_dragonite";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_lugia" | "egg_dragonite" | "egg_mew_7" | "egg_lucario_7";
   // Ovos ancestrais: NÃO chocam sozinhos (selam o pokémon escolhido na aba ANCESTRAL).
   type AncEggId = "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
@@ -12768,6 +12813,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     egg_charizard_epic: { weights: { epic: 100 } },
     egg_lugia:  { weights: { mythic: 100 } },
     egg_dragonite: { weights: { mythic: 100 } },
+    egg_mew_7: { weights: { mythic: 100 } },
+    egg_lucario_7: { weights: { mythic: 100 } },
   };
 
   const rollEggRarity = (tier: EggId): Rarity => {
@@ -12779,6 +12826,33 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     return "common";
   };
   const openEgg = (eggId: EggId) => {
+    if (eggId === "egg_mew_7" || eggId === "egg_lucario_7") {
+      const base = idleRef.current;
+      if ((base.items[eggId] ?? 0) <= 0) return;
+      if ((base.collection ?? []).length >= MAX_COLLECTION) {
+        pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). Libere espaço: o ovo continua na Mochila.`, "info");
+        return;
+      }
+      const species: Species = eggId === "egg_mew_7" ? "mew" : "lucario";
+      const pet = { ...makePet(species, Math.max(1, teamRef.current[0]?.level ?? 5), "mythic"), traits: rollRewardMythicEggTraits() };
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, [eggId]: base.items[eggId] - 1 },
+        caughtSpecies: base.caughtSpecies.includes(species) ? base.caughtSpecies : [...base.caughtSpecies, species],
+        seenSpecies: base.seenSpecies.includes(species) ? base.seenSpecies : [...base.seenSpecies, species],
+        collection: [...(base.collection ?? []), {
+          uid: pet.uid, species, level: pet.level, xp: pet.xp, rarity: pet.rarity,
+          traits: pet.traits, capturedAt: Date.now(), event: `black_mitic:reward_egg:${species}`,
+        }],
+      };
+      idleRef.current = next;
+      saveIdleStamped(next);
+      setIdle(next);
+      setTeam((current) => current.length < 6 ? [...current, pet] : current);
+      setEggOpenResult({ sp: species, rarity: "mythic" });
+      pushChat(`🥚 Nasceu ${species.toUpperCase()} Mítico com 7 traits aleatórios! ${teamRef.current.length >= 6 ? "Foi para a Coleção." : "Entrou no time e na Coleção."}`, "cap");
+      return;
+    }
     const have = idle.items[eggId] ?? 0;
     if (have <= 0) { pushChat(`Você não tem esse ovo.`, "info"); return; }
     const leaderLv = team[0]?.level ?? 5;
@@ -28606,7 +28680,8 @@ function TabOverlay({
           ticket_ancestral: "Ticket Ancestral 🎫",
           bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico",           egg_lugia: "Ovo de Lugia ✦",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico", egg_lugia: "Ovo de Lugia ✦",
+          egg_mew_7: "Ovo Mítico de Mew ✦", egg_lucario_7: "Ovo Mítico de Lucario ✦",
           egg_sprigatito: "Ovo Sprigatito 🌱",
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
@@ -28674,6 +28749,8 @@ function TabOverlay({
           egg_epic: "Ovo Épico · alta chance de raridade Épica.",
           egg_mystic: "Ovo Místico · pode chocar espécies míticas.",
           egg_aura: "Ovo da Aura · espécies especiais com aura elemental.",
+          egg_mew_7: "Ovo Mítico de Mew · ao chocar nasce Mew Mítico com 7 traits aleatórios, sorteados na abertura.",
+          egg_lucario_7: "Ovo Mítico de Lucario · ao chocar nasce Lucario Mítico com 7 traits aleatórios, sorteados na abertura.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
           egg_charizard_epic: "Ovo do Charizard Épico · choca sempre um Charizard ÉPICO (não shiny) Lv 50.",
           egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
@@ -28717,7 +28794,7 @@ function TabOverlay({
           oleo: "Óleo · combustível bruto.",
           certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
         if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
@@ -28774,7 +28851,7 @@ function TabOverlay({
         const directUse = new Set([
           "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet",
           "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
-          "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite",
+          "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7",
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
         ]);

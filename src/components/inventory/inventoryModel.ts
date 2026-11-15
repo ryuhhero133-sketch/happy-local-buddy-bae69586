@@ -49,7 +49,7 @@ export function inventoryCategory(id: string, equipment = false): InventoryItem[
 }
 
 export function inventoryRarity(id: string): InventoryRarity {
-  if (/egg_(aura|charizard|lugia|dragonite|sprigatito)|black_mitic|emerald_egg|egg_anc/.test(id)) return "mythic";
+  if (/egg_(aura|charizard|lugia|dragonite|sprigatito|mew_7|lucario_7)|black_mitic|emerald_egg|egg_anc/.test(id)) return "mythic";
   if (/book_vip_60|_gold|_max|_supreme|masterball|stone_dragon|stone_dark|esfera_safira/.test(id)) return "legendary";
   if (/egg_epic|egg_mystic|_purple|book_vip|orb_team|premium_box|carta_|bau_esmeralda/.test(id)) return "epic";
   if (/egg_rare|ultraball|greatball|_big|_major|stone_|cr_/.test(id)) return "rare";

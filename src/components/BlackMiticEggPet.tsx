@@ -474,6 +474,11 @@ export function rollBlackMiticTraits(egg: EggInstance, archetype: Archetype, slo
   return picked.slice(0, slots);
 }
 
+/** Sorteia sete traits distintos somente quando um ovo mítico de código é aberto. */
+export function rollRewardMythicEggTraits(): string[] {
+  return rollBlackMiticTraits(newEgg(), "versatile", 7);
+}
+
 // Linhas grosseiras usadas quando o ovo rejeita um bônus (40%)
 const RUDE_LINES = [
   "NÃO! Guarde suas pedras, treinador... elas me irritam agora.",
