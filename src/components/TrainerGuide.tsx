@@ -7,7 +7,7 @@ const pages = [
   { text: "Olá, treinador! Vou te mostrar o básico em passos rápidos. Você pode fechar o guia a qualquer momento.", target: "" },
   { text: "Para viajar, toque no ícone do Mapa Mundi destacado. Escolha um destino liberado e confirme o teleporte; essas viagens são gratuitas.", target: "world-map" },
   { text: "Comece em Verdejante 1 e explore Valley Plume, Florest Ice e Florest Bone conforme seu time fica mais forte. Os números no mapa são níveis dos Pokémon encontrados.", target: "world-map" },
-  { text: "Para chegar ao Pokemarkt, use o Mapa Mundi. Na loja, selecione o item, escolha a quantidade e confirme a compra. Saia pelo mapa, voltando a Revoland.", target: "world-map" },
+  { text: "Para chegar ao Pokemarkt, use o Mapa Mundi ou a porta em Revoland. Escolha seus itens e confirme a compra. Para sair, pise na luz junto à porta e confirme a volta a Revoland.", target: "world-map" },
   { text: "Leve Pokébolas na Mochila e ative o botão de captura destacado. Nas batalhas, a captura automática tentará pegar Pokémon conforme as regras do encontro.", target: "capture" },
   { text: "Abra o MENU para organizar seu time em Pokémon e Coleção, consultar a Mochila e ajustar as Configurações.", target: "menu" },
   { text: "Em Eventos você encontra recompensas, incluindo o ovo de pré-registro quando alcançar o nível necessário. Boa jornada!", target: "events" },
@@ -87,8 +87,22 @@ export function TrainerGuide({ accountId }: { accountId: string }) {
       .revo-hud .revo-guide-focus { position: relative; z-index: 15; outline: 3px solid #ffe079 !important; outline-offset: 3px; animation: revo-guide-glow 1.3s ease-in-out infinite !important; }
       .revo-hud .revo-guide-focus::after { content: "➜"; position: absolute; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); color: #ffe079; font: bold 25px system-ui; text-shadow: 0 2px 5px #000; pointer-events: none; }
       .revo-guide-card button { cursor: pointer; font: inherit; }
+      @media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+        .revo-hud .revo-guide-trigger { display: none !important; }
+        .revo-guide-card {
+          top: auto !important;
+          bottom: calc(92px + env(safe-area-inset-bottom));
+          left: calc(313px + env(safe-area-inset-left));
+          right: max(165px, env(safe-area-inset-right)) !important;
+          width: auto !important;
+          max-height: calc(100dvh - 105px) !important;
+        }
+      }
+      @media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) and (max-width: 650px) {
+        .revo-guide-card { left: calc(210px + env(safe-area-inset-left)); }
+      }
     `}</style>
-    <button ref={anchorRef} type="button" aria-label="Abrir guia do treinador" onClick={() => { setPage(0); setOpen(true); }}
+    <button ref={anchorRef} className="revo-guide-trigger" type="button" aria-label="Abrir guia do treinador" onClick={() => { setPage(0); setOpen(true); }}
       style={{ width: "100%", display: "flex", alignItems: "center", gap: 7, borderRadius: 10, padding: "4px 7px", border: "1px solid #d5b66d88", background: "#142632e8", color: "#ffe39c", fontSize: 11, textAlign: "left" }}>
       <img src={professorPortrait} alt="" style={{ width: 28, height: 28, objectFit: "cover", objectPosition: "center 12%", borderRadius: "50%", background: "#385f4e", border: "1px solid #e8cc87" }} />
       <span>❔ Guia do Professor</span>

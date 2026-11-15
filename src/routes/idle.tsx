@@ -524,7 +524,7 @@ import matoFramesUrl from "@/ambiente/xz/mato-frames.png";
 import gramaFramesUrl from "@/ambiente/xz/grama-frames.png";
 import floresFramesUrl from "@/ambiente/xz/flores-frames.png";
 import folhasFramesUrl from "@/ambiente/xz/folhas-frames.png";
-import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt } from "@/game/collision";
+import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
 import { claimPromoCodeOnce } from "@/lib/promoCodes";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
@@ -5849,6 +5849,8 @@ const confirmName = () => {
   const [teleportTransition, setTeleportTransition] = useState<WorldMapDestination | null>(null);
   const teleportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revolandDoorTriggeredRef = useRef(false);
+  const pokemarktExitTriggeredRef = useRef(false);
+  const [pokemarktExitOpen, setPokemarktExitOpen] = useState(false);
   const [fishingOpen, setFishingOpen] = useState(false);
 
   useEffect(() => () => {
@@ -5880,6 +5882,26 @@ const confirmName = () => {
       teleportTimerRef.current = null;
     }, 4000);
   }, [idle.currentMap, teleportTransition, trainerPos.x, trainerPos.y]);
+  useEffect(() => {
+    if (idle.currentMap !== "mapinha10") {
+      pokemarktExitTriggeredRef.current = false;
+      setPokemarktExitOpen(false);
+      return;
+    }
+    const imageX = trainerPos.x * 1324 / curWorldW;
+    const imageY = trainerPos.y * 1188 / curWorldH;
+    const onExit = imageX >= POKEMARKT_EXIT.x0 && imageX <= POKEMARKT_EXIT.x1 &&
+      imageY >= POKEMARKT_EXIT.y0 && imageY <= POKEMARKT_EXIT.y1;
+    if (!onExit) {
+      pokemarktExitTriggeredRef.current = false;
+    } else if (!pokemarktExitTriggeredRef.current && !teleportTransition) {
+      pokemarktExitTriggeredRef.current = true;
+      walkTargetRef.current = null;
+      setWalkingTo(null);
+      setAuto(false);
+      setPokemarktExitOpen(true);
+    }
+  }, [idle.currentMap, trainerPos.x, trainerPos.y, curWorldW, curWorldH, teleportTransition]);
   // Orbs de energia removidos — só existem os orbs de mapa que spawnam pokémon
   // Energia do treinador: 100% em ~5h andando; energia baixa reduz velocidade (nunca trava)
   // Orbs de mapa: comuns (2min) e épicos (2h) — aparecem conforme kills
@@ -16097,6 +16119,34 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", color: "#fff", fontWeight: 1000, fontSize: 22, letterSpacing: 2, textShadow: "0 0 12px #ff1935, 2px 2px #51000a" }}>⚠️ SEU POKÉMON ESTÁ SOB ATAQUE! ⚠️</div>
         </div>
       )}
+      {pokemarktExitOpen && idle.currentMap === "mapinha10" && (
+        <div role="presentation" style={{ position: "fixed", inset: 0, zIndex: 12010, display: "grid", placeItems: "center", background: "#07141db3", padding: 16 }}>
+          <section role="dialog" aria-modal="true" aria-label="Sair do Pokemarkt" style={{ width: "min(320px, 90vw)", padding: 18, borderRadius: 14, border: "2px solid #e8cc87", background: "#142a35", color: "#f9f4df", textAlign: "center", boxShadow: "0 12px 32px #000a" }}>
+            <strong>🚪 Saída do Pokemarkt</strong>
+            <p>Deseja sair e voltar para Revoland?</p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button type="button" onClick={() => {
+                setPokemarktExitOpen(false);
+                // Afasta o treinador da luz; só uma nova entrada abre a pergunta novamente.
+                setTrainerPos({ x: 410 * curWorldW / 1324, y: 1030 * curWorldH / 1188 });
+              }} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #a8c1be", background: "#304c52", color: "white" }}>Ficar</button>
+              <button type="button" onClick={() => {
+                setPokemarktExitOpen(false);
+                setIdle((state) => ({ ...state, currentMap: "mapinha6" }));
+                setTrainerPos({ x: 960, y: 100 });
+                walkTargetRef.current = null;
+                setWalkingTo(null);
+                setAuto(false);
+                setEnemies([]);
+                setChests([]);
+                setMapOrbs([]);
+                clearBattleScene();
+                pushChat("Você voltou para Revoland.", "cap");
+              }} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #ffe39c", background: "#cba65c", color: "#152626", fontWeight: 800 }}>Sair para Revoland</button>
+            </div>
+          </section>
+        </div>
+      )}
       <GameHud
         guideAccountId={identity?.id && starterChosen ? identity.id : undefined}
         onJoystickMove={onJoystickMove}
@@ -18694,6 +18744,19 @@ A sucata afundou com o casco.
                 zIndex: 0,
               }}
             />
+            {idle.currentMap === "mapinha10" && (
+              <div aria-hidden="true" style={{
+                position: "absolute",
+                left: POKEMARKT_EXIT.x0 * curWorldW / 1324,
+                top: POKEMARKT_EXIT.y0 * curWorldH / 1188,
+                width: (POKEMARKT_EXIT.x1 - POKEMARKT_EXIT.x0) * curWorldW / 1324,
+                height: (POKEMARKT_EXIT.y1 - POKEMARKT_EXIT.y0) * curWorldH / 1188,
+                borderRadius: "50%",
+                background: "radial-gradient(ellipse, #fff5b154 0%, #ffd97724 55%, transparent 78%)",
+                boxShadow: "0 0 15px 6px #ffe19b3d",
+                pointerEvents: "none", zIndex: 1,
+              }} />
+            )}
 
             {/* EFEITOS DOS MAPAS DO PROFESSOR — faíscas de cristal + glow rosa + varredura amarela + bolhas subindo + raios crepitando */}
             {PROF_FX[idle.currentMap] && (
@@ -21795,7 +21858,7 @@ A sucata afundou com o casco.
                 mapinha7: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha8: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha9: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
-                mapinha10: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
+                mapinha10: [{ key: "to-revoland", target: "mapinha6", x: 410 * curWorldW / 1324, y: 1090 * curWorldH / 1188, arriveX: 960, arriveY: 100, color: "#ffe6a3" }],
                 mapinha11: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapinha12: [{ key: "to-revoland", target: "mapinha6", x: WORLD_W / 2, y: WORLD_H - 40, arriveX: WORLD_W / 2, arriveY: 100, color: "#7ef27a" }],
                 mapa_orange: [{ key: "to-revoland", target: "mapinha6", x: curWorldW / 2, y: curWorldH - 40, arriveX: curWorldW / 2, arriveY: 100, color: "#7ef27a" }],
@@ -21826,6 +21889,10 @@ A sucata afundou com o casco.
                 caverna_brok: [{ key: "to-hallow-exit", target: "hallow", x: 197, y: 1121, arriveX: 675, arriveY: 585, color: "#f5cf6b" }],
               };              const currentGates = gatesByMap[idle.currentMap] ?? [];
               const travelToGate = (g: GateDef) => {
+                if (idle.currentMap === "mapinha10" && g.key === "to-revoland") {
+                  goTo("saída do Pokemarkt", g.x, g.y);
+                  return; // A luz abre a confirmação; nunca teleporta sem consentimento.
+                }
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
                 if (g.target === "sa") { profTravelTo("sa"); return; }
                 const targetMap = IDLE_MAPS[g.target];

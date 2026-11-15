@@ -20,6 +20,10 @@ const SAMPLES = [
 
 type Grid = { cols: number; rows: number; walk: Uint8Array; zone: Uint8Array };
 
+// Coordenadas da porta vermelha no PNG original (1324 × 1188).
+// Apenas esta faixa escura da máscara deve permitir a passagem.
+export const POKEMARKT_EXIT = { x0: 350, x1: 470, y0: 1075, y1: 1125 } as const;
+
 const cache = new Map<CollisionMapId, Grid>();
 const loading = new Map<CollisionMapId, Promise<Grid>>();
 
@@ -395,6 +399,18 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
           }
         }
         for (let i = 0; i < walk.length; i++) walk[i] = out[i];
+        if (mapId === "mapinha10") {
+          for (let cy = 0; cy < rows; cy++) {
+            for (let cx = 0; cx < cols; cx++) {
+              const imageX = (cx * TILE + TILE / 2) * 1324 / w;
+              const imageY = (cy * TILE + TILE / 2) * 1188 / h;
+              if (imageX >= POKEMARKT_EXIT.x0 - 12 && imageX <= POKEMARKT_EXIT.x1 + 12 &&
+                  imageY >= POKEMARKT_EXIT.y0 - 20 && imageY <= POKEMARKT_EXIT.y1 + 18) {
+                walk[cy * cols + cx] = 1;
+              }
+            }
+          }
+        }
         // Laboratório + mapas do UPDATE: anda SÓ na área branca CONECTADA (pintura principal).
         // Remove manchas claras isoladas (painéis/telas/luzes) que passam no
         // threshold mas não fazem parte do caminho pintado.
