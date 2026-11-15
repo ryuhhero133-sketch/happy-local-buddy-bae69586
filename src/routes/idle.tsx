@@ -2893,8 +2893,11 @@ function IdlePage() {
       };
       const col: LocalSnapshotForPush["collection"] = [];
       const teamIds = new Set(t.map((p) => p.uid));
+      const sentIds = new Set<string>();
       // Time atual como slots 0-4: o mesmo Pokémon não é enviado duplicado como coleção.
       t.slice(0, 5).forEach((pet, slot) => {
+        if (sentIds.has(pet.uid)) return;
+        sentIds.add(pet.uid);
         col.push({
           id: pet.uid,
           species: pet.species as string,
@@ -2906,7 +2909,8 @@ function IdlePage() {
       });
       // Coleção
       for (const c of s.collection ?? []) {
-        if (teamIds.has(c.uid)) continue;
+        if (teamIds.has(c.uid) || sentIds.has(c.uid)) continue;
+        sentIds.add(c.uid);
         col.push({
           id: c.uid,
           species: c.species as string,
@@ -11588,7 +11592,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       for (const p of [...team, ...restingBench]) {
         if (known.has(p.uid)) continue;
         if (consumedUidsRef.current.has(p.uid)) continue; // consumido intencionalmente
-        missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now() });
+        // O mesmo Pokémon pode aparecer transitoriamente no time e no banco
+        // durante uma troca/derrota. Marcar imediatamente evita inserir o mesmo
+        // UID duas vezes dentro desta própria reconciliação.
+        known.add(p.uid);
+        missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now(), traits: p.traits ?? [], event: p.event });
       }
       if (!changed && missing.length === 0) return s;
       return { ...s, collection: [...nextCol, ...missing] };
