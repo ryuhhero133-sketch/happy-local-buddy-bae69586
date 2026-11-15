@@ -2152,6 +2152,12 @@ type IdleState = {
   scrapPenalty?: number;
   bottanTrips?: number;
   lastQuestReset?: number;
+  /** Marcas do ciclo atual da Forja; ausentes em saves antigos (progresso legado preservado). */
+  forgeDailyKill100Base?: number;
+  forgeDailyKill250Base?: number;
+  forgeDailyChestsBase?: number;
+  /** Resgates da Forja via save da conta (em vez de depender só do navegador). */
+  forgeQuestCompletedIds?: string[];
   lastDailyReward?: number;
   dailyRewardDay?: number;
   isVip?: boolean;
@@ -2267,6 +2273,12 @@ const DEFAULT_TASKS = (): Task[] => [
   { id: "t2", title: "Colete 5000 de ouro offline",   reward: 2, progress: 0, target: 5000, done: false },
   { id: "t3", title: "Capture 10 Pokémon",            reward: 4, progress: 0, target: 10, done: false },
 ];
+
+function forgeDailyCount(total: number, base: number | undefined, target: number): number {
+  if (base != null) return Math.min(target, Math.max(0, total < base ? total : total - base));
+  // Save antigo: conserva o progresso legado e não volta a zero exatamente no alvo.
+  return total > 0 ? (total - 1) % target + 1 : 0;
+}
 
 // Itens farmáveis (drop aleatório dos inimigos derrotados)
 const ITEM_ICONS: Record<string, LucideIcon> = {
@@ -3464,7 +3476,12 @@ const confirmName = () => {
   useEffect(() => {
     if (!attackAnim && !enemyAttackAnim && !captureAnim && !skillFx && skillProj.length === 0 && skillArea.length === 0) return;
     let raf: number;
-    const loop = () => { setAnimTick((n) => n + 1); raf = requestAnimationFrame(loop); };
+    const mobile = window.matchMedia("(pointer: coarse) and (max-height: 650px)").matches;
+    let lastPaint = 0;
+    const loop = (ts: number) => {
+      if (!mobile || ts - lastPaint >= 33) { lastPaint = ts; setAnimTick((n) => n + 1); }
+      raf = requestAnimationFrame(loop);
+    };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [attackAnim, enemyAttackAnim, captureAnim, skillFx, skillProj, skillArea]);
@@ -3739,10 +3756,12 @@ const confirmName = () => {
     try { await declineInvite(id); } catch { /* ignore */ }
     setGuildInvites((prev) => prev.filter((x) => x.id !== id));
   };
+  const guildClaimLockRef = useRef<Set<string>>(new Set());
   const handleClaimMission = (m: GuildMission) => {
     try {
-      if (claimedMissions.includes(m.id)) return;
+      if (claimedMissions.includes(m.id) || guildClaimLockRef.current.has(m.id)) return;
       if ((missionProgress[m.id] ?? 0) < m.target) { pushChat("Missão ainda não concluída.", "info"); return; }
+      guildClaimLockRef.current.add(m.id);
       const next = [...claimedMissions, m.id];
       setClaimedMissions(next);
       try { saveGuildMissionsClaimed(next); } catch { /* ignore */ }
@@ -4947,12 +4966,49 @@ const confirmName = () => {
     localStorage.setItem("rubym.forge.quests", JSON.stringify(forgeQuests));
   }, [forgeQuests]);
 
+  const forgeClaimLockRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!idle.forgeQuestCompletedIds) {
+      setIdle((s) => s.forgeQuestCompletedIds ? s : {
+        ...s, forgeQuestCompletedIds: [...(forgeQuests.completedIds ?? [])],
+      });
+      return;
+    }
+    const kills = idle.totalKills ?? 0;
+    const chests = idle.dailyChestsOpened ?? 0;
+    if (idle.forgeDailyKill100Base == null || idle.forgeDailyKill250Base == null || idle.forgeDailyChestsBase == null) {
+      // Migração sem apagar o progresso atual de nenhum dos três objetivos.
+      setIdle((s) => ({
+        ...s,
+        lastQuestReset: Date.now(),
+        forgeDailyKill100Base: s.forgeDailyKill100Base ?? kills - forgeDailyCount(kills, undefined, 100),
+        forgeDailyKill250Base: s.forgeDailyKill250Base ?? kills - forgeDailyCount(kills, undefined, 250),
+        forgeDailyChestsBase: s.forgeDailyChestsBase ?? 0,
+      }));
+      return;
+    }
+    if (chests < idle.forgeDailyChestsBase) {
+      // O contador próprio de baús reiniciou; mantém a contagem da Forja monotônica.
+      setIdle((s) => s.forgeDailyChestsBase != null && (s.dailyChestsOpened ?? 0) < s.forgeDailyChestsBase
+        ? { ...s, forgeDailyChestsBase: 0 } : s);
+      return;
+    }
+    if (Date.now() - (idle.lastQuestReset ?? Date.now()) < 24 * 60 * 60 * 1000) return;
+    setIdle((s) => {
+      if (Date.now() - (s.lastQuestReset ?? Date.now()) < 24 * 60 * 60 * 1000) return s;
+      return { ...s, lastQuestReset: Date.now(), forgeDailyKill100Base: s.totalKills ?? 0,
+        forgeDailyKill250Base: s.totalKills ?? 0, forgeDailyChestsBase: s.dailyChestsOpened ?? 0,
+        forgeQuestCompletedIds: (s.forgeQuestCompletedIds ?? []).filter((id) => !id.endsWith("_daily")) };
+    });
+    forgeClaimLockRef.current.clear();
+    setForgeQuests((prev: any) => ({
+      ...prev, completedIds: (prev.completedIds || []).filter((id: string) => !id.endsWith("_daily")),
+    }));
+  }, [idle.lastQuestReset, idle.forgeDailyKill100Base, idle.forgeDailyKill250Base, idle.forgeDailyChestsBase, idle.forgeQuestCompletedIds, now]);
+
 
   const forgeNotifications = useMemo(() => {
     // 1. Quests check
-    const now = Date.now();
-    const lastReset = idle.lastQuestReset || 0;
-    const needsReset = (now - lastReset) > 86400000;
     const currentStoneCount = Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0);
     
     const quests = [
@@ -4962,14 +5018,13 @@ const confirmName = () => {
         current: idle.trainerLevel || 1,
         category: "static"
       })),
-      { id: "kill_daily", target: 100, current: (idle.totalKills || 0) % 100, category: "daily" },
+      { id: "kill_daily", target: 100, current: forgeDailyCount(idle.totalKills ?? 0, idle.forgeDailyKill100Base, 100), category: "daily" },
       { id: "collect_stones", target: 5000, current: currentStoneCount, category: "static" }
     ];
 
-    const completedIds = forgeQuests.completedIds || [];
+    const completedIds = idle.forgeQuestCompletedIds ?? forgeQuests.completedIds ?? [];
     const hasQuestReady = quests.some(q => {
       const isDone = completedIds.includes(q.id);
-      if (q.category === "daily") return needsReset ? true : !isDone && q.current >= q.target;
       return !isDone && q.current >= q.target;
     });
 
@@ -8065,6 +8120,8 @@ const confirmName = () => {
   // AUTO OFF (movimento normal): segue atrás pela trilha, como sempre foi.
   useEffect(() => {
     let raf = 0;
+    const mobile = window.matchMedia("(pointer: coarse) and (max-height: 650px)").matches;
+    let lastPaint = 0;
     const FOLLOW_DIST = 88;
     const MAX_SPEED = 6.6; // px por frame
     const loop = () => {
@@ -8130,7 +8187,10 @@ const confirmName = () => {
           else dir = dy > 0 ? "down" : "up";
           const next = { x: nx, y: ny, dir, moving: true };
           followerStateRef.current = next;
-          setFollowerState(next);
+          // A posição lógica continua a 60fps para combate; só o React visual
+          // é limitado no celular para evitar redesenhar a página inteira a cada quadro.
+          const ts = performance.now();
+          if (!mobile || ts - lastPaint >= 33) { lastPaint = ts; setFollowerState(next); }
         } else if (prev.moving) {
           const next = { ...prev, moving: false };
           followerStateRef.current = next;
@@ -14037,7 +14097,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       const count = { ...cur.count, [qid]: 0 };
       let visited = cur.visited;
       if (q.objective.kind === "visit") {
-        if (s.currentMap === q.objective.map) visited = { ...visited, [q.objective.map]: true };
+        visited = { ...visited };
+        // Pedido repetido exige uma visita nova, sem apagar os outros pedidos.
+        if (s.currentMap === q.objective.map) visited[q.objective.map] = true;
+        else delete visited[q.objective.map];
       }
       queueMicrotask(() => {
         pushChat(`📜 Pedido aceito: "${q.title}" — vá até o NPC quando concluir.`, "cap");
@@ -14371,9 +14434,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     pushChat(`📜 Missão aceita: ${def.title} — ${def.objective}.`, "cap");
     playBonus();
   };
+  const profClaimLockRef = useRef<Set<ProfQuestId>>(new Set());
   const profClaimQuest = () => {
     const q = idle.profQuest;
-    if (!q?.active) return;
+    if (!q?.active || profClaimLockRef.current.has(q.active)) return;
     // Missões de shiny exigem captura DEPOIS do aceite (capturedAt no save).
     const capturedSince = (species: string, since: number) =>
       (idle.collection ?? []).some(
@@ -14391,7 +14455,14 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const id = q.active;
     const def = PROF_QUESTS.find((x) => x.id === id);
     if (!def) return;
+    profClaimLockRef.current.add(id);
     setIdle((s) => {
+      if (s.profQuest?.active !== id || s.profQuest.completed?.includes(id)) return s;
+      if (!profQuestDone(s.profQuest, {
+        kills: s.totalKills ?? 0, captures: s.totals?.captured ?? 0, level: s.trainerLevel ?? 1,
+        capturedSince: (species, since) => (s.collection ?? []).some(
+          (entry) => String(entry.species) === species && (entry.capturedAt ?? 0) >= since),
+      })) return s;
       const items = { ...s.items };
       const bank = { ...s.bank };
       for (const [k, v] of Object.entries(def.grant.items ?? {})) {
@@ -17890,6 +17961,7 @@ A sucata afundou com o casco.
               const t = npcThemeFor(themeKind);
               return (
               <div
+                className="revo-saga-dialog"
                 style={{
                   position: "fixed", bottom: 120, left: "50%", transform: "translateX(-50%)",
                   width: "min(560px, 92vw)",
@@ -24297,10 +24369,6 @@ onClick={(e) => {
                    </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {(() => {
-                        const now = Date.now();
-                        const lastReset = idle.lastQuestReset || 0;
-                        const needsReset = (now - lastReset) > 86400000;
-                        
                         const currentStoneCount = Object.values(idle.items || {}).filter((_, i) => Object.keys(idle.items || {})[i].startsWith("stone_")).reduce((a, b) => Number(a) + Number(b), 0);
                         
                         // Quests dinâmicas
@@ -24321,7 +24389,7 @@ onClick={(e) => {
                             title: "Caçador Diário", 
                             desc: "Derrote 100 Pokémon hoje", 
                             target: 100, 
-                            current: (idle.totalKills || 0) % 100, 
+                             current: forgeDailyCount(idle.totalKills ?? 0, idle.forgeDailyKill100Base, 100),
                             reward: { type: "item", id: "pokeball", amount: 10 }, 
                             category: "daily" 
                           },
@@ -24331,7 +24399,7 @@ onClick={(e) => {
                             title: "Brilho Diário",
                             desc: "Derrote 250 Pokémon hoje",
                             target: 250,
-                            current: (idle.totalKills || 0) % 250,
+                            current: forgeDailyCount(idle.totalKills ?? 0, idle.forgeDailyKill250Base, 250),
                             reward: { type: "crystals", amount: 5 },
                             category: "daily"
                           },
@@ -24341,7 +24409,7 @@ onClick={(e) => {
                             title: "Coletor de Essências",
                             desc: "Abra 50 baús hoje",
                             target: 50,
-                            current: (idle.dailyChestsOpened || 0),
+                             current: forgeDailyCount(idle.dailyChestsOpened ?? 0, idle.forgeDailyChestsBase, 50),
                             reward: { type: "item", id: "greatball", amount: 5 },
                             category: "daily"
                           },
@@ -24357,12 +24425,9 @@ onClick={(e) => {
                           }
                         ];
 
-                        return quests.filter(q => {
-                          const isDone = (forgeQuests.completedIds || []).includes(q.id);
-                          if (q.category === "daily") {
-                             return needsReset ? true : !isDone;
-                          }
-                          return !isDone;
+                         return quests.filter(q => {
+                           const isDone = (idle.forgeQuestCompletedIds ?? forgeQuests.completedIds ?? []).includes(q.id);
+                           return !isDone;
                         }).map(q => {
                           const progress = Math.min(100, (q.current / q.target) * 100);
                           return (
@@ -24385,19 +24450,15 @@ onClick={(e) => {
                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 700, color: "#92400e" }}>
                                   <span>{Math.floor(q.current)} / {q.target}</span>
                                   <button 
-                                    disabled={q.current < q.target}
-                                    onClick={() => {
-                                      if (q.current < q.target) return;
-                                      setIdle((prev: IdleState) => {
-                                        const next = { ...prev };
-                                        if (q.category === "daily" && needsReset) {
-                                           next.lastQuestReset = now;
-                                           // Ao resetar daily, limpa os IDs antigos de daily da lista de completados
-                                           setForgeQuests((fq: any) => ({
-                                              ...fq,
-                                              completedIds: (fq.completedIds || []).filter((id: string) => !id.endsWith("_daily"))
-                                           }));
-                                        }
+                                     disabled={q.current < q.target}
+                                     onClick={() => {
+                                       if (q.current < q.target || forgeClaimLockRef.current.has(q.id) ||
+                                          (idle.forgeQuestCompletedIds ?? forgeQuests.completedIds ?? []).includes(q.id)) return;
+                                       forgeClaimLockRef.current.add(q.id);
+                                       setIdle((prev: IdleState) => {
+                                         if ((prev.forgeQuestCompletedIds ?? []).includes(q.id)) return prev;
+                                         const next = { ...prev };
+                                         next.forgeQuestCompletedIds = [...(prev.forgeQuestCompletedIds ?? []), q.id];
                                         if (q.reward.type === "gold") {
                                           next.gold = (next.gold || 0) + q.reward.amount;
                                           next.bank = { ...next.bank, gold: (next.bank.gold || 0) + q.reward.amount };
@@ -24413,8 +24474,8 @@ onClick={(e) => {
                                         return next;
                                       });
                                       
-                                      setForgeQuests((prev: any) => {
-                                        const next = { ...prev, completedIds: [...(prev.completedIds || []), q.id] };
+                                       setForgeQuests((prev: any) => {
+                                         const next = { ...prev, completedIds: Array.from(new Set([...(prev.completedIds || []), q.id])) };
                                         localStorage.setItem("rubym.forge.quests", JSON.stringify(next));
                                         return next;
                                       });

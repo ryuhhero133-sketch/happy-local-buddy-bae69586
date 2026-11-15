@@ -95,6 +95,14 @@
   .revo-hud .revo-target { top: 33px; height: 36px; }
   .revo-hud .revo-notices { top: 36px; right: 7px; max-height: 55vh; overflow-y: auto; }
   .revo-game .mob-targetcard { top: 34px !important; left: 50% !important; transform: translateX(-50%) !important; max-width: 170px; }
+  .revo-game .revo-saga-dialog {
+    top: max(5px, env(safe-area-inset-top));
+    bottom: max(5px, env(safe-area-inset-bottom)) !important;
+    max-height: calc(100dvh - 10px);
+    width: min(560px, calc(100vw - 20px)) !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
   .revo-game .mob-targetlist { right: 160px !important; bottom: 74px !important; max-height: 40dvh; }
   .revo-game .mob-taboverlay { inset: 4px max(5px, env(safe-area-inset-right)) 4px max(5px, env(safe-area-inset-left)) !important; top: 4px !important; bottom: 4px !important; left: max(5px, env(safe-area-inset-left)) !important; right: max(5px, env(safe-area-inset-right)) !important; width: auto !important; height: auto !important; transform: none !important; padding: 6px !important; overflow: auto !important; }
   .revo-game .mob-taboverlay.revo-inventory-overlay { inset: 0 !important; width: 100% !important; height: 100dvh !important; padding: 5px !important; }
