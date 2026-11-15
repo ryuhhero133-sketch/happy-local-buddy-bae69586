@@ -127,7 +127,6 @@ import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
 import { CashShopModal } from "@/components/CashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs } from "@/components/BlackMiticEggPet";
-import { TrainerGuide } from "@/components/TrainerGuide";
 import { PreregEggHud } from "@/components/PreregEggHud";
 import { hasStarterProgress } from "@/game/starterGuard";
 import { EmeraldEggSprite, EmeraldEggHud, EMERALD_EGG_ITEM_ID } from "@/components/EmeraldEggPet";
@@ -16099,6 +16098,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         </div>
       )}
       <GameHud
+        guideAccountId={identity?.id && starterChosen ? identity.id : undefined}
         onJoystickMove={onJoystickMove}
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}
         viewportWidth={viewSize.w}
@@ -27004,8 +27004,7 @@ onClick={(e) => {
         );
       })()}
 
-      {/* ===== Guia Inteligente — HUD estilo Prof. Carvalho ===== */}
-      {identity?.id && starterChosen && <TrainerGuide accountId={identity.id} />}
+      {/* Guia do Professor fica abaixo do minimapa, dentro do GameHud. */}
       <PreregEggHud open={preregHudOpen} onClose={() => setPreregHudOpen(false)} reward={preregReward} now={preregNow} busy={preregBusy} error={preregError} delivered={!!preregReward && idle.preregRewardDeliveredId === preregReward.pokemon_id} onHatch={() => void hatchPreregEgg()} />
 
       {/* ============ LOJINHA CASH ============ */}
