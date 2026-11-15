@@ -1665,7 +1665,7 @@ html, body, #root {
   animation: bmpStarOrbit 9s linear infinite;
 }
 .bmp-star.s-lg { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; box-shadow: 0 0 12px #c58bff, 0 0 22px rgba(160,80,255,.8); }
-/* Ovo Ancestral: mesma aura do Black Mítico, em dourado. */
+/* Ancestrais: aura do Black Mítico Plus com halo solar dourado. */
 .anc-aura .bmp-aura-glow {
   background: radial-gradient(circle, rgba(255,217,77,.65) 0%, rgba(180,115,12,.38) 45%, transparent 72%);
 }
@@ -1679,6 +1679,55 @@ html, body, #root {
 }
 .anc-aura .bmp-star.s-lg {
   box-shadow: 0 0 12px #fff0a0, 0 0 22px rgba(255,192,42,.8);
+}
+@keyframes ancGoldTurn {
+  to { transform: rotate(360deg); }
+}
+@keyframes ancGoldBreath {
+  50% { opacity: .65; transform: scale(1.12); }
+}
+.anc-gold-halo {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.anc-gold-halo::before,
+.anc-gold-halo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.anc-gold-halo::before {
+  background: conic-gradient(from 0deg, transparent 0deg, #ffd03f 35deg, #fff6c1 48deg, transparent 68deg, transparent 100deg, #e9a824 135deg, #fff9d5 148deg, transparent 170deg, transparent 220deg, #ffc637 262deg, #fff6c1 275deg, transparent 294deg, transparent 360deg);
+  -webkit-mask: radial-gradient(circle, transparent 48%, #000 61%, transparent 76%);
+  mask: radial-gradient(circle, transparent 48%, #000 61%, transparent 76%);
+  filter: drop-shadow(0 0 7px #ffd34f);
+  animation: ancGoldTurn 11s linear infinite;
+}
+.anc-gold-halo::after {
+  inset: 12%;
+  background: radial-gradient(circle, rgba(255,246,177,.36), rgba(255,192,39,.2) 42%, transparent 72%);
+  box-shadow: 0 0 24px rgba(255,198,45,.55);
+  animation: ancGoldBreath 2.8s ease-in-out infinite;
+}
+.anc-collection-sprite {
+  width: 72px;
+  height: 70px;
+  margin-top: 4px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.anc-collection-sprite .anc-gold-halo {
+  inset: -8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anc-gold-halo::before, .anc-gold-halo::after,
+  .anc-aura .bmp-aura-glow, .anc-aura .bmp-aura-ring,
+  .anc-aura .bmp-star { animation: none; }
 }
 .bmp-card-bg {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;

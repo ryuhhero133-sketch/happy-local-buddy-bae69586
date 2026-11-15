@@ -21096,9 +21096,10 @@ A sucata afundou com o casco.
                   zIndex: Math.round(leaderY),
                 }}>
                   {pvpFainted && <span aria-label="Pokémon derrotado" style={{ position: "absolute", left: 11, top: 8, fontSize: 34, zIndex: 20, filter: "drop-shadow(0 2px 3px #000)" }}>💀</span>}
-                   {(isBMP || isAncestral) && (
-                    <div>
-                      <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
+                    {(isBMP || isAncestral) && (
+                     <div style={{ pointerEvents: "none" }}>
+                       {isAncestral && <div className="anc-gold-halo" aria-hidden="true" />}
+                       <div className="bmp-aura-glow" style={{ position: "absolute", inset: -22, borderRadius: "50%" }} />
                       <div className="bmp-aura-ring" style={{ position: "absolute", inset: -14, borderRadius: "50%" }} />
                       {[
                         { a: 0,   r: 34, d: 6, cls: "" },
@@ -21144,7 +21145,7 @@ A sucata afundou com o casco.
                       backgroundSize: "400% 400%",
                       backgroundPosition: `${(followerState.moving ? walkStep : 0) * 33.333}% ${DIR_ROW[followerState.dir] * 33.333}%`,
                       imageRendering: "pixelated",
-                      filter: fainted ? "grayscale(1) brightness(0.6)" : undefined,
+                       filter: fainted ? "grayscale(1) brightness(0.6)" : isAncestral ? "drop-shadow(0 0 6px #ffe27b) drop-shadow(0 0 12px #d99023)" : undefined,
                     }} />
                   ) : (
                     <img src={leaderSrc} alt="" className={!moving && !fainted ? "attackbob" : ""}
@@ -29623,9 +29624,9 @@ function TabOverlay({
                   const isBrilhant = !!entry.event && entry.event.includes("brilhant");
                   const bmpAccent = isAncestral ? "#ffd94d" : isBrilhant ? "#ff97e1" : "#a066ff";
                  return (
-                   <div
-                     key={entry.uid}
-                     onClick={() => {
+                     <div
+                      key={entry.uid}
+                      onClick={() => {
                        if (!bulkMode) return;
                        if (!canBulkPick) return;
                        toggleBulk(entry.uid);
@@ -29696,7 +29697,12 @@ function TabOverlay({
                        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", justifySelf: "center", width: "100%", position: "relative", zIndex: 1 }}
                        title={bulkMode ? "Selecionar/deselecionar" : "Ver detalhes"}
                      >
-                        {gifMap[sp] && <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP || isAncestral ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />}
+                         {gifMap[sp] && (isAncestral ? (
+                           <span className="anc-collection-sprite">
+                             <span className="anc-gold-halo" aria-hidden="true" />
+                             <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", position: "relative", filter: "drop-shadow(0 0 7px #ffe27b)" }} />
+                           </span>
+                         ) : <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />)}
                         <div style={{ fontSize: 11, marginTop: 2, color: isAncestral ? "#fff0ad" : isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
