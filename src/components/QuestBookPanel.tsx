@@ -24,13 +24,17 @@ export type QuestBookPanelProps = {
   onSagaLocate: (npc: any) => void;
   onSagaTalk: (npc: any) => void;
   onClaimTask: (id: string) => void;
+  cycleQuests?: { id: string; title: string; icon: string; progress: number; target: number; reward: number; claimed: boolean; vipOnly?: boolean }[];
+  onClaimCycleQuest?: (id: string) => void;
+  vip?: boolean;
+  cycleResetIn?: string;
   onClose: () => void;
 };
 
 type EntryStatus = "active" | "ready" | "claimed" | "locked" | "done";
 type Entry = {
   key: string;
-  cat: "main" | "daily" | "npc" | "done";
+  cat: "main" | "daily" | "cycle" | "npc" | "done";
   title: string;
   npcName: string;
   npcPng: string | null;
@@ -57,6 +61,7 @@ const CATS = [
   { id: "all", label: "Todas", icon: "📜" },
   { id: "main", label: "Principais", icon: "⭐" },
   { id: "daily", label: "Diárias", icon: "📅" },
+  { id: "cycle", label: "Quests", icon: "🎯" },
   { id: "npc", label: "NPCs", icon: "🗣️" },
   { id: "done", label: "Conquistas", icon: "🏆" },
 ] as const;
@@ -67,6 +72,7 @@ export function QuestBookPanel(props: QuestBookPanelProps) {
     SAGA_TOTAL_STAGES, IDLE_MAPS, freshSaga, freshSideQuests, sagaRewardText,
     sagaProgressTextPure, sideObjectiveDone, sideProgressText, npcThemeFor,
     starsFor, onSagaLocate, onSagaTalk, onClaimTask, onClose,
+    cycleQuests = [], onClaimCycleQuest, vip = false, cycleResetIn,
   } = props;
 
   const [cat, setCat] = useState<string>("all");
@@ -191,6 +197,22 @@ export function QuestBookPanel(props: QuestBookPanelProps) {
       objectives: [{ label: t.title, progress: `${t.progress}/${t.target}` }],
       rewards: [{ img: crystalGreenImg, label: `x${t.reward}` }],
       action: t.done ? { label: "COLETAR", onClick: () => onClaimTask(t.id) } : null,
+    });
+  }
+  // Mesmo resgate do HUD do desktop, também acessível pelo MENU no celular.
+  for (const q of cycleQuests) {
+    const ready = q.progress >= q.target && (!q.vipOnly || vip);
+    entries.push({
+      key: `cycle-${q.id}`, cat: "cycle", title: q.title,
+      npcName: `Quest de ouro${q.vipOnly ? " · VIP" : ""}`,
+      npcPng: null, frame: "#f5cf6b", short: `${q.progress}/${q.target}`,
+      status: q.claimed ? "claimed" : ready ? "ready" : q.vipOnly && !vip ? "locked" : "active",
+      progressText: `${q.progress}/${q.target}`, pct: Math.min(100, q.progress / Math.max(1, q.target) * 100),
+      desc: `${q.title}. Renova em ${cycleResetIn ?? "breve"}.`,
+      objectives: [{ label: q.title, progress: `${q.progress}/${q.target}` }],
+      rewards: [{ emoji: "🪙", label: `x${q.reward}` }],
+      action: ready && !q.claimed && onClaimCycleQuest
+        ? { label: "RESGATAR OURO", onClick: () => onClaimCycleQuest(q.id) } : null,
     });
   }
 

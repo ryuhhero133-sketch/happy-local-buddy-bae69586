@@ -5293,6 +5293,7 @@ const confirmName = () => {
     try { const raw = localStorage.getItem("rubym.quests.v1"); if (raw) { const j = JSON.parse(raw); if (j.window === getQuestWindow(Date.now())) return j.claimed ?? {}; } } catch { /* ignore */ }
     return {};
   });
+  const claimingQuestRef = useRef<Set<string>>(new Set());
   const questWindow = getQuestWindow(now);
   const [questTabOpen, setQuestTabOpen] = useState<string | null>(null);
   const [hoveredQuest, setHoveredQuest] = useState<string | null>(null);
@@ -5301,13 +5302,15 @@ const confirmName = () => {
   }, [questWindow, questProgress, questClaimed]);
   useEffect(() => {
     const cur = getQuestWindow(Date.now());
-    if (cur !== questWindow) { setQuestProgress({}); setQuestClaimed({}); }
+    if (cur !== questWindow) { claimingQuestRef.current.clear(); setQuestProgress({}); setQuestClaimed({}); }
   }, [now, questWindow]);
   const claimQuest = (qid: string) => {
     const q = QUEST_DEFS.find((x) => x.id === qid);
-    if (!q || questClaimed[qid]) return;
+    if (!q || questClaimed[qid] || claimingQuestRef.current.has(qid)) return;
+    if (q.vipOnly && !isVip()) return;
     const prog = questProgress[qid] ?? 0;
     if (prog < q.target) { pushChat("Quest ainda não completa!", "info"); return; }
+    claimingQuestRef.current.add(qid);
     setQuestClaimed((s) => ({ ...s, [qid]: true }));
     setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + q.reward } }));
     pushChat(`Quest "${q.title}" concluída! +${q.reward} ouro`, "chest");
@@ -6953,7 +6956,8 @@ const confirmName = () => {
         const pick = map[e.key];
         setIdle((s) => {
           const ab = s.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
-          return { ...s, autoBattle: { ...ab, preferredBall: pick, useBall: true } };
+          // Trocar a bola preferida não liga/desliga a captura escolhida pelo jogador.
+          return { ...s, autoBattle: { ...ab, preferredBall: pick } };
         });
       }
     };
@@ -16218,7 +16222,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onQuests={() => { playClick(); setTab("tarefas"); }}
         onClaimQuest={claimQuest}
         onAuto={() => {
-          const enabled = idle.autoBattle?.enabled ?? true;
+          // Movimento manual pausa a caminhada automática, não a captura.
+          // Se o jogador tocar AUTO depois de usar o joystick, volta a andar automaticamente.
+          const enabled = auto && (idle.autoBattle?.enabled ?? true);
           if (idle.currentMap === "esfera_ancestral") { pushChat("Automático desativado na Esfera Ancestral.", "info"); return; }
           if (!enabled && idle.currentMap === TELEPORT_HOME_MAP_ID) { pushChat("😴 Cidade inicial é área segura — viaje para um mapa de caça para ligar o automático.", "info"); return; }
           setIdle((state) => ({ ...state, autoBattle: { ...(state.autoBattle ?? { useBall: true, preferredBall: "auto", captureHpPct: 1 }), enabled: !enabled } }));
@@ -21719,6 +21725,9 @@ A sucata afundou com o casco.
               onToggleFullscreen={toggleGameFullscreen}
               tasks={idle.tasks}
               onClaimTask={claimTask}
+              cycleQuests={QUEST_DEFS.map((quest) => ({ ...quest, progress: questProgress[quest.id] ?? 0, claimed: !!questClaimed[quest.id] }))}
+              onClaimCycleQuest={claimQuest}
+              cycleResetIn={fmtMS(QUEST_WINDOW_MS - (now % QUEST_WINDOW_MS))}
               onAcceptSideQuest={acceptSideQuest}
               onClaimSideQuest={claimSideQuest}
               onSagaClaim={claimSagaReward}
@@ -27873,7 +27882,7 @@ function QtyBuy({ presets, max, unitLabel, buttonColor, canBuyFn, onBuy, disable
 function TabOverlay({
   tab, onClose, leader, team, onReorderTeam, leaderHp, trainerEnergy, items, caughtSpecies, seenSpecies, totals, collection, craftPoints, onFragmentCollection, gifMap, onPickTeam, onUseItem,
   bank, buffs, onBuyBall, onBuyUltraBundle, onBuyTeleportScroll, onBuyBook, onBuyPotion, onBuyEgg, shopEggs, onBuyChestAmulet, chestAmuletOwned, autoHeal, setAutoHeal, audioSettings, setAudioSettings, fullscreenActive, pwaStandalone, onToggleFullscreen,
-  tasks, onClaimTask, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
+  tasks, onClaimTask, cycleQuests, onClaimCycleQuest, cycleResetIn, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   onSagaClaim, onSagaTalk, onSagaLocate, onAcceptSideQuest, onClaimSideQuest,
   idle, setIdle, pushChat,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
@@ -27921,6 +27930,9 @@ function TabOverlay({
   onToggleFullscreen: () => Promise<void>;
   tasks: Task[];
   onClaimTask: (tid: string) => void;
+  cycleQuests: NonNullable<React.ComponentProps<typeof QuestBookPanel>["cycleQuests"]>;
+  onClaimCycleQuest: (id: string) => void;
+  cycleResetIn: string;
   onAcceptSideQuest: (qid: string) => void;
   onClaimSideQuest: (qid: string) => void;
   onSagaClaim: (stageId: string) => void;
@@ -28427,6 +28439,10 @@ function TabOverlay({
           onSagaLocate={onSagaLocate}
           onSagaTalk={onSagaTalk}
           onClaimTask={onClaimTask}
+          cycleQuests={cycleQuests}
+          onClaimCycleQuest={onClaimCycleQuest}
+          cycleResetIn={cycleResetIn}
+          vip={isVip}
           onClose={onClose}
         />
         </div>
