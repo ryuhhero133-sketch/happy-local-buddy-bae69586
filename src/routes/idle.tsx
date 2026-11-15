@@ -212,7 +212,7 @@ import worldMapRefAsset from "@/assets/world_map_reference.png.asset.json";
 
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
-import { loadLatestValid, saveNow } from "@/lib/localSave";
+import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
@@ -2609,17 +2609,13 @@ function fmtMS(ms: number) {
 
 
 // ============ Equipe salva (até 6); equipe inicial tem apenas 1 Pokémon ============
-type SaveShape = { party?: PetInstance[] };
+type SaveShape = { party?: PetInstance[]; activeTeam?: PetInstance[]; restingBench?: PetInstance[] };
 function loadTeam(): PetInstance[] {
   const save = loadLatestValid<SaveShape>();
-  if (save?.party && save.party.length > 0) {
-    const leader = save.party[0];
-    // upgrade forçado: se ainda for o antigo default (charizard lv15), troca por charmander lv1
-    if (leader.species === "charizard" && leader.level === 15 && (leader.xp ?? 0) === 0) {
-      return [makePet("charmander", 1)];
-    }
+  const savedTeam = Array.isArray(save?.activeTeam) ? save.activeTeam : save?.party;
+  if (savedTeam && savedTeam.length > 0) {
     // Migração Flower/Orange �  Venusaur/Venusaur Shiny
-    return save.party.slice(0, 6).map((p) => {
+    return savedTeam.slice(0, 6).map((p) => {
       const oldSp = p.species as string;
       return {
         ...p,
@@ -2627,7 +2623,8 @@ function loadTeam(): PetInstance[] {
       };
     });
   }
-  return [makePet("charmander", 1)];
+  // Sem save não inventa Pokémon: aguarda restauração ou escolha do inicial.
+  return [];
 }
 
 
@@ -2688,7 +2685,10 @@ function IdlePage() {
     localStorage.setItem("rubym.trainer.theme.v1", next);
   };
   // Pokémon fora do time enquanto descansam na Casa Azul (voltam ao time cheios)
-  const [restingBench, setRestingBench] = useState<PetInstance[]>([]);
+  const [restingBench, setRestingBench] = useState<PetInstance[]>(() => {
+    const save = loadLatestValid<SaveShape>();
+    return Array.isArray(save?.restingBench) ? save.restingBench : [];
+  });
   // HP atual do meu pokémon (o líder toma dano dos inimigos)
   const [leaderHp, setLeaderHp] = useState<number>(() => {
     const initTeam = loadTeam();
@@ -3032,6 +3032,12 @@ function IdlePage() {
 
         const uid = session?.user?.id;
         if (!uid) return;
+        // AuthGate já escolheu o snapshot local mais recente para esta conta.
+        // Não substituir seu time pelo snapshot remoto mais antigo.
+        if (localStorage.getItem("rubym.cloud.local_newer.v1") === uid) {
+          cloudBlobHydratedRef.current = true;
+          return;
+        }
         
         const blob = (await fetchCloudSave(uid)) as
           | { idle?: Partial<IdleState>; team?: PetInstance[]; restingBench?: PetInstance[]; party?: PetInstance[] }
@@ -3060,7 +3066,7 @@ function IdlePage() {
             return merged;
           });
         }
-        if (Array.isArray(blob.team) && blob.team.length > 0) {
+        if (Array.isArray(blob.team)) {
           setTeam(blob.team.slice(0, 6));
         } else if (Array.isArray(blob.party) && blob.party.length > 0) {
           setTeam(blob.party.slice(0, 5));
@@ -3152,7 +3158,7 @@ function IdlePage() {
     lastPokemonLevelSyncKeyRef.current = key;
     if (!hadPrevious || serverSync.status !== "ready") return;
     const latestSave = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-    saveNow({ ...latestSave, party: [...team, ...restingBench] });
+    saveNow({ ...latestSave, party: [...team, ...restingBench], activeTeam: team, restingBench });
     void serverSync.pushNow();
   }, [team, restingBench, idle.collection, serverSync.status, serverSync.pushNow]);
 
@@ -11603,10 +11609,18 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     });
   }, [team, restingBench]);
 
+  // Atualiza o time ativo assim que muda; saveNow faz flush ao sair da página.
+  // Não gravar antes da hidratação para não substituir o time da nuvem por [].
+  useEffect(() => {
+    if (!cloudBlobReady) return;
+    const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
+    saveNow({ ...save, party: [...team, ...restingBench], activeTeam: team, restingBench });
+  }, [team, restingBench, cloudBlobReady]);
+
   useEffect(() => {
     const iv = setInterval(() => {
       const save = (loadLatestValid<SaveShape>() ?? {}) as SaveShape;
-      saveNow({ ...save, party: [...team, ...restingBench] });
+      saveNow({ ...save, party: [...team, ...restingBench], activeTeam: team, restingBench });
     }, 15_000);
     return () => clearInterval(iv);
   }, [team, restingBench]);
@@ -12521,13 +12535,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       }
       return [...tm, pet];
     });
-    // Espelha no save principal para compat com a tela clássica
-    try {
-      const raw = localStorage.getItem("rubym.save.v2");
-      const save = raw ? JSON.parse(raw) : {};
-      save.party = [...(save.party ?? []), pet];
-      localStorage.setItem("rubym.save.v2", JSON.stringify(save));
-    } catch { /* ignore */ }
+    // O efeito de persistência grava o time real com assinatura após setTeam.
     setEggOpenResult({ sp: String(sp), rarity });
     pushChat(`🥚 Ovo chocou: ${String(sp).toUpperCase()} — ${RARITY_LABEL[rarity]}! Stats bonificados pela raridade.`, "cap");
     pushFxAt(trainerPos.x, trainerPos.y - 70, `${RARITY_LABEL[rarity].toUpperCase()}!`, "capture");
@@ -12628,12 +12636,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       collection: [...(s.collection ?? []), { uid: pet.uid, species: pet.species, level: pet.level, rarity: pet.rarity, capturedAt: Date.now(), traits, event: "ancestral" }],
     }));
     setTeam((tm) => (tm.length >= 6 ? tm : [...tm, pet]));
-    try {
-      const raw = localStorage.getItem("rubym.save.v2");
-      const save = raw ? JSON.parse(raw) : {};
-      save.party = [...(save.party ?? []), pet];
-      localStorage.setItem("rubym.save.v2", JSON.stringify(save));
-    } catch { /* ignore */ }
+    // O efeito de persistência grava o time real com assinatura após setTeam.
     setEggOpenResult({ sp: String(sp), rarity: "mythic_shiny" });
     pushChat(`🐣 O OVO ABRIU: ${String(sp).toUpperCase()} LIBERADO com ${traits.length} traits DOURADOS!`, "cap");
     pushFxAt(trainerPos.x, trainerPos.y - 70, "ANCESTRAL!", "capture");
@@ -15071,15 +15074,18 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // ===== pickStarter (starterChosen state está declarada no topo) =====
 
   const pickStarter = (sp: "charmander" | "bulbasaur" | "squirtle") => {
+    if (starterChosenRef.current || teamRef.current.length > 0 || (idleRef.current.collection ?? []).length > 0) {
+      pushChat("Você já possui Pokémon. Escolha seu time na Coleção.", "info");
+      return;
+    }
     const pet = makePet(sp, 5);
+    starterChosenRef.current = true;
     setTeam([pet]);
     setLeaderHp(calcIdleMaxHp(pet));
     try {
       localStorage.setItem("rubym.starter.chosen", "1");
-      const raw = localStorage.getItem("rubym.save.v2");
-      const save = raw ? JSON.parse(raw) : {};
-      save.party = [pet];
-      localStorage.setItem("rubym.save.v2", JSON.stringify(save));
+      const save = loadLatestValid<SaveShape>() ?? {};
+      restoreLocalSave({ ...save, party: [pet], activeTeam: [pet] });
     } catch { /* ignore */ }
     setStarterChosen(true);
     pushChat(`Você escolheu ${sp.toUpperCase()} como seu Pokémon inicial!`, "cap");

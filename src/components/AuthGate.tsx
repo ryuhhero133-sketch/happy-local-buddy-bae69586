@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCloudSave, SAVE_KEY } from "@/lib/cloudSave";
+import { restoreLocalSave } from "@/lib/localSave";
 import { claimSnapshotOwner, clearSnapshotOwner } from "@/lib/saveManager";
 import { computeIsExisting, saveShowsProgress } from "@/lib/accountExists";
 import { recoverVaultIdentity, readVault } from "@/lib/emergencyVault";
@@ -41,6 +42,7 @@ const log = (...args: unknown[]) => console.log("[AuthGate]", ...args);
 const warn = (...args: unknown[]) => console.warn("[AuthGate]", ...args);
 const IDLE_KEY = "rubym.idle.v1";
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
+const CLOUD_LOCAL_NEWER_KEY = "rubym.cloud.local_newer.v1";
 const CURRENT_UID_KEY = "rubym.currentUid";
 
 /** Limpeza SOMENTE local (nunca toca o Supabase). Remove todo `rubym.*`
@@ -174,6 +176,7 @@ async function ensureProfile(userId: string): Promise<{ username: string | null;
 
 async function preloadCloudSave(userId: string) {
   try {
+    localStorage.removeItem(CLOUD_LOCAL_NEWER_KEY);
     log("preloadCloudSave start", userId);
     const cloud = await fetchCloudSave(userId);
     // Anti-corrida: se a sess�o mudou durante o fetch, descarta o resultado.
@@ -207,6 +210,7 @@ async function preloadCloudSave(userId: string) {
         // Preserva o snapshot inteiro. Mesclar inventários de épocas distintas
         // poderia ressuscitar itens já gastos e desfazer pagamentos de entrada.
         localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
+        localStorage.setItem(CLOUD_LOCAL_NEWER_KEY, userId);
         log("preloadCloudSave: progresso local mais novo mantido");
         return;
       }
@@ -215,14 +219,18 @@ async function preloadCloudSave(userId: string) {
           const stamped = cloudHasTimestamp ? cloudIdle : { ...cloudIdle, savedAt: Date.now() };
           localStorage.setItem(IDLE_KEY, JSON.stringify(stamped));
         }
-        const party = Array.isArray(cloud.party)
-          ? cloud.party
-          : [...(Array.isArray(cloud.team) ? cloud.team : []), ...(Array.isArray(cloud.restingBench) ? cloud.restingBench : [])];
-        if (party.length > 0) {
-          localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+        const party = Array.isArray(cloud.team)
+          ? cloud.team
+          : (Array.isArray(cloud.party) ? cloud.party : []);
+        if (Array.isArray(cloud.team) || Array.isArray(cloud.party)) {
+          const restingBench = Array.isArray(cloud.restingBench) ? cloud.restingBench : [];
+          restoreLocalSave({ party: [...party, ...restingBench], activeTeam: party, restingBench });
           // Se o save da nuvem já tem pokémon, o inicial JÁ foi escolhido —
           // não pode reabrir o modal de starter em outro navegador/F5.
-          try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+          const collection = (cloudIdle as { collection?: unknown[] } | undefined)?.collection;
+          if (party.length || (Array.isArray(cloud.restingBench) && cloud.restingBench.length) || (Array.isArray(collection) && collection.length)) {
+            try { localStorage.setItem("rubym.starter.chosen", "1"); } catch { /* ignore */ }
+          }
         }
         localStorage.setItem(CLOUD_PRELOADED_KEY, userId);
         log("preloadCloudSave: save restaurado do servidor");
@@ -259,16 +267,17 @@ async function restoreVaultIntoStorageIfEmpty(uid: string): Promise<void> {
     // Re-chega após a leitura assíncrona (corrida com outro writer).
     if (localStorage.getItem(IDLE_KEY) !== null || localStorage.getItem(SAVE_KEY) !== null) return;
     if (blob.idle) localStorage.setItem(IDLE_KEY, JSON.stringify(blob.idle));
-    const party = Array.isArray(blob.party)
-      ? blob.party
-      : [
-          ...(Array.isArray(blob.team) ? blob.team : []),
-          ...(Array.isArray(blob.restingBench) ? blob.restingBench : []),
-        ];
-    if (party.length > 0) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ party }));
+    const party = Array.isArray(blob.team)
+      ? blob.team
+      : (Array.isArray(blob.party) ? blob.party : []);
+    if (Array.isArray(blob.team) || Array.isArray(blob.party)) {
+      const restingBench = Array.isArray(blob.restingBench) ? blob.restingBench : [];
+      restoreLocalSave({ party: [...party, ...restingBench], activeTeam: party, restingBench });
       try {
-        localStorage.setItem("rubym.starter.chosen", "1");
+        const collection = (blob.idle as { collection?: unknown[] } | undefined)?.collection;
+        if (party.length || (Array.isArray(blob.restingBench) && blob.restingBench.length) || (Array.isArray(collection) && collection.length)) {
+          localStorage.setItem("rubym.starter.chosen", "1");
+        }
         localStorage.setItem("rubym.setup.done", "1");
       } catch {
         /* ignore */
@@ -1587,14 +1596,14 @@ function CreateCharacterScreen({
         (supabase as any).from("pokemon_collection").select("id").eq("user_id", userId).limit(1),
         (supabase as any).from("game_saves").select("data").eq("user_id", userId).maybeSingle(),
       ]);
-      const snap = saveRes?.data?.data as { team?: Array<{ species?: string; level?: number; xp?: number }> } | null;
+      if (pokeRes.error || saveRes.error) {
+        throw new Error("Não foi possível verificar seu Pokémon salvo. Confira sua conexão e tente novamente.");
+      }
+      const snap = saveRes?.data?.data as { team?: unknown[]; restingBench?: unknown[]; party?: unknown[]; idle?: { collection?: unknown[] } } | null;
       const snapTeam = Array.isArray(snap?.team) ? snap.team : [];
       const hasCollection = Array.isArray(pokeRes?.data) && pokeRes.data.length > 0;
-      // Time "real" = tem algo além do charmander lv1 default (semente/fallback).
-      // Um save só com charmander lv1/xp0 é resto da era bugada → trata como novo.
-      const teamReal = snapTeam.some(
-        (p) => (p?.species ?? "charmander") !== "charmander" || (Number(p?.level) || 1) > 1 || (Number(p?.xp) || 0) > 0,
-      );
+      // Nunca presumir que um Charmander existente é falso: pode ser do jogador.
+      const teamReal = snapTeam.length > 0 || (snap?.restingBench?.length ?? 0) > 0 || (snap?.party?.length ?? 0) > 0 || (snap?.idle?.collection?.length ?? 0) > 0;
       const serverHasTeam = hasCollection || teamReal;
       // Servidor PRIMEIRO: sem isso, nada está criado.
       // Tenta completo (com skin); se o banco rejeitar a coluna, cai no
@@ -1628,7 +1637,7 @@ function CreateCharacterScreen({
       const pet = makePet(starter, 5);
       if (!serverHasTeam) {
         try {
-          localStorage.setItem(SAVE_KEY, JSON.stringify({ party: [pet] }));
+          restoreLocalSave({ party: [pet], activeTeam: [pet] });
         } catch { /* ignore */ }
         // Conta realmente nova: o IDLE local tamb�m recome�a do zero.
         // Sem isso, ouro/n�vel/itens da conta anterior vazam p/ o jogo novo.

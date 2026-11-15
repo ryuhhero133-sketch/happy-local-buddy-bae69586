@@ -45,13 +45,11 @@ function signPayload(serialized: string): string {
 
 function markTampered() {
   try {
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem(SIG_KEY);
-    for (const k of BACKUP_KEYS) localStorage.removeItem(k);
+    // Não destruir cópias: podem conter dados recuperáveis do jogador.
     sessionStorage.setItem("rubym.save.tampered", "1");
   } catch { /* ignore */ }
   try { toast.error("Save local inválido — recarregando dados da nuvem."); } catch { /* ignore */ }
-  console.warn("[localSave] integrity check failed — local save discarded");
+  console.warn("[localSave] integrity check failed — local save preserved for recovery");
 }
 
 function safeParse<T>(raw: string | null): T | null {
@@ -159,6 +157,18 @@ export function saveNow(state: unknown) {
   pending = state;
   if (timer) clearTimeout(timer);
   timer = setTimeout(flush, DEBOUNCE_MS);
+}
+
+/** Substitui o cache local imediatamente, mantendo a assinatura sincronizada.
+ * Usado ao restaurar um save da nuvem ou confirmar o Pokémon inicial. */
+export function restoreLocalSave(state: unknown) {
+  if (typeof window === "undefined") return;
+  ensureInit();
+  if (timer) { clearTimeout(timer); timer = null; }
+  pending = null;
+  const serialized = JSON.stringify(state);
+  writeSigned(serialized);
+  lastSerialized = serialized;
 }
 
 /** Manual save invoked from a UI button. Bypasses debounce and toasts. */
