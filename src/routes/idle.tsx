@@ -345,13 +345,16 @@ import char02Png from "@/assets/char-inicial/char 02.png";
 import charAshPng from "@/assets/char-inicial/Char Ash.png";
 import charF1Png from "@/assets/char-inicial/Char f1.png";
 import charF2Png from "@/assets/char-inicial/Char f2.png";
+import charGokuPng from "@/CHAR/Skin goku.png";
+import perfilGokuPng from "@/CHAR/goku-profile.png";
 
-const SKINS: { id: string; label: string; url: string; photo: string; gender: "male" | "female"; locked?: boolean }[] = [
+const SKINS: { id: string; label: string; url: string; photo: string; gender: "male" | "female"; locked?: boolean; codeOnly?: boolean }[] = [
   { id: "char01", label: "Char 01", url: char01Png, photo: perfilChar01Png, gender: "male" },
   { id: "char02", label: "Char 02", url: char02Png, photo: perfilChar02Png, gender: "male" },
   { id: "charf1", label: "Char F1", url: charF1Png, photo: perfilCharF1Png, gender: "female" },
   { id: "charf2", label: "Char F2", url: charF2Png, photo: perfilCharF2Png, gender: "female" },
   { id: "charash", label: "Char Ash", url: charAshPng, photo: perfilCharAshPng, gender: "male", locked: true },
+  { id: "goku", label: "Goku", url: charGokuPng, photo: perfilGokuPng, gender: "male", locked: true, codeOnly: true },
 ];
 const skinPhotoOf = (id: string | null | undefined): string | null =>
   SKINS.find((s) => s.id === id)?.photo ?? null;
@@ -3893,7 +3896,7 @@ const confirmName = () => {
         const { data: prof } = await (supabase as any).from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
         if (cancelled) return;
         const srv = (prof?.avatar_url as string | null)?.trim();
-        if (srv && srv.startsWith("char") && srv !== skinId) {
+        if (srv && SKINS.some((skin) => skin.id === srv) && srv !== skinId) {
           setSkinId(srv);
           try { localStorage.setItem("rubym.setup.skin", srv); localStorage.setItem(SKIN_KEY, srv); } catch {}
         }
@@ -7045,6 +7048,7 @@ const confirmName = () => {
   const levelResetBusyRef = useRef(false);
   const mythicEggCodeBusyRef = useRef(false);
   const blackAwakeningCodeBusyRef = useRef(false);
+  const gokuSkinCodeBusyRef = useRef(false);
   const normalizeCode = (value: string) => value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -7124,6 +7128,51 @@ const confirmName = () => {
           setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha no resgate." });
         } finally {
           blackAwakeningCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
+    if (raw === "GOKUSKIN1") {
+      if (gokuSkinCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      gokuSkinCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Salvando progresso e desbloqueando a skin Goku…" });
+      void (async () => {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getSession();
+          const userId = authData.session?.user?.id;
+          if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
+          if (!(await pushCloudSaveNow(buildFullBlob()))) {
+            throw new Error("Não foi possível salvar seu progresso. Tente novamente.");
+          }
+          const { error } = await (supabase as any).rpc("claim_goku_skin_reward", { p_code: raw });
+          if (error) throw error;
+          const snapshot = await fetchCloudSave(userId) as
+            | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
+            | null;
+          if (!snapshot?.idle || !Array.isArray(snapshot.team) || !Array.isArray(snapshot.restingBench)
+            || !snapshot.idle.unlockedSkins?.includes("goku")) {
+            throw new Error("Skin salva no servidor. Recarregue o jogo para atualizar a tela.");
+          }
+          idleRef.current = snapshot.idle;
+          teamRef.current = snapshot.team;
+          setIdle(snapshot.idle);
+          setTeam(snapshot.team);
+          setRestingBench(snapshot.restingBench);
+          saveIdleStamped(snapshot.idle);
+          setSkinId("goku");
+          try { localStorage.setItem(`rubym.code.${userId}.${raw}.used`, "1"); } catch { /* ignore */ }
+          setCodeInput("");
+          setCodeMsg({ kind: "ok", text: "Skin Goku desbloqueada e equipada! Veja em Mochila → Visuais." });
+          pushChat("✦ Skin Goku desbloqueada e equipada!", "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar a skin." });
+        } finally {
+          gokuSkinCodeBusyRef.current = false;
         }
       })();
       return;
@@ -22104,6 +22153,10 @@ A sucata afundou com o casco.
               unlockedSkins={idle.unlockedSkins ?? ["default"]}
               skinTickets={idle.items?.skin_ticket ?? 0}
               onUnlockSkin={(sid) => {
+                if (SKINS.find((skin) => skin.id === sid)?.codeOnly) {
+                  pushChat("🔒 A skin Goku é exclusiva do código GOKUSKIN1.", "info");
+                  return;
+                }
                 setIdle((s) => {
                   const tickets = s.items?.skin_ticket ?? 0;
                   const unlocked = new Set(s.unlockedSkins ?? ["default"]);
@@ -26608,7 +26661,7 @@ onClick={(e) => {
                       key={s.id}
                       onClick={() => {
                         if (s.locked) {
-                          pushChat("🔒 Char Ash é exclusivo para pré-registro!", "info");
+                          pushChat(s.codeOnly ? "🔒 A skin Goku é obtida pelo código GOKUSKIN1." : "🔒 Char Ash é exclusivo para pré-registro!", "info");
                           return;
                         }
                         setSetupSkinId(s.id);
@@ -29009,7 +29062,7 @@ function TabOverlay({
             <div className="inventory-appearance-grid">{SKINS.map(sk => {
               const owned = !sk.locked || (unlockedSkins ?? []).includes(sk.id);
               const active = skinId === sk.id;
-              return <button type="button" key={sk.id} className={active ? "is-active" : ""} disabled={!owned && (skinTickets ?? 0) <= 0} onClick={() => { if (active) return; if (owned) { setSkinId(sk.id); pushChat(`Skin equipada: ${sk.label}!`, "cap"); } else onUnlockSkin(sk.id); }} title={owned ? "Equipar visual" : "Desbloquear com 1 Ticket de Skin"}><img src={sk.photo} alt="" /><span>{sk.label}{active ? " · Equipado" : owned ? "" : " · 1 ticket"}</span></button>;
+              return <button type="button" key={sk.id} className={active ? "is-active" : ""} disabled={!owned && (sk.codeOnly || (skinTickets ?? 0) <= 0)} onClick={() => { if (active) return; if (owned) { setSkinId(sk.id); pushChat(`Skin equipada: ${sk.label}!`, "cap"); } else if (!sk.codeOnly) onUnlockSkin(sk.id); }} title={owned ? "Equipar visual" : sk.codeOnly ? "Desbloquear com o código GOKUSKIN1" : "Desbloquear com 1 Ticket de Skin"}><img src={sk.photo} alt="" /><span>{sk.label}{active ? " · Equipado" : sk.codeOnly && !owned ? " · código" : owned ? "" : " · 1 ticket"}</span></button>;
             })}</div>
           </div>}
         />;
@@ -29155,7 +29208,7 @@ function TabOverlay({
                   {SKINS.map((sk) => {
                     const owned = !sk.locked || (unlockedSkins ?? []).includes(sk.id);
                     const active = skinId === sk.id;
-                    const canUnlock = !owned && (skinTickets ?? 0) > 0;
+                    const canUnlock = !owned && !sk.codeOnly && (skinTickets ?? 0) > 0;
                     return (
                       <button
                         key={sk.id}
@@ -29163,9 +29216,9 @@ function TabOverlay({
                           if (active) return;
                           if (owned) { setSkinId(sk.id); pushChat(`�S� Skin equipada: ${sk.label}!`, "cap"); }
                           else if (canUnlock) { onUnlockSkin(sk.id); }
-                          else { pushChat("�x Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
+                           else { pushChat(sk.codeOnly ? "🔒 Use o código GOKUSKIN1 para desbloquear." : "🔒 Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
                         }}
-                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
+                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (sk.codeOnly ? "Código GOKUSKIN1" : canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
                         style={{
                           borderRadius: 8, cursor: "pointer", padding: 2,
                           background: active ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.04)",
