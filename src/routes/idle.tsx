@@ -5691,10 +5691,74 @@ const confirmName = () => {
   const [arvDeathVideo, setArvDeathVideo] = useState<{ goldLost: number; levelLost: number } | null>(null);
   const arvDeathVideoRef = useRef<HTMLVideoElement | null>(null);
   const arvDeathBusyRef = useRef(false);
+  // ---- Entrada no ARV: TODOS os caminhos passam por aqui e pedem o código ----
+  // Sem código não entra (e, sem entrada, o servidor aceita o save normalmente).
+  const [arvEntryPrompt, setArvEntryPrompt] = useState<{ proceed: () => void } | null>(null);
+  const [arvCodeDraft, setArvCodeDraft] = useState("");
+  const [arvCodeError, setArvCodeError] = useState<string | null>(null);
+  const [arvCodeBusy, setArvCodeBusy] = useState(false);
+  const arvUnlockedRef = useRef(false);
+  /** true = entrou (código já validado nesta sessão); false = abriu o pedido de código. */
+  const requestArvEntry = (proceed: () => void): boolean => {
+    if (arvUnlockedRef.current) { proceed(); return true; }
+    setArvCodeDraft("");
+    setArvCodeError(null);
+    setArvEntryPrompt({ proceed });
+    return false;
+  };
+  const closeArvEntryPrompt = () => {
+    setArvEntryPrompt(null);
+    setArvCodeError(null);
+    setArvCodeDraft("");
+  };
+  const submitArvEntryCode = async () => {
+    if (arvCodeBusy || arvCodeDraft.length !== 5) return;
+    setArvCodeBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("unlock_arv" as never, { p_code: arvCodeDraft } as never);
+      if (error || data !== true) {
+        setArvCodeError(error
+          ? "Falha ao validar — confira se o SQL foi aplicado no Supabase."
+          : "Código inválido ou tentativas excedidas. Tente de novo mais tarde.");
+        return;
+      }
+      arvUnlockedRef.current = true;
+      const proceed = arvEntryPrompt?.proceed;
+      closeArvEntryPrompt();
+      proceed?.();
+    } finally {
+      setArvCodeBusy(false);
+    }
+  };
   useEffect(() => {
     if (idle.currentMap !== "arv") { setArvWaterMask(null); return; }
     return loadArvWaterFx(arvCollisionUrl, setArvWaterMask);
   }, [idle.currentMap]);
+  // Desbloqueio do DDT: iOS/Chrome só liberam vídeo COM som se um gesto do
+  // jogador já tiver iniciado a reprodução daquele elemento. No primeiro
+  // toque/tecla da partida o vídeo é "acordado" (volume 0 onde é respeitado),
+  // então na morte ele toca sozinho, sem ninguém encostar na tela.
+  useEffect(() => {
+    const unlock = () => {
+      const v = arvDeathVideoRef.current;
+      if (!v || v.dataset.unlocked === "1") return;
+      v.muted = false;
+      v.volume = 0;
+      v.play().then(() => {
+        v.pause();
+        try { v.currentTime = 0; } catch { /* mídia ainda não carregada */ }
+        v.dataset.unlocked = "1";
+      }).catch(() => { /* tenta de novo no próximo gesto */ });
+    };
+    window.addEventListener("pointerdown", unlock, true);
+    window.addEventListener("touchstart", unlock, true);
+    window.addEventListener("keydown", unlock, true);
+    return () => {
+      window.removeEventListener("pointerdown", unlock, true);
+      window.removeEventListener("touchstart", unlock, true);
+      window.removeEventListener("keydown", unlock, true);
+    };
+  }, []);
   useEffect(() => {
     if (!arvDeathVideo) return;
     const video = arvDeathVideoRef.current;
@@ -5718,8 +5782,8 @@ const confirmName = () => {
     video.muted = false;
     video.volume = 1;
     try { video.currentTime = 0; } catch { /* mídia ainda não carregada */ }
-    // Autoplay com som exige gesto recente; sem ele o vídeo começa mudo e o
-    // primeiro toque/tecla libera o áudio — em nenhum caso a tela fica travada.
+    // Se mesmo assim o navegador recusar o áudio (prévia em iframe, por
+    // exemplo), o vídeo segue mudo e o primeiro toque libera o som.
     video.play().catch(() => {
       video.muted = true;
       video.play().catch(() => {});
@@ -5735,6 +5799,8 @@ const confirmName = () => {
       window.removeEventListener("pointerdown", unlock);
       window.removeEventListener("keydown", unlock);
       window.clearTimeout(failsafe);
+      video.pause();
+      try { video.currentTime = 0; } catch { /* mídia ainda não carregada */ }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arvDeathVideo]);
@@ -5971,7 +6037,8 @@ const confirmName = () => {
       const { data: auth } = await supabase.auth.getSession();
       if (!auth.session?.user?.id) throw new Error("Entre na sua conta para entrar nesta área.");
       if (!(await pushCloudSaveNow(buildFullBlob()))) {
-        throw new Error("Falha ao salvar progresso. A zona vermelha continua bloqueada.");
+        const detail = getCloudSaveLastError();
+        throw new Error(`Falha ao salvar progresso${detail ? ` (${detail})` : ""}. A zona vermelha continua bloqueada.`);
       }
       const { data, error } = await (supabase as any).rpc("claim_arv_red_zone_death");
       if (error) throw error;
@@ -9425,6 +9492,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }, [idle.currentMap, customDims]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
+    if (p.to === "arv" && !requestArvEntry(() => enterWorldPortal(p))) return;
     const lv = idle.trainerLevel ?? 1;
     if (p.reqLevel && lv < p.reqLevel) {
       const now = Date.now();
@@ -15046,6 +15114,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const profTravelTo = (mapId: string) => {
     const entryError = mapEntryError(idleRef.current, mapId);
     if (entryError) { pushChat(entryError, "info"); return; }
+    if (mapId === "arv" && !requestArvEntry(() => profTravelTo(mapId))) return;
     const m = IDLE_MAPS[mapId];
     const spawn = PROF_SPAWNS[mapId];
     if (!m || !spawn) return;
@@ -19476,12 +19545,13 @@ A sucata afundou com o casco.
                 maskImage: `url("${arvWaterMask}")`,
               }} />
             )}
-            {arvDeathVideo && createPortal(
-              <div className="arv-death-video">
+            {/* DDT: o vídeo fica sempre no DOM (1px, invisível) para ser
+                desbloqueado no primeiro gesto; na morte ele expande. */}
+            {createPortal(
+              <div className={`arv-death-video${arvDeathVideo ? " is-active" : ""}`} aria-hidden={!arvDeathVideo}>
                 <video
                   ref={arvDeathVideoRef}
                   src={ddtVideoUrl}
-                  autoPlay
                   playsInline
                   preload="auto"
                   aria-label="Animação de morte"
@@ -19496,6 +19566,35 @@ A sucata afundou com o casco.
                 <span>Área vermelha do mapa</span>
                 <span>Retornou para Revoland</span>
                 <small>-{arvDeathNotice.goldLost.toLocaleString("pt-BR")} ouro · {arvDeathNotice.levelLost ? "-1 nível de treinador" : "nível mínimo mantido"}</small>
+              </div>,
+              document.body
+            )}
+            {/* Pedido de código do ARV — compartilhado por portal, portão e Professor. */}
+            {arvEntryPrompt && createPortal(
+              <div className="arv-code-backdrop" onClick={closeArvEntryPrompt}>
+                <form
+                  className="arv-code-box"
+                  onClick={(event) => event.stopPropagation()}
+                  onSubmit={(event) => { event.preventDefault(); void submitArvEntryCode(); }}
+                >
+                  <strong>🔒 ARV bloqueado</strong>
+                  <p>Área em teste. Digite o código de 5 caracteres para entrar.</p>
+                  <label htmlFor="arv-entry-code">Código de acesso</label>
+                  <input
+                    id="arv-entry-code"
+                    type="password"
+                    autoComplete="off"
+                    maxLength={5}
+                    value={arvCodeDraft}
+                    onChange={(event) => setArvCodeDraft(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                    autoFocus
+                  />
+                  {arvCodeError && <span className="arv-code-box__error" role="alert">{arvCodeError}</span>}
+                  <button type="submit" disabled={arvCodeDraft.length !== 5 || arvCodeBusy}>
+                    {arvCodeBusy ? "Validando…" : "Entrar para testar"}
+                  </button>
+                  <button type="button" className="arv-code-box__cancel" onClick={closeArvEntryPrompt}>Cancelar</button>
+                </form>
               </div>,
               document.body
             )}
@@ -22481,6 +22580,8 @@ A sucata afundou com o casco.
                   return; // A luz abre a confirmação; nunca teleporta sem consentimento.
                 }
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
+                // ARV: todo portão/pin exige o código antes de entrar.
+                if (g.target === "arv" && !requestArvEntry(() => travelToGate(g))) return;
                 if (g.target === "sa") { profTravelTo("sa"); return; }
                 const targetMap = IDLE_MAPS[g.target];
                 if (["rota_pinsir", "deserto_alaka"].includes(g.target)) {
@@ -23445,6 +23546,7 @@ A sucata afundou com o casco.
                         pushChat(error ? "🔒 Não foi possível validar o código ARV. Confira se o SQL foi aplicado." : "🔒 Código inválido ou tentativas excedidas. Tente novamente mais tarde.", "info");
                         return;
                       }
+                      arvUnlockedRef.current = true;
                     } else if (!isWorldMapDestinationUnlocked(destination.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;
