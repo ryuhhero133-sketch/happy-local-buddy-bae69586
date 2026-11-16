@@ -56,3 +56,4 @@ export async function deleteCloudSave(_userId: string): Promise<void> {
 }
 
 export { sanitizeSnapshot };
+export { isRebaseBlocked, rebaseForPush };

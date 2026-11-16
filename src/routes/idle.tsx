@@ -218,7 +218,7 @@ import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
-import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { fetchCloudSave, getCloudSaveLastError, isRebaseBlocked, pushCloudSaveNow, rebaseForPush, scheduleCloudSync } from "@/lib/cloudSave";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -6036,7 +6036,13 @@ const confirmName = () => {
       }
       const { data: auth } = await supabase.auth.getSession();
       if (!auth.session?.user?.id) throw new Error("Entre na sua conta para entrar nesta área.");
-      if (!(await pushCloudSaveNow(buildFullBlob()))) {
+      let saved = await pushCloudSaveNow(buildFullBlob());
+      if (!saved && isRebaseBlocked()) {
+        // Servidor à frente da base local (outra aba/dispositivo): adota a
+        // versão oficial quando ela não é mais nova no tempo e tenta de novo.
+        if (await rebaseForPush()) saved = await pushCloudSaveNow(buildFullBlob());
+      }
+      if (!saved) {
         const detail = getCloudSaveLastError();
         throw new Error(`Falha ao salvar progresso${detail ? ` (${detail})` : ""}. A zona vermelha continua bloqueada.`);
       }

@@ -485,9 +485,59 @@ async function rebaseOnLeadership() {
         /* ignore */
       }
       setStatus("conflict", "outra aba atualizou o save — recarregue para sincronizar");
+    } else {
+      // Servidor não está à frente: libera trava antiga de rebase.
+      needsRebase = false;
     }
   } catch {
     /* offline/backend ausente: mantém local */
+  }
+}
+
+/** true = save do servidor à frente da base local (push bloqueado). */
+export function isRebaseBlocked(): boolean {
+  return needsRebase;
+}
+
+/**
+ * Destrava o push quando o servidor está à frente: adota o número de versão
+ * oficial só quando o save do servidor NÃO é mais novo no tempo que o local
+ * (versão + relógio juntos — relógio sozinho nunca decide). Se o servidor
+ * for mais novo, não sobrescreve e devolve false.
+ */
+export async function rebaseForPush(): Promise<boolean> {
+  const uid = await currentUid();
+  if (!uid) return false;
+  try {
+    const { data, error } = await supabase
+      .from("game_saves")
+      .select("data,save_version")
+      .eq("user_id", uid)
+      .maybeSingle();
+    if (error) return false;
+    const row = data as { data?: unknown; save_version?: unknown } | null;
+    if (!row) return false;
+    const sv =
+      typeof row.save_version === "number" && Number.isFinite(row.save_version)
+        ? Math.floor(row.save_version)
+        : null;
+    if (sv === null) return false;
+    const serverSavedAt = readSnapshotSavedAt(row.data);
+    const memSavedAt = readSnapshotSavedAt(memSnapshot);
+    const local = localProgressMeta(uid);
+    let newestLocal = memSavedAt;
+    if (local.newestSavedAt !== null && (newestLocal === null || local.newestSavedAt > newestLocal)) {
+      newestLocal = local.newestSavedAt;
+    }
+    if (serverSavedAt !== null && newestLocal !== null && serverSavedAt > newestLocal) {
+      return false; // oficial mais novo: preserva, não empurra por cima.
+    }
+    storeVersion(uid, sv);
+    needsRebase = false;
+    setStatus("ok");
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -716,6 +766,9 @@ function storeRecovery(
  * de chains antigas (sem apagar: pendente obsoleto vai para recuperação). */
 function commitAdopt(uid: string, data: unknown, sv: number): unknown {
   storeVersion(uid, sv);
+  // Base local sincronizada com o servidor → destrava os pushes. Sem isto a
+  // aba ficaria bloqueada até um reload, mesmo já com a versão adotada.
+  needsRebase = false;
   try {
     localStorage.setItem(
       lastGoodKey(uid),
