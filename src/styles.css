@@ -1665,19 +1665,19 @@ html, body, #root {
   animation: bmpStarOrbit 9s linear infinite;
 }
 .bmp-star.s-lg { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; box-shadow: 0 0 12px #c58bff, 0 0 22px rgba(160,80,255,.8); }
-/* Ancestrais: aura do Black Mítico Plus com halo solar dourado. */
+/* Ancestrais: azul celeste + dourado (sem o rosa da raridade técnica). */
 .anc-aura .bmp-aura-glow {
-  background: radial-gradient(circle, rgba(255,247,184,.83) 0%, rgba(255,203,52,.68) 30%, rgba(178,100,10,.38) 58%, transparent 76%);
+  background: radial-gradient(circle, rgba(185,238,255,.83) 0%, rgba(53,184,239,.68) 30%, rgba(255,203,52,.38) 58%, transparent 76%);
   filter: blur(8px);
 }
 .anc-aura .bmp-aura-ring {
   border: 3px solid rgba(255,234,133,.9);
   background: radial-gradient(circle, transparent 50%, rgba(255,208,65,.25) 70%, transparent 76%);
-  box-shadow: 0 0 8px #fff2aa, 0 0 26px rgba(255,190,33,.85), inset 0 0 20px rgba(255,217,77,.65);
+  box-shadow: 0 0 8px #b4edff, 0 0 26px rgba(53,184,239,.85), inset 0 0 20px rgba(255,217,77,.65);
 }
 .anc-aura .bmp-star {
   background: radial-gradient(circle, #fffbea 0%, #ffe075 45%, #ffb720 75%, transparent 90%);
-  box-shadow: 0 0 9px #fff0b2, 0 0 20px rgba(255,190,40,.9);
+  box-shadow: 0 0 9px #b4edff, 0 0 20px rgba(53,184,239,.9);
 }
 .anc-aura .bmp-star.s-lg {
   box-shadow: 0 0 15px #fff0a0, 0 0 26px rgba(255,192,42,.9);
@@ -1718,8 +1718,8 @@ html, body, #root {
 }
 .anc-gold-halo::after {
   inset: 12%;
-  background: radial-gradient(circle, rgba(255,246,177,.36), rgba(255,192,39,.2) 42%, transparent 72%);
-  box-shadow: 0 0 24px rgba(255,198,45,.55);
+  background: radial-gradient(circle, rgba(184,235,255,.36), rgba(53,184,239,.2) 42%, transparent 72%);
+  box-shadow: 0 0 24px rgba(53,184,239,.55);
   animation: ancGoldBreath 2.8s ease-in-out infinite;
 }
 .anc-collection-sprite {
@@ -1760,8 +1760,8 @@ html, body, #root {
 }
 .anc-orbit-ring--outer {
   inset: -20px;
-  border: 2px solid rgba(255,215,87,.8);
-  box-shadow: 0 0 12px #ffc544, inset 0 0 13px #ffd76b;
+  border: 2px solid rgba(53,184,239,.8);
+  box-shadow: 0 0 12px #35b8ef, inset 0 0 13px #ffd76b;
 }
 .anc-orbit-ring--inner {
   inset: -8px;
@@ -1786,7 +1786,11 @@ html, body, #root {
   width: 11px;
   height: 11px;
   margin: -5.5px 0 0 -5.5px;
-  box-shadow: 0 0 8px #fff8cc, 0 0 18px #ffd44b, 0 0 28px #e99d1e;
+  box-shadow: 0 0 8px #b4edff, 0 0 18px #35b8ef, 0 0 28px #ffd44b;
+}
+.anc-orbit-orb:nth-of-type(even) {
+  background: radial-gradient(circle at 35% 30%, #e8faff, #35b8ef 52%, #126c9b 85%);
+  box-shadow: 0 0 8px #b4edff, 0 0 16px #35b8ef;
 }
 .anc-collection-sprite .anc-orbit-field {
   --anc-orbit-radius: 35px;

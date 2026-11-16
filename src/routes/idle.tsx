@@ -235,6 +235,11 @@ import {
 import { getDex, TYPE_COLOR, TYPE_ICON } from "@/game/movesets";
 import { computeTeamSynergies, computePower, statusResistFor, elementsOf } from "@/game/synergies";
 import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
+import {
+  ANCESTRAL_CRYSTAL_DROP_CHANCE, ANCESTRAL_GOLD_MULT,
+  ANCESTRAL_PET_XP_MULT, ANCESTRAL_TRAINER_XP_MULT, ANCESTRAL_TRAIT_COUNT,
+  ancestralLabel, hasActiveAncestral, normalizeAncestralTraits,
+} from "@/game/ancestralBonuses";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
 import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
@@ -3047,6 +3052,36 @@ function IdlePage() {
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
   const cloudBlobHydratedRef = useRef(false);
   const [cloudBlobReady, setCloudBlobReady] = useState(false);
+  // Ovos antigos (12/16 slots ou rerolls roxos) passam a 13 traits dourados.
+  // Mantém UID, nível, XP, time, itens e todo o restante do save.
+  useEffect(() => {
+    if (!cloudBlobReady) return;
+    const normalized = new Map<string, string[]>();
+    for (const entry of idle.collection ?? []) {
+      if (entry.event === "ancestral") normalized.set(entry.uid, normalizeAncestralTraits(entry.traits, entry.uid));
+    }
+    if (!normalized.size) return;
+    const fix = <T extends { uid: string; traits?: string[] }>(entry: T): T => {
+      const traits = normalized.get(entry.uid);
+      return traits && entry.traits !== traits ? { ...entry, traits } : entry;
+    };
+    if ((idle.collection ?? []).some((entry) => normalized.has(entry.uid) && normalized.get(entry.uid) !== entry.traits)) {
+      setIdle((state) => {
+        const collection = (state.collection ?? []).map((entry) =>
+          entry.event === "ancestral"
+            ? { ...entry, traits: normalizeAncestralTraits(entry.traits, entry.uid) }
+            : entry,
+        );
+        return { ...state, collection };
+      });
+    }
+    if (team.some((pet) => normalized.has(pet.uid) && normalized.get(pet.uid) !== pet.traits)) {
+      setTeam((current) => current.map(fix));
+    }
+    if (restingBench.some((pet) => normalized.has(pet.uid) && normalized.get(pet.uid) !== pet.traits)) {
+      setRestingBench((current) => current.map(fix));
+    }
+  }, [cloudBlobReady, idle.collection, team, restingBench]);
   useEffect(() => {
     if (!cloudBlobReady || !identity?.id) return;
     let cancelled = false;
@@ -11093,6 +11128,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const riderMult = isRiderKill ? 3 : 1; // rider dá MUITO xp
           const riderGoldMult = isRiderKill ? 2 : 1;
           const elemSyn = computeCombatSynergies(team);
+          const ancestralBonus = hasActiveAncestral(idleRef.current);
           // ⚖️ Teto anti-stack: Livro+Orb+Incenso+VIP+Guilda+Sinergia combinados limitados a ×2.5.
           // Eventos de mapa (mítico/oddish/dark/rider) ficam fora do teto por serem situacionais.
           const rawBoostMult = (1 + totalExpBoost) * (1 + totalBonus) * (1 + elemSyn.xpMult) * honeyMult;
@@ -11117,7 +11153,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           // 🌑 Mapas Bônus Dark — XP MUITO maior (é o único ganho relevante lá).
           const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
           const xpBase = Math.floor((60 + Math.random() * 100) * boostMult * lvlMult * mapMult * sync.xpMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
-          const xp = Math.max(1, xpBase);
+          const xp = Math.max(1, Math.floor(xpBase * (ancestralBonus ? ANCESTRAL_PET_XP_MULT : 1)));
+          const ancestralCrystal = ancestralBonus && Math.random() < ANCESTRAL_CRYSTAL_DROP_CHANCE ? 1 : 0;
           // Ouro NERFADO — teto ~40k/2h. Mapas altos dão +15% só.
           const mapGoldMult: Record<string, number> = {
             mapinha6: 1.0,      // Revoland (Lv1–30)
@@ -11136,17 +11173,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           };
           const mapBase = mapGoldMult[idle.currentMap] ?? 1.0;
           const baseGold = Math.floor((8 + Math.random() * 12) * mapBase); // 8–20 base
-          // Hard cap por kill para evitar farm absurdo mesmo com buffs
+          // Teto base por kill; o ancestral ativo aplica ×5 uma vez depois do teto.
           const KILL_GOLD_CAP = 35;
           // Se passou do cap do mapa, ouro cai pra 5% (anti-farm off-level)
           const mapCapGold = IDLE_MAPS[idle.currentMap].maxLevel;
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? 0.05 : 1);
           const rawGold = baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult;
-          const gold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)));
+          const gold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)))
+            * (ancestralBonus ? ANCESTRAL_GOLD_MULT : 1);
           // 🪲 BIDRIL RAIDER gigante: bônus garantido de ouro ao derrotar (fora do cap).
           const isBidrilKill = target.giant && speciesBaseOf(target.sp) === "beedrill";
-          const giantGoldBonus = isBidrilKill ? 250 + Math.floor(Math.random() * 151) : 0;
+          const giantGoldBonus = isBidrilKill
+            ? (250 + Math.floor(Math.random() * 151)) * (ancestralBonus ? ANCESTRAL_GOLD_MULT : 1)
+            : 0;
           if (isBidrilKill) {
             queueMicrotask(() => {
               pushChat(`🪲 BIDRIL RAIDER derrotado! +${giantGoldBonus} ouro de recompensa!`, "cap");
@@ -11174,6 +11214,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.map = idle.currentMap;
           // 📋 Loot do Mapa (resumo na Forja): ouro concedido neste abate
           setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus }));
+          if (ancestralCrystal) {
+            setMapLoot((l) => ({ ...l, crystals: l.crystals + ancestralCrystal }));
+            pushFxAt(target.x, target.y - 85, "+1 CRISTAL ANCESTRAL", "capture");
+          }
           // 📦 Drops de recurso no CHÃO (config central; não entram na mochila).
           const rdrops = rollDropsFor(target.sp, idle.currentMap);
           if (rdrops.length > 0) {
@@ -11635,7 +11679,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
             const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * trXpMult));
             const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3 * trXpMult)) : 0;
-            const totalTrainerXp = killTrainerXp + captureTrainerXp;
+            const totalTrainerXp = (killTrainerXp + captureTrainerXp)
+              * (ancestralBonus ? ANCESTRAL_TRAINER_XP_MULT : 1);
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
               // level up de treinador — chat + fx (fora do setState via microtask)
@@ -11688,7 +11733,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, crystals: s.pending.crystals + 0 },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, crystals: s.pending.crystals + ancestralCrystal },
               totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
@@ -13060,7 +13105,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       return;
     }
     const got: AncEggId = Math.random() < 0.5 ? "egg_anc_plus" : "egg_anc_luck";
-    const nm = got === "egg_anc_plus" ? "Egg Ancestral PLUS (16 traits)" : "Egg Ancestral Luck (+3 DOURADOS)";
+    const nm = got === "egg_anc_plus" ? "Egg Ancestral PLUS (13 dourados)" : "Egg Ancestral Luck (13 dourados)";
     setIdle((s) => ({
       ...s,
       items: { ...s.items, ticket_ancestral: (s.items?.ticket_ancestral ?? 0) - 1, [got]: (s.items?.[got] ?? 0) + 1 },
@@ -13103,7 +13148,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     pushChat(
       next.fed >= FED_CAP
         ? `🫧 ${use} Esfera(s) dada(s) ao ovo — ${next.fed}/${FED_CAP}! O ancestral está pronto para chocar.`
-        : `🫧 ${use} Esfera(s) dada(s) ao ovo (${next.fed}/${FED_CAP}) — ↑ chance de traits DOURADOS na liberação.`,
+        : `🫧 ${use} Esfera(s) dada(s) ao ovo (${next.fed}/${FED_CAP}) — 13 traits DOURADOS garantidos na liberação.`,
       "cap",
     );
   };
@@ -13135,7 +13180,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }));
     setTeam((tm) => (tm.length >= 6 ? tm : [...tm, pet]));
     // O efeito de persistência grava o time real com assinatura após setTeam.
-    setEggOpenResult({ sp: String(sp), rarity: "mythic_shiny" });
+    setEggOpenResult({ sp: String(sp), rarity: "ancestral" });
     pushChat(`🐣 O OVO ABRIU: ${String(sp).toUpperCase()} LIBERADO com ${traits.length} traits DOURADOS!`, "cap");
     pushFxAt(trainerPos.x, trainerPos.y - 70, "ANCESTRAL!", "capture");
   };
@@ -26078,7 +26123,7 @@ onClick={(e) => {
             </div>
             {chestAnim.phase === "reveal" ? (
               <div style={{ color: chestAnim.got === "egg_anc_plus" ? "#ffd94d" : "#7cffb2", fontSize: 13, fontWeight: 900, fontFamily: "monospace", letterSpacing: 1, minHeight: 20 }}>
-                {chestAnim.got === "egg_anc_plus" ? "🥚 EGG ANCESTRAL PLUS (16 traits)" : "🥚 EGG ANCESTRAL LUCK (+3 DOURADOS)"}
+                {chestAnim.got === "egg_anc_plus" ? "🥚 EGG ANCESTRAL PLUS (13 DOURADOS)" : "🥚 EGG ANCESTRAL LUCK (13 DOURADOS)"}
               </div>
             ) : (
               <div style={{ color: "#e8d9a8", fontSize: 13, fontWeight: 900, fontFamily: "monospace", letterSpacing: 1, minHeight: 40, lineHeight: 1.6, animation: "ancMystic 2.6s ease-in-out infinite" }}>
@@ -26559,11 +26604,11 @@ onClick={(e) => {
       {eggOpenResult && (() => {
         const rarityColorMap: Record<string, string> = {
           common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
-          epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
+          epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1", ancestral: "#35b8ef",
         };
         const rarityLabelMap: Record<string, string> = {
           common: "Comum", uncommon: "Incomum", rare: "Raro",
-          epic: "�0pico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico �S�",
+          epic: "�0pico", legendary: "Lendário", mythic: "Mítico", mythic_shiny: "Mítico �S�", ancestral: "ANCESTRAL",
         };
         const c = rarityColorMap[eggOpenResult.rarity] ?? "#f5cf6b";
         const label = rarityLabelMap[eggOpenResult.rarity] ?? eggOpenResult.rarity;
@@ -26991,7 +27036,7 @@ onClick={(e) => {
           common: "#8b6a30", uncommon: "#5ec26a", rare: "#4a9eff",
           epic: "#c084fc", legendary: "#ff8b3d", mythic: "#ff5252", mythic_shiny: "#ffd94d",
         };
-        const rColor = rarityColor[entry.rarity] ?? rarityColor[base.rarity] ?? "#8b6a30";
+        const rColor = entry.event === "ancestral" ? "#35b8ef" : rarityColor[entry.rarity] ?? rarityColor[base.rarity] ?? "#8b6a30";
         const src = GIF[sp];
         const lore = SPECIES_LORE[sp] ?? RARITY_LORE[base.rarity] ?? "Um Pokémon único, com história ainda por contar.";
         const isCurrent = team[0]?.uid === entry.uid;
@@ -27010,7 +27055,7 @@ onClick={(e) => {
                     {sp.replace(/_/g, " ").toUpperCase()}
                   </div>
                   <div style={{ marginTop: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: rColor, color: "#fff", display: "inline-block", fontWeight: 900, letterSpacing: 1 }}>
-                    {entry.rarity.toUpperCase()} · Nv. {displayLevel}
+                     {ancestralLabel(entry.event, entry.rarity.toUpperCase())} · Nv. {displayLevel}
                   </div>
                 </div>
                 <button onClick={() => setColecaoDetailUid(null)} style={{ background: "#b8862a", border: "none", color: "#fff9e8", borderRadius: 6, padding: "4px 10px", fontWeight: 900, cursor: "pointer" }}>✕</button>
@@ -28375,7 +28420,7 @@ function TabOverlay({
   const [bulkMode, setBulkMode] = useState(false);
   const [bulkSel, setBulkSel] = useState<Set<string>>(new Set());
   const [fragConfirm, setFragConfirm] = useState<null | {
-    entries: Array<{ uid: string; species: Species; level: number; rarity: Rarity; gain: number }>;
+    entries: Array<{ uid: string; species: Species; level: number; rarity: Rarity; event?: string; gain: number }>;
     totalGain: number;
   }>(null);
   const teamUidSet = useMemo(() => new Set(team.map((p) => p.uid)), [team]);
@@ -28391,7 +28436,7 @@ function TabOverlay({
       .map((uid) => collection.find((e) => e.uid === uid))
       .filter((e): e is CollectionEntry => !!e)
       .filter((e) => !teamUidSet.has(e.uid) && !lockedSet.has(e.uid))
-      .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, gain: CRAFT_BY_RARITY[e.rarity] ?? 1 }));
+       .map((e) => ({ uid: e.uid, species: e.species, level: e.level, rarity: e.rarity, event: e.event, gain: CRAFT_BY_RARITY[e.rarity] ?? 1 }));
     if (entries.length === 0) return;
     const totalGain = entries.reduce((s, e) => s + e.gain, 0);
     setFragConfirm({ entries, totalGain });
@@ -28851,9 +28896,9 @@ function TabOverlay({
           cr_green: "Cristal Verde 🟢", cr_purple: "Cristal Roxo 🟣",
         };
         const ITEM_DESC: Record<string, string> = {
-          egg_anc_selado: "Ovo Selado Ancestral — escolha UM pokémon na aba ANCESTRAL do Professor para selar. Libera em 3 DIAS (ou já, com 300 Esferas). Alimente com Esfera de Safira (≥12 traits, nunca abaixo do ROXO).",
-          egg_anc_plus: "Ovo Ancestral Plus — mesmo fluxo do Selado, mas o ancestral nasce com 16 traits (mínimo ROXO).",
-          egg_anc_luck: "Ovo Ancestral Luck — 12 traits com +3 DOURADOS garantidos desde o início (mínimo ROXO).",
+           egg_anc_selado: "Ovo Selado Ancestral — escolha UM pokémon na aba ANCESTRAL do Professor para selar. Libera em 3 DIAS (ou já, com 300 Esferas). Nasce com 13 traits DOURADOS.",
+           egg_anc_plus: "Ovo Ancestral Plus — mesmo fluxo do Selado, com 13 traits DOURADOS.",
+           egg_anc_luck: "Ovo Ancestral Luck — mesmo fluxo do Selado, com 13 traits DOURADOS.",
           esfera_safira: "Esfera de Safira — rara (4× mais rara que a Pepita, qualquer pokémon). Alimento do Ovo Selado Ancestral: melhora traits DOURADOS e, em 300/300, o ovo choca antes do tempo.",
           potion: "Restaura HP do pokémon líder. Use em quantidade para curar grandes danos.",
           pokeball: "Pokébola padrão. Chance base de captura.",
@@ -29756,7 +29801,7 @@ function TabOverlay({
                   const isBMP = !!entry.event && entry.event.startsWith("black_mitic");
                   const isAncestral = entry.event === "ancestral";
                   const isBrilhant = !!entry.event && entry.event.includes("brilhant");
-                  const bmpAccent = isAncestral ? "#ffd94d" : isBrilhant ? "#ff97e1" : "#a066ff";
+                  const bmpAccent = isAncestral ? "#35b8ef" : isBrilhant ? "#ff97e1" : "#a066ff";
                  return (
                      <div
                       key={entry.uid}
@@ -29767,7 +29812,7 @@ function TabOverlay({
                      }}
                      style={{
                          background: isBMP || isAncestral
-                           ? isAncestral ? "linear-gradient(160deg, #3b2704 0%, #171003 55%, #090704 100%)" : "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
+                            ? isAncestral ? "linear-gradient(160deg, #073657 0%, #092031 55%, #100e08 100%)" : "linear-gradient(160deg, #1a0530 0%, #0a021a 55%, #050010 100%)"
                            : "linear-gradient(180deg, #1a0f26, #251638)",
                          border: `2.5px solid ${isBMP || isAncestral ? bmpAccent : (isSelected ? "#c084fc" : locked ? "#ffd94d" : (isCurrent ? "#5ec26a" : "#c084fc"))}`,
                         borderRadius: 12, padding: 10, textAlign: "center",
@@ -29838,19 +29883,19 @@ function TabOverlay({
                              <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", position: "relative", zIndex: 2, filter: "drop-shadow(0 0 7px #ffe27b)" }} />
                            </span>
                          ) : <img src={gifMap[sp]} alt="" style={{ width: 64, height: 64, imageRendering: "pixelated", marginTop: 6, display: "block", filter: isBMP ? `drop-shadow(0 0 8px ${bmpAccent})` : undefined }} />)}
-                        <div style={{ fontSize: 11, marginTop: 2, color: isAncestral ? "#fff0ad" : isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
+                         <div style={{ fontSize: 11, marginTop: 2, color: isAncestral ? "#ffe8a0" : isBMP ? "#f7ecff" : "#eadfe8", fontWeight: 800, textAlign: "center", textShadow: "0 1px 3px #000" }}>{sp.replace(/_/g, " ").toUpperCase()}</div>
                      </button>
 
                      {/* Raridade / Badge BMP */}
                      <div style={{
                        fontSize: 9, padding: "2px 8px", borderRadius: 10,
-                       background: isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
-                       color: "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
-                       boxShadow: isBMP ? `0 0 8px ${bmpAccent}bb` : undefined,
+                        background: isAncestral ? "linear-gradient(120deg, #28bbf1, #ffe173)" : isBMP ? `linear-gradient(180deg, ${bmpAccent}, #4a1080)` : rColor,
+                        color: isAncestral ? "#09213b" : "#fff", justifySelf: "center", fontWeight: 900, letterSpacing: 1,
+                        boxShadow: isAncestral ? "0 0 12px #35b8ef99" : isBMP ? `0 0 8px ${bmpAccent}bb` : undefined,
                        border: isBMP ? "1px solid rgba(255,255,255,0.25)" : undefined,
                        position: "relative", zIndex: 1,
                      }}>
-                       {isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
+                        {isAncestral ? "ANCESTRAL" : isBMP ? (isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS") : entry.rarity.toUpperCase()}
                      </div>
 
                      {/* Nível */}
@@ -29872,7 +29917,7 @@ function TabOverlay({
                        title={traits.length ? traits.map((id) => TRAITS[id]?.name).filter(Boolean).join(" · ") : "Sem traits"}
                      >
                         {traits.length > 0
-                          ? traits.slice(0, isBMP ? 7 : entry.rarity === "mythic_shiny" ? 16 : 4).map((id, index) => <TraitIcon key={`${id}-${index}`} id={id} size={isBMP ? 20 : 22} />)
+                          ? traits.slice(0, isAncestral ? ANCESTRAL_TRAIT_COUNT : isBMP ? 7 : entry.rarity === "mythic_shiny" ? 16 : 4).map((id, index) => <TraitIcon key={`${id}-${index}`} id={id} size={isBMP || isAncestral ? 20 : 22} />)
                          : <span style={{ fontSize: 9, color: "#b8a066", fontWeight: 700, letterSpacing: 0.5, opacity: 0.7 }}>— sem traits —</span>}
                      </div>
 
@@ -30510,12 +30555,13 @@ function TabOverlay({
         const honeyPct = honeyRareActive ? 20 : honeyActive ? 10 : 0;
         const totalExpPct = bookPct + orbPct + honeyPct;
         const stats = idle.globalStats || { attack: 0, speed: 0, synergy: 0, resistance: 0, mastery: 0 };
-        const ancestrals = collection.filter((p) => p.event === "ancestral" && (p.traits?.length ?? 0) >= 12);
+        const ancestrals = collection.filter((p) => p.event === "ancestral");
         const activeAncestral = ancestrals.find((p) => p.uid === idle.activeAncestralUid) ?? null;
         const ancestralStoneCost = 30;
         const ancestralPepitaCost = 30;
         const ancestralSafiraCost = 100;
-        const totalStones = Object.entries(idle.items ?? {}).reduce((sum, [id, qty]) => sum + (isStoneId(id) ? qty : 0), 0);
+         const totalStones = Object.entries((idle.items ?? {}) as Record<string, number>)
+           .reduce((sum, [id, qty]) => sum + (isStoneId(id) ? qty : 0), 0);
         const rollAncestralTrait = (traitIndex: number) => {
           const current = activeAncestral;
           if (!current || !current.traits?.[traitIndex]) return;
@@ -30523,13 +30569,11 @@ function TabOverlay({
             pushChat("Gacha Ancestral: faltam 30 Stones, 30 Pepitas ou 100 Esferas de Safira.", "info");
             return;
           }
-          const gold = Object.values(TRAITS).filter((t) => t.tier === "gold");
-          const purple = Object.values(TRAITS).filter((t) => t.tier === "purple");
-          // 45% dourado; o restante é roxo. Repetir é permitido para ancestrais.
-          const pool = Math.random() < 0.45 ? gold : purple;
-          const rolled = pool[Math.floor(Math.random() * pool.length)]?.id;
+           const gold = Object.values(TRAITS).filter((t) => t.tier === "gold");
+           // Ancestral nunca perde um slot dourado, mesmo após reroll.
+           const rolled = gold[Math.floor(Math.random() * gold.length)]?.id;
           if (!rolled) return;
-          setIdle((s) => {
+           setIdle((s: IdleState) => {
             const items = { ...s.items, pepita: (s.items?.pepita ?? 0) - ancestralPepitaCost, esfera_safira: (s.items?.esfera_safira ?? 0) - ancestralSafiraCost };
             let remaining = ancestralStoneCost;
             for (const stone of Object.keys(items).filter(isStoneId).sort()) {
@@ -30546,7 +30590,7 @@ function TabOverlay({
                 : entry),
             };
           });
-          pushChat(`🎰 Trait substituído: ${TRAITS[rolled]?.name ?? rolled} (${TRAITS[rolled]?.tier === "gold" ? "DOURADO" : "ROXO"})!`, "cap");
+           pushChat(`🎰 Trait substituído: ${TRAITS[rolled]?.name ?? rolled} (DOURADO)!`, "cap");
         };
         const stonesMap: Record<keyof typeof stats, { stone: string, color: string, label: string, desc: string, fail: number }> = {
           attack: { stone: "stone_fire", color: "#ff5252", label: "ATAQUE", desc: "Aumenta o Dano Total em +5% por nível. Essencial para derrotar Chefes e lendários mais rápido.", fail: 15 },
@@ -30680,19 +30724,19 @@ function TabOverlay({
               </div>
             </div>
 
-            <div style={{ padding: 16, borderRadius: 16, border: "2px solid #ffd94d88", background: "linear-gradient(135deg, rgba(68,45,8,.92), rgba(25,12,48,.95))", boxShadow: "0 0 24px #ffd94d22" }}>
+            <div style={{ padding: 16, borderRadius: 16, border: "2px solid #35b8ef88", background: "linear-gradient(135deg, rgba(8,54,83,.92), rgba(37,27,9,.95))", boxShadow: "0 0 24px #35b8ef44" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
                 <div>
                   <div style={{ color: "#ffe88a", fontSize: 17, fontWeight: 900, letterSpacing: 1 }}>👑 ANCESTRAL GLOBAL</div>
-                  <div style={{ color: "#d8cda7", fontSize: 11 }}>Ative um ancestral da coleção: seus traits funcionam em todo o time, mesmo fora dele.</div>
+                   <div style={{ color: "#b9d9e8", fontSize: 11 }}>Ative um ancestral da coleção: seus 13 traits dourados e bônus de combate funcionam mesmo fora do time.</div>
                 </div>
                 <div style={{ color: "#fff0a8", fontSize: 10, fontWeight: 800, padding: "6px 10px", borderRadius: 8, background: "#0008" }}>{activeAncestral ? "✓ ATIVO GLOBAL" : "NENHUM ATIVO"}</div>
               </div>
-              {ancestrals.length === 0 ? <div style={{ color: "#b9a77c", fontSize: 12, padding: 8 }}>Choque um Ovo Ancestral para liberar um Pokémon com 12–16 traits dourados.</div> : <>
+               {ancestrals.length === 0 ? <div style={{ color: "#b9d9e8", fontSize: 12, padding: 8 }}>Choque um Ovo Ancestral para liberar um Pokémon com 13 traits dourados.</div> : <>
                 <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
                   {ancestrals.map((entry) => {
                     const selected = entry.uid === activeAncestral?.uid;
-                    return <button key={entry.uid} onClick={() => setIdle((s) => ({ ...s, activeAncestralUid: selected ? undefined : entry.uid }))} style={{ minWidth: 132, cursor: "pointer", borderRadius: 12, padding: 9, border: `2px solid ${selected ? "#ffe066" : "#795d25"}`, background: selected ? "linear-gradient(160deg,#6d4c11,#23152e)" : "#180f25", color: "#fff" }}>
+                     return <button key={entry.uid} onClick={() => setIdle((s: IdleState) => ({ ...s, activeAncestralUid: selected ? undefined : entry.uid }))} style={{ minWidth: 132, cursor: "pointer", borderRadius: 12, padding: 9, border: `2px solid ${selected ? "#ffe066" : "#35b8ef77"}`, background: selected ? "linear-gradient(160deg,#07567b,#574411)" : "#09253c", color: "#fff" }}>
                       {gifMap[entry.species] && <img src={gifMap[entry.species]} alt="" style={{ width: 50, height: 50, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 0 7px #ffd94d)" }} />}
                       <div style={{ fontSize: 10, fontWeight: 900 }}>{entry.species.replace(/_/g, " ").toUpperCase()}</div>
                       <div style={{ color: "#ffe066", fontSize: 9, marginTop: 3 }}>{selected ? "ATIVO" : "ATIVAR"}</div>
@@ -30702,9 +30746,9 @@ function TabOverlay({
                 {activeAncestral && <div style={{ marginTop: 10, borderTop: "1px solid #ffd94d44", paddingTop: 10 }}>
                   <div style={{ color: "#ffe88a", fontWeight: 900, fontSize: 12 }}>TRAITS ATIVOS — toque em um trait para tentar substituí-lo</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                    {activeAncestral.traits?.map((trait, index) => <button key={`${trait}-${index}`} onClick={() => rollAncestralTrait(index)} title={`Trocar ${TRAITS[trait]?.name ?? trait}: 45% chance de dourado`} style={{ padding: 0, border: "none", borderRadius: 10, background: "transparent", cursor: "pointer" }}><TraitIcon id={trait} size={30} /></button>)}
+                     {activeAncestral.traits?.map((trait, index) => <button key={`${trait}-${index}`} onClick={() => rollAncestralTrait(index)} title={`Trocar ${TRAITS[trait]?.name ?? trait}: dourado garantido`} style={{ padding: 0, border: "none", borderRadius: 10, background: "transparent", cursor: "pointer" }}><TraitIcon id={trait} size={30} /></button>)}
                   </div>
-                  <div style={{ color: "#cbbf99", fontSize: 10, marginTop: 9 }}>🎰 Cada tentativa: <b style={{ color: "#ffe066" }}>30 Stones elementais (mistura aceita)</b> + <b style={{ color: "#ffe066" }}>30 Pepitas</b> + <b style={{ color: "#ffe066" }}>100 Esferas de Safira</b>. Chance de dourado: 45%.</div>
+                   <div style={{ color: "#b9d9e8", fontSize: 10, marginTop: 9 }}>🎰 Cada tentativa: <b style={{ color: "#ffe066" }}>30 Stones elementais (mistura aceita)</b> + <b style={{ color: "#ffe066" }}>30 Pepitas</b> + <b style={{ color: "#ffe066" }}>100 Esferas de Safira</b>. Dourado garantido.</div>
                 </div>}
               </>}
             </div>
@@ -31010,7 +31054,11 @@ function TabOverlay({
       )}
 
       {statsCardPet && (
-        <PokemonStatsCard pet={statsCardPet} team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)} />
+        <PokemonStatsCard
+          pet={(idle.collection ?? []).some((entry: CollectionEntry) => entry.uid === statsCardPet.uid && entry.event === "ancestral")
+            ? { ...statsCardPet, event: "ancestral" } : statsCardPet}
+          team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)}
+        />
       )}
 
       {fragConfirm && (() => {
@@ -31074,7 +31122,7 @@ function TabOverlay({
                   gap: 10, maxHeight: 320, overflowY: "auto", padding: 4,
                 }}>
                   {list.map((e) => {
-                    const rc = rarityColor[e.rarity] ?? "#8b6a30";
+                    const rc = e.event === "ancestral" ? "#35b8ef" : rarityColor[e.rarity] ?? "#8b6a30";
                     return (
                       <div key={e.uid} style={{
                         background: "linear-gradient(180deg, rgba(30,15,50,0.85), rgba(11,5,16,0.9))",
@@ -31090,7 +31138,7 @@ function TabOverlay({
                         </div>
                         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
                           <span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 8, background: rc, color: "#0b0510", fontWeight: 900, letterSpacing: 1 }}>
-                            {e.rarity.toUpperCase()}
+                             {ancestralLabel(e.event, e.rarity.toUpperCase())}
                           </span>
                           <span style={{ fontSize: 9, color: "#f5cf6b", fontWeight: 900 }}>Lv {e.level}</span>
                         </div>

@@ -157,9 +157,9 @@ export const TIER_COLOR: Record<TraitTier, string> = {
 export type AncestralEggKind = "selado" | "plus" | "luck";
 
 const ANCESTRAL_EGG_TRAITS: Record<AncestralEggKind, number> = {
-  selado: 12,
-  plus: 16,
-  luck: 12,
+  selado: 13,
+  plus: 13,
+  luck: 13,
 };
 
 const GIFT_GOLD_POOL = POOL_BY_TIER.gold;
@@ -167,13 +167,13 @@ const GIFT_GOLD_POOL = POOL_BY_TIER.gold;
 /**
  * Sorteio dos traits de um ancestral recém-liberado do Ovo Selado.
  * Regras duras (spec do jogador):
- *  - NUNCA menos que 12 traits (Plus = 16);
- *  - TODOS os slots são DOURADOS; Selado/Luck têm 12 e Plus tem 16;
+ *  - Exatamente 13 traits em todos os tipos;
+ *  - TODOS os slots são DOURADOS;
  *  - Repetições são válidas. O catálogo tem oito traits dourados, portanto
- *    elas são necessárias para cumprir os 12–16 slots prometidos pelo ovo.
+  *    elas são necessárias para cumprir os 13 slots do ovo.
  */
 export function rollAncestralTraits(kind: AncestralEggKind, fed: number): string[] {
-  const total = ANCESTRAL_EGG_TRAITS[kind] ?? 12;
+  const total = ANCESTRAL_EGG_TRAITS[kind] ?? 13;
   void fed; // Alimentar ainda antecipa a eclosão; o ancestral já nasce dourado.
   return Array.from({ length: total }, () =>
     GIFT_GOLD_POOL[Math.floor(Math.random() * GIFT_GOLD_POOL.length)],

@@ -48,17 +48,17 @@ export const TIER_META: Record<AncestralTier, { label: string; color: string; gl
 
 /** Bônus econômicos universais — idênticos para os 17. */
 export const UNIVERSAL_BONUS = [
-  { label: "Cristais", value: "+10%", desc: "na obtenção de cristais." },
-  { label: "XP do Pokémon", value: "+50%", desc: "da XP recebida pelo Pokémon." },
+  { label: "Cristais", value: "10%", desc: "de chance de obter 1 cristal por abate." },
+  { label: "XP do Pokémon", value: "+50%", desc: "da XP de combate recebida pelo Pokémon." },
   { label: "XP do Treinador", value: "2×", desc: "no XP destinado à evolução do treinador." },
-  { label: "Ouro (Trait)", value: "+50%", desc: "de bônus de ouro pelo Trait." },
+  { label: "Ouro em combate", value: "5×", desc: "no ouro por abate, após o teto base." },
 ] as const;
 
 export const GLOBAL_GOLD_NOTE =
-  "O multiplicador global de ouro de 5× NÃO decorre do Trait de +50%: é implementado separadamente no sistema econômico e validado no balanceamento do servidor. Bônus de XP e ouro contam UMA VEZ por recompensa elegível.";
+  "Ative UM ancestral no painel global para receber estes bônus de combate. Eles contam uma vez, mesmo que você tenha vários ancestrais. Outros traits dourados somam seus próprios efeitos. Recompensas de missões e compras não são multiplicadas.";
 
 export const EGG_NOTE =
-  "Ovos ancestrais NÃO são vendidos: PLUS e LUCK saem do BAÚ ANCESTRAL na aba INCUBADORA (abre com 1 TICKET ANCESTRAL do admin — com animação — e sorteia um dos dois). Toque num card do ancestral para ver as infos e use SELAR no card de ovos dele. O ovo libera em 3 DIAS — ou já, se você alimentar 300 Esferas de Safira (≥12 traits, nunca abaixo do ROXO).";
+  "Ovos ancestrais NÃO são vendidos: PLUS e LUCK saem do BAÚ ANCESTRAL na aba INCUBADORA (abre com 1 TICKET ANCESTRAL do admin — com animação — e sorteia um dos dois). Toque num card do ancestral para ver as infos e use SELAR no card de ovos dele. O ovo libera em 3 DIAS — ou já, se você alimentar 300 Esferas de Safira. Todos nascem com 13 traits DOURADOS.";
 
 export function eggNameFor(name: string): string {
   return `Ovo de ${name}`;

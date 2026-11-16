@@ -412,9 +412,9 @@ export function ProfessorLabPanel(props: Props) {
   const TAB_BTN = (active: boolean, id?: string): CSSProperties => {
     const isAnc = id === "ancestral";
     const isPerf = id === "perfil";
-    const on = isAnc ? "#c98cff" : isPerf ? "#ffd94d" : CYAN;
-    const glow = isAnc ? "rgba(201,140,255,0.75)" : isPerf ? "rgba(255,217,77,0.7)" : "rgba(53,224,255,0.55)";
-    const border = isAnc ? "rgba(201,140,255,0.65)" : isPerf ? "rgba(255,217,77,0.6)" : "rgba(53,224,255,0.35)";
+     const on = isAnc ? "#35b8ef" : isPerf ? "#ffd94d" : CYAN;
+     const glow = isAnc ? "rgba(53,184,239,0.75)" : isPerf ? "rgba(255,217,77,0.7)" : "rgba(53,224,255,0.55)";
+     const border = isAnc ? "rgba(53,184,239,0.65)" : isPerf ? "rgba(255,217,77,0.6)" : "rgba(53,224,255,0.35)";
     return {
       padding: "6px 14px",
       cursor: "pointer",
@@ -422,13 +422,13 @@ export function ProfessorLabPanel(props: Props) {
       fontSize: 11,
       letterSpacing: 1,
       color: active
-        ? isAnc ? "#12002a" : isPerf ? "#241a00" : "#04141a"
-        : isAnc ? "#e0c6ff" : isPerf ? "#ffe9a3" : "#9ad9ef",
-      background: active ? on : isAnc ? "rgba(201,140,255,0.12)" : isPerf ? "rgba(255,217,77,0.1)" : "rgba(53,224,255,0.07)",
+         ? isAnc ? "#071e31" : isPerf ? "#241a00" : "#04141a"
+         : isAnc ? "#b9e8ff" : isPerf ? "#ffe9a3" : "#9ad9ef",
+       background: active ? on : isAnc ? "rgba(53,184,239,0.12)" : isPerf ? "rgba(255,217,77,0.1)" : "rgba(53,224,255,0.07)",
       border: `1px solid ${active ? on : border}`,
       boxShadow: active
         ? `0 0 16px ${glow}`
-        : isAnc ? "0 0 7px rgba(201,140,255,0.3)" : isPerf ? "0 0 7px rgba(255,217,77,0.25)" : "none",
+         : isAnc ? "0 0 7px rgba(53,184,239,0.3)" : isPerf ? "0 0 7px rgba(255,217,77,0.25)" : "none",
       fontFamily: MONO,
     };
   };
@@ -2333,7 +2333,7 @@ export function ProfessorLabPanel(props: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ color: "#c98cff", fontSize: 12, fontWeight: 900, letterSpacing: 2, fontFamily: MONO }}>
+                   <span style={{ color: "#35b8ef", fontSize: 12, fontWeight: 900, letterSpacing: 2, fontFamily: MONO }}>
                     💠 ENCICLOPÉDIA ANCESTRAL
                   </span>
                   <span
@@ -2341,12 +2341,12 @@ export function ProfessorLabPanel(props: Props) {
                       fontSize: 10,
                       fontFamily: MONO,
                       color: "#04141a",
-                      background: "#c98cff",
+                       background: "#35b8ef",
                       borderRadius: 10,
                       padding: "2px 8px",
                       fontWeight: 900,
                       letterSpacing: 1,
-                      boxShadow: "0 0 14px rgba(201,140,255,0.7)",
+                       boxShadow: "0 0 14px rgba(53,184,239,0.7)",
                     }}
                   >
                     {ANCESTRAL_ENTRIES.length} REGISTROS
@@ -2414,14 +2414,14 @@ export function ProfessorLabPanel(props: Props) {
                 <div
                   style={{
                     ...cut(12),
-                    border: sealedEgg ? "2px solid #c98cff" : "1px solid rgba(201,140,255,0.45)",
-                    background: "linear-gradient(135deg, rgba(201,140,255,0.14), rgba(10,14,18,0.92) 60%)",
+                     border: sealedEgg ? "2px solid #35b8ef" : "1px solid rgba(53,184,239,0.45)",
+                     background: "linear-gradient(135deg, rgba(53,184,239,0.14), rgba(10,14,18,0.92) 60%)",
                     padding: 12,
                     marginBottom: 14,
-                    boxShadow: sealedEgg ? "0 0 26px rgba(201,140,255,0.35)" : "none",
+                     boxShadow: sealedEgg ? "0 0 26px rgba(53,184,239,0.35)" : "none",
                   }}
                 >
-                  <div style={{ color: "#e0a8ff", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, fontFamily: MONO, marginBottom: 8 }}>
+                   <div style={{ color: "#b9e8ff", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, fontFamily: MONO, marginBottom: 8 }}>
                     EGG SELADO ANCESTRAL
                   </div>
 
@@ -2435,7 +2435,7 @@ export function ProfessorLabPanel(props: Props) {
                     const hh = Math.floor((rem % 86_400_000) / 3_600_000);
                     const mm = Math.floor((rem % 3_600_000) / 60_000);
                     const kindLbl = sealedEgg.kind === "plus" ? "PLUS" : sealedEgg.kind === "luck" ? "LUCK" : "SELADO";
-                    const kindCol = sealedEgg.kind === "plus" ? "#ffd94d" : sealedEgg.kind === "luck" ? "#7cffb2" : "#c98cff";
+                     const kindCol = sealedEgg.kind === "plus" ? "#ffd94d" : sealedEgg.kind === "luck" ? "#7cffb2" : "#35b8ef";
                     const ancSp = sealedEgg.species as Species;
                     return (
                       <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
@@ -2452,7 +2452,7 @@ export function ProfessorLabPanel(props: Props) {
                             <span style={{ fontSize: 9, fontWeight: 900, fontFamily: MONO, color: "#04141a", background: kindCol, padding: "2px 6px", letterSpacing: 1 }}>OVO {kindLbl}</span>
                           </div>
                           <div style={{ height: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", marginTop: 7, position: "relative", overflow: "hidden" }}>
-                            <div style={{ position: "absolute", inset: 0, width: `${pct}%`, background: ready ? "linear-gradient(90deg,#7cffb2,#35e0ff)" : `linear-gradient(90deg,${kindCol},#c98cff)`, transition: "width .4s ease" }} />
+                             <div style={{ position: "absolute", inset: 0, width: `${pct}%`, background: ready ? "linear-gradient(90deg,#7cffb2,#35e0ff)" : `linear-gradient(90deg,${kindCol},#35b8ef)`, transition: "width .4s ease" }} />
                           </div>
                               <div style={{ color: ready ? "#7cffb2" : "#ffd94d", fontSize: 11, fontWeight: 800, fontFamily: MONO, marginTop: 5 }}>
                                 {ready
@@ -2508,9 +2508,9 @@ export function ProfessorLabPanel(props: Props) {
                     );
                   })() : (() => {
                     const opts = [
-                      { id: "egg_anc_selado", label: "SELADO", img: eggSeladoUrl, col: "#c98cff", hint: "≥12 traits", n: ancEggCounts?.selado ?? 0 },
-                      { id: "egg_anc_plus", label: "PLUS", img: eggPlusUrl, col: "#ffd94d", hint: "16 traits", n: ancEggCounts?.plus ?? 0 },
-                      { id: "egg_anc_luck", label: "LUCK", img: eggLuckUrl, col: "#7cffb2", hint: "+3 DOURADOS", n: ancEggCounts?.luck ?? 0 },
+                      { id: "egg_anc_selado", label: "SELADO", img: eggSeladoUrl, col: "#35b8ef", hint: "13 DOURADOS", n: ancEggCounts?.selado ?? 0 },
+                      { id: "egg_anc_plus", label: "PLUS", img: eggPlusUrl, col: "#ffd94d", hint: "13 DOURADOS", n: ancEggCounts?.plus ?? 0 },
+                      { id: "egg_anc_luck", label: "LUCK", img: eggLuckUrl, col: "#7cffb2", hint: "13 DOURADOS", n: ancEggCounts?.luck ?? 0 },
                     ];
                     const totalOvos = opts.reduce((s, o) => s + o.n, 0);
                     return (
@@ -2881,9 +2881,9 @@ export function ProfessorLabPanel(props: Props) {
                         <Section title="OVO — SELAR ESTE ANCESTRAL" color="#ffd94d">
                           {(() => {
                             const rows = [
-                              { id: "egg_anc_selado", label: "SELADO", img: eggSeladoUrl, col: "#c98cff", n: ancEggCounts?.selado ?? 0, hint: "≥12 traits" },
-                              { id: "egg_anc_plus", label: "PLUS", img: eggPlusUrl, col: "#ffd94d", n: ancEggCounts?.plus ?? 0, hint: "16 traits" },
-                              { id: "egg_anc_luck", label: "LUCK", img: eggLuckUrl, col: "#7cffb2", n: ancEggCounts?.luck ?? 0, hint: "+3 DOURADOS" },
+                              { id: "egg_anc_selado", label: "SELADO", img: eggSeladoUrl, col: "#35b8ef", n: ancEggCounts?.selado ?? 0, hint: "13 DOURADOS" },
+                              { id: "egg_anc_plus", label: "PLUS", img: eggPlusUrl, col: "#ffd94d", n: ancEggCounts?.plus ?? 0, hint: "13 DOURADOS" },
+                              { id: "egg_anc_luck", label: "LUCK", img: eggLuckUrl, col: "#7cffb2", n: ancEggCounts?.luck ?? 0, hint: "13 DOURADOS" },
                             ];
                             const busy = !!sealedEgg;
                             return (
@@ -3979,9 +3979,9 @@ export function ProfessorLabPanel(props: Props) {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
                     {[
-                      { key: "selado", img: eggSeladoUrl, name: "EGG SELADO", col: "#c98cff", desc: "≥12 traits. Vem de eventos/premios do admin.", n: ancEggCounts?.selado ?? 0 },
-                      { key: "plus", img: eggPlusUrl, name: "ANCESTRAL PLUS", col: "#ffd94d", desc: "16 traits. Só do Baú Ancestral.", n: ancEggCounts?.plus ?? 0 },
-                      { key: "luck", img: eggLuckUrl, name: "ANCESTRAL LUCK", col: "#7cffb2", desc: "+3 DOURADOS. Só do Baú Ancestral.", n: ancEggCounts?.luck ?? 0 },
+                      { key: "selado", img: eggSeladoUrl, name: "EGG SELADO", col: "#35b8ef", desc: "13 traits dourados. Vem de eventos/premios do admin.", n: ancEggCounts?.selado ?? 0 },
+                      { key: "plus", img: eggPlusUrl, name: "ANCESTRAL PLUS", col: "#ffd94d", desc: "13 traits dourados. Só do Baú Ancestral.", n: ancEggCounts?.plus ?? 0 },
+                      { key: "luck", img: eggLuckUrl, name: "ANCESTRAL LUCK", col: "#7cffb2", desc: "13 traits dourados. Só do Baú Ancestral.", n: ancEggCounts?.luck ?? 0 },
                     ].map((o) => (
                       <div key={o.key} style={{ ...cut(8), background: "rgba(0,0,0,0.45)", border: `1px solid ${o.col}66`, padding: "10px 10px", textAlign: "center" }}>
                         <img src={o.img} alt={o.name} style={{ width: 64, height: 64, objectFit: "contain", filter: `drop-shadow(0 0 10px ${o.col}aa)` }} />
