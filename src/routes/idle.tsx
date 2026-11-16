@@ -30574,7 +30574,7 @@ function TabOverlay({
            const rolled = gold[Math.floor(Math.random() * gold.length)]?.id;
           if (!rolled) return;
            setIdle((s: IdleState) => {
-            const items = { ...s.items, pepita: (s.items?.pepita ?? 0) - ancestralPepitaCost, esfera_safira: (s.items?.esfera_safira ?? 0) - ancestralSafiraCost };
+             const items: Record<string, number> = { ...s.items, pepita: (s.items?.pepita ?? 0) - ancestralPepitaCost, esfera_safira: (s.items?.esfera_safira ?? 0) - ancestralSafiraCost };
             let remaining = ancestralStoneCost;
             for (const stone of Object.keys(items).filter(isStoneId).sort()) {
               const used = Math.min(remaining, items[stone] ?? 0);
