@@ -6072,7 +6072,12 @@ const confirmName = () => {
       setArvDeathVideo({ goldLost, levelLost });
       pushChat(`☠️ Você morreu na área vermelha! Retornou para Revoland. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Falha ao processar zona vermelha.";
+      // Erros do Supabase não são instanceof Error — pegar .message deles também,
+      // senão o motivo real (RPC ausente, permissão, save travado) fica escondido.
+      const raw = typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "";
+      const message = (error instanceof Error ? error.message : raw) || "Falha ao processar zona vermelha.";
       pushChat(`⚠ ${message}`, "info");
     } finally {
       // Depois da RPC, qualquer falha de hidratação exige recarregar, não outra penalidade.
