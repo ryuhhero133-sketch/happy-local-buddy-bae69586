@@ -2828,7 +2828,9 @@ function IdlePage() {
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
     const byUid = new Map<string, CollectionEntry>();
-    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry);
+    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry.event === "ancestral"
+      ? { ...entry, traits: normalizeAncestralTraits(entry.traits, entry.uid) }
+      : entry);
     for (const pet of [...team, ...restingBench]) {
       const current = byUid.get(pet.uid);
       byUid.set(pet.uid, {
@@ -2838,7 +2840,8 @@ function IdlePage() {
         xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
         rarity: pet.rarity,
         capturedAt: current?.capturedAt ?? Date.now(),
-        traits: current?.traits ?? pet.traits ?? [],
+        traits: current?.traits ?? (pet.event === "ancestral"
+          ? normalizeAncestralTraits(pet.traits, pet.uid) : pet.traits ?? []),
         event: current?.event ?? pet.event,
       });
     }
@@ -27084,6 +27087,18 @@ onClick={(e) => {
               <div style={{ marginTop: 10, fontSize: 11, color: "#6b4a10" }}>
                 Ouro por derrota: <b>{base.goldRange[0]}-{base.goldRange[1]}</b> · Nível mínimo: <b>{base.minLv}</b>
               </div>
+              {entry.event === "ancestral" && (
+                <div style={{ marginTop: 12, padding: 10, borderRadius: 8, border: "1px solid #b8862a", background: "#e7f6fa" }}>
+                  <div style={{ color: "#07567b", fontSize: 11, fontWeight: 900, marginBottom: 8 }}>✨ 13 TRAITS DOURADOS</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {normalizeAncestralTraits(entry.traits, entry.uid).map((trait, index) => (
+                      <span key={`${trait}-${index}`} title={TRAITS[trait]?.desc} style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#4a3010", fontSize: 10, fontWeight: 700 }}>
+                        <TraitIcon id={trait} size={22} />{TRAITS[trait]?.name ?? trait}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => {
                   const basePet = livePet ?? makePet(sp, displayLevel, entry.rarity);
@@ -30734,12 +30749,17 @@ function TabOverlay({
               </div>
                {ancestrals.length === 0 ? <div style={{ color: "#b9d9e8", fontSize: 12, padding: 8 }}>Choque um Ovo Ancestral para liberar um Pokémon com 13 traits dourados.</div> : <>
                 <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
-                  {ancestrals.map((entry) => {
-                    const selected = entry.uid === activeAncestral?.uid;
+                   {ancestrals.map((entry) => {
+                     const selected = entry.uid === activeAncestral?.uid;
+                     const visibleTraits = normalizeAncestralTraits(entry.traits, entry.uid);
                      return <button key={entry.uid} onClick={() => setIdle((s: IdleState) => ({ ...s, activeAncestralUid: selected ? undefined : entry.uid }))} style={{ minWidth: 132, cursor: "pointer", borderRadius: 12, padding: 9, border: `2px solid ${selected ? "#ffe066" : "#35b8ef77"}`, background: selected ? "linear-gradient(160deg,#07567b,#574411)" : "#09253c", color: "#fff" }}>
-                      {gifMap[entry.species] && <img src={gifMap[entry.species]} alt="" style={{ width: 50, height: 50, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 0 7px #ffd94d)" }} />}
-                      <div style={{ fontSize: 10, fontWeight: 900 }}>{entry.species.replace(/_/g, " ").toUpperCase()}</div>
-                      <div style={{ color: "#ffe066", fontSize: 9, marginTop: 3 }}>{selected ? "ATIVO" : "ATIVAR"}</div>
+                       {gifMap[entry.species] && <img src={gifMap[entry.species]} alt="" style={{ width: 50, height: 50, imageRendering: "pixelated", objectFit: "contain", filter: "drop-shadow(0 0 7px #ffd94d)" }} />}
+                       <div style={{ fontSize: 10, fontWeight: 900 }}>{entry.species.replace(/_/g, " ").toUpperCase()}</div>
+                       <div style={{ color: "#ffe173", fontSize: 9, marginTop: 4 }}>13 TRAITS DOURADOS</div>
+                       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 2, marginTop: 5, maxWidth: 148 }}>
+                         {visibleTraits.map((trait, index) => <TraitIcon key={`${trait}-${index}`} id={trait} size={20} />)}
+                       </div>
+                       <div style={{ color: "#ffe066", fontSize: 9, marginTop: 3 }}>{selected ? "ATIVO" : "ATIVAR"}</div>
                     </button>;
                   })}
                 </div>
@@ -31055,8 +31075,12 @@ function TabOverlay({
 
       {statsCardPet && (
         <PokemonStatsCard
-          pet={(idle.collection ?? []).some((entry: CollectionEntry) => entry.uid === statsCardPet.uid && entry.event === "ancestral")
-            ? { ...statsCardPet, event: "ancestral" } : statsCardPet}
+          pet={(() => {
+            const entry = collection.find((item) => item.uid === statsCardPet.uid);
+            return entry?.event === "ancestral"
+              ? { ...statsCardPet, event: "ancestral", traits: normalizeAncestralTraits(entry.traits ?? statsCardPet.traits, statsCardPet.uid) }
+              : statsCardPet;
+          })()}
           team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)}
         />
       )}

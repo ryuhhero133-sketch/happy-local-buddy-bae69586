@@ -5,6 +5,7 @@ import { computePower, elementsOf, ELEMENT_META, computeTeamSynergies } from "@/
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { AncestralOrbitAura } from "@/components/AncestralOrbitAura";
+import { normalizeAncestralTraits } from "@/game/ancestralBonuses";
 import blackMiticBg from "@/assets/black-mitic-card-bg.jpg";
 
 interface Props {
@@ -57,6 +58,7 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
 
   const isBMP = !!pet.event && pet.event.startsWith("black_mitic_plus");
   const isAncestral = pet.event === "ancestral";
+  const visibleTraits = isAncestral ? normalizeAncestralTraits(pet.traits, pet.uid) : pet.traits ?? [];
   const isBrilhant = !!pet.event && pet.event.includes("brilhant");
   const bmpLabel = isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS";
 
@@ -216,17 +218,17 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
           )}
 
           {/* Traits (atributos bônus da captura) */}
-          {(pet.traits && pet.traits.length > 0) && (
+          {visibleTraits.length > 0 && (
             <div style={{
               padding: 12, borderRadius: 12,
               background: "linear-gradient(135deg, rgba(192,132,252,0.18), rgba(0,0,0,0.4))",
               border: "1px solid #c084fc66",
             }}>
               <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2, color: "#c084fc", marginBottom: 8 }}>
-                ✨ TRAITS ({pet.traits.length})
+                ✨ TRAITS ({visibleTraits.length})
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                 {pet.traits.map((id, index) => {
+                 {visibleTraits.map((id, index) => {
                   const t = TRAITS[id]; if (!t) return null;
                   const col = TIER_COLOR[t.tier];
                   return (

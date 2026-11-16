@@ -96,7 +96,15 @@ export function CollectionPanel(props: CollectionPanelProps) {
         {selected ? <><header><CircleDot /><h3>{selected.number != null && <span>#{String(selected.number).padStart(3, "0")} </span>}{selected.seen ? selected.name : "Não registrado"}</h3><button type="button" className="collection-favorite" aria-label="Favoritar Pokémon selecionado" aria-pressed={favorites.has(selected.key)} onClick={() => toggleFavorite(selected.key)}><Star /></button></header>
           <div className="collection-types">{selected.seen && selected.types.map(type => <span key={type.name} style={{ "--type-color": type.color } as CSSProperties}>{type.name}</span>)}</div>
           <div className={`collection-portrait ${!selected.seen ? "is-unseen" : ""}`}><PokemonArtwork record={selected} portrait /></div>
-          <div className="collection-detail__data"><p><span>Raridade</span><b style={{ color: tier.color }}>{selected.seen ? tier.label : "???"}</b></p><p><span>Registro</span><b>{selected.caught ? "Capturado" : selected.seen ? "Visto" : "Não visto"}</b></p>{selected.level != null && <p><span>Nível</span><b>{selected.level}</b></p>}
+           <div className="collection-detail__data"><p><span>Raridade</span><b style={{ color: tier.color }}>{selected.seen ? tier.label : "???"}</b></p><p><span>Registro</span><b>{selected.caught ? "Capturado" : selected.seen ? "Visto" : "Não visto"}</b></p>{selected.level != null && <p><span>Nível</span><b>{selected.level}</b></p>}
+             {selected.event === "ancestral" && selected.caught && (
+               <div aria-label={`${selected.traits.length} traits dourados`} style={{ margin: "10px 0", padding: 10, border: "1px solid #ffd94d88", borderRadius: 8, background: "rgba(53,184,239,0.1)" }}>
+                 <strong style={{ color: "#ffe173", fontSize: 11 }}>✨ TRAITS DOURADOS ({selected.traits.length})</strong>
+                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 7 }}>
+                   {selected.traits.map((trait, index) => <span key={`${trait}-${index}`} style={{ color: "#ffe173", background: "#172b39", border: "1px solid #ffd94d77", borderRadius: 5, padding: "3px 6px", fontSize: 10 }}>{trait}</span>)}
+                 </div>
+               </div>
+             )}
             {!isDex && <><p><span>Fragmentação</span><b>+{selected.craftGain} craft</b></p><div className="collection-detail__tools"><button type="button" aria-pressed={selected.locked} onClick={() => props.onLock(selected.key)}><Shield />{selected.locked ? "Protegido" : "Proteger"}</button><button type="button" disabled={!eligibleForFragment(selected)} title={selected.inTeam ? "Retire do time antes de fragmentar" : selected.locked ? "Desproteja antes de fragmentar" : "Exige confirmação"} onClick={() => props.onFragment([selected.key])}><Diamond />Fragmentar</button></div></>}
             {showDetails && selected.seen && <div className="collection-inline-details"><h4>Tipos e movimentos</h4>{selected.moves.map(move => <span key={move}>{move}</span>)}{selected.traits.length > 0 && <p>Traits: {selected.traits.join(" · ")}</p>}</div>}
           </div>
