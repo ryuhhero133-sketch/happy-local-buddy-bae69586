@@ -218,7 +218,7 @@ import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
 import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
-import { fetchCloudSave, getCloudSaveLastError, isRebaseBlocked, pushCloudSaveNow, rebaseForPush, scheduleCloudSync } from "@/lib/cloudSave";
+import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -6028,66 +6028,83 @@ const confirmName = () => {
 
   const TRAINER_R = 10; // raio do treinador
   const handleArvRedDeath = async () => {
-    let penaltyApplied = false;
+    // A morte NÃO depende da nuvem: vídeo + retorno pra Revoland acontecem
+    // sempre. Servidor é best-effort — se falhar, a penalidade vira local.
+    if (idleRef.current.currentMap !== "arv") return;
+    let goldLost = 0;
+    let levelLost = 0;
+    let serverPenalty = false;
+    // 1) Salva o que dá, sem nunca bloquear a morte.
+    if (cloudBlobReady) {
+      try { await pushCloudSaveNow(buildFullBlob()); } catch { /* segue a morte */ }
+    }
+    // 2) Penalidade no servidor (best-effort).
     try {
-      if (!cloudBlobReady || idleRef.current.currentMap !== "arv") {
-        pushChat("⚠ Aguarde a sincronização da nuvem para entrar nesta área.", "info");
-        return;
-      }
       const { data: auth } = await supabase.auth.getSession();
-      if (!auth.session?.user?.id) throw new Error("Entre na sua conta para entrar nesta área.");
-      let saved = await pushCloudSaveNow(buildFullBlob());
-      if (!saved && isRebaseBlocked()) {
-        // Servidor à frente da base local (outra aba/dispositivo): adota a
-        // versão oficial quando ela não é mais nova no tempo e tenta de novo.
-        if (await rebaseForPush()) saved = await pushCloudSaveNow(buildFullBlob());
+      if (auth.session?.user?.id) {
+        const { data, error } = await (supabase as any).rpc("claim_arv_red_zone_death");
+        if (!error) {
+          serverPenalty = true;
+          goldLost = Number(data?.gold_lost ?? 0);
+          levelLost = Number(data?.level_lost ?? 0);
+        }
       }
-      if (!saved) {
-        const detail = getCloudSaveLastError();
-        throw new Error(`Falha ao salvar progresso${detail ? ` (${detail})` : ""}. A zona vermelha continua bloqueada.`);
+    } catch { /* offline/servidor fora: penalidade local abaixo */ }
+    // 3) Hidrata do servidor quando deu certo; senão aplica local na hora.
+    let nextIdle: IdleState | null = null;
+    if (serverPenalty) {
+      try {
+        const { data: auth } = await supabase.auth.getSession();
+        const snap = auth.session?.user?.id
+          ? ((await fetchCloudSave(auth.session.user.id)) as
+              | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
+              | null)
+          : null;
+        if (snap?.idle && Array.isArray(snap.team) && Array.isArray(snap.restingBench)) {
+          nextIdle = snap.idle;
+          teamRef.current = snap.team;
+          setTeam(snap.team);
+          setRestingBench(snap.restingBench);
+        }
+      } catch { /* fica com o estado local */ }
+    }
+    if (!nextIdle) {
+      const cur = idleRef.current;
+      const gold = Math.max(0, cur.bank?.gold ?? 0);
+      const lvl = Math.max(1, cur.trainerLevel ?? 1);
+      if (!serverPenalty) {
+        goldLost = Math.min(gold, 1 + Math.floor(Math.random() * 5000));
+        levelLost = lvl > 1 ? 1 : 0;
       }
-      const { data, error } = await (supabase as any).rpc("claim_arv_red_zone_death");
-      if (error) throw error;
-      penaltyApplied = true;
-      const snapshot = await fetchCloudSave(auth.session.user.id) as
-        | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
-        | null;
-      if (!snapshot?.idle || !Array.isArray(snapshot.team) || !Array.isArray(snapshot.restingBench)) {
-        throw new Error("Morte salva no servidor. Recarregue o jogo para voltar à cidade.");
-      }
-      idleRef.current = snapshot.idle;
-      teamRef.current = snapshot.team;
-      setIdle(snapshot.idle);
-      setTeam(snapshot.team);
-      setRestingBench(snapshot.restingBench);
-      saveIdleStamped(snapshot.idle);
-      setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
-      setAuto(false);
-      autoRef.current = false;
-      walkTargetRef.current = null;
-      setWalkingTo(null);
-      setWalkMarker(null);
-      setAttackTargetId(null);
-      setEnemies([]);
-      setChests([]);
-      setMapOrbs([]);
-      clearBattleScene();
-      const goldLost = Number(data?.gold_lost ?? 0);
-      const levelLost = Number(data?.level_lost ?? 0);
-      // Tela cheia com som (DDT); o aviso da penalidade aparece depois dela.
-      setArvDeathVideo({ goldLost, levelLost });
-      pushChat(`☠️ Você morreu na área vermelha! Retornou para Revoland. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
-    } catch (error) {
-      // Erros do Supabase não são instanceof Error — pegar .message deles também,
-      // senão o motivo real (RPC ausente, permissão, save travado) fica escondido.
-      const raw = typeof error === "object" && error !== null && "message" in error
-        ? String((error as { message: unknown }).message)
-        : "";
-      const message = (error instanceof Error ? error.message : raw) || "Falha ao processar zona vermelha.";
-      pushChat(`⚠ ${message}`, "info");
-    } finally {
-      // Depois da RPC, qualquer falha de hidratação exige recarregar, não outra penalidade.
-      if (!penaltyApplied || idleRef.current.currentMap !== "arv") arvDeathBusyRef.current = false;
+      nextIdle = {
+        ...cur,
+        bank: { ...cur.bank, gold: Math.max(0, gold - goldLost) },
+        trainerLevel: Math.max(1, lvl - levelLost),
+        trainerXp: 0,
+        currentMap: "mapinha6",
+      };
+    }
+    idleRef.current = nextIdle;
+    setIdle(nextIdle);
+    saveIdleStamped(nextIdle);
+    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+    setAuto(false);
+    autoRef.current = false;
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setWalkMarker(null);
+    setAttackTargetId(null);
+    setEnemies([]);
+    setChests([]);
+    setMapOrbs([]);
+    clearBattleScene();
+    arvDeathBusyRef.current = false;
+    // Tela cheia com som (DDT); o aviso da penalidade aparece depois dela.
+    setArvDeathVideo({ goldLost, levelLost });
+    pushChat(`☠️ Você morreu na área vermelha! Retornou para Revoland. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
+    // Persiste a penalidade em segundo plano (nunca trava a tela).
+    if (cloudBlobReady) {
+      try { void pushCloudSaveNow(buildFullBlob()); } catch { /* melhor esforço */ }
     }
   };
   const checkArvRedStep = (x: number, y: number) => {
