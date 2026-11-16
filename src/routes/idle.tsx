@@ -238,7 +238,7 @@ import { rollTraits, TRAITS, TIER_COLOR } from "@/game/traits";
 import {
   ANCESTRAL_CRYSTAL_DROP_CHANCE, ANCESTRAL_GOLD_MULT,
   ANCESTRAL_PET_XP_MULT, ANCESTRAL_TRAINER_XP_MULT, ANCESTRAL_TRAIT_COUNT,
-  ancestralLabel, hasActiveAncestral, normalizeAncestralTraits,
+  ancestralLabel, ancestralPetForDisplay, hasActiveAncestral, isAncestralRecord, normalizeAncestralTraits,
 } from "@/game/ancestralBonuses";
 import { TraitIcon } from "@/components/TraitIcon";
 import { SynergyPanel } from "@/components/SynergyPanel";
@@ -2811,7 +2811,7 @@ function IdlePage() {
   useEffect(() => { teamRef.current = team; }, [team]);
   const activeAncestralTraits = (state = idleRef.current) => {
     const uid = state.activeAncestralUid;
-    const entry = uid ? (state.collection ?? []).find((p) => p.uid === uid && p.event === "ancestral") : null;
+    const entry = uid ? (state.collection ?? []).find((p) => p.uid === uid && isAncestralRecord(p)) : null;
     return entry?.traits ?? [];
   };
   const computeCombatSynergies = (currentTeam: PetInstance[]) => {
@@ -2828,8 +2828,8 @@ function IdlePage() {
   useEffect(() => { benchRef.current = restingBench; }, [restingBench]);
   const collectionForDisplay = useMemo<CollectionEntry[]>(() => {
     const byUid = new Map<string, CollectionEntry>();
-    for (const entry of idle.collection ?? []) byUid.set(entry.uid, entry.event === "ancestral"
-      ? { ...entry, traits: normalizeAncestralTraits(entry.traits, entry.uid) }
+    for (const entry of idle.collection ?? []) byUid.set(entry.uid, isAncestralRecord(entry)
+      ? { ...entry, event: "ancestral", traits: normalizeAncestralTraits(entry.traits, entry.uid) }
       : entry);
     for (const pet of [...team, ...restingBench]) {
       const current = byUid.get(pet.uid);
@@ -2840,9 +2840,9 @@ function IdlePage() {
         xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
         rarity: pet.rarity,
         capturedAt: current?.capturedAt ?? Date.now(),
-        traits: current?.traits ?? (pet.event === "ancestral"
+        traits: current?.traits ?? (isAncestralRecord(pet)
           ? normalizeAncestralTraits(pet.traits, pet.uid) : pet.traits ?? []),
-        event: current?.event ?? pet.event,
+        event: current?.event ?? (isAncestralRecord(pet) ? "ancestral" : pet.event),
       });
     }
     return [...byUid.values()];
@@ -3059,29 +3059,34 @@ function IdlePage() {
   // Mantém UID, nível, XP, time, itens e todo o restante do save.
   useEffect(() => {
     if (!cloudBlobReady) return;
+    const records = [...(idle.collection ?? []), ...team, ...restingBench];
     const normalized = new Map<string, string[]>();
-    for (const entry of idle.collection ?? []) {
-      if (entry.event === "ancestral") normalized.set(entry.uid, normalizeAncestralTraits(entry.traits, entry.uid));
+    for (const entry of records) {
+      if (!isAncestralRecord(entry) || normalized.has(entry.uid)) continue;
+      const saved = (idle.collection ?? []).find((item) => item.uid === entry.uid);
+      const source = saved?.traits?.length ? saved.traits : entry.traits;
+      normalized.set(entry.uid, normalizeAncestralTraits(source, entry.uid));
     }
     if (!normalized.size) return;
-    const fix = <T extends { uid: string; traits?: string[] }>(entry: T): T => {
+    const fix = <T extends { uid: string; event?: string; traits?: string[] }>(entry: T): T => {
       const traits = normalized.get(entry.uid);
-      return traits && entry.traits !== traits ? { ...entry, traits } : entry;
+      return traits && (entry.traits !== traits || entry.event !== "ancestral")
+        ? { ...entry, event: "ancestral", traits } : entry;
     };
-    if ((idle.collection ?? []).some((entry) => normalized.has(entry.uid) && normalized.get(entry.uid) !== entry.traits)) {
+    if ((idle.collection ?? []).some((entry) => normalized.has(entry.uid) && (entry.event !== "ancestral" || normalized.get(entry.uid) !== entry.traits))) {
       setIdle((state) => {
         const collection = (state.collection ?? []).map((entry) =>
-          entry.event === "ancestral"
-            ? { ...entry, traits: normalizeAncestralTraits(entry.traits, entry.uid) }
+          normalized.has(entry.uid)
+            ? { ...entry, event: "ancestral", traits: normalizeAncestralTraits(entry.traits?.length ? entry.traits : normalized.get(entry.uid), entry.uid) }
             : entry,
         );
         return { ...state, collection };
       });
     }
-    if (team.some((pet) => normalized.has(pet.uid) && normalized.get(pet.uid) !== pet.traits)) {
+    if (team.some((pet) => normalized.has(pet.uid) && (normalized.get(pet.uid) !== pet.traits || pet.event !== "ancestral"))) {
       setTeam((current) => current.map(fix));
     }
-    if (restingBench.some((pet) => normalized.has(pet.uid) && normalized.get(pet.uid) !== pet.traits)) {
+    if (restingBench.some((pet) => normalized.has(pet.uid) && (normalized.get(pet.uid) !== pet.traits || pet.event !== "ancestral"))) {
       setRestingBench((current) => current.map(fix));
     }
   }, [cloudBlobReady, idle.collection, team, restingBench]);
@@ -27149,7 +27154,7 @@ onClick={(e) => {
 
       {statsCardPet && (
         <PokemonStatsCard
-          pet={statsCardPet}
+          pet={ancestralPetForDisplay(statsCardPet, collectionForDisplay)}
           team={team}
           gifSrc={GIF[statsCardPet.species]}
           onClose={() => setStatsCardPet(null)}
@@ -31075,12 +31080,7 @@ function TabOverlay({
 
       {statsCardPet && (
         <PokemonStatsCard
-          pet={(() => {
-            const entry = collection.find((item) => item.uid === statsCardPet.uid);
-            return entry?.event === "ancestral"
-              ? { ...statsCardPet, event: "ancestral", traits: normalizeAncestralTraits(entry.traits ?? statsCardPet.traits, statsCardPet.uid) }
-              : statsCardPet;
-          })()}
+          pet={ancestralPetForDisplay(statsCardPet, collection)}
           team={team} gifSrc={gifMap[statsCardPet.species]} onClose={() => setStatsCardPet(null)}
         />
       )}

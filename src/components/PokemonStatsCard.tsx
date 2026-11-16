@@ -5,7 +5,7 @@ import { computePower, elementsOf, ELEMENT_META, computeTeamSynergies } from "@/
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { TraitIcon } from "@/components/TraitIcon";
 import { AncestralOrbitAura } from "@/components/AncestralOrbitAura";
-import { normalizeAncestralTraits } from "@/game/ancestralBonuses";
+import { isAncestralRecord, normalizeAncestralTraits } from "@/game/ancestralBonuses";
 import blackMiticBg from "@/assets/black-mitic-card-bg.jpg";
 
 interface Props {
@@ -29,7 +29,7 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
   const elems = elementsOf(pet.species);
   const mainElem = elems[0];
   const meta = ELEMENT_META[mainElem];
-  const rc = pet.event === "ancestral" ? "#35b8ef" : RARITY_COLOR[pet.rarity] ?? "#c8b8d0";
+  const rc = isAncestralRecord(pet) ? "#35b8ef" : RARITY_COLOR[pet.rarity] ?? "#c8b8d0";
   const power = computePower(pet);
   const syn = computeTeamSynergies(team);
 
@@ -57,7 +57,7 @@ export function PokemonStatsCard({ pet, gifSrc, team, onClose, onMakeLeader, onS
   );
 
   const isBMP = !!pet.event && pet.event.startsWith("black_mitic_plus");
-  const isAncestral = pet.event === "ancestral";
+  const isAncestral = isAncestralRecord(pet);
   const visibleTraits = isAncestral ? normalizeAncestralTraits(pet.traits, pet.uid) : pet.traits ?? [];
   const isBrilhant = !!pet.event && pet.event.includes("brilhant");
   const bmpLabel = isBrilhant ? "BLACK MITIC BRILHANT PLUS" : "BLACK MITIC PLUS";
