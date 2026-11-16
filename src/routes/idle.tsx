@@ -7810,6 +7810,27 @@ const confirmName = () => {
       return;
     }
 
+    // ===== Código de recompensa: 10.000 de OURO (uso único por conta) =====
+    const GOLD_10K_CODES = ["OURO10K", "GOLD10K", "OURO10KBR"];
+    if (GOLD_10K_CODES.includes(raw)) {
+      const base = idleRef.current;
+      if (base.redeemedCodes?.[raw]) { setCodeMsg({ kind: "err", text: "Este código já foi utilizado." }); return; }
+      const GOLD_10K = 10_000;
+      const next: IdleState = {
+        ...base,
+        bank: { ...base.bank, gold: (base.bank.gold ?? 0) + GOLD_10K },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: `✓ +${GOLD_10K.toLocaleString("pt-BR")} Ouro entregues!` });
+      setCodeInput("");
+      pushChat(`🪙 Código ${raw}: +${GOLD_10K.toLocaleString("pt-BR")} de Ouro!`, "cap");
+      return;
+    }
+
+
 
 
 
