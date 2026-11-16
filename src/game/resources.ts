@@ -184,6 +184,8 @@ export const LAB_MAP_ENERGY_COST = 10;
 export function teleportEnergyCostFor(mapId: string): number {
   // Progressão inicial do Mapa Mundi: sempre gratuita.
   if (mapId === "mapinha6" || mapId === "mapinha10" || mapId === "mapinha13" || mapId === "valley_plume" || mapId === "florest_ice" || mapId === "florest_bone") return 0;
+  // Ruínas e Ruínas de Vênus: entrada liberada e gratuita.
+  if (mapId === "ruinas" || mapId === "ruinas_de_venus") return 0;
   if (mapId === "arv") return 0; // novo mapa livre no Mapa Mundi
   if (mapId === "ini") return 0; // mapa de teste acessível gratuitamente pelo Mapa Mundi
   if (mapId === TELEPORT_HOME_MAP_ID) return TELEPORT_ENERGY_HOME_COST;
