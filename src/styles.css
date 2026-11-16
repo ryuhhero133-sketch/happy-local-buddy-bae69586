@@ -1625,6 +1625,56 @@ html, body, #root {
   50%      { transform: translateY(-3px) rotate(1deg); }
 }
 
+/* arv: a máscara laranja revela a água com bolhas, nunca as marcações coloridas. */
+@keyframes arvRiverFlow {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 0 -112px, 46px -76px, 0 0; }
+}
+.arv-river-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background-image:
+    radial-gradient(circle, rgba(236,251,255,.9) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(208,242,255,.65) 0 3px, transparent 4px),
+    linear-gradient(125deg, rgba(35,155,225,.72), rgba(110,225,255,.55), rgba(22,112,210,.68));
+  background-size: 72px 96px, 116px 130px, 100% 100%;
+  animation: arvRiverFlow 3.8s linear infinite;
+}
+@keyframes arvDeathAppear {
+  0% { opacity: 0; transform: scale(1.12); }
+  18%, 80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.96); }
+}
+.arv-death-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  pointer-events: none;
+  color: #ffe5e5;
+  background: radial-gradient(circle, rgba(110,0,0,.88), rgba(13,0,4,.95));
+  font-family: "Pixelify Sans", ui-monospace, monospace;
+  animation: arvDeathAppear 3.2s ease-in-out both;
+}
+.arv-death-screen__skull { font-size: clamp(64px, 12vw, 120px); filter: drop-shadow(0 0 25px #f33); }
+.arv-death-screen strong { font-size: clamp(30px, 6vw, 66px); letter-spacing: 4px; text-shadow: 0 0 22px #f33; }
+.arv-death-screen span { font-size: clamp(14px, 2vw, 22px); }
+.arv-death-screen small { font-size: clamp(13px, 2vw, 20px); color: #ffd76b; }
+@media (prefers-reduced-motion: reduce) {
+  .arv-river-fx, .arv-death-screen { animation: none; }
+}
+
 /* ================= Black Mitic Plus — aura visual ================= */
 @keyframes bmpAuraPulse {
   0%, 100% { opacity: .55; transform: scale(1); }

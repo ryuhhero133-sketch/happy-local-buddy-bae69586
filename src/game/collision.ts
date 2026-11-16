@@ -20,6 +20,15 @@ const SAMPLES = [
 
 type Grid = { cols: number; rows: number; walk: Uint8Array; zone: Uint8Array };
 
+// arvcolisao.jpg é a própria imagem do mapa com pintura JPG por cima:
+// magenta = parede, laranja = rio, vermelho puro = zona fatal.
+export function arvPaint(r: number, g: number, b: number): 0 | 1 | 3 | 4 {
+  if (r > 235 && g < 35 && b < 35) return 3;
+  if (r > 205 && b > 165 && g < 100 && Math.abs(r - b) < 95) return 1;
+  if (r > 245 && g > 120 && g < 185 && b < 40 && r > g + 55) return 4;
+  return 0;
+}
+
 // Coordenadas da porta vermelha no PNG original (1324 × 1188).
 // Apenas esta faixa escura da máscara deve permitir a passagem.
 export const POKEMARKT_EXIT = { x0: 350, x1: 470, y0: 1075, y1: 1125 } as const;
@@ -33,7 +42,7 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure" || mapId === "mapa_orange" || mapId === "laboratorio" || isProfUpdateMap(mapId);
+  return isCaveMap(mapId) || mapId === "arv" || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure" || mapId === "mapa_orange" || mapId === "laboratorio" || isProfUpdateMap(mapId);
 }
 
 // Mapas do UPDATE (aba MAPAS do Professor): colisão estilo Laboratório —
@@ -71,6 +80,8 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
   const blueDom = b > r + 25 && b > g + 15; // água
 
   switch (mapId) {
+    case "arv":
+      return arvPaint(r, g, b) === 0;
     // ---- Revoland (mapinha6) com máscara exata COLD6.png ----
     case "mapinha6": {
       // Branco = caminhável; laranja = porta/portal; preto = bloqueado.
@@ -324,15 +335,19 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
     img.onload = () => {
       try {
         const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
+        // arv usa uma máscara de 4071×5200: amostragem 2× menor reduz ~63 MB
+        // de canvas sem mudar as coordenadas ou o tamanho da grade do mundo.
+        const sampleScale = mapId === "arv" ? 2 : 1;
+        canvas.width = Math.ceil(w / sampleScale);
+        canvas.height = Math.ceil(h / sampleScale);
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
-          walk.fill(1);
+          walk.fill(mapId === "arv" ? 0 : 1);
           return resolve({ cols, rows, walk, zone });
         }
-        ctx.drawImage(img, 0, 0, w, h);
-        const data = ctx.getImageData(0, 0, w, h).data;
+        if (mapId === "arv") ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
         // Amostragem múltipla por tile (maioria simples).
         for (let cy = 0; cy < rows; cy++) {
@@ -340,13 +355,19 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
             let hits = 0;
             let pinkHits = 0;
             let yellowHits = 0;
+            let redHits = 0;
+            let orangeHits = 0;
             for (const [fx, fy] of SAMPLES) {
               const px = Math.min(w - 1, Math.floor(cx * TILE + fx * TILE));
               const py = Math.min(h - 1, Math.floor(cy * TILE + fy * TILE));
-              const idx = (py * w + px) * 4;
-              const z = pixelZone(data[idx], data[idx + 1], data[idx + 2]);
+              const idx = (Math.floor(py / sampleScale) * canvas.width + Math.floor(px / sampleScale)) * 4;
+              const z = mapId === "arv"
+                ? arvPaint(data[idx], data[idx + 1], data[idx + 2])
+                : pixelZone(data[idx], data[idx + 1], data[idx + 2]);
               if (z === 1) pinkHits++;
               else if (z === 2) yellowHits++;
+              else if (z === 3) redHits++;
+              else if (z === 4) orangeHits++;
               if (pixelWalk(mapId, data[idx], data[idx + 1], data[idx + 2], px, py)) hits++;
             }
             // Cavernas precisam de maioria real pra não deixar cortar parede.
@@ -354,8 +375,11 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
             // Cave1: precisa de quase todos pixels escuros pra bloquear — escadas de
             // madeira têm rungs pretos misturados com chão amarelo e devem ser caminháveis.
             const neededHits = mapId === "palletRoute" ? 4 : mapId === "cave1" ? 3 : hasFootprintCollision(mapId) ? 5 : 2;
-            walk[cy * cols + cx] = hits >= neededHits ? 1 : 0;
-            if (pinkHits >= 3) zone[cy * cols + cx] = 1;
+            walk[cy * cols + cx] = hits >= neededHits
+              && (mapId !== "arv" || (redHits < 2 && pinkHits < 3 && orangeHits < 3)) ? 1 : 0;
+            if (mapId === "arv" && redHits >= 1) zone[cy * cols + cx] = 3;
+            else if (mapId === "arv" && orangeHits >= 3) zone[cy * cols + cx] = 4;
+            else if (pinkHits >= 3) zone[cy * cols + cx] = 1;
             else if (yellowHits >= 5) zone[cy * cols + cx] = 2;
           }
         }
@@ -457,12 +481,12 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
           }
         }
       } catch {
-        walk.fill(1);
+        walk.fill(mapId === "arv" ? 0 : 1);
       }
       resolve({ cols, rows, walk, zone });
     };
     img.onerror = () => {
-      walk.fill(1);
+      walk.fill(mapId === "arv" ? 0 : 1);
       resolve({ cols, rows, walk, zone });
     };
     img.src = src;
@@ -479,18 +503,22 @@ export function ensureCollision(mapId: CollisionMapId, src: string, w: number, h
   loading.set(mapId, p);
 }
 
-export function maskZoneAt(mapId: CollisionMapId, x: number, y: number): 0 | 1 | 2 {
+export function collisionReady(mapId: CollisionMapId): boolean {
+  return cache.has(mapId);
+}
+
+export function maskZoneAt(mapId: CollisionMapId, x: number, y: number): 0 | 1 | 2 | 3 | 4 {
   const g = cache.get(mapId);
   if (!g || !g.zone) return 0;
   const cx = Math.floor(x / TILE);
   const cy = Math.floor(y / TILE);
   if (cx < 0 || cy < 0 || cx >= g.cols || cy >= g.rows) return 0;
-  return (g.zone[cy * g.cols + cx] as 0 | 1 | 2) ?? 0;
+  return (g.zone[cy * g.cols + cx] as 0 | 1 | 2 | 3 | 4) ?? 0;
 }
 
 export function isWalkable(mapId: CollisionMapId, x: number, y: number): boolean {
   const g = cache.get(mapId);
-  if (!g) return true; // enquanto não carrega, libera
+  if (!g) return mapId !== "arv"; // arv: nunca atravessar a máscara antes de carregar
 
   const cellWalkable = (px: number, py: number) => {
     const cx = Math.floor(px / TILE);
@@ -508,14 +536,14 @@ export function isWalkable(mapId: CollisionMapId, x: number, y: number): boolean
   // Objetos que o jogador pediu pra poder atravessar ("tirar árvores e pedras").
   // A grade é construída em pixels de MUNDO (natural × MAP_DISPLAY_SCALE), então
   // estes rects já estão no mesmo espaço das coordenadas recebidas.
-  if (x >= 156 && x <= 202 && y >= 156 && y <= 202) return true;   // vaso planta sup-esq
-  if (x >= 788 && x <= 832 && y >= 159 && y <= 198) return true;   // vaso planta sup-dir
-  if (x >= 55 && x <= 107 && y >= 478 && y <= 530) return true;    // vaso planta inf-esq
-  if (x >= 884 && x <= 940 && y >= 478 && y <= 530) return true;   // vaso planta inf-dir
-  if (x >= 78 && x <= 166 && y >= 153 && y <= 302) return true;    // cilindros esq
-  if (x >= 826 && x <= 917 && y >= 153 && y <= 302) return true;   // cilindros dir
-  if (x >= 156 && x <= 262 && y >= 296 && y <= 380) return true;   // tanque vidro esq
-  if (x >= 731 && x <= 841 && y >= 307 && y <= 379) return true;   // tanque vidro dir
+  if (mapId !== "arv" && x >= 156 && x <= 202 && y >= 156 && y <= 202) return true;   // vaso planta sup-esq
+  if (mapId !== "arv" && x >= 788 && x <= 832 && y >= 159 && y <= 198) return true;   // vaso planta sup-dir
+  if (mapId !== "arv" && x >= 55 && x <= 107 && y >= 478 && y <= 530) return true;    // vaso planta inf-esq
+  if (mapId !== "arv" && x >= 884 && x <= 940 && y >= 478 && y <= 530) return true;   // vaso planta inf-dir
+  if (mapId !== "arv" && x >= 78 && x <= 166 && y >= 153 && y <= 302) return true;    // cilindros esq
+  if (mapId !== "arv" && x >= 826 && x <= 917 && y >= 153 && y <= 302) return true;   // cilindros dir
+  if (mapId !== "arv" && x >= 156 && x <= 262 && y >= 296 && y <= 380) return true;   // tanque vidro esq
+  if (mapId !== "arv" && x >= 731 && x <= 841 && y >= 307 && y <= 379) return true;   // tanque vidro dir
 
   return (
     cellWalkable(x, y) &&

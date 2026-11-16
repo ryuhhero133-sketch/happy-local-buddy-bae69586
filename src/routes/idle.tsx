@@ -508,6 +508,7 @@ import editorTreeVariantUrl from "@/ambiente/editsprite/c0406398-d011-45d5-a577-
 import editorBushUrl from "@/ambiente/editsprite/MY.png";
 import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.png";
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
+import arvCollisionUrl from "@/ambiente/arvcolisao.jpg";
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
 import saUrl from "@/ambiente/mascara colisao/sa.png";
 import arvMapDefault from "@/game/maps/arv.default.json";
@@ -533,8 +534,9 @@ import matoFramesUrl from "@/ambiente/xz/mato-frames.png";
 import gramaFramesUrl from "@/ambiente/xz/grama-frames.png";
 import floresFramesUrl from "@/ambiente/xz/flores-frames.png";
 import folhasFramesUrl from "@/ambiente/xz/folhas-frames.png";
-import { ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT, POKEMARKT_EXIT_APPROACH_Y } from "@/game/collision";
+import { collisionReady, ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT, POKEMARKT_EXIT_APPROACH_Y } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
+import { loadArvWaterFx } from "@/game/arvWaterFx";
 import { claimPromoCodeOnce } from "@/lib/promoCodes";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
@@ -5681,6 +5683,13 @@ const confirmName = () => {
   const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
   const [hallowFx, setHallowFx] = useState<{ agua: string; luz: string } | null>(null);
+  const [arvWaterMask, setArvWaterMask] = useState<string | null>(null);
+  const [arvDeathNotice, setArvDeathNotice] = useState<{ goldLost: number; levelLost: number } | null>(null);
+  const arvDeathBusyRef = useRef(false);
+  useEffect(() => {
+    if (idle.currentMap !== "arv") { setArvWaterMask(null); return; }
+    return loadArvWaterFx(arvCollisionUrl, setArvWaterMask);
+  }, [idle.currentMap]);
   const brokTeleportRef = useRef(0);
   // Onde o jogador entrou na caverna (posição + luz) — usado para voltar na
   // mesma porta, mas um pouco mais afastado da luz.
@@ -5773,6 +5782,7 @@ const confirmName = () => {
       const s = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
       const cw = Math.round(width * s);
       const chh = Math.round(height * s);
+      if (idle.currentMap === "arv") ensureCollision("arv", arvCollisionUrl, cw, chh);
       if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, cw, chh);
       if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, cw, chh);
       if (idle.currentMap === "casa1") ensureCollision("casa1", casa1MaskUrl, cw, chh);
@@ -5903,6 +5913,69 @@ const confirmName = () => {
   const BUILDINGS = useMemo<Building[]>(() => [], []);
 
   const TRAINER_R = 10; // raio do treinador
+  const handleArvRedDeath = async () => {
+    let penaltyApplied = false;
+    try {
+      if (!cloudBlobReady || idleRef.current.currentMap !== "arv") {
+        pushChat("⚠ Aguarde a sincronização da nuvem para entrar nesta área.", "info");
+        return;
+      }
+      const { data: auth } = await supabase.auth.getSession();
+      if (!auth.session?.user?.id) throw new Error("Entre na sua conta para entrar nesta área.");
+      if (!(await pushCloudSaveNow(buildFullBlob()))) {
+        throw new Error("Falha ao salvar progresso. A zona vermelha continua bloqueada.");
+      }
+      const { data, error } = await (supabase as any).rpc("claim_arv_red_zone_death");
+      if (error) throw error;
+      penaltyApplied = true;
+      const snapshot = await fetchCloudSave(auth.session.user.id) as
+        | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
+        | null;
+      if (!snapshot?.idle || !Array.isArray(snapshot.team) || !Array.isArray(snapshot.restingBench)) {
+        throw new Error("Morte salva no servidor. Recarregue o jogo para voltar à cidade.");
+      }
+      idleRef.current = snapshot.idle;
+      teamRef.current = snapshot.team;
+      setIdle(snapshot.idle);
+      setTeam(snapshot.team);
+      setRestingBench(snapshot.restingBench);
+      saveIdleStamped(snapshot.idle);
+      setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+      setAuto(false);
+      autoRef.current = false;
+      walkTargetRef.current = null;
+      setWalkingTo(null);
+      setWalkMarker(null);
+      setAttackTargetId(null);
+      setEnemies([]);
+      setChests([]);
+      setMapOrbs([]);
+      clearBattleScene();
+      const goldLost = Number(data?.gold_lost ?? 0);
+      const levelLost = Number(data?.level_lost ?? 0);
+      setArvDeathNotice({ goldLost, levelLost });
+      pushChat(`☠️ Você morreu na área vermelha! Retornou à Cidade Principal. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
+      setTimeout(() => setArvDeathNotice(null), 3200);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao processar zona vermelha.";
+      pushChat(`⚠ ${message}`, "info");
+    } finally {
+      // Depois da RPC, qualquer falha de hidratação exige recarregar, não outra penalidade.
+      if (!penaltyApplied || idleRef.current.currentMap !== "arv") arvDeathBusyRef.current = false;
+    }
+  };
+  const checkArvRedStep = (x: number, y: number) => {
+    if (idleRef.current.currentMap !== "arv" || !collisionReady("arv")) return false;
+    // O corpo colide antes de o centro alcançar o vermelho; detectar a borda também.
+    const touchingRed = [[0, 0], [14, 0], [-14, 0], [0, 14], [0, -14]]
+      .some(([dx, dy]) => maskZoneAt("arv", x + dx, y + dy) === 3);
+    if (!touchingRed) return false;
+    if (!arvDeathBusyRef.current) {
+      arvDeathBusyRef.current = true;
+      queueMicrotask(() => { void handleArvRedDeath(); });
+    }
+    return true;
+  };
   const collidesWithAny = (x: number, y: number) => {
     // Os objetos do editor precisam valer até em mapas com máscara nativa.
     // Ao ser cortada, a árvore vira toco e libera o caminho por 30 minutos.
@@ -5912,6 +5985,7 @@ const confirmName = () => {
       const radius = object.collideR > 0 ? object.collideR : Math.max(14, Math.min(90, Math.round(object.w * 0.22)));
       if (Math.hypot(x - object.x, y - object.y) < radius + TRAINER_R) return true;
     }
+    if (idle.currentMap === "arv") return !isWalkable("arv", x, y);
     if (idle.currentMap === "mapinha6") {
       return !isWalkable("mapinha6", x, y);
     }
@@ -9342,6 +9416,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => {
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
+      if (arvDeathBusyRef.current) { if (moving) setMoving(false); return; }
       if (restingRef.current) { if (moving) setMoving(false); return; }
       // Energia 0 NÃO trava o movimento — apenas reduz a velocidade (energySpeedMult).
       // ---- Modo manual (WASD) — só se NÃO houver destino clicado ----
@@ -9378,12 +9453,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+          if (checkArvRedStep(nx, ny)) return tp;
           if (collidesWithAny(nx, ny)) {
             nx = clampX(tp.x + stepX);
             if (collidesWithAny(nx, tp.y)) nx = tp.x;
             ny = clampY(tp.y + stepY);
             if (collidesWithAny(nx, ny)) ny = tp.y;
           }
+          if (checkArvRedStep(nx, ny)) return tp;
           return { x: nx, y: ny };
         });
         return;
@@ -9432,12 +9509,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
           let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+          if (checkArvRedStep(nx, ny)) return tp;
           if (collidesWithAny(nx, ny)) {
             nx = clampX(tp.x + stepX);
             if (collidesWithAny(nx, tp.y)) nx = tp.x;
             ny = clampY(tp.y + stepY);
             if (collidesWithAny(nx, ny)) ny = tp.y;
           }
+          if (checkArvRedStep(nx, ny)) return tp;
           return { x: nx, y: ny };
         });
         return;
@@ -9607,6 +9686,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
           const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
           let nwx = clampX(tp.x + stepX), nwy = clampY(tp.y + stepY);
+          if (checkArvRedStep(nwx, nwy)) return tp;
           if (collidesWithAny(nwx, nwy)) {
             const altX = clampX(tp.x + stepX);
             if (collidesWithAny(altX, tp.y)) nwx = tp.x; else nwx = altX;
@@ -9614,6 +9694,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             if (collidesWithAny(nwx, altY)) nwy = tp.y; else nwy = altY;
             if (nwx === tp.x && nwy === tp.y) { wanderRef.current = null; if (moving) setMoving(false); return tp; }
           }
+          if (checkArvRedStep(nwx, nwy)) return tp;
           return { x: nwx, y: nwy };
         }
         const isSmallMapTgt = !!customMapUrls[idle.currentMap] && customDims;
@@ -9698,17 +9779,19 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const clampX = (v: number) => Math.max(20, Math.min(curWorldW - 20, v));
         const clampY = (v: number) => Math.max(20, Math.min(curWorldH - 20, v));
         let nx = clampX(tp.x + stepX), ny = clampY(tp.y + stepY);
+        if (checkArvRedStep(nx, ny)) return tp;
         if (collidesWithAny(nx, ny)) {
           nx = clampX(tp.x + stepX);
           if (collidesWithAny(nx, tp.y)) nx = tp.x;
           ny = clampY(tp.y + stepY);
           if (collidesWithAny(nx, ny)) ny = tp.y;
         }
+        if (checkArvRedStep(nx, ny)) return tp;
         return { x: nx, y: ny };
       });
     }, 60);
     return () => clearInterval(iv);
-  }, [enemies, moving, obstacles, chests]);
+  }, [enemies, moving, obstacles, chests, idle.currentMap]);
 
   // ---- IA dos inimigos: movimentação autônoma (SEMPRE roda, independente do auto) ----
   useEffect(() => {
@@ -19338,6 +19421,24 @@ A sucata afundou com o casco.
               </div>
             )}
 
+            {/* arv: água animada apenas sobre os pixels laranja da máscara. */}
+            {idle.currentMap === "arv" && arvWaterMask && (
+              <div className="arv-river-fx" aria-hidden="true" style={{
+                WebkitMaskImage: `url("${arvWaterMask}")`,
+                maskImage: `url("${arvWaterMask}")`,
+              }} />
+            )}
+            {arvDeathNotice && createPortal(
+              <div className="arv-death-screen" role="alert" aria-live="assertive">
+                <div className="arv-death-screen__skull">☠</div>
+                <strong>VOCÊ MORREU</strong>
+                <span>Área vermelha do mapa</span>
+                <span>Retornou à Cidade Principal</span>
+                <small>-{arvDeathNotice.goldLost.toLocaleString("pt-BR")} ouro · {arvDeathNotice.levelLost ? "-1 nível de treinador" : "nível mínimo mantido"}</small>
+              </div>,
+              document.body
+            )}
+
             {/* Render de orbs de energia removido — só mapOrbs abaixo */}
             {/* ===== LANDS do jogador (Land Revo) ===== */}
             {renderLands()}
@@ -23268,8 +23369,22 @@ A sucata afundou com o casco.
                   destinations={destinations}
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
-                  onTeleport={(destination) => {
-                    if (!isWorldMapDestinationUnlocked(destination.id)) {
+                  onTeleport={async (destination, arvCode) => {
+                    if (destination.id === "arv") {
+                      if (!arvCode || !/^[A-Z0-9]{5}$/.test(arvCode)) {
+                        pushChat("🔒 Informe um código de 5 caracteres.", "info");
+                        return;
+                      }
+                      if (trainerEnergy < teleportEnergyCostFor("arv")) {
+                        pushChat("⚡ Energia insuficiente para teleportar.", "info");
+                        return;
+                      }
+                      const { data, error } = await supabase.rpc("unlock_arv" as never, { p_code: arvCode } as never);
+                      if (error || data !== true) {
+                        pushChat(error ? "🔒 Não foi possível validar o código ARV. Confira se o SQL foi aplicado." : "🔒 Código inválido ou tentativas excedidas. Tente novamente mais tarde.", "info");
+                        return;
+                      }
+                    } else if (!isWorldMapDestinationUnlocked(destination.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;
                     }
