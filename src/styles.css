@@ -1671,6 +1671,27 @@ html, body, #root {
 .arv-death-screen strong { font-size: clamp(30px, 6vw, 66px); letter-spacing: 4px; text-shadow: 0 0 22px #f33; }
 .arv-death-screen span { font-size: clamp(14px, 2vw, 22px); }
 .arv-death-screen small { font-size: clamp(13px, 2vw, 20px); color: #ffd76b; }
+/* DDT: vídeo em tela cheia de verdade no celular e no PC (fixed cobre a viewport). */
+.arv-death-video {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+.arv-death-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+/* Deitado (PC/celular na horizontal): preenche a tela inteira sem barras. */
+@media (orientation: landscape) {
+  .arv-death-video video { object-fit: cover; }
+}
 @media (prefers-reduced-motion: reduce) {
   .arv-river-fx, .arv-death-screen { animation: none; }
 }

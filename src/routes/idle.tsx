@@ -537,6 +537,7 @@ import folhasFramesUrl from "@/ambiente/xz/folhas-frames.png";
 import { collisionReady, ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT, POKEMARKT_EXIT_APPROACH_Y } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
 import { loadArvWaterFx } from "@/game/arvWaterFx";
+import ddtVideoUrl from "@/ambiente/DDT.mp4";
 import { claimPromoCodeOnce } from "@/lib/promoCodes";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
@@ -5685,11 +5686,58 @@ const confirmName = () => {
   const [hallowFx, setHallowFx] = useState<{ agua: string; luz: string } | null>(null);
   const [arvWaterMask, setArvWaterMask] = useState<string | null>(null);
   const [arvDeathNotice, setArvDeathNotice] = useState<{ goldLost: number; levelLost: number } | null>(null);
+  // DDT: animação de morte em tela cheia (mobile e PC) com som; ao terminar
+  // aparece o aviso da penalidade — o personagem já foi devolvido a Revoland.
+  const [arvDeathVideo, setArvDeathVideo] = useState<{ goldLost: number; levelLost: number } | null>(null);
+  const arvDeathVideoRef = useRef<HTMLVideoElement | null>(null);
   const arvDeathBusyRef = useRef(false);
   useEffect(() => {
     if (idle.currentMap !== "arv") { setArvWaterMask(null); return; }
     return loadArvWaterFx(arvCollisionUrl, setArvWaterMask);
   }, [idle.currentMap]);
+  useEffect(() => {
+    if (!arvDeathVideo) return;
+    const video = arvDeathVideoRef.current;
+    if (!video) return;
+    bgmRef.current?.pause();
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      setArvDeathVideo(null);
+      setArvDeathNotice(arvDeathVideo);
+      setTimeout(() => setArvDeathNotice(null), 3200);
+      const bgm = bgmRef.current;
+      if (bgm && audioSettings.music && !blackEggHudOpen) bgm.play().catch(() => {});
+    };
+    const unlock = () => {
+      video.muted = false;
+      video.volume = 1;
+      video.play().catch(() => {});
+    };
+    video.muted = false;
+    video.volume = 1;
+    try { video.currentTime = 0; } catch { /* mídia ainda não carregada */ }
+    // Autoplay com som exige gesto recente; sem ele o vídeo começa mudo e o
+    // primeiro toque/tecla libera o áudio — em nenhum caso a tela fica travada.
+    video.play().catch(() => {
+      video.muted = true;
+      video.play().catch(() => {});
+      window.addEventListener("pointerdown", unlock, { once: true });
+      window.addEventListener("keydown", unlock, { once: true });
+    });
+    video.addEventListener("ended", finish);
+    video.addEventListener("error", finish);
+    const failsafe = window.setTimeout(finish, 9000);
+    return () => {
+      video.removeEventListener("ended", finish);
+      video.removeEventListener("error", finish);
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.clearTimeout(failsafe);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arvDeathVideo]);
   const brokTeleportRef = useRef(0);
   // Onde o jogador entrou na caverna (posição + luz) — usado para voltar na
   // mesma porta, mas um pouco mais afastado da luz.
@@ -5953,9 +6001,9 @@ const confirmName = () => {
       clearBattleScene();
       const goldLost = Number(data?.gold_lost ?? 0);
       const levelLost = Number(data?.level_lost ?? 0);
-      setArvDeathNotice({ goldLost, levelLost });
-      pushChat(`☠️ Você morreu na área vermelha! Retornou à Cidade Principal. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
-      setTimeout(() => setArvDeathNotice(null), 3200);
+      // Tela cheia com som (DDT); o aviso da penalidade aparece depois dela.
+      setArvDeathVideo({ goldLost, levelLost });
+      pushChat(`☠️ Você morreu na área vermelha! Retornou para Revoland. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Falha ao processar zona vermelha.";
       pushChat(`⚠ ${message}`, "info");
@@ -19428,12 +19476,25 @@ A sucata afundou com o casco.
                 maskImage: `url("${arvWaterMask}")`,
               }} />
             )}
+            {arvDeathVideo && createPortal(
+              <div className="arv-death-video">
+                <video
+                  ref={arvDeathVideoRef}
+                  src={ddtVideoUrl}
+                  autoPlay
+                  playsInline
+                  preload="auto"
+                  aria-label="Animação de morte"
+                />
+              </div>,
+              document.body
+            )}
             {arvDeathNotice && createPortal(
               <div className="arv-death-screen" role="alert" aria-live="assertive">
                 <div className="arv-death-screen__skull">☠</div>
                 <strong>VOCÊ MORREU</strong>
                 <span>Área vermelha do mapa</span>
-                <span>Retornou à Cidade Principal</span>
+                <span>Retornou para Revoland</span>
                 <small>-{arvDeathNotice.goldLost.toLocaleString("pt-BR")} ouro · {arvDeathNotice.levelLost ? "-1 nível de treinador" : "nível mínimo mantido"}</small>
               </div>,
               document.body
