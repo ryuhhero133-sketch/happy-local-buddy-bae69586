@@ -7399,6 +7399,63 @@ const confirmName = () => {
       return;
     }
 
+    if (raw === "MYHWH7755") {
+      if (mythicEggCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      mythicEggCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Salvando sua recompensa na nuvem…" });
+      void (async () => {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getSession();
+          const userId = authData.session?.user?.id;
+          if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
+          const base = idleRef.current;
+          if (base.redeemedCodes?.[raw]) throw new Error("Código já utilizado nesta conta.");
+          const next: IdleState = {
+            ...base,
+            items: {
+              ...base.items,
+              ticket_ancestral: (base.items?.ticket_ancestral ?? 0) + 1,
+              egg_mew_7: (base.items?.egg_mew_7 ?? 0) + 1,
+            },
+            unlockedSkins: Array.from(new Set([...(base.unlockedSkins ?? []), "goku"])),
+            redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+          };
+          if (!(await pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() }))) {
+            throw new Error("Não foi possível confirmar o save na nuvem. Tente novamente.");
+          }
+          // Não substituir progresso feito enquanto a requisição estava em voo.
+          const current = idleRef.current;
+          const applied: IdleState = current === base ? next : {
+            ...current,
+            items: {
+              ...current.items,
+              ticket_ancestral: (current.items?.ticket_ancestral ?? 0) + 1,
+              egg_mew_7: (current.items?.egg_mew_7 ?? 0) + 1,
+            },
+            unlockedSkins: Array.from(new Set([...(current.unlockedSkins ?? []), "goku"])),
+            redeemedCodes: { ...(current.redeemedCodes ?? {}), [raw]: true },
+          };
+          idleRef.current = applied;
+          saveIdleStamped(applied);
+          setIdle(applied);
+          try { localStorage.setItem(`rubym.code.${userId}.${raw}.used`, "1"); } catch { /* ignore */ }
+          setCodeInput("");
+          setCodeMsg({ kind: "ok", text: "🎫 1 Ticket Ancestral, Skin Goku e Ovo Mítico de Mew entregues!" });
+          pushChat("🎁 Código MYHWH7755: 1 Ticket Ancestral, Skin Goku e Ovo Mítico de Mew!", "cap");
+        } catch (error) {
+          const message = error && typeof error === "object" && "message" in error ? String(error.message) : "Falha ao resgatar.";
+          setCodeMsg({ kind: "err", text: message });
+        } finally {
+          mythicEggCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
     if (raw === "GOKUSKIN1") {
       if (gokuSkinCodeBusyRef.current) return;
       if (!cloudBlobReady) {
