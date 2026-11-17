@@ -22,6 +22,8 @@ export interface SealedEgg {
 export const ENTRY_TO_SPECIES: Record<string, Species> = {
   darkrai: "darkrai",
   "dragonite-mg": "dragonite_mg",
+  "dragonite-ancestral": "dragonite_ancestral",
+  "mewtwo-ancestral": "mewtwo_ancestral",
   giratina: "giratina",
   "groudon-shiny": "groudon_shiny",
   cresselia: "cresselia",

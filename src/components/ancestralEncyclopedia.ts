@@ -3,6 +3,8 @@
 // Todos os 17 são apenas documentação de coleção: nenhum é adicionado ao jogo.
 import darkraiUrl from "@/ambiente/ancestral/darkrai.jpg";
 import dragoniteMgUrl from "@/ambiente/ancestral/dragonite-mg.jpg";
+import dragoniteAncestralUrl from "@/ambiente/DRAGONITE ANCESTRAL X.png";
+import mewtwoAncestralUrl from "@/ambiente/MEWTWO ANCESTRAL.png";
 import giratinaUrl from "@/ambiente/ancestral/giratina.jpg";
 import groudonShinyUrl from "@/ambiente/ancestral/groudon-shiny.jpg";
 import cresseliaUrl from "@/ambiente/ancestral/cresselia.jpg";
@@ -65,6 +67,36 @@ export function eggNameFor(name: string): string {
 }
 
 export const ANCESTRAL_ENTRIES: AncestralEntry[] = [
+  {
+    id: "mewtwo-ancestral",
+    number: 18,
+    name: "Mewtwo Ancestral",
+    category: "Ancestral",
+    types: ["Psíquico"],
+    specialty: "Poder psíquico e ataque especial",
+    trait: "Poder Ancestral",
+    accent: "#c98cff",
+    tier: "ancestral",
+    image: mewtwoAncestralUrl,
+    description: "Mewtwo Ancestral canaliza sua energia psíquica em uma forma ancestral.",
+    abilities: [],
+    role: "Ancestral especializado em poder psíquico.",
+  },
+  {
+    id: "dragonite-ancestral",
+    number: 19,
+    name: "Dragonite Ancestral",
+    category: "Ancestral",
+    types: ["Dragão", "Voador"],
+    specialty: "Força dracônica e resistência",
+    trait: "Poder Ancestral",
+    accent: "#ffb54d",
+    tier: "ancestral",
+    image: dragoniteAncestralUrl,
+    description: "Dragonite Ancestral combina força dracônica com sua forma ancestral.",
+    abilities: [],
+    role: "Ancestral equilibrado para o combate.",
+  },
   {
     id: "darkrai",
     number: 1,

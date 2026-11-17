@@ -1188,6 +1188,10 @@ import ancZekromFrame from "@/ambiente/ANCESTRAIS/frames/Zekrom.png";
 import ancGroudonShinyFrame from "@/ambiente/ANCESTRAIS/frames/Groudon Shiny.png";
 import ancRayquazaShinyFrame from "@/ambiente/ANCESTRAIS/frames/Rayquaza Shiny.png";
 import ancDragoniteMgFrame from "@/ambiente/ANCESTRAIS/frames/Dragonite MG.png";
+import mewtwoAncestralSheet from "@/ambiente/MEWTWO.png";
+import dragoniteAncestralSheet from "@/ambiente/DRAGONITE ANCESTRAL.png";
+import mewtwoAncestralFrame from "@/ambiente/MEWTWO ANCESTRAL FRAME.png";
+import dragoniteAncestralFrame from "@/ambiente/DRAGONITE ANCESTRAL FRAME.png";
 import ancLatiasAncestralFrame from "@/ambiente/ANCESTRAIS/frames/Latias Ancestral.png";
 import ancLatiosAncestralFrame from "@/ambiente/ANCESTRAIS/frames/Latios Ancestral.png";
 import ancLugiaShinyFrame from "@/ambiente/ANCESTRAIS/frames/Lugia Shiny.png";
@@ -1295,6 +1299,7 @@ const GIF: Partial<Record<Species, string>> = {
   reshiram: ancReshiramFrame, zekrom: ancZekromFrame,
   groudon_shiny: ancGroudonShinyFrame, rayquaza_shiny: ancRayquazaShinyFrame,
   dragonite_mg: ancDragoniteMgFrame,
+  mewtwo_ancestral: mewtwoAncestralFrame, dragonite_ancestral: dragoniteAncestralFrame,
   latias_ancestral: ancLatiasAncestralFrame, latios_ancestral: ancLatiosAncestralFrame,
   lugia_m_shiny: ancLugiaShinyFrame, lugia_shiny_ancestral: ancLugiaAncestralShinyFrame,
   mega_lugia_ancestral: ancLugiaAncestralFrame,
@@ -1318,6 +1323,7 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   reshiram: ancReshiramPng, zekrom: ancZekromPng,
   groudon_shiny: ancGroudonShinyPng, rayquaza_shiny: ancRayquazaShinyPng,
   dragonite_mg: ancDragoniteMgPng,
+  mewtwo_ancestral: mewtwoAncestralSheet, dragonite_ancestral: dragoniteAncestralSheet,
   latias_ancestral: ancLatiasAncestralPng, latios_ancestral: ancLatiosAncestralPng,
   lugia_m_shiny: ancLugiaShinyPng, lugia_shiny_ancestral: ancLugiaAncestralShinyPng,
   mega_lugia_ancestral: ancLugiaAncestralPng,

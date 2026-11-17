@@ -190,6 +190,7 @@ export type Species =
   // Nunca entram em LEVEL_UNLOCKS nem nos pools de spawn/ovos aleatórios.
   | "giratina" | "cresselia" | "kyurem" | "reshiram" | "zekrom"
   | "groudon_shiny" | "rayquaza_shiny" | "dragonite_mg"
+  | "mewtwo_ancestral" | "dragonite_ancestral"
   | "latias_ancestral" | "latios_ancestral"
   | "lugia_m_shiny" | "lugia_shiny_ancestral" | "mega_lugia_ancestral"
   | "mega_charizard" | "charizard_mega_x";
@@ -575,6 +576,8 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   groudon_shiny:   { hp: 110, atk: 160, def: 140, spa: 100, spd: 100, spe: 90,  rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 0.8, catchMod: 5.0, minLv: 500 },
   rayquaza_shiny:  { hp: 110, atk: 160, def: 100, spa: 160, spd: 100, spe: 105, rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 1.0, catchMod: 4.5, minLv: 500 },
   dragonite_mg:    { hp: 91,  atk: 134, def: 95,  spa: 100, spd: 100, spe: 80,  rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.0, minLv: 500 },
+  dragonite_ancestral: { hp: 91, atk: 134, def: 95, spa: 100, spd: 100, spe: 80, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.0, minLv: 500 },
+  mewtwo_ancestral: { hp: 106, atk: 110, def: 90, spa: 154, spd: 90, spe: 130, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.5, minLv: 500 },
   latias_ancestral:{ hp: 80,  atk: 80,  def: 90,  spa: 110, spd: 150, spe: 110, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.5, minLv: 500 },
   latios_ancestral:{ hp: 80,  atk: 90,  def: 80,  spa: 150, spd: 120, spe: 110, rarity: "mythic_shiny", goldRange: [250, 450], crystalChance: 0.5, catchMod: 4.5, minLv: 500 },
   lugia_m_shiny:   { hp: 106, atk: 90,  def: 160, spa: 90,  spd: 160, spe: 110, rarity: "mythic_shiny", goldRange: [350, 600], crystalChance: 0.7, catchMod: 5.0, minLv: 500 },
