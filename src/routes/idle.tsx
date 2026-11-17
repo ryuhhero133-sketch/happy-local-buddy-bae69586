@@ -7412,24 +7412,15 @@ const confirmName = () => {
           const { data: authData, error: authError } = await supabase.auth.getSession();
           const userId = authData.session?.user?.id;
           if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
-          const base = idleRef.current;
-          if (base.redeemedCodes?.[raw]) throw new Error("Código já utilizado nesta conta.");
-          const next: IdleState = {
-            ...base,
-            items: {
-              ...base.items,
-              ticket_ancestral: (base.items?.ticket_ancestral ?? 0) + 1,
-              egg_mew_7: (base.items?.egg_mew_7 ?? 0) + 1,
-            },
-            unlockedSkins: Array.from(new Set([...(base.unlockedSkins ?? []), "goku"])),
-            redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
-          };
-          if (!(await pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() }))) {
-            throw new Error("Não foi possível confirmar o save na nuvem. Tente novamente.");
+          const { data: result, error } = await (supabase as any).rpc("claim_myhwh7755_reward");
+          if (error) throw error;
+          if (!result?.ok) throw new Error("Não foi possível confirmar a recompensa no servidor.");
+          if (result.already_claimed) {
+            throw new Error("Recompensa já registrada na nuvem. Preserve seu progresso local e procure suporte para sincronizar.");
           }
-          // Não substituir progresso feito enquanto a requisição estava em voo.
+          // Preserva a sessão atual; nunca substitui níveis ou Pokémon por um save antigo.
           const current = idleRef.current;
-          const applied: IdleState = current === base ? next : {
+          const applied: IdleState = {
             ...current,
             items: {
               ...current.items,
