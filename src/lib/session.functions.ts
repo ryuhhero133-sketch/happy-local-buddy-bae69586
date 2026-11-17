@@ -12,63 +12,28 @@ import { z } from "zod";
 //   claimed_at timestamptz NOT NULL
 //   last_seen_at timestamptz NOT NULL
 //
-// O código antigo lia/gravava "session_token"/"updated_at", colunas que não
-// existem: TODA chamada falhava com 42703 e o lock de sessão única nunca
-// funcionou. A PK em user_id já garante a unicidade exigida pelo
-// onConflict("user_id") do upsert — nenhum índice extra é necessário.
-//
-// Política de falhas (importante):
-//   - Sem registro (existing == null) => fluxo normal de primeira reivindicação.
-//   - Erro de banco na LEITURA        => ok:false / SESSION_UNAVAILABLE.
-//     NÃO libera a sessão silenciosamente (evita sessões simultâneas quando
-//     o banco está fora) e NÃO lança exceção (o catch do AuthGate e o
-//     .catch(() => {}) do heartbeat já engoliriam — gerando retry a cada 30s).
-//   - Erro de banco na ESCRITA        => ok:false / SESSION_WRITE_FAILED.
+// claim_session faz a disputa atomicamente no banco. Uma falha nunca é
+// interpretada como ausência de sessão; o AuthGate bloqueia a entrada.
 
 export const updateActiveSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) => z.object({ token: z.string() }).parse(d))
+  .validator((d) => z.object({ token: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const userId = context.userId;
 
-    // Compara a assinatura da sessão atual com a registrada no banco.
-    const { data: existing, error: readError } = await supabase
-      .from("active_sessions")
-      .select("session_id, claimed_at")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (readError) {
-      // Falha real de leitura: não sabemos se há outra sessão ativa.
-      // Tratar como indisponível — NÃO assumir "sem sessão".
-      console.warn("[active_sessions] select falhou:", readError.code, readError.message);
-      return { ok: false, error: "SESSION_UNAVAILABLE", message: "Não foi possível verificar a sessão ativa. Tente novamente." };
-    }
-
-    if (existing && existing.session_id !== data.token) {
-      // Já existe outra sessão ativa para esta conta — recusa a nova.
-      return { ok: false, error: "SESSION_TAKEN", message: "Esta conta já está logada em outro local." };
-    }
-
-    // claimed_at marca a PRIMEIRA reivindicação e não é reescrito (coluna NOT NULL).
-    // last_seen_at é o heartbeat, atualizado a cada 30s.
-    const now = new Date().toISOString();
-    const { error: upsertError } = await supabase.from("active_sessions").upsert(
-      {
-        user_id: userId,
-        session_id: data.token,
-        claimed_at: existing?.claimed_at ?? now,
-        last_seen_at: now,
-      },
-      { onConflict: "user_id" }
-    );
-
-    if (upsertError) {
-      console.warn("[active_sessions] upsert falhou:", upsertError.code, upsertError.message);
+    // O RPC faz o claim e a verificação em uma única transação. SELECT seguido
+    // de UPSERT no cliente permitia que duas abas reivindicassem a mesma conta.
+    const { data: claim, error: claimError } = await supabase.rpc("claim_session", {
+      p_session_id: data.token,
+    });
+    if (claimError) {
+      console.warn("[active_sessions] claim falhou:", claimError.code, claimError.message);
       return { ok: false, error: "SESSION_WRITE_FAILED", message: "Não foi possível registrar a sessão." };
     }
-
+    if (claim?.ok !== true) {
+      return { ok: false, error: claim?.reason === "SESSION_TAKEN" ? "SESSION_TAKEN" : "SESSION_UNAVAILABLE",
+        message: "Não foi possível confirmar a sessão ativa." };
+    }
     return { ok: true };
   });
 
@@ -96,9 +61,9 @@ export const getActiveSessionToken = createServerFn({ method: "GET" })
 
 export const clearActiveSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .validator((d) => z.object({ token: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
     const supabase = context.supabase as any;
-    const userId = context.userId;
-    await supabase.from("active_sessions").delete().eq("user_id", userId);
-    return { ok: true };
+    const { data: released, error } = await supabase.rpc("release_session", { p_session_id: data.token });
+    return { ok: !error && released === true };
   });

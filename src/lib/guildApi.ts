@@ -76,103 +76,54 @@ function toGuild(g: DbGuild, members: DbMember[]): Guild {
 
 /** Carrega a guilda atual do usuário (ou null). */
 export async function fetchMyGuild(userId: string): Promise<Guild | null> {
-  try {
-    const { data: mine } = await sb
+    const { data: mine, error: mineError } = await sb
       .from("guild_members")
       .select("guild_id")
       .eq("user_id", userId)
       .maybeSingle();
+    if (mineError) throw mineError;
     if (!mine?.guild_id) return null;
-    const [{ data: g }, { data: ms }] = await Promise.all([
+    const [{ data: g, error: guildError }, { data: ms, error: memberError }] = await Promise.all([
       sb.from("guilds").select("*").eq("id", mine.guild_id).maybeSingle(),
       sb.from("guild_members").select("*").eq("guild_id", mine.guild_id),
     ]);
-    if (!g) return null;
+    if (guildError) throw guildError;
+    if (memberError) throw memberError;
+    if (!g) throw new Error("Guilda vinculada ao jogador não encontrada no banco.");
     return toGuild(g as DbGuild, (ms as DbMember[]) ?? []);
-  } catch {
-    return null;
-  }
 }
 
 /** Verifica se um usuário já tem guilda. */
 export async function userHasGuild(userId: string): Promise<boolean> {
-  const { data } = await sb.from("guild_members").select("guild_id").eq("user_id", userId).maybeSingle();
+  const { data, error } = await sb.from("guild_members").select("guild_id").eq("user_id", userId).maybeSingle();
+  if (error) throw error;
   return !!data?.guild_id;
+}
+
+export async function fetchGuildClaims(guildId: string, userId: string): Promise<string[]> {
+  const { data, error } = await sb.from("guild_mission_claims")
+    .select("mission_id").eq("guild_id", guildId).eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).map((row: { mission_id: string }) => row.mission_id);
 }
 
 export async function createGuildRemote(args: {
   name: string;
   element: GuildElement;
-  founderId: string;
-  founderName: string;
   founderLevel: number;
   leaderSpecies?: string | null;
-}): Promise<{ ok: boolean; guild?: Guild; error?: string }> {
-  try {
-    // Validate UID
-    if (!args.founderId || args.founderId.trim() === "") {
-      return { ok: false, error: "Usuário não autenticado." };
-    }
-    // Check if user already has a guild
-    const hasGuild = await userHasGuild(args.founderId);
-    if (hasGuild) {
-      return { ok: false, error: "Você já está em uma guilda." };
-    }
-    // Validate name
-    const trimmedName = args.name.trim().slice(0, 18);
-    if (!trimmedName) {
-      return { ok: false, error: "Nome da guilda inválido." };
-    }
-    // Try to create the guild with duplicate name handling
-    let g: DbGuild | null = null;
-    const maxRetries = 3;
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const { data: ginsert, error: gerr } = await sb
-        .from("guilds")
-        .insert({ name: trimmedName, element: args.element, founder_id: args.founderId })
-        .select("*")
-        .single();
-      if (!gerr && ginsert) {
-        g = ginsert as DbGuild;
-        break;
-      }
-      // If duplicate name, append a suffix and retry
-      if (gerr && gerr.code === "23505" && attempt < maxRetries - 1) {
-        // Duplicate name - try with a suffix
-        const suffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-        const newName = `${trimmedName.slice(0, 15)}_${suffix}`;
-        // Update the name for next iteration
-        // We'll just try again with the modified name
-        // Actually, let's just return the error to the user for duplicate names
-        return { ok: false, error: "Nome de guilda já existe. Escolha outro." };
-      }
-      if (gerr) {
-        return { ok: false, error: gerr.message ?? "Erro ao criar guilda." };
-      }
-    }
-    if (!g) {
-      return { ok: false, error: "Erro ao criar guilda." };
-    }
-    // Insert guild member (founder as leader) - if this fails, we clean up the guild
-    const { error: merr } = await sb.from("guild_members").insert({
-      guild_id: g.id,
-      user_id: args.founderId,
-      username: args.founderName,
-      role: "leader",
-      leader_species: args.leaderSpecies ?? null,
-      level: args.founderLevel,
+  expectedVersion: number;
+}): Promise<{ ok: boolean; server_version?: number; value?: number; error?: string }> {
+    const { data, error } = await sb.rpc("create_player_guild", {
+      p_name: args.name.trim(),
+      p_element: args.element,
+      p_level: args.founderLevel,
+      p_expected_version: args.expectedVersion,
+      p_species: args.leaderSpecies ?? null,
     });
-    if (merr) {
-      // Cleanup: delete the guild to avoid orphan
-      await sb.from("guilds").delete().eq("id", g.id);
-      return { ok: false, error: merr.message };
-    }
-    // Fetch the complete guild
-    const guild = await fetchMyGuild(args.founderId);
-    return guild ? { ok: true, guild } : { ok: false, error: "Falha ao carregar guilda." };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Erro" };
-  }
+    if (error) throw error;
+    return { ok: data?.ok === true, server_version: data?.server_version,
+      value: data?.gold, error: data?.reason };
 }
 
 /** Resolve username → user_id (via tabela `players` por último visto). */
@@ -191,27 +142,9 @@ export async function sendInviteByUsername(args: {
 }): Promise<{ ok: boolean; error?: string }> {
   const username = args.toUsername.trim();
   if (!username) return { ok: false, error: "Informe o username." };
-  if (username.toLowerCase() === args.fromUsername.toLowerCase()) return { ok: false, error: "Você mesmo? 😅" };
-  const targetId = await resolveUserId(username);
-  if (targetId && await userHasGuild(targetId)) {
-    return { ok: false, error: `${username} já está em uma guilda.` };
-  }
-  // Checa convite pendente duplicado
-  const { data: existing } = await sb
-    .from("guild_invites")
-    .select("id")
-    .eq("guild_id", args.guild.id)
-    .eq("status", "pending")
-    .ilike("to_username", username)
-    .maybeSingle();
-  if (existing) return { ok: false, error: "Convite já pendente pra esse jogador." };
-  const { error } = await sb.from("guild_invites").insert({
-    guild_id: args.guild.id,
-    guild_name: args.guild.name,
-    from_user_id: args.fromUserId,
-    from_username: args.fromUsername,
-    to_user_id: targetId,
-    to_username: username,
+  const { error } = await sb.rpc("invite_player_to_guild", {
+    p_guild: args.guild.id,
+    p_username: username,
   });
   if (error) return { ok: false, error: error.message };
   return { ok: true };
@@ -247,13 +180,13 @@ export async function sendInviteToPlayer(args: {
   return { ok: true };
 }
 
-export async function fetchPendingInvites(userId: string, username: string): Promise<GuildInvite[]> {
-  const ors = [`to_user_id.eq.${userId}`, `to_username.ilike.${username}`];
-  const { data } = await sb
+export async function fetchPendingInvites(userId: string, _username: string): Promise<GuildInvite[]> {
+  const { data, error } = await sb
     .from("guild_invites")
     .select("*")
     .eq("status", "pending")
-    .or(ors.join(","));
+    .eq("to_user_id", userId);
+  if (error) throw error;
   return (data as GuildInvite[]) ?? [];
 }
 
@@ -264,34 +197,28 @@ export async function acceptInvite(args: {
   level: number;
   leaderSpecies?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
-  if (await userHasGuild(args.userId)) {
-    await sb.from("guild_invites").update({ status: "declined" }).eq("id", args.invite.id);
-    return { ok: false, error: "Você já está em uma guilda." };
-  }
-  const { error: merr } = await sb.from("guild_members").insert({
-    guild_id: args.invite.guild_id,
-    user_id: args.userId,
-    username: args.username,
-    role: "member",
-    leader_species: args.leaderSpecies ?? null,
-    level: args.level,
+  const { error } = await sb.rpc("accept_player_guild_invite", {
+    p_invite: args.invite.id,
+    p_level: args.level,
+    p_species: args.leaderSpecies ?? null,
   });
-  if (merr) return { ok: false, error: merr.message };
-  await sb.from("guild_invites").update({ status: "accepted" }).eq("id", args.invite.id);
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
 export async function declineInvite(inviteId: string): Promise<void> {
-  await sb.from("guild_invites").update({ status: "declined" }).eq("id", inviteId);
+  const { error } = await sb.rpc("decline_player_guild_invite", { p_invite: inviteId });
+  if (error) throw error;
 }
 
 export async function kickMemberRemote(guildId: string, userId: string): Promise<{ ok: boolean; error?: string }> {
-  const { error } = await sb.from("guild_members").delete().eq("guild_id", guildId).eq("user_id", userId);
+  const { error } = await sb.rpc("kick_player_guild_member", { p_guild: guildId, p_member: userId });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
-export async function leaveGuildRemote(userId: string): Promise<void> {
-  await sb.from("guild_members").delete().eq("user_id", userId);
+export async function leaveGuildRemote(_userId: string): Promise<void> {
+  const { error } = await sb.rpc("leave_player_guild");
+  if (error) throw error;
 }
 
 export async function dissolveGuildRemote(guildId: string): Promise<void> {

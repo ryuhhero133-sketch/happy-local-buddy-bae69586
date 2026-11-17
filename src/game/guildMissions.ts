@@ -74,7 +74,6 @@ export function updateGuildMissionProgress(
     if (cur < m.target) { next[m.id] = cur + 1; changed = true; }
   }
   if (!changed) return prev;
-  try { localStorage.setItem(PROG_KEY, JSON.stringify(next)); } catch { /* ignore */ }
   return next;
 }
 

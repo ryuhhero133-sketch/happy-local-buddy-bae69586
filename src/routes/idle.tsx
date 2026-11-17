@@ -219,6 +219,7 @@ import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
+import { runCheckpointMutation } from "@/lib/saveManager";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -249,13 +250,14 @@ import synergyDockIcon from "@/assets/synergy2/c-core.png";
 import { GuildPanel } from "@/components/GuildPanel";
 import { QuestBookPanel } from "@/components/QuestBookPanel";
 import type { Guild, GuildElement } from "@/game/guild";
+import { guildImageFor } from "@/game/guild";
 import {
-  loadGuildMissionProgress, loadGuildMissionsClaimed, saveGuildMissionsClaimed,
+  loadGuildMissionProgress,
   updateGuildMissionProgress, loadFriends, saveFriends, loadParty, saveParty,
   type FriendEntry, type GuildMission,
 } from "@/game/guildMissions";
 import {
-  fetchMyGuild, createGuildRemote, sendInviteByUsername, fetchPendingInvites,
+  fetchMyGuild, fetchGuildClaims, createGuildRemote, sendInviteByUsername, fetchPendingInvites,
   acceptInvite, declineInvite, leaveGuildRemote, kickMemberRemote, subscribeMyInvites,
   type GuildInvite,
 } from "@/lib/guildApi";
@@ -2145,6 +2147,8 @@ type IdleState = {
   seenSpecies: Species[];
   collection?: CollectionEntry[];
   items: Record<string, number>;
+  guildMissionProgress?: Record<string, number>;
+  guildMissionsClaimed?: string[];
   /** Rede de cristais: separada da sinergia entre Pokémon do time. */
   crystalNetwork?: CrystalNetwork;
   crystalTiers?: CrystalTiers;
@@ -3268,6 +3272,19 @@ function IdlePage() {
     vaultPut(blob);
   }, [idle, team, restingBench, buildFullBlob, cloudBlobReady]);
 
+  // Checkpoint completo após captura ou mudança de nível (inclusive treinador).
+  // Usamos os valores do render, não refs que ainda podem estar defasadas.
+  const progressCheckpointKeyRef = useRef("");
+  useEffect(() => {
+    if (!cloudBlobReady || levelResetBusyRef.current) return;
+    const pets = [...team, ...restingBench, ...(idle.collection ?? [])];
+    const key = `${idle.trainerLevel ?? 1}|${pets.map((p) => `${p.uid}:${p.level ?? 1}`).sort().join("|")}`;
+    const previous = progressCheckpointKeyRef.current;
+    progressCheckpointKeyRef.current = key;
+    if (!previous || previous === key) return;
+    void pushCloudSaveNow({ idle, team, restingBench, savedAt: Date.now() });
+  }, [cloudBlobReady, idle, team, restingBench]);
+
   // Cooldown do SALVAR manual na nuvem (20s): evita spam de save manual.
   const lastManualSaveRef = useRef(0);
   const tryManualCloudSave = async () => {
@@ -3734,8 +3751,9 @@ const confirmName = () => {
   const [friends, setFriends] = useState<FriendEntry[]>(() => { try { return loadFriends(); } catch { return []; } });
   const [partyNames, setPartyNames] = useState<string[]>(() => { try { return loadParty(); } catch { return []; } });
   const [partyInvites, setPartyInvites] = useState<PartyInviteRow[]>([]);
-  const [missionProgress, setMissionProgress] = useState<Record<string, number>>(() => { try { return loadGuildMissionProgress(); } catch { return {}; } });
-  const [claimedMissions, setClaimedMissions] = useState<string[]>(() => { try { return loadGuildMissionsClaimed(); } catch { return []; } });
+  const [legacyMissionProgress] = useState<Record<string, number>>(() => { try { return loadGuildMissionProgress(); } catch { return {}; } });
+  const missionProgress = idle.guildMissionProgress ?? legacyMissionProgress;
+  const [claimedMissions, setClaimedMissions] = useState<string[]>([]);
   const refreshGuild = async () => {
     setGuildLoading(true);
     try {
@@ -3743,10 +3761,14 @@ const confirmName = () => {
       if (uid) {
         try {
           const g = await fetchMyGuild(uid);
-          if (g) setGuild(g);
+          setGuild(g);
+          setClaimedMissions(g ? await fetchGuildClaims(g.id, uid) : []);
           const inv = await fetchPendingInvites(uid, myName);
           setGuildInvites(inv ?? []);
-        } catch { /* backend pode não existir � mantém estado local */ }
+        } catch (error) {
+          console.warn("[guild] falha na leitura; estado anterior preservado", error);
+          pushChat("Guilda temporariamente indisponível; vínculo no banco foi preservado. Tente atualizar depois.", "info");
+        }
       }
     } finally { setGuildLoading(false); }
   };
@@ -3778,26 +3800,31 @@ const confirmName = () => {
       setGuildLoading(true);
       try {
         const uid = await getUid();
-        let created: Guild | null = null;
-        if (uid) {
-          try {
-            const r = await createGuildRemote({ name, element, founderId: uid, founderName: myName, founderLevel: myLevel, leaderSpecies: mySpecies });
-            if (r.ok && r.guild) created = r.guild;
-            else if (r.error) pushChat(r.error, "info");
-          } catch { /* cai para guilda local */ }
+        if (!uid) { pushChat("Entre na sua conta para criar uma guilda permanente.", "info"); return; }
+        let goldAtCheckpoint = myGold;
+        const result = await runCheckpointMutation(
+          buildFullBlob(),
+          async (expectedVersion) => {
+            const created = await createGuildRemote({ name, element, founderLevel: myLevel,
+              leaderSpecies: mySpecies, expectedVersion });
+            return { ...created, reason: created.error };
+          },
+          (snapshot, gold, checkpoint) => {
+            const save = snapshot as { idle: IdleState };
+            goldAtCheckpoint = (checkpoint as { idle: IdleState }).idle.bank.gold;
+            return { ...save, idle: { ...save.idle,
+              bank: { ...save.idle.bank, gold: gold + (save.idle.bank.gold - goldAtCheckpoint) } } };
+          },
+        );
+        if (!result.ok) {
+          pushChat(`Guilda nao confirmada: ${result.reason ?? "tente novamente"}. Confira o banco antes de repetir; nenhum custo foi confirmado.`, "info");
+          return;
         }
-        if (!created) {
-          created = {
-            id: `g_local_${Date.now()}`, name, element, level: 1, xp: 0,
-            members: [{ id: myId, name: myName, level: myLevel, leaderSpecies: mySpecies, joinedAt: Date.now(), role: "leader" }],
-            founderId: myId, foundedAt: Date.now(), totalDonated: 0,
-          };
-          pushChat(`�x�� Guilda "${name}" fundada (local).`, "cap");
-        } else {
-          pushChat(`�x�� Guilda "${name}" fundada!`, "cap");
-        }
-        setIdle((s: any) => ({ ...s, bank: { ...s.bank, gold: Math.max(0, ((s.bank?.gold ?? 0) - GUILD_CREATE_COST)) } }));
-        setGuild(created);
+        setIdle((s) => ({ ...s, bank: {
+          ...s.bank, gold: result.value! + (s.bank.gold - goldAtCheckpoint),
+        } }));
+        await refreshGuild();
+        pushChat(`Guilda "${name}" registrada no banco!`, "cap");
       } finally { setGuildLoading(false); }
     } catch { /* ignore */ }
   };
@@ -3827,25 +3854,52 @@ const confirmName = () => {
     setGuildInvites((prev) => prev.filter((x) => x.id !== id));
   };
   const guildClaimLockRef = useRef<Set<string>>(new Set());
-  const handleClaimMission = (m: GuildMission) => {
+  const handleClaimMission = async (m: GuildMission) => {
     try {
+      if (!guild || !cloudBlobReady) { pushChat("Aguarde a guilda e o save carregarem.", "info"); return; }
       if (claimedMissions.includes(m.id) || guildClaimLockRef.current.has(m.id)) return;
       if ((missionProgress[m.id] ?? 0) < m.target) { pushChat("Missão ainda não concluída.", "info"); return; }
       guildClaimLockRef.current.add(m.id);
-      const next = [...claimedMissions, m.id];
-      setClaimedMissions(next);
-      try { saveGuildMissionsClaimed(next); } catch { /* ignore */ }
-      setIdle((s: any) => ({
-        ...s,
-        bank: {
-          ...s.bank,
-          gold: ((s.bank?.gold ?? 0) + ((m as any).rewardGold ?? 0)),
-          crystals: ((s.bank?.crystals ?? 0) + ((m as any).rewardCrystals ?? 0)),
+      let confirmedCrystals: number | null = null;
+      let goldAtCheckpoint = idle.bank.gold;
+      let crystalsAtCheckpoint = idle.bank.crystals;
+      const result = await runCheckpointMutation(
+        buildFullBlob(),
+        async (expectedVersion) => {
+          const { data, error } = await gameDb.rpc("claim_player_guild_mission",
+            { p_mission_id: m.id, p_expected_version: expectedVersion });
+          if (error) throw error;
+          if (data?.ok === true) confirmedCrystals = data.crystals;
+          return { ok: data?.ok === true, server_version: data?.server_version,
+            value: data?.gold, reason: data?.reason };
         },
+        (snapshot, gold, checkpoint) => {
+          const save = snapshot as { idle: IdleState };
+          const base = (checkpoint as { idle: IdleState }).idle;
+          goldAtCheckpoint = base.bank.gold;
+          crystalsAtCheckpoint = base.bank.crystals;
+          return { ...save, idle: {
+            ...save.idle,
+            bank: { ...save.idle.bank,
+              gold: gold + (save.idle.bank.gold - goldAtCheckpoint),
+              crystals: (confirmedCrystals ?? crystalsAtCheckpoint) + (save.idle.bank.crystals - crystalsAtCheckpoint) },
+            guildMissionsClaimed: [...new Set([...(save.idle.guildMissionsClaimed ?? []), m.id])],
+          } };
+        },
+      );
+      if (!result.ok) { pushChat(`Missão não resgatada: ${result.reason ?? "tente novamente"}.`, "info"); return; }
+      setClaimedMissions((prev) => [...prev, m.id]);
+      setIdle((s) => ({
+        ...s, bank: { ...s.bank,
+          gold: result.value! + (s.bank.gold - goldAtCheckpoint),
+          crystals: (confirmedCrystals ?? crystalsAtCheckpoint) + (s.bank.crystals - crystalsAtCheckpoint) },
+        guildMissionsClaimed: [...new Set([...(s.guildMissionsClaimed ?? []), m.id])],
       }));
-      setGuild((g) => (g ? { ...g, xp: g.xp + ((m as any).rewardGuildXp ?? 0) } : g));
-      pushChat(`�x}� Missão "${m.title}" concluída!`, "cap");
-    } catch { /* ignore */ }
+      await refreshGuild();
+      pushChat(`Missão "${m.title}" concluída e salva!`, "cap");
+    } catch (error) {
+      pushChat(`Não foi possível resgatar: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    } finally { guildClaimLockRef.current.delete(m.id); }
   };
   const handleAddFriend = (name: string) => {
     const n = name.trim().slice(0, 18);
@@ -3888,7 +3942,13 @@ const confirmName = () => {
       if (!guild) return;
       if (!window.confirm(`Sair da guilda ${guild.name}?`)) return;
       const uid = await getUid();
-      if (uid && !guild.id.startsWith("g_local_")) { try { await leaveGuildRemote(uid); } catch { /* ignore */ } }
+      if (!uid) { pushChat("Entre na sua conta para sair da guilda.", "info"); return; }
+      try {
+        await leaveGuildRemote(uid);
+      } catch (error) {
+        pushChat(`Nao foi possivel sair da guilda: ${error instanceof Error ? error.message : "falha no banco"}`, "info");
+        return;
+      }
       setGuild(null);
       pushChat(`�xa� Você saiu da guilda ${guild.name}.`, "info");
     } catch { /* ignore */ }
@@ -3923,9 +3983,15 @@ const confirmName = () => {
       return saved ? JSON.parse(saved) : ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"];
     } catch { return ["basic_helmet", "wood_sword", "leather_armor", "old_boots", "simple_ring", "iron_necklace"]; }
   });
+  const [skinHydrated, setSkinHydrated] = useState(false);
+  const skinIdRef = useRef(skinId);
+  skinIdRef.current = skinId;
 
   useEffect(() => {
     try { localStorage.setItem(SKIN_KEY, skinId); } catch { /* ignore */ }
+    // Não publicar o valor local inicial antes de ler o perfil: no F5 ele
+    // poderia substituir a skin equipada no servidor.
+    if (!skinHydrated) return;
     // Fonte de verdade no servidor (isolado por auth.uid)
     void (async () => {
       try {
@@ -3935,23 +4001,26 @@ const confirmName = () => {
         await (supabase as any).from("profiles").upsert({ id: uid, avatar_url: skinId }, { onConflict: "id" });
       } catch { /* ignore */ }
     })();
-  }, [skinId]);
+  }, [skinId, skinHydrated]);
 
   // Hidrata skin do servidor na volta (F5 / novo navegador / mesma MetaMask)
   useEffect(() => {
     let cancelled = false;
+    const initialSkin = skinIdRef.current;
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();
         const uid = data.session?.user?.id;
         if (!uid) return;
-        const { data: prof } = await (supabase as any).from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
+        const { data: prof, error: profileError } = await (supabase as any).from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
         if (cancelled) return;
+        if (profileError) return;
         const srv = (prof?.avatar_url as string | null)?.trim();
-        if (srv && SKINS.some((skin) => skin.id === srv) && srv !== skinId) {
+        if (srv && SKINS.some((skin) => skin.id === srv) && skinIdRef.current === initialSkin && srv !== skinIdRef.current) {
           setSkinId(srv);
           try { localStorage.setItem("rubym.setup.skin", srv); localStorage.setItem(SKIN_KEY, srv); } catch {}
         }
+        setSkinHydrated(true);
       } catch {}
     })();
     return () => { cancelled = true; };
@@ -7447,41 +7516,58 @@ const confirmName = () => {
       return;
     }
 
-    if (raw === "GOKUSKIN1") {
+    if (raw.startsWith("GOKU")) {
       if (gokuSkinCodeBusyRef.current) return;
       if (!cloudBlobReady) {
         setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
         return;
       }
       gokuSkinCodeBusyRef.current = true;
-      setCodeMsg({ kind: "ok", text: "Salvando progresso e desbloqueando a skin Goku…" });
+      setCodeMsg({ kind: "ok", text: "Validando código único e salvando a skin Goku…" });
       void (async () => {
         try {
           const { data: authData, error: authError } = await supabase.auth.getSession();
           const userId = authData.session?.user?.id;
           if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
-          if (!(await pushCloudSaveNow(buildFullBlob()))) {
-            throw new Error("Não foi possível salvar seu progresso. Tente novamente.");
+          let confirmedSavedAt = 0;
+          const result = await runCheckpointMutation(
+            buildFullBlob(),
+            async (expectedVersion) => {
+              const { data, error } = await (supabase as any).rpc("redeem_goku_voucher", {
+                p_code: raw, p_expected_version: expectedVersion,
+              });
+              if (error) throw error;
+              if (data?.ok === true) confirmedSavedAt = Number(data.saved_at) || 0;
+              return { ok: data?.ok === true, server_version: data?.server_version,
+                reason: data?.reason, value: data?.value };
+            },
+            (current) => {
+              const snapshot = current as { idle: IdleState; savedAt?: number };
+              return { ...snapshot, savedAt: Math.max(snapshot.savedAt ?? 0, confirmedSavedAt),
+                idle: { ...snapshot.idle, unlockedSkins: Array.from(
+                  new Set([...(snapshot.idle.unlockedSkins ?? []), "goku"]),
+                ) } };
+            },
+          );
+          if (!result.ok) {
+            const reasons: Record<string, string> = {
+              invalid_or_used: "Código inválido, já usado ou antigo. Nenhuma skin foi retirada.",
+              already_owned: "Esta conta já possui a skin Goku; o código permanece disponível para outra pessoa.",
+              save_conflict: "Save em conflito. Preserve o progresso e recarregue antes de tentar novamente.",
+              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue e confira antes de repetir.",
+            };
+            throw new Error(reasons[result.reason ?? ""] ?? `Não foi possível resgatar (${result.reason ?? "servidor indisponível"}).`);
           }
-          const { error } = await (supabase as any).rpc("claim_goku_skin_reward", { p_code: raw });
-          if (error) throw error;
-          const snapshot = await fetchCloudSave(userId) as
-            | { idle: IdleState; team: PetInstance[]; restingBench: PetInstance[] }
-            | null;
-          if (!snapshot?.idle || !Array.isArray(snapshot.team) || !Array.isArray(snapshot.restingBench)
-            || !snapshot.idle.unlockedSkins?.includes("goku")) {
-            throw new Error("Skin salva no servidor. Recarregue o jogo para atualizar a tela.");
-          }
-          idleRef.current = snapshot.idle;
-          teamRef.current = snapshot.team;
-          setIdle(snapshot.idle);
-          setTeam(snapshot.team);
-          setRestingBench(snapshot.restingBench);
-          saveIdleStamped(snapshot.idle);
+          setIdle((current) => {
+            const next = { ...current,
+              unlockedSkins: Array.from(new Set([...(current.unlockedSkins ?? []), "goku"])) };
+            idleRef.current = next;
+            saveIdleStamped(next);
+            return next;
+          });
           setSkinId("goku");
-          try { localStorage.setItem(`rubym.code.${userId}.${raw}.used`, "1"); } catch { /* ignore */ }
           setCodeInput("");
-          setCodeMsg({ kind: "ok", text: "Skin Goku desbloqueada e equipada! Veja em Mochila → Visuais." });
+          setCodeMsg({ kind: "ok", text: "Código único consumido no servidor. Skin Goku salva e equipada!" });
           pushChat("✦ Skin Goku desbloqueada e equipada!", "cap");
         } catch (error) {
           setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar a skin." });
@@ -8945,6 +9031,12 @@ const confirmName = () => {
     () => identity?.id ? pvpPresence.find((p) => p.user_id === identity.id) ?? null : null,
     [pvpPresence, identity?.id],
   );
+  const pvpReviveSeconds = ownPvpPresence?.hp === 0 && ownPvpPresence.last_death_at
+    ? Math.max(0, Math.ceil((Date.parse(ownPvpPresence.last_death_at) + 5 * 60_000 - Date.now()) / 1000))
+    : null;
+  void energyTick; // Atualiza o relógio a cada segundo pelo tick já existente.
+  const pvpReviveClock = pvpReviveSeconds === null ? "--:--"
+    : `${String(Math.floor(pvpReviveSeconds / 60)).padStart(2, "0")}:${String(pvpReviveSeconds % 60).padStart(2, "0")}`;
   useEffect(() => {
     // Ausência temporária no realtime não significa que o servidor reviveu.
     if (!ownPvpPresence) return;
@@ -8971,6 +9063,7 @@ const confirmName = () => {
       // Também recupera saves antigos recarregados com líder fora do time.
       const fallenUid = idleRef.current.pvpFaintedLeader?.uid;
       const existing = fallenUid ? teamRef.current.find((pet) => pet.uid === fallenUid) : teamRef.current[0];
+      let recovered = !!existing;
       if (existing) {
         const revivedHp = calcIdleMaxHp(existing);
         leaderHpRef.current = revivedHp;
@@ -8980,10 +9073,22 @@ const confirmName = () => {
         // Nunca remove outro Pokémon do time se os seis espaços já estão ocupados.
         const entry = (idleRef.current.collection ?? []).find((pet) => pet.uid === fallenUid);
         if (entry && teamRef.current.length < 6 && !benchRef.current.some((pet) => pet.uid === fallenUid)) {
-          const recovered = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
-          setTeam((tm) => tm.some((pet) => pet.uid === fallenUid) || tm.length >= 6 ? tm : [recovered, ...tm]);
-          leaderHpRef.current = calcIdleMaxHp(recovered);
-          setLeaderHp(calcIdleMaxHp(recovered));
+          const restoredPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
+          setTeam((tm) => tm.some((pet) => pet.uid === fallenUid) || tm.length >= 6 ? tm : [restoredPet, ...tm]);
+          leaderHpRef.current = calcIdleMaxHp(restoredPet);
+          setLeaderHp(calcIdleMaxHp(restoredPet));
+          recovered = true;
+        }
+        const benched = benchRef.current.find((pet) => pet.uid === fallenUid);
+        if (benched) {
+          recovered = true;
+          if (teamRef.current.length < 6) {
+            setRestingBench((current) => current.filter((pet) => pet.uid !== fallenUid));
+            setTeam((current) => current.some((pet) => pet.uid === fallenUid) || current.length >= 6
+              ? current : [benched, ...current]);
+            leaderHpRef.current = calcIdleMaxHp(benched);
+            setLeaderHp(calcIdleMaxHp(benched));
+          }
         }
       }
       if (leaderHpRef.current <= 0 && teamRef.current[0]) {
@@ -8991,8 +9096,12 @@ const confirmName = () => {
         leaderHpRef.current = hp;
         setLeaderHp(hp);
       }
-      setIdle((s) => ({ ...s, pvpFaintedLeader: undefined }));
-      pushChat("✨ Seu Pokémon líder reviveu após a derrota PvP.", "info");
+      if (recovered) {
+        setIdle((s) => ({ ...s, pvpFaintedLeader: undefined }));
+        pushChat("✨ Seu Pokémon líder reviveu após a derrota PvP.", "info");
+      } else {
+        pushChat("O servidor liberou o revive, mas o Pokémon não foi encontrado no time/coleção local. Não apague os dados do navegador; procure suporte.", "info");
+      }
     }
     ownPvpWasFaintedRef.current = fainted;
   }, [ownPvpPresence?.hp, cloudBlobReady, idle.pvpFaintedLeader?.uid]);
@@ -9011,13 +9120,19 @@ const confirmName = () => {
 
   // Presença de combate é separada da presença visual: HP nunca vem do cliente.
   useEffect(() => {
-    if (!identity?.id || !team[0]) return;
+    // Saves antigos removiam o líder do time ao morrer em PvP. O heartbeat
+    // ainda precisa rodar para o servidor liberar o revive após cinco minutos.
+    const fallen = idle.pvpFaintedLeader
+      ? (idle.collection ?? []).find((pet) => pet.uid === idle.pvpFaintedLeader?.uid)
+      : null;
+    const presenceLeader = team[0] ?? fallen;
+    if (!identity?.id || !presenceLeader) return;
     let cancelled = false;
     const sync = async () => {
       const pos = trainerPosRef.current;
       await (gameDb as any).rpc("pvp_heartbeat", {
         p_map_id: String(idle.currentMap), p_x: Math.round(pos.x), p_y: Math.round(pos.y),
-        p_leader_species: team[0]?.species ?? "", p_leader_level: team[0]?.level ?? 1,
+        p_leader_species: presenceLeader.species, p_leader_level: presenceLeader.level,
         p_player_name: identity.name || "Treinador",
       });
       const since = new Date(Date.now() - 15_000).toISOString();
@@ -9030,7 +9145,7 @@ const confirmName = () => {
     // Reserva caso o websocket caia; dano e morte chegam pelo canal abaixo.
     const iv = window.setInterval(() => void sync(), 3000);
     return () => { cancelled = true; clearInterval(iv); };
-  }, [identity?.id, identity?.name, idle.currentMap, team]);
+  }, [identity?.id, identity?.name, idle.currentMap, team, idle.pvpFaintedLeader?.uid, idle.collection]);
 
   // Realtime: cada hit do RPC atualiza a barra, caveira e flash sem esperar polling.
   useEffect(() => {
@@ -11547,7 +11662,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
           // 📖 Saga: progresso de abates do objetivo ativo
           bumpSagaCounter("kill");
-          try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "kill", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
+           setIdle((s) => ({ ...s, guildMissionProgress: updateGuildMissionProgress(
+             s.guildMissionProgress ?? legacyMissionProgress, "kill", (target as any)?.rarity ?? null,
+           ) }));
           // drops (sem pokébola de drop — agora vem só da loja)
           const drops: string[] = [];
           const isOddishMap = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena";
@@ -11869,7 +11986,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                 bumpSagaCounter("capture");
                 // 📋 Loot do Mapa: Pokémon capturado (só resumo)
                 setMapLoot((l) => ({ ...l, pokemon: l.pokemon + 1 }));
-                try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "capture", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
+                setIdle((s) => ({ ...s, guildMissionProgress: updateGuildMissionProgress(
+                  s.guildMissionProgress ?? legacyMissionProgress, "capture", (target as any)?.rarity ?? null,
+                ) }));
                 const rolled = rollTraits(target.rarity);
                 const np = { ...makePet(target.sp, 1, target.rarity), traits: rolled };
                 capturedPet = np;
@@ -12710,8 +12829,51 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
 
 
-  // Revive: consome 50 gold do banco (ou 50 gold pendente)
+  const pvpReviveBusyRef = useRef(false);
+  const usePvpRevive = async () => {
+    if (pvpReviveBusyRef.current || ownPvpPresence?.hp !== 0) return;
+    if ((idle.items.revive ?? 0) < 1) { pushChat("Você não tem Revive.", "info"); return; }
+    if (!cloudBlobReady) { pushChat("Aguarde o save carregar antes de usar Revive.", "info"); return; }
+    pvpReviveBusyRef.current = true;
+    try {
+      let revivesAtCheckpoint = idle.items.revive ?? 0;
+      const result = await runCheckpointMutation(
+        buildFullBlob(),
+        async (expectedVersion) => {
+          const { data, error } = await gameDb.rpc("pvp_use_revive", { p_expected_version: expectedVersion });
+          if (error) throw error;
+          return { ok: data?.ok === true, server_version: data?.server_version,
+            reason: data?.reason, value: data?.revives };
+        },
+        (snapshot, revives, checkpoint) => {
+          const save = snapshot as { idle: IdleState };
+          revivesAtCheckpoint = (checkpoint as { idle: IdleState }).idle.items.revive ?? 0;
+          return { ...save, idle: { ...save.idle, items: {
+            ...save.idle.items, revive: Math.max(0, revives + ((save.idle.items.revive ?? 0) - revivesAtCheckpoint)),
+          } } };
+        },
+      );
+      if (!result.ok) {
+        pushChat(`Revive não consumido: ${result.reason ?? "servidor indisponível"}. Confira o save e tente novamente.`, "info");
+        return;
+      }
+      setIdle((s) => ({ ...s, items: { ...s.items,
+        revive: Math.max(0, result.value! + ((s.items.revive ?? 0) - revivesAtCheckpoint)),
+      } }));
+      setPvpPresence((rows) => rows.map((row) => row.user_id === identity?.id
+        ? { ...row, hp: Math.max(1, row.max_hp) } : row));
+      pushChat("Revive confirmado pelo servidor! Seu Pokémon voltou antes do tempo.", "cap");
+    } finally {
+      pvpReviveBusyRef.current = false;
+    }
+  };
+
+  // Revive comum: consome 50 gold do banco (ou 50 gold pendente)
   const revive = () => {
+    if (ownPvpPresence?.hp === 0 || (idle.pvpFaintedLeader && !ownPvpPresence)) {
+      pushChat("Líder derrotado em PvP: aguarde o servidor confirmar o retorno. Nenhum ouro foi gasto.", "info");
+      return;
+    }
     const l = team[0]; if (!l) return;
     let did = false;
     setIdle((s) => {
@@ -12729,6 +12891,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     // aplica com pequeno delay para garantir que o setIdle rodou
     setTimeout(() => {
       if (did) {
+        leaderHpRef.current = calcIdleMaxHp(l);
         setLeaderHp(calcIdleMaxHp(l));
         pushFxAt(trainerPos.x, trainerPos.y - 40, "REVIVEU!", "gold");
       } else {
@@ -12863,7 +13026,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (success) {
       // �x Saga: progresso de capturas do objetivo ativo
       bumpSagaCounter("capture");
-      try { setMissionProgress((prev) => updateGuildMissionProgress(prev, "capture", (target as any)?.rarity ?? null)); } catch { /* ignore */ }
+      setIdle((s) => ({ ...s, guildMissionProgress: updateGuildMissionProgress(
+        s.guildMissionProgress ?? legacyMissionProgress, "capture", (target as any)?.rarity ?? null,
+      ) }));
       const rolled = rollTraits(target.rarity);
       const np = { ...makePet(target.sp, 1, target.rarity), traits: rolled };
       const rarityLabelMap: Record<string, string> = {
@@ -12959,6 +13124,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       return;
     }
 
+    if (id === "revive" && (ownPvpPresence?.hp === 0 || !!idle.pvpFaintedLeader || ownPvpFaintedRef.current)) {
+      if (ownPvpPresence?.hp === 0) void usePvpRevive();
+      else pushChat("Aguarde a confirmação do servidor PvP antes de usar Revive.", "info");
+      return;
+    }
     const l = team[0];
     if (!l) { pushChat("Escolha um Pokémon líder para usar este item.", "info"); return; }
     const maxHp = calcIdleMaxHp(l);
@@ -12993,7 +13163,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         "cap",
       );
     } else if (id === "revive") {
+      if (ownPvpPresence?.hp === 0 || (idle.pvpFaintedLeader && !ownPvpPresence)) {
+        pushChat("Líder derrotado em PvP: aguarde o servidor confirmar o retorno. Revive não foi consumido.", "info");
+        return;
+      }
       if (leaderHp > 0) { pushChat(`Seu líder está de pé.`, "info"); return; }
+      leaderHpRef.current = maxHp;
       setLeaderHp(maxHp);
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - 1 } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `REVIVEU!`, "gold");
@@ -16982,6 +17157,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               >
                 <img src={skinPhotoOf(skinId) ?? trainerSheet} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
+              {guild && <img src={guildImageFor(guild?.element) ?? undefined} alt={`Guilda ${guild?.name ?? ""}`}
+                title={guild?.name ?? ""} width={18} height={18} style={{ imageRendering: "pixelated" }} />}
               <div style={{ color: "#fff", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>
                 {identity?.name ?? "Treinador"} <span style={{ fontSize: 9, color: "#7ef2a2" }}>Lv. {idle.trainerLevel ?? 1}</span>
               </div>
@@ -17012,6 +17189,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                 imageRendering: "pixelated",
               }} />
             </button>
+            {guild && <img src={guildImageFor(guild?.element) ?? undefined} alt={`Guilda ${guild?.name ?? ""}`}
+              title={guild?.name ?? ""} width={20} height={20} style={{ imageRendering: "pixelated" }} />}
             <div style={{ minWidth: 0 }}>
               <div style={{ color: "#1a0f26", fontWeight: 900, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>
                 {identity?.name ?? "Treinador"} <span style={{ fontSize: 9 }}>Lv. {idle.trainerLevel ?? 1}</span>
@@ -21589,17 +21768,25 @@ A sucata afundou com o casco.
 
             {/* Pokémon do jogador segue o treinador (fora dos mapas de água) */}
             {(() => {
-              if (isWaterMap(idle.currentMap)) return null;
               // Líder derrotado não acompanha o treinador: a caveira permanece no solo
               // onde caiu até o servidor permitir o revive.
-              if (ownPvpPresence?.hp === 0) {
+              if (ownPvpPresence?.hp === 0 || (!!idle.pvpFaintedLeader && !ownPvpPresence)) {
                 const marker = idle.pvpFaintedLeader ?? { x: renderFollowerX, y: renderFollowerY };
                 return <div aria-label="Pokémon líder derrotado" style={{
                   position: "absolute", left: marker.x, top: marker.y, width: 54, height: 54,
                   transform: "translate(-50%, -50%)", zIndex: Math.round(marker.y), pointerEvents: "none",
                   display: "grid", placeItems: "center", fontSize: 38, filter: "drop-shadow(0 3px 3px #000)",
-                }}>💀</div>;
+                }}>
+                  <span>💀</span>
+                  <span aria-label="Tempo restante para reviver no PvP" style={{
+                    position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)",
+                    background: "#180d26", border: "1px solid #f5cf6b", borderRadius: 6,
+                    color: "#f5cf6b", fontSize: 12, fontWeight: 900, padding: "2px 5px",
+                    whiteSpace: "nowrap",
+                  }}>⏱ {pvpReviveClock}</span>
+                </div>;
               }
+              if (isWaterMap(idle.currentMap)) return null;
               const leader = team[0];
               if (!leader) return null;
               const leaderSp = leader.species;
@@ -22113,12 +22300,21 @@ A sucata afundou com o casco.
               <div>
                 <div style={{ fontWeight: 800, color: "#fff" }}>Pokémon desmaiado</div>
                 <div style={{ fontSize: 11, color: "#f5cf6b" }}>
-                  Custa 50 ouro para reviver
+                  {ownPvpPresence?.hp === 0 || !!idle.pvpFaintedLeader
+                    ? `Derrota PvP: retorno pelo servidor em ${pvpReviveClock}. Revive não será gasto sem confirmação.`
+                    : "Custa 50 ouro para reviver"}
                 </div>
               </div>
-              <button onClick={revive} style={{ ...smallBtn, background: "#5ec26a", color: "#0b0510", border: "none", fontWeight: 800, padding: "8px 16px" }}>
-                REVIVER
-              </button>
+              {ownPvpPresence?.hp === 0 && (idle.items.revive ?? 0) > 0 && (
+                <button onClick={() => void usePvpRevive()} style={{ ...smallBtn, background: "#ff5b8a", color: "#170713", border: "none", fontWeight: 800, padding: "8px 16px" }}>
+                  USAR REVIVE ({idle.items.revive})
+                </button>
+              )}
+              {ownPvpPresence?.hp !== 0 && !idle.pvpFaintedLeader && !ownPvpFaintedRef.current && (
+                <button onClick={revive} style={{ ...smallBtn, background: "#5ec26a", color: "#0b0510", border: "none", fontWeight: 800, padding: "8px 16px" }}>
+                  REVIVER
+                </button>
+              )}
             </div>
           ) : (() => {
             const ab = idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 };
@@ -22571,7 +22767,7 @@ A sucata afundou com o casco.
               skinTickets={idle.items?.skin_ticket ?? 0}
               onUnlockSkin={(sid) => {
                 if (SKINS.find((skin) => skin.id === sid)?.codeOnly) {
-                  pushChat("🔒 A skin Goku é exclusiva do código GOKUSKIN1.", "info");
+                  pushChat("🔒 A skin Goku exige um código único ainda não utilizado.", "info");
                   return;
                 }
                 setIdle((s) => {
@@ -27095,7 +27291,7 @@ onClick={(e) => {
                       key={s.id}
                       onClick={() => {
                         if (s.locked) {
-                          pushChat(s.codeOnly ? "🔒 A skin Goku é obtida pelo código GOKUSKIN1." : "🔒 Char Ash é exclusivo para pré-registro!", "info");
+                          pushChat(s.codeOnly ? "🔒 A skin Goku exige um código único ainda não utilizado." : "🔒 Char Ash é exclusivo para pré-registro!", "info");
                           return;
                         }
                         setSetupSkinId(s.id);
@@ -27838,7 +28034,12 @@ onClick={(e) => {
                     {identity?.name ?? "Treinador"}
                   </div>
                   <div style={{ fontSize: 12, color: "#9fb4ff", fontWeight: 700, marginTop: 1 }}>
-                    {guild?.name ? `★ ${guild.name}` : "Viajante de Revo Emerald"}
+                    {guild?.name ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        {guildImageFor(guild.element) && <img src={guildImageFor(guild.element)!} alt="" width={16} height={16} />}
+                        ★ {guild.name}
+                      </span>
+                    ) : "Viajante de Revo Emerald"}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
                     <span style={{
@@ -29508,7 +29709,7 @@ function TabOverlay({
             <div className="inventory-appearance-grid">{SKINS.map(sk => {
               const owned = !sk.locked || (unlockedSkins ?? []).includes(sk.id);
               const active = skinId === sk.id;
-              return <button type="button" key={sk.id} className={active ? "is-active" : ""} disabled={!owned && (sk.codeOnly || (skinTickets ?? 0) <= 0)} onClick={() => { if (active) return; if (owned) { setSkinId(sk.id); pushChat(`Skin equipada: ${sk.label}!`, "cap"); } else if (!sk.codeOnly) onUnlockSkin(sk.id); }} title={owned ? "Equipar visual" : sk.codeOnly ? "Desbloquear com o código GOKUSKIN1" : "Desbloquear com 1 Ticket de Skin"}><img src={sk.photo} alt="" /><span>{sk.label}{active ? " · Equipado" : sk.codeOnly && !owned ? " · código" : owned ? "" : " · 1 ticket"}</span></button>;
+              return <button type="button" key={sk.id} className={active ? "is-active" : ""} disabled={!owned && (sk.codeOnly || (skinTickets ?? 0) <= 0)} onClick={() => { if (active) return; if (owned) { setSkinId(sk.id); pushChat(`Skin equipada: ${sk.label}!`, "cap"); } else if (!sk.codeOnly) onUnlockSkin(sk.id); }} title={owned ? "Equipar visual" : sk.codeOnly ? "Desbloquear com um código único" : "Desbloquear com 1 Ticket de Skin"}><img src={sk.photo} alt="" /><span>{sk.label}{active ? " · Equipado" : sk.codeOnly && !owned ? " · código" : owned ? "" : " · 1 ticket"}</span></button>;
             })}</div>
           </div>}
         />;
@@ -29662,9 +29863,9 @@ function TabOverlay({
                           if (active) return;
                           if (owned) { setSkinId(sk.id); pushChat(`�S� Skin equipada: ${sk.label}!`, "cap"); }
                           else if (canUnlock) { onUnlockSkin(sk.id); }
-                           else { pushChat(sk.codeOnly ? "🔒 Use o código GOKUSKIN1 para desbloquear." : "🔒 Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
+                           else { pushChat(sk.codeOnly ? "🔒 Use um código único de Goku para desbloquear." : "🔒 Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
                         }}
-                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (sk.codeOnly ? "Código GOKUSKIN1" : canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
+                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (sk.codeOnly ? "Código único Goku" : canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
                         style={{
                           borderRadius: 8, cursor: "pointer", padding: 2,
                           background: active ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.04)",

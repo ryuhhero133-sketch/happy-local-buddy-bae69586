@@ -381,7 +381,10 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
           wipeLocalGameData();
           localStorage.removeItem(CURRENT_UID_KEY);
           // Clear server-side active session
-          void clearActiveSession();
+          const activeToken = sessionTokenRef.current;
+          if (activeToken) void clearActiveSession({ data: { token: activeToken } });
+          sessionTokenRef.current = null;
+          try { sessionStorage.removeItem("rubym.active_session_token"); } catch { /* ignore */ }
         } catch {
           /* ignore */
         }
@@ -518,19 +521,27 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
     if (!session?.user?.id) return;
     if (sessionRejected) return;
 
-    const token = crypto.randomUUID();
+    // A mesma aba mantém seu token após F5. Novo dispositivo recebe outro;
+    // o servidor decide atomicamente se a sessão anterior ainda está ativa.
+    let token: string;
+    try {
+      const stored = sessionStorage.getItem("rubym.active_session_token");
+      token = stored && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(stored)
+        ? stored : crypto.randomUUID();
+      sessionStorage.setItem("rubym.active_session_token", token);
+    } catch { token = crypto.randomUUID(); }
     sessionTokenRef.current = token;
 
     const initSession = async () => {
       try {
         const res = await updateActiveSession({ data: { token } });
-        if (!res.ok && res.error === "SESSION_TAKEN") {
-          console.warn("[AuthGate] Second session rejected - account already active elsewhere");
+        if (!res.ok) {
+          console.warn("[AuthGate] Session not confirmed:", res.error);
           setSessionRejected(true);
-          await supabase.auth.signOut();
         }
       } catch (e) {
         console.error("Failed to update active session", e);
+        setSessionRejected(true);
       }
     };
     initSession();
@@ -1799,7 +1810,7 @@ function CreateCharacterScreen({
 
       <button
         type="button"
-        onClick={() => supabase.auth.signOut()}
+        onClick={() => void signOutRubyM()}
         className="w-full text-[10px] tracking-[2px] underline"
         style={{ color: "#86efac", background: "transparent", border: 0, padding: "4px 0" }}
       >
@@ -1831,6 +1842,12 @@ export async function signOutRubyM() {
   } catch {
     /* ignore */
   }
+  // O RPC precisa do JWT antigo. Liberar antes de signOut permite entrar
+  // imediatamente em outro aparelho sem esperar expirar o heartbeat.
+  try {
+    const token = sessionStorage.getItem("rubym.active_session_token");
+    if (token) await clearActiveSession({ data: { token } });
+  } catch { /* o timeout de 90 s no servidor recupera sessões desconectadas */ }
   await supabase.auth.signOut();
 }
 

@@ -26,6 +26,8 @@ export type CheckpointStatus =
   | "error";
 
 const DEBOUNCE_MS = 6000;
+// Alterações contínuas não podem adiar o checkpoint indefinidamente.
+const MAX_DIRTY_WAIT_MS = 120_000;
 const RETRY_BASE_MS = 5000;
 const RETRY_MAX_MS = 60000;
 const LOCK_TTL_MS = 8000;
@@ -183,10 +185,12 @@ export function clearSnapshotOwner() {
   memSnapshot = null;
 }
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let maxDirtyTimer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let pushing = false;
 let needsFlush = false;
 let needsRebase = false;
+let serverMutationBusy = false;
 let retryCount = 0;
 let status: CheckpointStatus = "idle";
 let lastError: string | null = null;
@@ -425,21 +429,32 @@ export function markDirty(snapshot: unknown) {
   if (typeof window === "undefined" || !isValidSnapshot(snapshot)) return;
   memSnapshot = snapshot;
   bindGlobalListeners(currentUid);
-  // Fila durável imediata: sobrevive a reload/fechamento/offline.
-  void currentUid().then((uid) => {
-    if (!uid) return;
-    try {
-      const expected = loadVersion(uid);
-      const hash = snapshotHash(snapshot);
-      localStorage.setItem(
-        pendingKey(uid),
-        JSON.stringify({ expectedVersion: expected, snapshot, actionId: `${uid}:v${expected + 1}:${hash}`, hash, at: Date.now(), attempts: 0 } satisfies PendingSlot),
-      );
-    } catch {
-      /* ignore */
+  // Grava antes de retornar: uma captura seguida de F5 não espera getSession().
+  // A autenticação e a propriedade são novamente verificadas no flush.
+  const uid = snapshotOwnerUid;
+  if (uid) {
+    if (serverMutationBusy) {
+      storeRecovery(uid, snapshot, loadVersion(uid), "local");
+    } else {
+      try {
+        const expected = loadVersion(uid);
+        const hash = snapshotHash(snapshot);
+        localStorage.setItem(pendingKey(uid), JSON.stringify({
+          expectedVersion: expected, snapshot,
+          actionId: `${uid}:v${expected + 1}:${hash}`, hash, at: Date.now(), attempts: 0,
+        } satisfies PendingSlot));
+      } catch { /* memória e save local permanecem disponíveis */ }
     }
-  });
+  }
   setStatus("dirty");
+  if (!maxDirtyTimer) {
+    maxDirtyTimer = setTimeout(() => {
+      maxDirtyTimer = null;
+      void currentUid().then((uid) => {
+        if (uid) void flushInternal(uid);
+      });
+    }, MAX_DIRTY_WAIT_MS);
+  }
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
@@ -451,14 +466,82 @@ export function markDirty(snapshot: unknown) {
 
 /** Força tentativa imediata (botão Salvar, level-up, hide/unload). */
 export async function flushNow(snapshot?: unknown): Promise<boolean> {
+  if (serverMutationBusy) return false;
   if (snapshot !== undefined && isValidSnapshot(snapshot)) memSnapshot = snapshot;
   const uid = await currentUid();
+  if (serverMutationBusy) return false;
   if (!uid || !memSnapshot) return true; // local-only: nada a fazer
   if (debounceTimer) {
     clearTimeout(debounceTimer);
     debounceTimer = null;
   }
   return flushInternal(uid, true);
+}
+
+/** Serialize a server-side inventory/currency mutation with local checkpoints.
+ * Never advance the local version or show success unless the RPC commits. */
+export async function runCheckpointMutation(
+  snapshot: unknown,
+  mutate: (expectedVersion: number) => Promise<{ ok: boolean; server_version?: number; reason?: string; value?: number }>,
+  patchSnapshot: (current: unknown, value: number, checkpoint: unknown) => unknown,
+): Promise<{ ok: boolean; reason?: string; value?: number }> {
+  const uid = await currentUid();
+  if (!uid || snapshotOwnerUid !== uid || !isValidSnapshot(snapshot) || serverMutationBusy || needsRebase) {
+    return { ok: false, reason: "save_unavailable" };
+  }
+  serverMutationBusy = true;
+  let rpcStarted = false;
+  try {
+    memSnapshot = sanitizeSnapshot(snapshot);
+    if (!(await flushInternal(uid, true, true))) return { ok: false, reason: "save_failed" };
+    const expected = loadVersion(uid);
+    if (needsRebase) return { ok: false, reason: "save_conflict" };
+    const checkpoint = readJson<LastGood>(lastGoodKey(uid));
+    const checkpointSnapshot = checkpoint?.snapshot;
+    if (checkpoint?.version !== expected || !isValidSnapshot(checkpointSnapshot)) {
+      return { ok: false, reason: "checkpoint_unavailable" };
+    }
+    rpcStarted = true;
+    const result = await mutate(expected);
+    if (!result.ok) {
+      if (result.reason === "stale") {
+        needsRebase = true;
+        setStatus("conflict", "save alterado em outro lugar; recarregue antes de tentar novamente");
+      }
+      return { ok: false, reason: result.reason ?? "mutation_failed" };
+    }
+    if (result.server_version !== expected + 1 || typeof result.value !== "number" || !Number.isFinite(result.value)) {
+      needsRebase = true;
+      setStatus("conflict", "resposta inesperada do servidor; recarregue antes de tentar novamente");
+      return { ok: false, reason: "confirmation_unknown" };
+    }
+    const committed = sanitizeSnapshot(patchSnapshot(checkpointSnapshot, result.value, checkpointSnapshot));
+    const patched = sanitizeSnapshot(patchSnapshot(memSnapshot, result.value, checkpointSnapshot));
+    if (!isValidSnapshot(committed) || !isValidSnapshot(patched)) throw new Error("invalid_mutation_snapshot");
+    memSnapshot = patched;
+    storeVersion(uid, result.server_version);
+    const hash = snapshotHash(patched);
+    try {
+      localStorage.setItem(lastGoodKey(uid), JSON.stringify({
+        version: result.server_version, snapshot: committed, hash: snapshotHash(committed), at: Date.now(),
+      } satisfies LastGood));
+      localStorage.setItem(pendingKey(uid), JSON.stringify({
+        expectedVersion: result.server_version, snapshot: patched,
+        actionId: `${uid}:v${result.server_version + 1}:${hash}`, hash, at: Date.now(), attempts: 0,
+      } satisfies PendingSlot));
+    } catch { /* keep memory copy; database mutation already committed */ }
+    setStatus("dirty");
+    return { ok: true, value: result.value };
+  } catch (e) {
+    if (rpcStarted) {
+      needsRebase = true;
+      setStatus("conflict", "Não foi possível confirmar a transação. Recarregue para consultar o estado oficial.");
+      return { ok: false, reason: "confirmation_unknown" };
+    }
+    return { ok: false, reason: e instanceof Error ? e.message : "mutation_failed" };
+  } finally {
+    serverMutationBusy = false;
+  }
 }
 
 async function rebaseOnLeadership() {
@@ -485,9 +568,6 @@ async function rebaseOnLeadership() {
         /* ignore */
       }
       setStatus("conflict", "outra aba atualizou o save — recarregue para sincronizar");
-    } else {
-      // Servidor não está à frente: libera trava antiga de rebase.
-      needsRebase = false;
     }
   } catch {
     /* offline/backend ausente: mantém local */
@@ -541,9 +621,10 @@ export async function rebaseForPush(): Promise<boolean> {
   }
 }
 
-async function flushInternal(uid: string, immediate = false): Promise<boolean> {
+async function flushInternal(uid: string, immediate = false, fromMutation = false): Promise<boolean> {
+  if (serverMutationBusy && !fromMutation) return false;
   bindGlobalListeners(currentUid);
-  if (snapshotOwnerUid !== null && uid !== snapshotOwnerUid) {
+  if (uid !== snapshotOwnerUid) {
     // Sessão trocou sem nova hidratação: ABORTA. Conteúdo da memória
     // pertence a outra conta — empurrar seria sobrescrever B com dados de A.
     setStatus("conflict", "conta trocada — aguardando nova hidratação");
@@ -578,8 +659,8 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
     // Outra aba é líder: não empurra (sem concorrência).
     // A fila durável já foi gravada em markDirty — o líder usa a própria
     // base ao assumir; nada se perde.
-    setStatus("ok");
-    return true;
+    setStatus("dirty", "outra aba está responsável pelo salvamento");
+    return false;
   }
   pushing = true;
   setStatus("pushing");
@@ -624,7 +705,9 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
       storeVersion(uid, sv);
       try {
         localStorage.setItem(lastGoodKey(uid), JSON.stringify({ version: sv, snapshot: snap, hash, at: Date.now() } satisfies LastGood));
-        localStorage.removeItem(pendingKey(uid));
+        const pending = readJson<PendingSlot>(pendingKey(uid));
+        // Outro estado pode ter sido enfileirado enquanto a rede respondia.
+        if (pending?.hash === hash) localStorage.removeItem(pendingKey(uid));
       } catch {
         /* ignore */
       }
@@ -635,9 +718,10 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
     }
     if (res.reason === "duplicate" || (!res.ok && isDuplicateReason(res.reason))) {
       // Replay seguro: já aplicado antes. Adota versão do servidor.
-      if (typeof res.server_version === "number") storeVersion(uid, res.server_version);
+      if (typeof res.server_version === "number") storeVersion(uid, Math.max(expected, res.server_version));
       try {
-        localStorage.removeItem(pendingKey(uid));
+        const pending = readJson<PendingSlot>(pendingKey(uid));
+        if (pending?.hash === hash) localStorage.removeItem(pendingKey(uid));
       } catch {
         /* ignore */
       }
@@ -646,8 +730,10 @@ async function flushInternal(uid: string, immediate = false): Promise<boolean> {
       return true;
     }
     if (res.reason === "stale" || res.reason === "rate_limited" || res.reason === "rejected" || (!res.ok && (isStaleReason(res.reason) || isRateReason(res.reason)))) {
-      // Estado local defasado ou rejeitado: busca o oficial e valida antes de adotar.
-      await adoptServerIfNewer(uid);
+      // Não trocar a base de um estado em uso; manter as duas cópias para
+      // reconciliação explícita no próximo login, sem sobrescrever progresso.
+      needsRebase = true;
+      if (isValidSnapshot(memSnapshot)) storeRecovery(uid, memSnapshot, expected, "local");
       setStatus("conflict", `checkpoint rejeitado (${res.reason}) — estado oficial preservado`);
       return false;
     }
