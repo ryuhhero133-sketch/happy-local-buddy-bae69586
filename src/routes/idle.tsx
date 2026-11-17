@@ -354,6 +354,8 @@ import charF1Png from "@/assets/char-inicial/Char f1.png";
 import charF2Png from "@/assets/char-inicial/Char f2.png";
 import charGokuPng from "@/CHAR/Skin goku.png";
 import perfilGokuPng from "@/CHAR/goku-profile.png";
+import charVegetaPng from "@/CHAR/Skin Vegeta.png";
+import perfilVegetaPng from "@/CHAR/vegeta-profile.png";
 
 const SKINS: { id: string; label: string; url: string; photo: string; gender: "male" | "female"; locked?: boolean; codeOnly?: boolean }[] = [
   { id: "char01", label: "Char 01", url: char01Png, photo: perfilChar01Png, gender: "male" },
@@ -362,6 +364,7 @@ const SKINS: { id: string; label: string; url: string; photo: string; gender: "m
   { id: "charf2", label: "Char F2", url: charF2Png, photo: perfilCharF2Png, gender: "female" },
   { id: "charash", label: "Char Ash", url: charAshPng, photo: perfilCharAshPng, gender: "male", locked: true },
   { id: "goku", label: "Goku", url: charGokuPng, photo: perfilGokuPng, gender: "male", locked: true, codeOnly: true },
+  { id: "vegeta", label: "Vegeta", url: charVegetaPng, photo: perfilVegetaPng, gender: "male", locked: true, codeOnly: true },
 ];
 const skinPhotoOf = (id: string | null | undefined): string | null =>
   SKINS.find((s) => s.id === id)?.photo ?? null;
@@ -7384,6 +7387,7 @@ const confirmName = () => {
   const mythicEggCodeBusyRef = useRef(false);
   const blackAwakeningCodeBusyRef = useRef(false);
   const gokuSkinCodeBusyRef = useRef(false);
+  const vegetaSkinCodeBusyRef = useRef(false);
   const normalizeCode = (value: string) => value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -7516,14 +7520,17 @@ const confirmName = () => {
       return;
     }
 
-    if (raw.startsWith("GOKU")) {
-      if (gokuSkinCodeBusyRef.current) return;
+    if (raw.startsWith("GOKU") || raw.startsWith("VEGETA")) {
+      const skin = raw.startsWith("VEGETA") ? "vegeta" : "goku";
+      const skinName = skin === "vegeta" ? "Vegeta" : "Goku";
+      const busyRef = skin === "vegeta" ? vegetaSkinCodeBusyRef : gokuSkinCodeBusyRef;
+      if (busyRef.current) return;
       if (!cloudBlobReady) {
         setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
         return;
       }
-      gokuSkinCodeBusyRef.current = true;
-      setCodeMsg({ kind: "ok", text: "Validando código único e salvando a skin Goku…" });
+      busyRef.current = true;
+      setCodeMsg({ kind: "ok", text: `Validando código único e salvando a skin ${skinName}…` });
       void (async () => {
         try {
           const { data: authData, error: authError } = await supabase.auth.getSession();
@@ -7533,9 +7540,10 @@ const confirmName = () => {
           const result = await runCheckpointMutation(
             buildFullBlob(),
             async (expectedVersion) => {
-              const { data, error } = await (supabase as any).rpc("redeem_goku_voucher", {
-                p_code: raw, p_expected_version: expectedVersion,
-              });
+              const { data, error } = await (supabase as any).rpc(
+                skin === "vegeta" ? "redeem_vegeta_voucher" : "redeem_goku_voucher",
+                { p_code: raw, p_expected_version: expectedVersion },
+              );
               if (error) throw error;
               if (data?.ok === true) confirmedSavedAt = Number(data.saved_at) || 0;
               return { ok: data?.ok === true, server_version: data?.server_version,
@@ -7545,14 +7553,14 @@ const confirmName = () => {
               const snapshot = current as { idle: IdleState; savedAt?: number };
               return { ...snapshot, savedAt: Math.max(snapshot.savedAt ?? 0, confirmedSavedAt),
                 idle: { ...snapshot.idle, unlockedSkins: Array.from(
-                  new Set([...(snapshot.idle.unlockedSkins ?? []), "goku"]),
+                  new Set([...(snapshot.idle.unlockedSkins ?? []), skin]),
                 ) } };
             },
           );
           if (!result.ok) {
             const reasons: Record<string, string> = {
               invalid_or_used: "Código inválido, já usado ou antigo. Nenhuma skin foi retirada.",
-              already_owned: "Esta conta já possui a skin Goku; o código permanece disponível para outra pessoa.",
+              already_owned: `Esta conta já possui a skin ${skinName}; o código permanece disponível para outra pessoa.`,
               save_conflict: "Save em conflito. Preserve o progresso e recarregue antes de tentar novamente.",
               confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue e confira antes de repetir.",
             };
@@ -7560,19 +7568,19 @@ const confirmName = () => {
           }
           setIdle((current) => {
             const next = { ...current,
-              unlockedSkins: Array.from(new Set([...(current.unlockedSkins ?? []), "goku"])) };
+              unlockedSkins: Array.from(new Set([...(current.unlockedSkins ?? []), skin])) };
             idleRef.current = next;
             saveIdleStamped(next);
             return next;
           });
-          setSkinId("goku");
+          setSkinId(skin);
           setCodeInput("");
-          setCodeMsg({ kind: "ok", text: "Código único consumido no servidor. Skin Goku salva e equipada!" });
-          pushChat("✦ Skin Goku desbloqueada e equipada!", "cap");
+          setCodeMsg({ kind: "ok", text: `Código único consumido no servidor. Skin ${skinName} salva e equipada!` });
+          pushChat(`✦ Skin ${skinName} desbloqueada e equipada!`, "cap");
         } catch (error) {
-          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar a skin." });
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : `Falha ao resgatar a skin ${skinName}.` });
         } finally {
-          gokuSkinCodeBusyRef.current = false;
+          busyRef.current = false;
         }
       })();
       return;
@@ -22767,7 +22775,7 @@ A sucata afundou com o casco.
               skinTickets={idle.items?.skin_ticket ?? 0}
               onUnlockSkin={(sid) => {
                 if (SKINS.find((skin) => skin.id === sid)?.codeOnly) {
-                  pushChat("🔒 A skin Goku exige um código único ainda não utilizado.", "info");
+                  pushChat("🔒 Esta skin exige um código único ainda não utilizado.", "info");
                   return;
                 }
                 setIdle((s) => {
@@ -27291,7 +27299,7 @@ onClick={(e) => {
                       key={s.id}
                       onClick={() => {
                         if (s.locked) {
-                          pushChat(s.codeOnly ? "🔒 A skin Goku exige um código único ainda não utilizado." : "🔒 Char Ash é exclusivo para pré-registro!", "info");
+                          pushChat(s.codeOnly ? "🔒 Esta skin exige um código único ainda não utilizado." : "🔒 Char Ash é exclusivo para pré-registro!", "info");
                           return;
                         }
                         setSetupSkinId(s.id);
@@ -29863,9 +29871,9 @@ function TabOverlay({
                           if (active) return;
                           if (owned) { setSkinId(sk.id); pushChat(`�S� Skin equipada: ${sk.label}!`, "cap"); }
                           else if (canUnlock) { onUnlockSkin(sk.id); }
-                           else { pushChat(sk.codeOnly ? "🔒 Use um código único de Goku para desbloquear." : "🔒 Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
+                           else { pushChat(sk.codeOnly ? "🔒 Use um código único desta skin para desbloquear." : "🔒 Skin bloqueada. Consiga um Ticket de Skin!", "info"); }
                         }}
-                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (sk.codeOnly ? "Código único Goku" : canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
+                        title={owned ? (active ? `${sk.label} (equipada)` : `Equipar ${sk.label}`) : (sk.codeOnly ? `Código único ${sk.label}` : canUnlock ? `Desbloquear ${sk.label} (1 ticket)` : `${sk.label} (bloqueada)`)}
                         style={{
                           borderRadius: 8, cursor: "pointer", padding: 2,
                           background: active ? "rgba(245,207,107,0.2)" : "rgba(255,255,255,0.04)",
