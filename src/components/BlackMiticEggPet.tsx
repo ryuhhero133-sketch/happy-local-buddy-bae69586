@@ -231,6 +231,11 @@ function saveState(uid: string, s: CollectionState) {
   try { localStorage.setItem(storageKey(uid), JSON.stringify(s)); } catch { /* ignore */ }
 }
 
+/** Assinatura do snapshot para não reenviar o mesmo estado à nuvem. */
+function cloudStateSignature(state: CollectionState): string {
+  try { return JSON.stringify(state); } catch { return ""; }
+}
+
 /** Restaura ovos cujo item ainda está na mochila. O contador da mochila é a
  * fonte de verdade, mas não pode apagar um ovo já existente. */
 export function hatchedEggSync(uid: string, itemCount: number): number {
@@ -1191,6 +1196,7 @@ export function BlackMiticEggHud(props: {
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<"journal" | "feeds">("journal");
   const [bonusAmount, setBonusAmount] = useState<Partial<Record<ElementId, number>>>({});
+  const [cloudSyncGeneration, setCloudSyncGeneration] = useState(0);
 
   // ---- Cloud sync (Supabase) --------------------------------------------
   // Nenhum jogador perde progresso: puxamos o snapshot do servidor ao abrir
@@ -1202,12 +1208,21 @@ export function BlackMiticEggHud(props: {
   const pushInFlightRef = useRef(false);
   const pushPendingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestEggStateRef = useRef(state);
+  latestEggStateRef.current = state;
+  const pushCloudRef = useRef(pushCloud);
+  pushCloudRef.current = pushCloud;
+  const lastCloudSignatureRef = useRef<string | null>(null);
+  const nextCloudPushAtRef = useRef(0);
 
   // Reseta o gate de sync se o uid mudar (troca de conta).
   useEffect(() => {
     if (cloudUidRef.current !== uid) {
       cloudReadyRef.current = false;
       cloudUidRef.current = uid;
+      lastCloudSignatureRef.current = null;
+      nextCloudPushAtRef.current = 0;
+      pushPendingRef.current = false;
     }
   }, [uid]);
 
@@ -1238,10 +1253,15 @@ export function BlackMiticEggHud(props: {
           };
           setState(merged);
           saveState(uid, merged);
+          // O pull já representa este snapshot: não reenviar sem mudança real.
+          lastCloudSignatureRef.current = cloudStateSignature(merged);
         }
         // Só libera push depois de um pull bem-sucedido: se a leitura falhar,
         // NÃO empurramos o local por cima da nuvem (isso zerava o progresso).
         cloudReadyRef.current = true;
+        // Um servidor sem snapshot não muda `state`; ainda assim, agenda o
+        // primeiro backup local depois que a leitura foi confirmada.
+        setCloudSyncGeneration((generation) => generation + 1);
       } catch (e) {
         console.warn("[BlackEgg] pull cloud falhou (push bloqueado até próxima abertura):", e);
       } finally {
@@ -1255,35 +1275,72 @@ export function BlackMiticEggHud(props: {
   useEffect(() => {
     if (!cloudReadyRef.current) return;
     if (!uid || uid === "guest" || uid.startsWith("guest")) return;
+    const signature = cloudStateSignature(state);
+    if (!signature || signature === lastCloudSignatureRef.current) return;
+    if (Date.now() < nextCloudPushAtRef.current) return;
     if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
     pushTimerRef.current = setTimeout(async () => {
       if (pushInFlightRef.current) { pushPendingRef.current = true; return; }
+      const latest = latestEggStateRef.current;
+      const latestSignature = cloudStateSignature(latest);
+      if (!latestSignature || latestSignature === lastCloudSignatureRef.current) return;
+      if (Date.now() < nextCloudPushAtRef.current) return;
       pushInFlightRef.current = true;
       try {
-        await pushCloud({ data: { data: state as any } as any } as any);
+        await pushCloudRef.current({ data: { data: latest as any } as any } as any);
+        lastCloudSignatureRef.current = latestSignature;
+        nextCloudPushAtRef.current = 0;
       } catch (e) {
         console.warn("[BlackEgg] push cloud falhou:", e);
+        // Falhas de permissão/rede não devem gerar uma tempestade de requisições.
+        nextCloudPushAtRef.current = Date.now() + 60_000;
       } finally {
         pushInFlightRef.current = false;
         if (pushPendingRef.current) {
           pushPendingRef.current = false;
-          // dispara outro ciclo curto pra não segurar mudanças recentes
+          // Só tenta novamente se não houve erro e o estado realmente mudou.
           if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-          pushTimerRef.current = setTimeout(() => {
-            pushCloud({ data: { data: state as any } as any } as any).catch(() => { /* ignore */ });
+          pushTimerRef.current = setTimeout(async () => {
+            if (Date.now() < nextCloudPushAtRef.current || pushInFlightRef.current) return;
+            const pending = latestEggStateRef.current;
+            const pendingSignature = cloudStateSignature(pending);
+            if (!pendingSignature || pendingSignature === lastCloudSignatureRef.current) return;
+            pushInFlightRef.current = true;
+            try {
+              await pushCloudRef.current({ data: { data: pending as any } as any } as any);
+              lastCloudSignatureRef.current = pendingSignature;
+            } catch (e) {
+              console.warn("[BlackEgg] push cloud pendente falhou:", e);
+              nextCloudPushAtRef.current = Date.now() + 60_000;
+            } finally {
+              pushInFlightRef.current = false;
+            }
           }, 800);
         }
       }
     }, 1500);
     return () => { if (pushTimerRef.current) clearTimeout(pushTimerRef.current); };
-  }, [state, uid, pushCloud]);
+  }, [state, uid, cloudSyncGeneration]);
 
   // Flush final ao fechar o painel / desmontar / esconder aba.
   useEffect(() => {
     const flush = () => {
       if (!cloudReadyRef.current) return;
+      if (cloudUidRef.current !== uid) return;
       if (!uid || uid === "guest" || uid.startsWith("guest")) return;
-      try { pushCloud({ data: { data: state as any } } as any).catch(() => {}); } catch { /* ignore */ }
+      if (pushInFlightRef.current || Date.now() < nextCloudPushAtRef.current) return;
+      const latest = latestEggStateRef.current;
+      const signature = cloudStateSignature(latest);
+      if (!signature || signature === lastCloudSignatureRef.current) return;
+      pushInFlightRef.current = true;
+      try {
+        void pushCloudRef.current({ data: { data: latest as any } } as any)
+          .then(() => { lastCloudSignatureRef.current = signature; })
+          .catch(() => { nextCloudPushAtRef.current = Date.now() + 60_000; })
+          .finally(() => { pushInFlightRef.current = false; });
+      } catch {
+        pushInFlightRef.current = false;
+      }
     };
     const onHide = () => { if (document.visibilityState === "hidden") flush(); };
     window.addEventListener("beforeunload", flush);
@@ -1293,7 +1350,7 @@ export function BlackMiticEggHud(props: {
       document.removeEventListener("visibilitychange", onHide);
       flush();
     };
-  }, [state, uid, pushCloud]);
+  }, [uid]);
 
 
   // Sincroniza número de ovos com itemCount (adiciona novos inativos, ou remove excesso do fim entre os NÃO ativados)
