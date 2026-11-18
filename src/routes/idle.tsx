@@ -7563,6 +7563,13 @@ const confirmName = () => {
               already_owned: `Esta conta já possui a skin ${skinName}; o código permanece disponível para outra pessoa.`,
               save_conflict: "Save em conflito. Preserve o progresso e recarregue antes de tentar novamente.",
               confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue e confira antes de repetir.",
+              save_unavailable: "O save da nuvem não está pronto agora. Toque em Salvar e tente resgatar de novo em alguns segundos.",
+              save_failed: "Não foi possível sincronizar o save antes do resgate. Verifique sua conexão e tente novamente.",
+              checkpoint_unavailable: "O checkpoint local não está disponível. Recarregue o jogo e tente resgatar de novo.",
+              save_incomplete: "Seu save na nuvem está incompleto. Jogue um pouco para salvar e tente resgatar de novo.",
+              stale: "Seu save mudou em outro lugar. Recarregue o jogo e tente resgatar de novo.",
+              unauthenticated: "Sua sessão expirou. Entre na sua conta novamente para resgatar.",
+              mutation_failed: "Falha temporária no servidor. Aguarde alguns segundos e tente novamente.",
             };
             throw new Error(reasons[result.reason ?? ""] ?? `Não foi possível resgatar (${result.reason ?? "servidor indisponível"}).`);
           }

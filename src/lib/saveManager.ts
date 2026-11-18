@@ -486,14 +486,27 @@ export async function runCheckpointMutation(
   patchSnapshot: (current: unknown, value: number, checkpoint: unknown) => unknown,
 ): Promise<{ ok: boolean; reason?: string; value?: number }> {
   const uid = await currentUid();
-  if (!uid || snapshotOwnerUid !== uid || !isValidSnapshot(snapshot) || serverMutationBusy || needsRebase) {
+  if (!uid || snapshotOwnerUid !== uid || !isValidSnapshot(snapshot) || serverMutationBusy) {
     return { ok: false, reason: "save_unavailable" };
+  }
+  if (needsRebase) {
+    // Travado por um checkpoint stale (versão local atrás da oficial).
+    // Tenta alinhar a versão SEM sobrescrever nada; se o oficial for mais
+    // novo que o local, rebaseForPush recusa e devolvemos conflito explícito
+    // (em vez do genérico "save_unavailable", que não diz o que fazer).
+    if (!(await rebaseForPush(readSnapshotSavedAt(snapshot)))) {
+      return { ok: false, reason: "save_conflict" };
+    }
   }
   serverMutationBusy = true;
   let rpcStarted = false;
   try {
     memSnapshot = sanitizeSnapshot(snapshot);
-    if (!(await flushInternal(uid, true, true))) return { ok: false, reason: "save_failed" };
+    if (!(await flushInternal(uid, true, true))) {
+      // flush tentou (e pode ter tentado sozinho) destravar o rebase; se ainda
+      // está travado é conflito de versão, não falha genérica de save.
+      return { ok: false, reason: needsRebase ? "save_conflict" : "save_failed" };
+    }
     const expected = loadVersion(uid);
     if (needsRebase) return { ok: false, reason: "save_conflict" };
     const checkpoint = readJson<LastGood>(lastGoodKey(uid));
@@ -584,8 +597,10 @@ export function isRebaseBlocked(): boolean {
  * oficial só quando o save do servidor NÃO é mais novo no tempo que o local
  * (versão + relógio juntos — relógio sozinho nunca decide). Se o servidor
  * for mais novo, não sobrescreve e devolve false.
+ * `localSavedAt` opcional: savedAt do snapshot que está sendo gravado AGORA
+ * (conta como progresso local mais recente na comparação).
  */
-export async function rebaseForPush(): Promise<boolean> {
+export async function rebaseForPush(localSavedAt?: number | null): Promise<boolean> {
   const uid = await currentUid();
   if (!uid) return false;
   try {
@@ -606,13 +621,26 @@ export async function rebaseForPush(): Promise<boolean> {
     const memSavedAt = readSnapshotSavedAt(memSnapshot);
     const local = localProgressMeta(uid);
     let newestLocal = memSavedAt;
-    if (local.newestSavedAt !== null && (newestLocal === null || local.newestSavedAt > newestLocal)) {
-      newestLocal = local.newestSavedAt;
+    for (const t of [local.newestSavedAt, localSavedAt ?? null]) {
+      if (t !== null && (newestLocal === null || t > newestLocal)) newestLocal = t;
     }
-    if (serverSavedAt !== null && newestLocal !== null && serverSavedAt > newestLocal) {
+    // Só alinha a versão quando dá para PROVAR que o save oficial não é mais
+    // novo que o local. Sem os dois relógios não há como decidir: mantém o
+    // bloqueio (nunca sobrescreve nem arrisca perder progresso) e o chamador
+    // informa "recarregue para sincronizar".
+    if (serverSavedAt === null || newestLocal === null) return false;
+    if (serverSavedAt > newestLocal) {
       return false; // oficial mais novo: preserva, não empurra por cima.
     }
     storeVersion(uid, sv);
+    // Relabela o checkpoint local com a versão adotada: sem isto o próximo
+    // runCheckpointMutation cairia em checkpoint_unavailable na hora seguinte.
+    try {
+      const lg = readJson<LastGood>(lastGoodKey(uid));
+      if (lg && isValidSnapshot(lg.snapshot)) {
+        localStorage.setItem(lastGoodKey(uid), JSON.stringify({ ...lg, version: sv } satisfies LastGood));
+      }
+    } catch { /* memória/localStorage indisponível: flush regrava o lastGood */ }
     needsRebase = false;
     setStatus("ok");
     return true;
@@ -631,9 +659,17 @@ async function flushInternal(uid: string, immediate = false, fromMutation = fals
     return false;
   }
   if (needsRebase) {
-    // Base defasada + servidor à frente: não empurra nada até recarregar.
-    setStatus("conflict", "outra aba atualizou o save — recarregue para sincronizar");
-    return false;
+    // Base defasada + servidor à frente. Tenta rebase SEGURO: alinha o
+    // número de versão só quando o save oficial NÃO é mais novo que o local
+    // (rebaseForPush recusa e mantém o bloqueio caso contrário). Sem este
+    // passo o cliente ficava travado para sempre em "save_unavailable" —
+    // e o autosave também nunca mais subia.
+    if (await rebaseForPush()) {
+      // Destravado: segue o fluxo normal do checkpoint.
+    } else {
+      setStatus("conflict", "save oficial mais novo — recarregue para sincronizar");
+      return false;
+    }
   }
   if (!memSnapshot) {
     // Sem snapshot em memória: tenta a fila durável (reload/offline anterior),

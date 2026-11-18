@@ -555,29 +555,10 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [session?.user?.id, sessionRejected]);
 
-  // Show rejection screen
-  if (sessionRejected) {
-    return (
-      <PanelShell title="SESS�O RECUSADA">
-        <div style={{ textAlign: "center", padding: 20 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>??</div>
-          <h2 style={{ color: "#ff6b6b", fontSize: 16, marginBottom: 8 }}>Sess�o duplicada detectada</h2>
-          <p style={{ color: "#9adcff", marginBottom: 16, lineHeight: 1.5 }}>
-            Esta conta j� est� conectada em outra aba/janela.<br />
-            A sess�o original permanece ativa.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{ padding: "10px 20px", background: "#2f9df0", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}
-          >
-            Recarregar e tentar novamente
-          </button>
-        </div>
-      </PanelShell>
-    );
-  }
-
-
+  // ATENÇÃO: a tela de sessão recusada é retornada DEPOIS de todos os hooks
+  // (ver "Show rejection screen" mais abaixo). Um return antes dos hooks
+  // seguintes (useRef/useEffect do bootstrap) lançava React #300 —
+  // "Rendered fewer hooks than expected" — quando sessionRejected virava true.
 
   // Quando logado: garante profile, decide se precisa criar treinador,
   // pré-carrega save da nuvem.
@@ -738,6 +719,28 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
 
 
   if (!mounted || checking) return <SplashScreen label="Conectando ao servidor..." />;
+
+  // Show rejection screen — DEPOIS de todos os hooks (React #300).
+  if (sessionRejected) {
+    return (
+      <PanelShell title="SESS�O RECUSADA">
+        <div style={{ textAlign: "center", padding: 20 }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>??</div>
+          <h2 style={{ color: "#ff6b6b", fontSize: 16, marginBottom: 8 }}>Sess�o duplicada detectada</h2>
+          <p style={{ color: "#9adcff", marginBottom: 16, lineHeight: 1.5 }}>
+            Esta conta j� est� conectada em outra aba/janela.<br />
+            A sess�o original permanece ativa.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: "10px 20px", background: "#2f9df0", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}
+          >
+            Recarregar e tentar novamente
+          </button>
+        </div>
+      </PanelShell>
+    );
+  }
 
   if (maintenance && !isAdmin && !isBypassed) {
     return (
