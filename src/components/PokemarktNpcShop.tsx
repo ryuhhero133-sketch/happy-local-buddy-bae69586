@@ -26,6 +26,8 @@ import greenteaImg from "@/assets/comida/coffee_greentea.png";
 import popsicleImg from "@/assets/comida/popsicle_pink.png";
 import emeraldEggImg from "@/assets/black-mitic-egg.png";
 import certGovAsset from "@/assets/carta-governante.png.asset.json";
+import mountIconImg from "@/CHAR/montaria.png";
+import mountBannerImg from "@/CHAR/evento 0.png";
 
 type StoreItem = {
   id: string;
@@ -33,6 +35,7 @@ type StoreItem = {
   price: number;
   currency: "gold" | "crystals";
   image: string;
+  banner?: string;
   imgFilter?: string;
   description: string;
   buy: (quantity: number) => void;
@@ -53,6 +56,8 @@ type Props = {
   ) => void;
   onBuyEmeraldEgg: (quantity: number) => void;
   onBuyCertificado: (quantity: number) => void;
+  onBuyMountSkin: () => void;
+  mountSkinBought: boolean;
 };
 
 // ============================================================
@@ -103,6 +108,8 @@ export function PokemarktNpcShop({
   onBuyBook,
   onBuyEmeraldEgg,
   onBuyCertificado,
+  onBuyMountSkin,
+  mountSkinBought,
 }: Props) {
   const [selectedId, setSelectedId] = useState("pokeball");
   const [quantity, setQuantity] = useState(1);
@@ -137,6 +144,7 @@ export function PokemarktNpcShop({
   // fileira 2: orbs no lugar dos arcanos + comidas; fileira 3: comidas.
   // (fruta/suco/refeição e livros arcanos/reais saíram da vitrine.)
   const products = useMemo<StoreItem[]>(() => [
+    { id: "carta_montaria", name: "Montaria Épica", price: 2000, currency: "gold", image: mountIconImg, banner: mountBannerImg, description: "Carta SAWSBUCK-S3 · use na Mochila: 24h de montaria e +5 de agilidade. Limite: 1× por conta.", buy: () => onBuyMountSkin() },
     { id: "pokeball", name: "Pokébola", price: 500, currency: "gold", image: ballPokeImg, description: "A bola clássica para capturas.", buy: (q) => onBuyBall("pokeball", q) },
     { id: "greatball", name: "Great Ball", price: 5000, currency: "gold", image: ballGreatImg, description: "Chance de captura duas vezes maior.", buy: (q) => onBuyBall("greatball", q) },
     { id: "ultraball", name: "Ultra Ball", price: 100, currency: "crystals", image: ballUltraImg, description: "Captura altíssima — 100 cristais cada.", buy: (q) => onBuyBall("ultraball", q) },
@@ -159,25 +167,27 @@ export function PokemarktNpcShop({
     { id: "leite_manga", name: "Leite de Manga", price: 700, currency: "gold", image: mangoImg, description: "Alimenta: +35 fome, +25 energia.", buy: (q) => onBuyFood("leite_manga", q) },
     { id: "emerald_egg", name: "EGG Emerald 💚", price: 500, currency: "crystals", image: emeraldEggImg, imgFilter: "hue-rotate(70deg) saturate(1.3)", description: "5 stones do mesmo tipo desbloqueiam · choca em 1h (Comum 65% / Raro 25% / Épico 10%, 3 traits).", buy: (q) => onBuyEmeraldEgg(q) },
     { id: "certificado", name: "Certificado 📜", price: 10000, currency: "crystals", image: assetUrlFromJson(certGovAsset), description: "Autoriza construir 1 casa na Land. Sem ele, não há construção.", buy: (q) => onBuyCertificado(q) },
-  ], [onBuyBall, onBuyFood, onBuyPotion, onBuyRevive, onBuyBook, onBuyEmeraldEgg]);
+  ], [onBuyBall, onBuyFood, onBuyPotion, onBuyRevive, onBuyBook, onBuyEmeraldEgg, onBuyMountSkin]);
 
   const selected = products.find((item) => item.id === selectedId) ?? products[0];
   if (!selected) return null;
-  const total = selected.price * quantity;
+  const selectedQuantity = selected.id === "carta_montaria" ? 1 : quantity;
+  const total = selected.price * selectedQuantity;
   const balance = selected.currency === "gold" ? gold : crystals;
   const moneyOk = balance >= total;
   const left = stockOf(selected.id);
   const soldOut = left <= 0;
-  const enoughStock = quantity <= left;
-  const canBuy = moneyOk && !soldOut && enoughStock;
+  const enoughStock = selectedQuantity <= left;
+  const uniqueOwned = selected.id === "carta_montaria" && mountSkinBought;
+  const canBuy = moneyOk && !soldOut && enoughStock && !uniqueOwned;
   const resetIn = Math.max(0, (Date.now() >= stock.resetAt ? STOCK_WINDOW_MS : stock.resetAt - Date.now()));
   const coin = selected.currency === "gold" ? "🪙" : "💎";
   const coinName = selected.currency === "gold" ? "ouro" : "cristais";
 
   const doBuy = () => {
     if (!canBuy) return;
-    takeStock(selected.id, quantity);
-    selected.buy(quantity);
+    takeStock(selected.id, selectedQuantity);
+    selected.buy(selectedQuantity);
   };
 
   return (
@@ -235,7 +245,7 @@ export function PokemarktNpcShop({
                   key={item.id}
                   type="button"
                   aria-label={`Selecionar ${item.name}`}
-                  onClick={() => setSelectedId(item.id)}
+                  onClick={() => { setSelectedId(item.id); if (item.id === "carta_montaria") setQuantity(1); }}
                   className="group absolute grid place-items-center rounded-md border-2 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
                   style={{
                     left: `${pos.x}%`, top: `${pos.y}%`, width: `${pos.w}%`, height: `${pos.h}%`,
@@ -265,6 +275,7 @@ export function PokemarktNpcShop({
         <div className="relative -mt-1 grid gap-2 border-t-2 border-sky-300 bg-slate-950/95 p-3 text-white sm:grid-cols-[1fr_auto_auto] sm:items-center sm:px-5">
           <div className="min-w-0">
             <div className="font-mono text-sm font-black text-emerald-300">{selected.name}</div>
+            {selected.banner && <img src={selected.banner} alt="Montaria Épica SAWSBUCK-S3" className="mt-2 max-h-28 w-auto rounded border border-yellow-300/70 object-contain" />}
             <div className="text-xs text-slate-300">{selected.description}</div>
             <div className="mt-1 font-mono text-base font-black text-yellow-300 [text-shadow:1px_1px_0_#000]">
               💰 {selected.price.toLocaleString("pt-BR")} {coin} cada
@@ -283,6 +294,7 @@ export function PokemarktNpcShop({
               <Button
                 key={value}
                 size="sm"
+                disabled={selected.id === "carta_montaria" && value !== 1}
                 variant={quantity === value ? "default" : "outline"}
                 onClick={() => setQuantity(value)}
                 className={`h-10 min-w-12 px-3 text-sm font-black ${quantity === value ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400" : ""}`}
@@ -296,7 +308,7 @@ export function PokemarktNpcShop({
             onClick={doBuy}
             className="h-12 bg-emerald-500 px-5 font-mono text-sm font-black text-slate-950 hover:bg-emerald-400"
           >
-            {soldOut ? "ESGOTADO" : !enoughStock ? "ESTOQUE INSUFICIENTE" : canBuy ? `COMPRAR ×${quantity} · ${(total).toLocaleString("pt-BR")} ${coin}` : `FALTAM ${coinName.toUpperCase()}`}
+            {uniqueOwned ? "JÁ POSSUI" : soldOut ? "ESGOTADO" : !enoughStock ? "ESTOQUE INSUFICIENTE" : canBuy ? `COMPRAR ×${selectedQuantity} · ${(total).toLocaleString("pt-BR")} ${coin}` : `FALTAM ${coinName.toUpperCase()}`}
           </Button>
         </div>
       </section>

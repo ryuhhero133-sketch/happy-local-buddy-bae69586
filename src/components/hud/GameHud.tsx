@@ -32,6 +32,11 @@ export type GameHudProps = {
   onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
   onForge: () => void; onSave: () => void; onShop: () => void; onGuild: () => void; onCode: () => void;
+  /** Montaria SAWSBUCK-S3: janela de 24h ativa (ícone visível) + estado on/off + tempo restante. */
+  mountActive?: boolean;
+  mountOn?: boolean;
+  mountLabel?: string;
+  onToggleMount?: () => void;
   onZoom: (direction: 1 | -1) => void;
   team: HudTeamMember[]; selectedPetUid: string | null; onSelectPet: (uid: string) => void;
   onJoystickMove: (x: number, y: number) => void;

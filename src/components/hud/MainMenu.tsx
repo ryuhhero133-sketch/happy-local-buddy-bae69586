@@ -18,6 +18,7 @@ import iconConfig from "@/ambiente/aba/men ic/Opções.png";
 import iconPerfil from "@/ambiente/aba/men ic/Perfil.png";
 import iconSinergia from "@/ambiente/aba/men ic/Sinergia.png";
 import iconMercado from "@/ambiente/aba/men ic/Markt.png";
+import iconMontaria from "@/CHAR/montaria.png";
 import "./main-menu.css";
 
 type MenuItem = { label: string; icon: string; color: string; x: number; y: number; action: () => void };
@@ -60,6 +61,19 @@ export function MainMenu({ hud, open, onOpenChange }: { hud: GameHudProps; open:
     <button className="revo-mobile-bag" type="button" title="Mochila" aria-label="Abrir ou fechar Mochila" onClick={() => navigate("mochila")}>
       <img src={iconMochila} alt="" /><span>Mochila</span>
     </button>
+    {hud.mountActive && (
+      <button
+        className={`revo-mount-toggle${hud.mountOn ? " is-on" : ""}`}
+        type="button"
+        title={hud.mountOn ? `Montaria SAWSBUCK-S3 ligada · ${hud.mountLabel} restantes. Clique para desmontar.` : `Montaria SAWSBUCK-S3 desligada · ${hud.mountLabel} restantes. Clique para montar.`}
+        aria-label={hud.mountOn ? "Desmontar montaria" : "Montar montaria"}
+        aria-pressed={!!hud.mountOn}
+        onClick={() => hud.onToggleMount?.()}
+      >
+        <img src={iconMontaria} alt="" />
+        <span>{hud.mountLabel}</span>
+      </button>
+    )}
     <button className="revo-main-menu-trigger" type="button" aria-label={open ? "Fechar menu principal" : "Abrir menu principal"} aria-expanded={open} onClick={() => onOpenChange(!open)}>
       <img className="revo-main-menu-trigger__art" src={menuTriggerIcon} alt="" /><span>MENU</span>
     </button>

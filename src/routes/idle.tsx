@@ -60,6 +60,8 @@ import hudMelhoriasPng from "@/CHAR/Melhorias.png";
 import hudMissoesPng from "@/CHAR/Missoes.png";
 import skinBoxPng from "@/CHAR/skinbox.png";
 import bottanPng from "@/CHAR/bottan.png";
+import montariaIconPng from "@/CHAR/montaria.png";
+import sawsbuckMountPng from "@/CHAR/SAWSBUCK-S3.png";
 import barbaBrancaPng from "@/CHAR/Barba Branca.png";
 import bonnyBiPng from "@/CHAR/Bonny bi.png";
 // Bidril e Kakuna (mapinha12) — sheets 4x4 do diretório kg/x (movimento nas 4 direções)
@@ -2250,6 +2252,9 @@ type IdleState = {
   /** Evento (Liga): entradas grátis do dia + passe de permanência (timestamp). */
   eventEntries?: { day: string; free: number };
   eventPassUntil?: number;
+  mountSkinBought?: boolean;
+  mountUntil?: number;
+  mountOn?: boolean;
 };
 
 
@@ -2324,6 +2329,7 @@ const ITEM_COLORS: Record<string, string> = {
   book_atk_gold: "#ffd94d", book_def_gold: "#ffd94d",
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
   ticket_ancestral: "#ffd94d",
+  carta_montaria: "#ffd94d",
 };
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
@@ -2348,6 +2354,7 @@ const ITEM_IMG: Record<string, string> = {
   certificado: assetUrlFromJson(certificadoBagAsset),
   egg_sprigatito: cardEggUrl,
   egg_mew_7: cardEggUrl, egg_lucario_7: cardEggUrl, egg_ditto_shiny_1: cardEggUrl,
+  carta_montaria: montariaIconPng,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -2509,6 +2516,9 @@ export function freshIdle(): IdleState {
     saga: freshSaga(),
     sideQuests: freshSideQuests(),
     welcomeBonusUntil: 0, // timestamp até quando o bônus de boas-vindas (+100% ATK/DEF) está ativo
+    mountSkinBought: false,
+    mountUntil: 0,
+    mountOn: false,
   };
 }
 function saveIdle(s: IdleState) {
@@ -3363,6 +3373,10 @@ function IdlePage() {
     if (now < honeyRareUntilRef.current) return HONEY_BONUS_RARE;
     if (now < honeyUntilRef.current) return HONEY_BONUS_NORMAL;
     return 0;
+  };
+  const mountBonusNow = () => {
+    const mount = idleRef.current;
+    return mount?.mountOn && Date.now() < (mount.mountUntil ?? 0) ? 0.05 : 0;
   };
   // Compat: HONEY_BONUS antigo — mantido para pequenos usos legados; call sites principais agora usam honeyBonusNow()
   const HONEY_BONUS = HONEY_BONUS_NORMAL;
@@ -9839,7 +9853,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const boatTierNow = isWaterMap(idleRef.current.currentMap) ? idleRef.current.ship?.tier : undefined;
         const speed = boatTierNow
           ? 7 * 0.62 * BOAT_BY_TIER[boatTierNow].speed * (1 + honeyBonusNow())
-          : 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+          : 7 * (1 + honeyBonusNow() + mountBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
         const stepX = (dx / mag) * speed * Math.min(1, mag);
         const stepY = (dy / mag) * speed * Math.min(1, mag);
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -9896,7 +9910,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 7 * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+          const speed = 7 * (1 + honeyBonusNow() + mountBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -10077,7 +10091,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             return tp;
           }
           if (!moving) setMoving(true);
-          const spd = 6 * (1 + honeyBonusNow());
+          const spd = 6 * (1 + honeyBonusNow() + mountBonusNow());
           const wnd: Dir = Math.abs(wdx) > Math.abs(wdy) ? (wdx > 0 ? "right" : "left") : (wdy > 0 ? "down" : "up");
           if (wnd !== walkDirRef.current) { walkDirRef.current = wnd; setWalkDir(wnd); }
           const wFace = wdx >= 0 ? "right" : "left";
@@ -10161,7 +10175,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const boatTierClick = isWaterMap(idleRef.current.currentMap) ? idleRef.current.ship?.tier : undefined;
         const speed = boatTierClick
           ? 7 * 0.62 * BOAT_BY_TIER[boatTierClick].speed * distBoost * (1 + honeyBonusNow())
-          : 6 * distBoost * (1 + honeyBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+          : 6 * distBoost * (1 + honeyBonusNow() + mountBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
         const stepX = (dx / dist) * speed;
         const stepY = (dy / dist) * speed;
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -13463,6 +13477,16 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushFxAt(trainerPos.x, trainerPos.y - 40, "✨ MEL RARO +20% · 24h", "capture");
       pushEvent("✨", "INCENSO RARO 24H", "+20% drop/xp/def/velocidade por 24 horas", "#ffd94d");
       pushChat(`✨🍯 Incenso Raro 24h ativado! +20% drop/xp/def/velocidade por 24 horas.`, "cap");
+    } else if (id === "carta_montaria") {
+      const nowT = Date.now();
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, carta_montaria: Math.max(0, (s.items.carta_montaria ?? 0) - 1) },
+        mountUntil: nowT + 24 * 60 * 60 * 1000,
+        mountOn: true,
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "MONTARIA 24h", "capture");
+      pushChat("Montaria SAWSBUCK-S3 ativada por 24 horas! +5 de agilidade.", "cap");
     } else if (id === "stone_pack_all") {
       setIdle((s) => ({
         ...s,
@@ -15788,6 +15812,14 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       };
     });
   };
+  const buyMountSkin = () => {
+    setIdle((s) => {
+      if (s.mountSkinBought) { pushChat("Você já comprou a Carta Montaria (limite de 1× por conta).", "info"); return s; }
+      if (s.bank.gold < 2000) { pushChat("Ouro insuficiente para a Carta Montaria (precisa 2.000 🪙).", "info"); return s; }
+      pushChat("Comprou a Carta Montaria SAWSBUCK-S3 por 2.000 🪙. Use na Mochila para ativar 24h.", "cap");
+      return { ...s, bank: { ...s.bank, gold: s.bank.gold - 2000 }, items: { ...s.items, carta_montaria: (s.items.carta_montaria ?? 0) + 1 }, mountSkinBought: true };
+    });
+  };
   const buyBook = (bk: ShopBook, qty: number = 1) => {
     const n = Math.max(1, Math.floor(qty || 1));
     setIdle((s) => {
@@ -17187,6 +17219,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onForge={() => { playClick(); setForgeWindowOpen(true); setForgeMinimized(false); setForgeShowOrbit(false); }}
         onSave={() => { void tryManualCloudSave(); }} onShop={() => setTemporarilyClosed("Loja Cash")} onGuild={() => setTab("guilda")}
         onCode={() => { setCodeOpen(true); setCodeMsg(null); }}
+        mountActive={(idle.mountUntil ?? 0) > now}
+        mountOn={!!idle.mountOn && (idle.mountUntil ?? 0) > now}
+        mountLabel={(idle.mountUntil ?? 0) > now ? fmtHMS((idle.mountUntil ?? 0) - now) : "—"}
+        onToggleMount={() => setIdle((s) => ({ ...s, mountOn: !s.mountOn }))}
         onZoom={(direction) => {
           const levels = [0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5];
           const nearest = levels.reduce((best, value, index) => Math.abs(value - zoom) < Math.abs(levels[best] - zoom) ? index : best, 0);
@@ -19152,6 +19188,8 @@ A sucata afundou com o casco.
               onBuyRevive={buyRevive}
               onBuyFood={buyFood}
               onBuyCertificado={buyCertificado}
+              onBuyMountSkin={buyMountSkin}
+              mountSkinBought={!!idle.mountSkinBought}
               onBuyBook={(id, quantity) => {
                 const book = SHOP_BOOKS.find((entry) => entry.id === id);
                 if (book) buyBook(book, quantity);
@@ -21621,10 +21659,12 @@ A sucata afundou com o casco.
               );
             })()}
 
-            {!isWaterMap(idle.currentMap) && (<div style={{
+            {!isWaterMap(idle.currentMap) && (() => {
+              const mountActive = !!idle.mountOn && now < (idle.mountUntil ?? 0);
+              return (<div style={{
               position: "absolute",
               left: renderTrainerX, top: renderTrainerY,
-              width: 56, height: 56,
+              width: mountActive ? 76 : 56, height: mountActive ? 76 : 56,
               transform: "translate(-50%, -50%)",
               filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
               zIndex: Math.round(trainerPos.y),
@@ -21650,12 +21690,13 @@ A sucata afundou com o casco.
               )}
               <div style={{
                 width: "100%", height: "100%",
-                backgroundImage: `url(${skinUrl ?? trainerSheet})`,
+                backgroundImage: `url(${mountActive ? sawsbuckMountPng : (skinUrl ?? trainerSheet)})`,
                 backgroundSize: "400% 400%",
                 backgroundPosition: `${walkStep * 33.333}% ${DIR_ROW[walkDir] * 33.333}%`,
                 imageRendering: "pixelated",
               }} />
-            </div>)}
+            </div>);
+            })()}
 
             {/* Black Mitic Egg — pet flutuante */}
             <BlackMiticEggSprite
@@ -29537,6 +29578,7 @@ function TabOverlay({
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
+          carta_montaria: "Carta Montaria SAWSBUCK-S3 🦌",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
           carta_riolu: "Carta Riolu Suprema 🐺✦",
@@ -29612,6 +29654,7 @@ function TabOverlay({
           key: "Chave · abre baús trancados encontrados no mundo.",
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
+          carta_montaria: "Carta Montaria SAWSBUCK-S3 · ativa a montaria épica por 24 horas e dá +5 de agilidade. É consumida ao usar.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
           carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
           carta_riolu: "Carta Riolu Suprema 🐺✦ · leve ao Governante para materializar 1 Riolu Black Mitic Brilhant Plus (Lv 1000, 6 traits) direto na Coleção. Uso único.",
@@ -29705,6 +29748,7 @@ function TabOverlay({
           "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1",
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
+          "carta_montaria",
         ]);
         const upgrades: Record<string, { cost: number; level: number; label: string }> = {
           book_exp: { cost: 3, level: 10, label: "EXP Raro" }, book_exp_big: { cost: 3, level: 25, label: "EXP Lendário" },

@@ -2,6 +2,7 @@
 .revo-touch-stick { display: none; }
 @media (pointer: coarse) and (orientation: portrait) and (max-width: 650px) {
   .revo-hud .revo-mobile-bag { display: none; }
+  .revo-hud .revo-mount-toggle { display: none; }
   .revo-game::after {
     content: '↻  Gire o celular para jogar de lado';
     position: fixed;
@@ -92,6 +93,11 @@
   .revo-hud .revo-main-menu-trigger__art { width: 30px; height: 30px; }
   .revo-hud .revo-mobile-bag { position: absolute; right: calc(62px + env(safe-area-inset-right)); bottom: calc(112px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 2px; gap: 0; border: 2px solid #e2bc69; border-radius: 50%; background: radial-gradient(circle at 38% 25%, #285945, #082c28 75%); box-shadow: inset 0 0 0 2px #061c1c, 0 3px 10px #000a; color: #fff3c7; font: bold 8px Georgia, serif; pointer-events: auto; z-index: 130; }
   .revo-hud .revo-mobile-bag img { display: block; width: 31px; height: 31px; object-fit: contain; image-rendering: auto; }
+  .revo-hud .revo-mount-toggle { position: absolute; right: calc(118px + env(safe-area-inset-right)); bottom: calc(116px + env(safe-area-inset-bottom)); width: 48px; height: 48px; padding: 2px; gap: 0; border: 2px solid #e2bc69; border-radius: 50%; background: radial-gradient(circle at 38% 25%, #5a4a12, #241a02 75%); box-shadow: inset 0 0 0 2px #061c1c, 0 3px 10px #000a; color: #fff3c7; font: bold 8px Georgia, serif; pointer-events: auto; z-index: 130; }
+  .revo-hud .revo-mount-toggle img { display: block; width: 30px; height: 30px; object-fit: contain; animation: revo-mount-spin 3.4s linear infinite; }
+  .revo-hud .revo-mount-toggle span { font-size: 7px; line-height: 1; }
+  .revo-hud .revo-mount-toggle.is-on { border-color: #7dffb0; background: radial-gradient(circle at 38% 25%, #1f5a3a, #04241a 75%); }
+  .revo-hud .revo-mount-toggle.is-on img { animation-duration: 1.6s; }
   .revo-hud .revo-target { top: 33px; height: 36px; }
   .revo-hud .revo-notices { top: 36px; right: 7px; max-height: 55vh; overflow-y: auto; }
   .revo-game .mob-targetcard { top: 34px !important; left: 50% !important; transform: translateX(-50%) !important; max-width: 170px; }
