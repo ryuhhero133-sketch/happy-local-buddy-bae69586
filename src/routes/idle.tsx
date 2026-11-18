@@ -2761,6 +2761,8 @@ function IdlePage() {
   });
   const leaderHpRef = useRef(0);
   useEffect(() => { leaderHpRef.current = leaderHp; }, [leaderHp]);
+  /** Momento em que o Revive automático deve acontecer após um desmaio normal. */
+  const [autoReviveAt, setAutoReviveAt] = useState<number | null>(null);
   const [leveledAt, setLeveledAt] = useState<number>(0);
   const [levelToast, setLevelToast] = useState<{ level: number; gains?: string[]; bonus?: string; ts: number; type: "trainer" | "pokemon" } | null>(null);
   const prevLevelRef = useRef<number>(0);
@@ -12981,6 +12983,44 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }, 0);
   };
 
+  // Revive automático: em mortes normais, se houver ao menos um Revive na
+  // mochila, inicia 30s. PvP continua sob a regra autoritativa do servidor.
+  const autoReviveEligible = leaderHp <= 0
+    && ownPvpPresence?.hp !== 0
+    && !idle.pvpFaintedLeader
+    && !ownPvpFaintedRef.current
+    && (idle.items.revive ?? 0) > 0;
+  useEffect(() => {
+    if (!autoReviveEligible) {
+      setAutoReviveAt((current) => current === null ? current : null);
+      return;
+    }
+    setAutoReviveAt((current) => current ?? Date.now() + 30_000);
+  }, [autoReviveEligible]);
+
+  useEffect(() => {
+    if (autoReviveAt == null) return;
+    const delay = Math.max(0, autoReviveAt - Date.now());
+    const timer = window.setTimeout(() => {
+      const current = idleRef.current;
+      const leader = teamRef.current[0];
+      if (leaderHpRef.current > 0 || !leader || (current.items.revive ?? 0) < 1
+        || current.pvpFaintedLeader || ownPvpFaintedRef.current) return;
+      const hp = calcIdleMaxHp(leader);
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, revive: Math.max(0, (s.items.revive ?? 0) - 1) },
+      }));
+      leaderHpRef.current = hp;
+      setLeaderHp(hp);
+      pushFxAt(trainerPosRef.current.x, trainerPosRef.current.y - 40, "REVIVEU!", "gold");
+      pushChat("Revive automático usado após 30 segundos.", "cap");
+      setAutoReviveAt(null);
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [autoReviveAt]);
+  const autoReviveSeconds = autoReviveAt == null ? null : Math.max(0, Math.ceil((autoReviveAt - now) / 1000));
+
   // Lança bola manualmente em um inimigo (clique)
    const throwBallAt = (enemyId: number) => {
     // LOADING de teleport: sem captura.
@@ -22399,10 +22439,11 @@ A sucata afundou com o casco.
 
           {leaderHp <= 0 ? (
             <div className="revo-auto-settings" style={{
-              position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)",
-              background: "rgba(60,0,0,0.95)", border: "2px solid #f5cf6b",
-              borderRadius: 10, padding: "12px 20px", display: "flex", alignItems: "center", gap: 14,
-              zIndex: 15,
+              position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+              width: "min(390px, calc(100vw - 32px))",
+              background: "rgba(60,0,0,0.97)", border: "3px solid #f5cf6b",
+              borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 14,
+              zIndex: 10040, boxShadow: "0 0 40px rgba(245,207,107,0.45), 0 12px 36px rgba(0,0,0,0.8)",
             }}>
               <span style={{ fontSize: 26 }}>💀</span>
               <div>
@@ -22410,7 +22451,9 @@ A sucata afundou com o casco.
                 <div style={{ fontSize: 11, color: "#f5cf6b" }}>
                   {ownPvpPresence?.hp === 0 || !!idle.pvpFaintedLeader
                     ? `Derrota PvP: retorno pelo servidor em ${pvpReviveClock}. Revive não será gasto sem confirmação.`
-                    : "Custa 50 ouro para reviver"}
+                    : autoReviveSeconds != null
+                      ? `Revive automático em ${autoReviveSeconds}s · será consumido 1 Revive da mochila`
+                      : "Custa 50 ouro para reviver"}
                 </div>
               </div>
               {ownPvpPresence?.hp === 0 && (idle.items.revive ?? 0) > 0 && (
