@@ -219,7 +219,7 @@ import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
-import { runCheckpointMutation } from "@/lib/saveManager";
+import { runCheckpointMutation, alignServerCheckpoint } from "@/lib/saveManager";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -7536,42 +7536,94 @@ const confirmName = () => {
           const { data: authData, error: authError } = await supabase.auth.getSession();
           const userId = authData.session?.user?.id;
           if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
+          const reasons: Record<string, string> = {
+            invalid_or_used: "Código inválido, já usado ou antigo. Nenhuma skin foi retirada.",
+            already_owned: `Esta conta já possui a skin ${skinName}; o código permanece disponível para outra pessoa.`,
+            save_conflict: "Save em conflito. Preserve o progresso e recarregue antes de tentar novamente.",
+            confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue e confira antes de repetir.",
+            save_unavailable: "O save da nuvem não está pronto agora. Toque em Salvar e tente resgatar de novo em alguns segundos.",
+            save_failed: "Não foi possível sincronizar o save antes do resgate. Verifique sua conexão e tente novamente.",
+            checkpoint_unavailable: "O checkpoint local não está disponível. Recarregue o jogo e tente resgatar de novo.",
+            save_incomplete: "Seu save na nuvem está incompleto. Jogue um pouco para salvar e tente resgatar de novo.",
+            stale: "Seu save mudou em outro lugar. Recarregue o jogo e tente resgatar de novo.",
+            unauthenticated: "Sua sessão expirou. Entre na sua conta novamente para resgatar.",
+            mutation_failed: "Falha temporária no servidor. Aguarde alguns segundos e tente novamente.",
+          };
+          const fail = (reason?: string) =>
+            new Error(reasons[reason ?? ""] ?? `Não foi possível resgatar (${reason ?? "servidor indisponível"}).`);
+
+          // Caminho DIRETO: lê a versão oficial e chama o RPC sem passar pelo
+          // guarda do runCheckpointMutation (dono do snapshot/busy), que estava
+          // recusando o resgate de TODO mundo com "save_unavailable".
+          const readServerVersion = async (): Promise<number | null> => {
+            try {
+              const { data, error } = await supabase
+                .from("game_saves")
+                .select("save_version")
+                .eq("user_id", userId)
+                .maybeSingle();
+              if (error) return null;
+              const v = (data as { save_version?: unknown } | null)?.save_version;
+              return typeof v === "number" && Number.isFinite(v) ? Math.floor(v) : 0;
+            } catch {
+              return null;
+            }
+          };
+          const callRedeem = async (expected: number): Promise<{ ok: boolean; server_version?: number; reason?: string; saved_at?: number }> => {
+            const { data, error } = await (supabase as any).rpc(
+              skin === "vegeta" ? "redeem_vegeta_voucher" : "redeem_goku_voucher",
+              { p_code: raw, p_expected_version: expected },
+            );
+            if (error) {
+              const status = Number((error as { status?: unknown }).status ?? 0);
+              if (status === 401 || status === 403) return { ok: false, reason: "unauthenticated" };
+              throw error; // falha de transporte → tenta o caminho legado
+            }
+            return { ok: data?.ok === true, server_version: data?.server_version,
+              reason: data?.reason, saved_at: Number(data?.saved_at) || 0 };
+          };
+
           let confirmedSavedAt = 0;
-          const result = await runCheckpointMutation(
-            buildFullBlob(),
-            async (expectedVersion) => {
-              const { data, error } = await (supabase as any).rpc(
-                skin === "vegeta" ? "redeem_vegeta_voucher" : "redeem_goku_voucher",
-                { p_code: raw, p_expected_version: expectedVersion },
-              );
-              if (error) throw error;
-              if (data?.ok === true) confirmedSavedAt = Number(data.saved_at) || 0;
-              return { ok: data?.ok === true, server_version: data?.server_version,
-                reason: data?.reason, value: data?.value };
-            },
-            (current) => {
-              const snapshot = current as { idle: IdleState; savedAt?: number };
-              return { ...snapshot, savedAt: Math.max(snapshot.savedAt ?? 0, confirmedSavedAt),
-                idle: { ...snapshot.idle, unlockedSkins: Array.from(
-                  new Set([...(snapshot.idle.unlockedSkins ?? []), skin]),
-                ) } };
-            },
-          );
-          if (!result.ok) {
-            const reasons: Record<string, string> = {
-              invalid_or_used: "Código inválido, já usado ou antigo. Nenhuma skin foi retirada.",
-              already_owned: `Esta conta já possui a skin ${skinName}; o código permanece disponível para outra pessoa.`,
-              save_conflict: "Save em conflito. Preserve o progresso e recarregue antes de tentar novamente.",
-              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue e confira antes de repetir.",
-              save_unavailable: "O save da nuvem não está pronto agora. Toque em Salvar e tente resgatar de novo em alguns segundos.",
-              save_failed: "Não foi possível sincronizar o save antes do resgate. Verifique sua conexão e tente novamente.",
-              checkpoint_unavailable: "O checkpoint local não está disponível. Recarregue o jogo e tente resgatar de novo.",
-              save_incomplete: "Seu save na nuvem está incompleto. Jogue um pouco para salvar e tente resgatar de novo.",
-              stale: "Seu save mudou em outro lugar. Recarregue o jogo e tente resgatar de novo.",
-              unauthenticated: "Sua sessão expirou. Entre na sua conta novamente para resgatar.",
-              mutation_failed: "Falha temporária no servidor. Aguarde alguns segundos e tente novamente.",
-            };
-            throw new Error(reasons[result.reason ?? ""] ?? `Não foi possível resgatar (${result.reason ?? "servidor indisponível"}).`);
+          let redeemed = false;
+          const expected = await readServerVersion();
+          if (expected !== null) {
+            let res = await callRedeem(expected);
+            if (!res.ok && res.reason === "stale") {
+              // Save mudou entre a leitura e o RPC: reprocessa 1× com a versão atual.
+              const again = await readServerVersion();
+              if (again !== null && again !== expected) res = await callRedeem(again);
+            }
+            if (res.ok) {
+              confirmedSavedAt = res.saved_at ?? 0;
+              alignServerCheckpoint(userId, typeof res.server_version === "number" ? res.server_version : expected + 1);
+              redeemed = true;
+            } else if (res.reason && res.reason !== "mutation_failed") {
+              throw fail(res.reason); // motivo definitivo do servidor
+            }
+            // sem versão legível ou falha de transporte → caminho legado abaixo
+          }
+          if (!redeemed) {
+            const result = await runCheckpointMutation(
+              buildFullBlob(),
+              async (expectedVersion) => {
+                const { data, error } = await (supabase as any).rpc(
+                  skin === "vegeta" ? "redeem_vegeta_voucher" : "redeem_goku_voucher",
+                  { p_code: raw, p_expected_version: expectedVersion },
+                );
+                if (error) throw error;
+                if (data?.ok === true) confirmedSavedAt = Number(data.saved_at) || 0;
+                return { ok: data?.ok === true, server_version: data?.server_version,
+                  reason: data?.reason, value: data?.value };
+              },
+              (current) => {
+                const snapshot = current as { idle: IdleState; savedAt?: number };
+                return { ...snapshot, savedAt: Math.max(snapshot.savedAt ?? 0, confirmedSavedAt),
+                  idle: { ...snapshot.idle, unlockedSkins: Array.from(
+                    new Set([...(snapshot.idle.unlockedSkins ?? []), skin]),
+                  ) } };
+              },
+            );
+            if (!result.ok) throw fail(result.reason);
           }
           setIdle((current) => {
             const next = { ...current,

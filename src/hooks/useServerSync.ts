@@ -78,10 +78,13 @@ export function useServerSync(opts: {
         if (cancelled) return;
         ran.current = true; // Only mark as ran if we found a session
 
+        // Reivindica o dono ANTES de bootstrap/fetchFull: se qualquer um dos
+        // dois falhar, snapshotOwnerUid ficaria nulo para sempre e TODAS as
+        // mutações (inclusive resgate de código) cairiam em save_unavailable.
+        // O conteúdo da memória só é gravado a partir do hydrate abaixo.
+        claimSnapshotOwner(session.user.id);
         await bootstrap({} as any);
         let full = (await fetchFull({} as any)) as FullStateDTO;
-        // O snapshot em memória a partir daqui pertence a esta sessão.
-        claimSnapshotOwner(session.user.id);
 
         const serverEmpty =
           full.trainer.gold === 0 &&

@@ -557,6 +557,29 @@ export async function runCheckpointMutation(
   }
 }
 
+/**
+ * Alinha a base local com a versão oficial DEVOLVIDA por um RPC que já
+ * commitou no servidor (ex.: resgate de voucher). Só adota o número de
+ * versão e solta o bloqueio de rebase — NUNCA toca no conteúdo do save.
+ * Usa quando o caminho direto do resgate bypassa o guarda do
+ * runCheckpointMutation (uid/dono/busy), que recusava com save_unavailable.
+ */
+export function alignServerCheckpoint(uid: string, serverVersion: number) {
+  if (!uid || typeof serverVersion !== "number" || !Number.isFinite(serverVersion) || serverVersion < 0) return;
+  const v = Math.floor(serverVersion);
+  needsRebase = false;
+  storeVersion(uid, v);
+  try {
+    const lg = readJson<LastGood>(lastGoodKey(uid));
+    if (lg && isValidSnapshot(lg.snapshot)) {
+      localStorage.setItem(lastGoodKey(uid), JSON.stringify({ ...lg, version: v, at: Date.now() } satisfies LastGood));
+    }
+  } catch {
+    /* ignore */
+  }
+  setStatus("dirty");
+}
+
 async function rebaseOnLeadership() {
   const uid = await currentUid();
   if (!uid) return;
