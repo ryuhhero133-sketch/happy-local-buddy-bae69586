@@ -4,6 +4,7 @@ import { assetUrlFromJson } from "@/lib/assetUrl";
 import crystalRedImg from "@/assets/materials/cristal-red.png";
 import pokeballImg from "@/assets/items/icon-pokeball.png";
 import ultraballImg from "@/assets/items/icon-ultraball.png";
+import reviveImg from "@/assets/items/icon-revive.png";
 import bookAtkImg from "@/assets/icons/book-atk.png";
 import bookExpImg from "@/assets/icons/book-exp.png";
 import vipEpicImg from "@/ambiente/Vip Epic.png";
@@ -47,6 +48,15 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     image: ultraballImg,
     accent: "#ffd166",
     tag: "BOLAS",
+  },
+  {
+    id: "revive_pack_10",
+    name: "Pacote Revive ×10",
+    description: "10 Revives para levantar seu Pokémon com HP cheio.",
+    price: 10,
+    image: reviveImg,
+    accent: "#ff6f91",
+    tag: "CURA",
   },
   {
     id: "book_atk",

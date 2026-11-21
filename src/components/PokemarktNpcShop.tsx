@@ -8,7 +8,6 @@ import ballPokeImg from "@/assets/items/icon-pokeball.png";
 import ballGreatImg from "@/assets/items/icon-greatball.png";
 import ballUltraImg from "@/assets/items/icon-ultraball.png";
 import potionImg from "@/assets/items/icon-potion.png";
-import reviveImg from "@/assets/items/icon-revive.png";
 import bookAtkImg from "@/assets/icons/book-atk.png";
 import bookDefImg from "@/assets/icons/book-def.png";
 import bookExpImg from "@/assets/icons/book-exp.png";
@@ -48,7 +47,6 @@ type Props = {
   onClose: () => void;
   onBuyBall: (id: "pokeball" | "greatball" | "ultraball", quantity: number) => void;
   onBuyPotion: (quantity: number) => void;
-  onBuyRevive: (quantity: number) => void;
   onBuyFood: (id: string, quantity: number) => void;
   onBuyBook: (
     id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "orb_xp_minor" | "orb_team",
@@ -103,7 +101,6 @@ export function PokemarktNpcShop({
   onClose,
   onBuyBall,
   onBuyPotion,
-  onBuyRevive,
   onBuyFood,
   onBuyBook,
   onBuyEmeraldEgg,
@@ -155,7 +152,6 @@ export function PokemarktNpcShop({
     { id: "laranja", name: "Laranja", price: 200, currency: "gold", image: orangeImg, description: "Alimenta: +25 fome, +15 energia.", buy: (q) => onBuyFood("laranja", q) },
     { id: "energetico", name: "Energético", price: 900, currency: "gold", image: cokeImg, description: "Alimenta: +10 fome, +50 energia.", buy: (q) => onBuyFood("energetico", q) },
     { id: "potion", name: "Poção", price: 250, currency: "gold", image: potionImg, description: "Recupera 35% do HP do Pokémon.", buy: onBuyPotion },
-    { id: "revive", name: "Revive", price: 400, currency: "gold", image: reviveImg, description: "Levanta o Pokémon desmaiado com HP cheio.", buy: onBuyRevive },
     { id: "antidoto", name: "Antídoto", price: 150, currency: "gold", image: potionImg, imgFilter: "hue-rotate(95deg) saturate(1.4)", description: "Limpa status negativos.", buy: (q) => onBuyFood("antidoto", q) },
     { id: "orb_xp_minor", name: "Orb de XP ✦", price: 100, currency: "crystals", image: assetUrlFromJson(orbMinorAsset), description: "+10% EXP por 1 hora.", buy: (q) => onBuyBook("orb_xp_minor", q) },
     { id: "orb_team", name: "Orb de Time ✦✦✦", price: 2000, currency: "crystals", image: assetUrlFromJson(orbTeamAsset), description: "Time todo ganha EXP por 3 horas.", buy: (q) => onBuyBook("orb_team", q) },
@@ -167,7 +163,7 @@ export function PokemarktNpcShop({
     { id: "leite_manga", name: "Leite de Manga", price: 700, currency: "gold", image: mangoImg, description: "Alimenta: +35 fome, +25 energia.", buy: (q) => onBuyFood("leite_manga", q) },
     { id: "emerald_egg", name: "EGG Emerald 💚", price: 500, currency: "crystals", image: emeraldEggImg, imgFilter: "hue-rotate(70deg) saturate(1.3)", description: "5 stones do mesmo tipo desbloqueiam · choca em 1h (Comum 65% / Raro 25% / Épico 10%, 3 traits).", buy: (q) => onBuyEmeraldEgg(q) },
     { id: "certificado", name: "Certificado 📜", price: 10000, currency: "crystals", image: assetUrlFromJson(certGovAsset), description: "Autoriza construir 1 casa na Land. Sem ele, não há construção.", buy: (q) => onBuyCertificado(q) },
-  ], [onBuyBall, onBuyFood, onBuyPotion, onBuyRevive, onBuyBook, onBuyEmeraldEgg, onBuyMountSkin]);
+  ], [onBuyBall, onBuyFood, onBuyPotion, onBuyBook, onBuyEmeraldEgg, onBuyMountSkin]);
 
   const selected = products.find((item) => item.id === selectedId) ?? products[0];
   if (!selected) return null;

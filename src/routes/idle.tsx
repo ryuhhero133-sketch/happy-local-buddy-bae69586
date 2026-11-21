@@ -3369,7 +3369,7 @@ function IdlePage() {
     if (mutation.item_id != null) {
       const allowedItems = new Set([
         "pokeball", "ultraball", "book_atk", "book_exp", "book_vip", "book_vip_30",
-        "egg_epic", "egg_mystic",
+        "egg_epic", "egg_mystic", "revive",
         "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
       ]);
       const itemQty = redCrystalCashAmount(mutation.item_qty);
@@ -3402,6 +3402,7 @@ function IdlePage() {
       pokeball_50: "pokeball",
       pokeball_100: "pokeball",
       ultraball_50: "ultraball",
+      revive_pack_10: "revive",
       book_atk: "book_atk",
       book_exp: "book_exp",
       orb_xp_minor: "orb_xp_minor",
@@ -9414,7 +9415,7 @@ const confirmName = () => {
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
   type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
-  type PvpPresence = { user_id: string; player_name: string; map_id: string; x: number; y: number; leader_species?: Species; leader_level: number; hp: number; max_hp: number; last_hit_at?: string | null; last_attacker_name?: string | null; last_death_at?: string | null; updated_at: string };
+  type PvpPresence = { user_id: string; player_name: string; map_id: string; x: number; y: number; leader_species?: Species; leader_level: number; trainer_level: number; hp: number; max_hp: number; last_hit_at?: string | null; last_attacker_name?: string | null; last_death_at?: string | null; updated_at: string };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
   const [pvpPresence, setPvpPresence] = useState<PvpPresence[]>([]);
   const [pvpTargetUserId, setPvpTargetUserId] = useState<string | null>(null);
@@ -9678,7 +9679,7 @@ const confirmName = () => {
     [pvpPresence, identity?.id],
   );
   const pvpReviveSeconds = ownPvpPresence?.hp === 0 && ownPvpPresence.last_death_at
-    ? Math.max(0, Math.ceil((Date.parse(ownPvpPresence.last_death_at) + 5 * 60_000 - Date.now()) / 1000))
+    ? Math.max(0, Math.ceil((Date.parse(ownPvpPresence.last_death_at) + 3 * 60_000 - Date.now()) / 1000))
     : null;
   void energyTick; // Atualiza o relógio a cada segundo pelo tick já existente.
   const pvpReviveClock = pvpReviveSeconds === null ? "--:--"
@@ -9705,7 +9706,7 @@ const confirmName = () => {
         setIdle((s) => ({ ...s, pvpFaintedLeader: { uid: fallen.uid, x: pos.x, y: pos.y, diedAt: Date.now() } }));
       }
     } else if (ownPvpWasFaintedRef.current || (cloudBlobReady && !!idleRef.current.pvpFaintedLeader)) {
-      // O RPC só muda hp de 0 para 100 após os cinco minutos.
+      // O servidor só libera o líder após os três minutos da derrota PvP.
       // Também recupera saves antigos recarregados com líder fora do time.
       const fallenUid = idleRef.current.pvpFaintedLeader?.uid;
       const existing = fallenUid ? teamRef.current.find((pet) => pet.uid === fallenUid) : teamRef.current[0];
@@ -9757,7 +9758,7 @@ const confirmName = () => {
     if (!emeraldPvpActive || (idle.trainerLevel ?? 1) <= 10 || idle.pvpMode !== "pk" || pvpTargetUserId || !identity?.id) return;
     const me = trainerPosRef.current;
     const nearest = pvpPresence
-      .filter((p) => p.user_id !== identity.id && p.hp > 0)
+      .filter((p) => p.user_id !== identity.id && p.hp > 0 && p.trainer_level >= 11)
       .map((p) => ({ p, d: Math.hypot(p.x - me.x, p.y - me.y) }))
       .filter((x) => x.d <= 600)
       .sort((a, b) => a.d - b.d)[0]?.p;
@@ -9767,7 +9768,7 @@ const confirmName = () => {
   // Presença de combate é separada da presença visual: HP nunca vem do cliente.
   useEffect(() => {
     // Saves antigos removiam o líder do time ao morrer em PvP. O heartbeat
-    // ainda precisa rodar para o servidor liberar o revive após cinco minutos.
+    // ainda precisa rodar para o servidor liberar o revive após três minutos.
     const fallen = idle.pvpFaintedLeader
       ? (idle.collection ?? []).find((pet) => pet.uid === idle.pvpFaintedLeader?.uid)
       : null;
@@ -9783,7 +9784,7 @@ const confirmName = () => {
       });
       const since = new Date(Date.now() - 15_000).toISOString();
       const { data } = await (gameDb as any).from("pvp_presence")
-        .select("user_id,player_name,map_id,x,y,leader_species,leader_level,hp,max_hp,last_hit_at,last_attacker_name,last_death_at,updated_at")
+        .select("user_id,player_name,map_id,x,y,leader_species,leader_level,trainer_level,hp,max_hp,last_hit_at,last_attacker_name,last_death_at,updated_at")
         .eq("map_id", idle.currentMap).gte("updated_at", since);
       if (!cancelled && data) setPvpPresence(data as PvpPresence[]);
     };
@@ -9855,6 +9856,15 @@ const confirmName = () => {
         setPvpTargetUserId(null);
         setIdle((state) => state.pvpMode === "peace" ? state : { ...state, pvpMode: "peace" });
         pushChat("🕊️ O servidor encerrou este combate: PvP só funciona na janela ativa de Emerald Global.", "pvp");
+      } else if (result.reason === "target_pvp_protected") {
+        pushChat("🔒 Este jogador ainda está protegido: PvP só libera no nível 11 do treinador.", "info");
+        setPvpTargetUserId(null);
+      } else if (result.reason === "pvp_level_required") {
+        pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
+        setPvpTargetUserId(null);
+      } else if (result.reason === "attacker_fainted") {
+        pushChat("💀 Seu Pokémon está derrotado no PvP. Aguarde 3 minutos para ele retornar.", "info");
+        setPvpTargetUserId(null);
       } else if (["offline", "different_map", "out_of_range", "target_fainted"].includes(result.reason)) {
         if (result.reason !== "target_fainted") pushChat("🎯 Alvo PvP saiu do alcance.", "info");
         setPvpTargetUserId(null);
@@ -10037,6 +10047,10 @@ const confirmName = () => {
       const tag = t?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
       e.preventDefault();
+      if (ownPvpFaintedRef.current || idleRef.current.pvpFaintedLeader) {
+        pushChat("💀 Seu Pokémon está derrotado no PvP e não pode agir. Aguarde 3 minutos pelo retorno automático.", "info");
+        return;
+      }
       const fpx = followerStateRef.current.x, fpy = followerStateRef.current.y;
       const tpx = trainerPosRef.current.x, tpy = trainerPosRef.current.y;
       const near = enemies
@@ -13432,49 +13446,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
 
 
-  const pvpReviveBusyRef = useRef(false);
-  const usePvpRevive = async () => {
-    if (pvpReviveBusyRef.current || ownPvpPresence?.hp !== 0) return;
-    if ((idle.items.revive ?? 0) < 1) { pushChat("Você não tem Revive.", "info"); return; }
-    if (!cloudBlobReady) { pushChat("Aguarde o save carregar antes de usar Revive.", "info"); return; }
-    pvpReviveBusyRef.current = true;
-    try {
-      let revivesAtCheckpoint = idle.items.revive ?? 0;
-      const result = await runCheckpointMutation(
-        buildFullBlob(),
-        async (expectedVersion) => {
-          const { data, error } = await gameDb.rpc("pvp_use_revive", { p_expected_version: expectedVersion });
-          if (error) throw error;
-          return { ok: data?.ok === true, server_version: data?.server_version,
-            reason: data?.reason, value: data?.revives };
-        },
-        (snapshot, revives, checkpoint) => {
-          const save = snapshot as { idle: IdleState };
-          revivesAtCheckpoint = (checkpoint as { idle: IdleState }).idle.items.revive ?? 0;
-          return { ...save, idle: { ...save.idle, items: {
-            ...save.idle.items, revive: Math.max(0, revives + ((save.idle.items.revive ?? 0) - revivesAtCheckpoint)),
-          } } };
-        },
-      );
-      if (!result.ok) {
-        pushChat(`Revive não consumido: ${result.reason ?? "servidor indisponível"}. Confira o save e tente novamente.`, "info");
-        return;
-      }
-      setIdle((s) => ({ ...s, items: { ...s.items,
-        revive: Math.max(0, result.value! + ((s.items.revive ?? 0) - revivesAtCheckpoint)),
-      } }));
-      setPvpPresence((rows) => rows.map((row) => row.user_id === identity?.id
-        ? { ...row, hp: Math.max(1, row.max_hp) } : row));
-      pushChat("Revive confirmado pelo servidor! Seu Pokémon voltou antes do tempo.", "cap");
-    } finally {
-      pvpReviveBusyRef.current = false;
-    }
-  };
-
   // Revive comum: consome 50 gold do banco (ou 50 gold pendente)
   const revive = () => {
     if (ownPvpPresence?.hp === 0 || (idle.pvpFaintedLeader && !ownPvpPresence)) {
-      pushChat("Líder derrotado em PvP: aguarde o servidor confirmar o retorno. Nenhum ouro foi gasto.", "info");
+      pushChat("Líder derrotado em PvP: aguarde 3 minutos pelo retorno automático. Nenhum ouro foi gasto.", "info");
       return;
     }
     const l = team[0]; if (!l) return;
@@ -13545,6 +13520,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
    const throwBallAt = (enemyId: number) => {
     // LOADING de teleport: sem captura.
     if (mapLoadingRef.current) return;
+    if (ownPvpFaintedRef.current || ownPvpPresence?.hp === 0 || idle.pvpFaintedLeader) {
+      pushChat("💀 Seu Pokémon está derrotado no PvP e não pode agir. Aguarde 3 minutos pelo retorno automático.", "info");
+      return;
+    }
     const target = enemies.find((e) => e.id === enemyId);
     if (!target || target.hp <= 0) return;
     // Evento Gelius: apenas ditto/gengar/magmar capturáveis
@@ -13766,8 +13745,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }
 
     if (id === "revive" && (ownPvpPresence?.hp === 0 || !!idle.pvpFaintedLeader || ownPvpFaintedRef.current)) {
-      if (ownPvpPresence?.hp === 0) void usePvpRevive();
-      else pushChat("Aguarde a confirmação do servidor PvP antes de usar Revive.", "info");
+      pushChat(`Seu Pokémon está derrotado no PvP. Aguarde ${pvpReviveClock} pelo revive automático; o item não será consumido.`, "info");
       return;
     }
     const l = team[0];
@@ -13805,7 +13783,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       );
     } else if (id === "revive") {
       if (ownPvpPresence?.hp === 0 || (idle.pvpFaintedLeader && !ownPvpPresence)) {
-        pushChat("Líder derrotado em PvP: aguarde o servidor confirmar o retorno. Revive não foi consumido.", "info");
+        pushChat(`Líder derrotado em PvP: aguarde ${pvpReviveClock} pelo retorno automático. Revive não foi consumido.`, "info");
         return;
       }
       if (leaderHp > 0) { pushChat(`Seu líder está de pé.`, "info"); return; }
@@ -16466,24 +16444,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     cha_verde: { name: "Chá Verde", price: 350 },
     leite_manga: { name: "Leite de Manga", price: 700 },
     antidoto: { name: "Antídoto", price: 150 },
-  };
-  const REVIVE_PRICE = 400;
-  const buyRevive = (qty = 1) => {
-    const n = Math.max(1, Math.floor(qty || 1));
-    setIdle((s) => {
-      const totalCost = REVIVE_PRICE * n;
-      if (s.bank.gold < totalCost) {
-        pushChat(`Ouro insuficiente para ${n}× Revive (precisa ${totalCost}).`, "info");
-        return s;
-      }
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${n} Revive`, "capture");
-      pushChat(`Comprou ${n}× Revive por ${totalCost} ouro.`, "cap");
-      return {
-        ...s,
-        bank: { ...s.bank, gold: s.bank.gold - totalCost },
-        items: { ...s.items, revive: (s.items.revive ?? 0) + n },
-      };
-    });
   };
   const buyFood = (id: string, qty = 1) => {
     const entry = FOOD_SHOP_PRICE[id];
@@ -19911,7 +19871,6 @@ A sucata afundou com o casco.
                 if (ball) buyBall(ball, quantity);
               }}
               onBuyPotion={buyPotion}
-              onBuyRevive={buyRevive}
               onBuyFood={buyFood}
               onBuyCertificado={buyCertificado}
               onBuyMountSkin={buyMountSkin}
@@ -22519,6 +22478,7 @@ A sucata afundou com o casco.
               const rpLeaderSrc = pvpLeaderSp ? GIF[pvpLeaderSp] : undefined;
               const pvpSelected = pvpTargetUserId === rp.userId;
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
+              const remotePvpEligible = !!remotePvp && remotePvp.hp > 0 && remotePvp.trainer_level >= 11;
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
                 if (!emeraldPvpActive) {
@@ -22533,7 +22493,15 @@ A sucata afundou com o casco.
                   pushChat("🕊️ Você está em modo Paz. Mude para Ofensivo ou PK para atacar jogadores.", "info");
                   return;
                 }
-                if (!remotePvp || remotePvp.hp <= 0) {
+                if (!remotePvp) {
+                  pushChat("⚠️ Este Pokémon não está disponível para PvP.", "info");
+                  return;
+                }
+                if (remotePvp.trainer_level < 11) {
+                  pushChat("🔒 Este jogador ainda está protegido: PvP só libera no nível 11 do treinador.", "info");
+                  return;
+                }
+                if (remotePvp.hp <= 0) {
                   pushChat("⚠️ Este Pokémon não está disponível para PvP.", "info");
                   return;
                 }
@@ -22576,11 +22544,11 @@ A sucata afundou com o casco.
                     filter: rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
                   }} />
                   {rpLeaderSrc && (
-                    <button type="button" onClick={selectRemotePvp} disabled={!emeraldPvpActive} title={emeraldPvpActive ? `Atacar o Pokémon de ${rp.name}` : "PvP indisponível neste mapa ou período"} style={{
+                    <button type="button" onClick={selectRemotePvp} disabled={!emeraldPvpActive || !remotePvpEligible} title={!emeraldPvpActive ? "PvP indisponível neste mapa ou período" : remotePvp?.trainer_level != null && remotePvp.trainer_level < 11 ? "Jogador protegido até o nível 11 do treinador" : remotePvpEligible ? `Atacar o Pokémon de ${rp.name}` : "Pokémon indisponível para PvP"} style={{
                       // Para observadores, a caveira fica no chão mesmo se o treinador andar.
                       position: "absolute", left: remotePvp?.hp === 0 ? remotePvp.x - rp.x + 29 : 29, top: remotePvp?.hp === 0 ? remotePvp.y - rp.y + 15 : 15, width: 48, height: 48, padding: 0,
                       borderRadius: "50%", border: pvpSelected ? "2px solid #ff1935" : "1px solid transparent",
-                      background: "transparent", cursor: emeraldPvpActive ? "crosshair" : "default", pointerEvents: "auto", zIndex: 5,
+                      background: "transparent", cursor: emeraldPvpActive && remotePvpEligible ? "crosshair" : "default", pointerEvents: "auto", zIndex: 5,
                       // O alvo fica marcado em neon, porém o sprite não pisca na tela do outro jogador.
                       boxShadow: pvpSelected || remoteLowHp ? "0 0 12px #ff1935, 0 0 28px #ff1935, inset 0 0 10px #ff1935" : "none",
                     }}>
@@ -23157,17 +23125,12 @@ A sucata afundou com o casco.
                 <div style={{ fontWeight: 800, color: "#fff" }}>Pokémon desmaiado</div>
                 <div style={{ fontSize: 11, color: "#f5cf6b" }}>
                   {ownPvpPresence?.hp === 0 || !!idle.pvpFaintedLeader
-                    ? `Derrota PvP: retorno pelo servidor em ${pvpReviveClock}. Revive não será gasto sem confirmação.`
+                    ? `Derrota PvP: retorno automático em ${pvpReviveClock}. O Pokémon não pode agir até voltar.`
                     : autoReviveSeconds != null
                       ? `Revive automático em ${autoReviveSeconds}s · será consumido 1 Revive da mochila`
                       : "Custa 50 ouro para reviver"}
                 </div>
               </div>
-              {ownPvpPresence?.hp === 0 && (idle.items.revive ?? 0) > 0 && (
-                <button onClick={() => void usePvpRevive()} style={{ ...smallBtn, background: "#ff5b8a", color: "#170713", border: "none", fontWeight: 800, padding: "8px 16px" }}>
-                  USAR REVIVE ({idle.items.revive})
-                </button>
-              )}
               {ownPvpPresence?.hp !== 0 && !idle.pvpFaintedLeader && !ownPvpFaintedRef.current && (
                 <button onClick={revive} style={{ ...smallBtn, background: "#5ec26a", color: "#0b0510", border: "none", fontWeight: 800, padding: "8px 16px" }}>
                   REVIVER
@@ -28642,9 +28605,13 @@ onClick={(e) => {
           .map((e) => ({ e, d: Math.hypot(e.x - fpx, e.y - fpy) }))
           .filter((x) => x.d <= 520)
           .sort((a, b) => a.d - b.d)
-          .slice(0, alvosMax ? 14 : 6);
+        .slice(0, alvosMax ? 14 : 6);
         if (near.length === 0 || !hudTargetsOpen || tab !== "batalha") return null;
         const lockTarget = (id: number) => {
+          if (ownPvpFaintedRef.current || ownPvpPresence?.hp === 0 || idle.pvpFaintedLeader) {
+            pushChat("💀 Seu Pokémon está derrotado no PvP e não pode agir. Aguarde 3 minutos pelo retorno automático.", "info");
+            return;
+          }
           if (manualTargetRef.current === id) {
             manualTargetRef.current = null;
             setAttackTargetId(null);
