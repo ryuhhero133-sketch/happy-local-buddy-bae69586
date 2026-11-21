@@ -908,6 +908,7 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 
 const IDLE_KEY = "rubym.idle.v1";
+const TRAINER_POSITION_KEY = "rubym.trainer-position.v1";
 const MAP_EDITOR_KEY = "rubym.map-editor.v1";
 // O mapa ARV v3 tem spawns novos (inclusive níveis altos); não reutiliza a
 // cópia v2 que o navegador salvou antes da publicação deste mapa.
@@ -1029,6 +1030,45 @@ const treeChopUrl = assetUrlFromJson(treeChopAsset);
 const treeStumpUrl = assetUrlFromJson(treeStumpAsset);
 
 type IdleMapId = string;
+type SavedTrainerPosition = {
+  map: IdleMapId;
+  x: number;
+  y: number;
+  savedAt: number;
+};
+
+function loadSavedTrainerPosition(): SavedTrainerPosition | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = JSON.parse(localStorage.getItem(TRAINER_POSITION_KEY) ?? "null") as Partial<SavedTrainerPosition> | null;
+    if (!raw || typeof raw.map !== "string"
+      || typeof raw.x !== "number" || !Number.isFinite(raw.x)
+      || typeof raw.y !== "number" || !Number.isFinite(raw.y)
+      || Math.abs(raw.x) > 100_000 || Math.abs(raw.y) > 100_000) return null;
+    return {
+      map: raw.map,
+      x: raw.x,
+      y: raw.y,
+      savedAt: typeof raw.savedAt === "number" && Number.isFinite(raw.savedAt) ? raw.savedAt : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveTrainerPosition(map: IdleMapId, position: { x: number; y: number }) {
+  if (typeof window === "undefined"
+    || !Number.isFinite(position.x) || !Number.isFinite(position.y)) return;
+  try {
+    localStorage.setItem(TRAINER_POSITION_KEY, JSON.stringify({
+      map,
+      x: position.x,
+      y: position.y,
+      savedAt: Date.now(),
+    } satisfies SavedTrainerPosition));
+  } catch { /* storage indisponível */ }
+}
+
 // overlay: cor de recolorização aplicada por cima do bg (mix-blend: color)
 // stars: dificuldade (1-8) exibida na UI
 type IdleMapDef = {
@@ -2863,6 +2903,20 @@ function IdlePage() {
   // ============= Server sync (Supabase anti-cheat) =============
   const idleRef = useRef(idle);
   useEffect(() => { idleRef.current = idle; }, [idle]);
+  // Posição é um dado de interface local: grava separadamente do save pesado
+  // para não criar uma escrita na nuvem a cada passo de caminhada.
+  const initialTrainerPositionRef = useRef<SavedTrainerPosition | null>(loadSavedTrainerPosition());
+  const trainerPositionRestoredRef = useRef(false);
+  const savedTrainerPosition = initialTrainerPositionRef.current;
+  const liveTrainerPositionRef = useRef<{ x: number; y: number }>(
+    savedTrainerPosition?.map === idle.currentMap
+      ? { x: savedTrainerPosition.x, y: savedTrainerPosition.y }
+      : { x: WORLD_W / 2, y: WORLD_H / 2 },
+  );
+  const lastTrainerPositionSaveRef = useRef(0);
+  const persistTrainerPosition = useCallback(() => {
+    saveTrainerPosition(idleRef.current.currentMap, liveTrainerPositionRef.current);
+  }, []);
   const teamRef = useRef(team);
   useEffect(() => { teamRef.current = team; }, [team]);
   const activeAncestralTraits = (state = idleRef.current) => {
@@ -3355,6 +3409,7 @@ function IdlePage() {
   useEffect(() => {
     const flush = () => {
       // Salva o idle local na hora (coleção/capturas) — o autosave por efeito pode não dar tempo no F5
+      persistTrainerPosition();
       try { saveIdle(idleRef.current); } catch { /* ignore */ }
       if (!cloudBlobReady) return;
       void pushCloudSaveNow(buildFullBlob());
@@ -3368,7 +3423,7 @@ function IdlePage() {
       window.removeEventListener("beforeunload", flush);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [buildFullBlob, cloudBlobReady]);
+  }, [buildFullBlob, cloudBlobReady, persistTrainerPosition]);
 
 
   // Salvamento urgente de level-up: quando qualquer Pokémon sobe de nível,
@@ -6087,22 +6142,35 @@ const confirmName = () => {
     // Casinha → ARV usava temporariamente o tamanho anterior e resetava o
     // jogador para o centro antes de a imagem do ARV carregar.
     if (customDims?.mapId === idle.currentMap && customMapUrls[idle.currentMap]) {
-      // Laboratório: nasce fora da máquina central (ponto andável verificado na máscara).
       const pendingArrival = houseArrivalRef.current;
+      const savedPosition = initialTrainerPositionRef.current;
+      let arrival: { x: number; y: number };
       if (pendingArrival?.map === idle.currentMap) {
         houseArrivalRef.current = null;
-        const arrival = { x: pendingArrival.x, y: pendingArrival.y };
-        trainerPosRef.current = arrival;
-        setTrainerPos(arrival);
+        arrival = { x: pendingArrival.x, y: pendingArrival.y };
+      } else if (
+        !trainerPositionRestoredRef.current
+        && savedPosition?.map === idle.currentMap
+      ) {
+        // No F5, conserva exatamente a última coordenada válida deste mapa.
+        const worldW = Math.max(1, Math.round(customDims.w * dispScale));
+        const worldH = Math.max(1, Math.round(customDims.h * dispScale));
+        arrival = {
+          x: Math.max(0, Math.min(worldW, savedPosition.x)),
+          y: Math.max(0, Math.min(worldH, savedPosition.y)),
+        };
       } else if (idle.currentMap === "casinha") {
-        const arrival = { x: 469, y: 541 };
-        trainerPosRef.current = arrival;
-        setTrainerPos(arrival);
+        arrival = { x: 469, y: 541 };
       }
-      else if (idle.currentMap === "laboratorio") setTrainerPos({ x: 499, y: 416 });
-      // Mapas do Professor: nasce no ponto andável verificado (maior região branca conectada).
-      else if (PROF_SPAWNS[idle.currentMap]) setTrainerPos(PROF_SPAWNS[idle.currentMap]);
-      else setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
+      // Laboratório e mapas do Professor: pontos andáveis verificados na máscara.
+      else if (idle.currentMap === "laboratorio") arrival = { x: 499, y: 416 };
+      else if (PROF_SPAWNS[idle.currentMap]) arrival = PROF_SPAWNS[idle.currentMap];
+      else arrival = { x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) };
+
+      trainerPositionRestoredRef.current = true;
+      liveTrainerPositionRef.current = arrival;
+      trainerPosRef.current = arrival;
+      setTrainerPos(arrival);
     }
   }, [idle.currentMap, customDims]);
   useEffect(() => {
@@ -6466,7 +6534,20 @@ const confirmName = () => {
     return null;
   };
 
-  const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
+  const [trainerPos, setTrainerPos] = useState(() => {
+    const saved = initialTrainerPositionRef.current;
+    return saved?.map === idle.currentMap
+      ? { x: saved.x, y: saved.y }
+      : { x: WORLD_W / 2, y: WORLD_H / 2 };
+  });
+  useEffect(() => {
+    liveTrainerPositionRef.current = trainerPos;
+    // A cada segundo durante a caminhada, mantém um checkpoint local leve.
+    // O beforeunload abaixo grava a coordenada exata do último frame.
+    if (Date.now() - lastTrainerPositionSaveRef.current < 1000) return;
+    lastTrainerPositionSaveRef.current = Date.now();
+    persistTrainerPosition();
+  }, [trainerPos, persistTrainerPosition]);
   // LOGIN TEST local começa dentro da Casinha; contas reais mantêm o mapa salvo.
   const localHouseSpawnDoneRef = useRef(false);
   useEffect(() => {
