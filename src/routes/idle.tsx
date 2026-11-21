@@ -389,7 +389,6 @@ import bgmCasasNpcUrl from "@/ambiente/Casas dos NPC.mp3";
 import bgmCidadeInicialUrl from "@/ambiente/cidade inicial de revoland.mp3";
 import bgmFlorestBoneUrl from "@/ambiente/Florest Bone.mp3";
 import bgmMapaRandomUrl from "@/ambiente/Mapa random.mp3";
-import bgmMapasAleatorioUrl from "@/ambiente/Mapas aleatorio.mp3";
 import bgmPokemarktUrl from "@/ambiente/Pokemarkt.mp3";
 import sfxLevelUpAsset from "@/assets/audio/level-up-new.mp3.asset.json";
 import sfxClickAsset from "@/assets/audio/click.mp3.asset.json";
@@ -5586,7 +5585,7 @@ const confirmName = () => {
   }, [audioSettings]);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
   // Música ambiente por mapa (nomes da pasta src/ambiente).
-  const BGM_BY_MAP: Record<string, string> = {
+  const BGM_BY_MAP: Partial<Record<IdleMapId, string>> = {
     mapinha6: bgmCidadeInicialUrl,
     casa1: bgmCasasNpcUrl,
     casa2: bgmCasasNpcUrl,
@@ -5595,51 +5594,42 @@ const confirmName = () => {
     rota_pinsir: bgmMapaRandomUrl,
     deserto_alaka: bgmMapaRandomUrl,
   };
-  const bgmDefaultUrl = bgmMapasAleatorioUrl;
-  const bgmForMap = (mapId: string): string => BGM_BY_MAP[mapId] ?? bgmDefaultUrl;
+  const mapBgmUrl = BGM_BY_MAP[idle.currentMap];
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const firstUrl = bgmForMap(idle.currentMap);
-    const a = new Audio(firstUrl);
-    a.loop = true;
-    a.volume = audioSettings.musicVol;
-    try { (a as HTMLAudioElement & { dataset: DOMStringMap }).dataset.track = firstUrl; } catch { /* ignore */ }
-    bgmRef.current = a;
-    // autoplay policy: só toca após primeira interação
+    if (!mapBgmUrl) return;
+    const audio = new Audio(mapBgmUrl);
+    audio.loop = true;
+    bgmRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      bgmRef.current = null;
+    };
+  }, [mapBgmUrl]);
+  useEffect(() => {
+    const audio = bgmRef.current;
+    if (!audio) return;
+    audio.volume = audioSettings.musicVol;
+    if (blackEggHudOpen || !audioSettings.music) {
+      audio.pause();
+      return;
+    }
+    const play = () => { audio.play().catch(() => {}); };
     const start = () => {
-      if (!audioSettings.music) return;
-      a.play().catch(() => { /* ignora */ });
+      play();
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
     };
+    play();
+    // Se o navegador bloquear o autoplay, tente no primeiro gesto.
     window.addEventListener("pointerdown", start);
     window.addEventListener("keydown", start);
     return () => {
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
-      a.pause(); a.src = "";
     };
-  }, []); // eslint-disable-line
-  useEffect(() => {
-    const a = bgmRef.current; if (!a) return;
-    a.volume = audioSettings.musicVol;
-    if (blackEggHudOpen || !audioSettings.music) { a.pause(); } else { a.play().catch(() => {}); }
-  }, [audioSettings.music, audioSettings.musicVol, blackEggHudOpen]);
-  // Troca a música ambiente ao trocar de mapa (mantém volume/mudo/loop).
-  useEffect(() => {
-    const a = bgmRef.current; if (!a) return;
-    const url = bgmForMap(idle.currentMap);
-    let cur = "";
-    try { cur = (a as HTMLAudioElement & { dataset: DOMStringMap }).dataset.track ?? ""; } catch { /* ignore */ }
-    if (cur === url) return;
-    try { (a as HTMLAudioElement & { dataset: DOMStringMap }).dataset.track = url; } catch { /* ignore */ }
-    try {
-      a.src = url;
-      a.load();
-      a.volume = audioSettings.musicVol;
-      if (audioSettings.music && !blackEggHudOpen) a.play().catch(() => {});
-    } catch { /* ignore */ }
-  }, [idle.currentMap]); // eslint-disable-line
+  }, [mapBgmUrl, audioSettings.music, audioSettings.musicVol, blackEggHudOpen]);
   const eggMusicRef = useRef<HTMLAudioElement | null>(null);
   const openBlackEggHud = useCallback(() => {
     const bgm = bgmRef.current;
@@ -5666,9 +5656,7 @@ const confirmName = () => {
     if (eggMusic) {
       try { eggMusic.pause(); eggMusic.currentTime = 0; } catch { /* ignore */ }
     }
-    const bgm = bgmRef.current;
-    if (bgm && audioSettings.music) bgm.play().catch(() => {});
-  }, [blackEggHudOpen, audioSettings.music]);
+  }, [blackEggHudOpen]);
   const playSfx = (url: string) => {
     if (!audioSettings.sfx) return;
     try {
