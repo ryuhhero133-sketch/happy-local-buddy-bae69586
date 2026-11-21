@@ -2902,6 +2902,8 @@ function IdlePage() {
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [selectedMapInfo, setSelectedMapInfo] = useState<IdleMapId | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const WORLD_W = idle.currentMap === "arena" ? 3840 : 1920;
+  const WORLD_H = idle.currentMap === "arena" ? 3840 : 1920;
   // Removido zoom global � mantido 100% nativo (primeiro print) para não criar barra preta embaixo
 
   // ============= Server sync (Supabase anti-cheat) =============
@@ -5948,8 +5950,6 @@ const confirmName = () => {
   }, []);
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
-  const WORLD_W = idle.currentMap === "arena" ? 3840 : 1920;
-  const WORLD_H = idle.currentMap === "arena" ? 3840 : 1920;
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
   const MAP_DISPLAY_SCALE: Record<string, number> = {
     mapinha10: 0.65,
