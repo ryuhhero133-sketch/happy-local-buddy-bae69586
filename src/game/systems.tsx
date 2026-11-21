@@ -597,6 +597,28 @@ const RARITY_WEIGHT: Record<Rarity, number> = {
   mythic_shiny: 2.1
 };
 
+// ===== BALANCEAMENTO DE TIERS (acerto/erro) =====
+// Ordem de força dos tiers usada pela regra de chance de acerto (PvE e PvP).
+export const RARITY_ORDER: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "mythic_shiny"];
+/** Posição do tier na escala (0 = common … 6 = mythic_shiny). */
+export const rarityRank = (r?: Rarity): number => {
+  const idx = RARITY_ORDER.indexOf(r ?? "common");
+  return idx < 0 ? 0 : idx;
+};
+/**
+ * Chance de ACERTAR um golpe, entre 55% e 99%.
+ * Quanto maior o tier e o nível do defensor em relação ao atacante, menor a
+ * chance de acerto — mas NUNCA abaixo de 55%: Pokémon de tier baixo ainda
+ * acerta golpes em tiers altos, só erra com mais frequência.
+ * Espelhado no servidor em
+ * supabase/migrations/20261121150000_pvp_attack_tier_balance.sql (mesmos números).
+ */
+export function tierHitChance(atkRank: number, atkLevel: number, defRank: number, defLevel: number): number {
+  const tierGap = Math.max(0, defRank - atkRank);
+  const levelGap = Math.max(0, defLevel - atkLevel);
+  return Math.min(0.99, Math.max(0.55, 0.96 - tierGap * 0.045 - Math.min(0.18, levelGap * 0.0015)));
+}
+
 export function xpToNext(level: number) {
   return Math.floor(2 * (10 + level * level * 8));
 }

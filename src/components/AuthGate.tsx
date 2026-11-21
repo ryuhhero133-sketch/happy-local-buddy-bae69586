@@ -1383,6 +1383,7 @@ function AuthScreen({ kickedMessage }: { kickedMessage?: string | null }) {
           Usamos apenas sua identidade Google para entrar no jogo.
         </p>
         <MetaMaskLoginButton />
+        {import.meta.env.DEV && <OfflineTestButton />}
 
         {kickedMessage && <ErrorBox message={kickedMessage} />}
         <ErrorBox message={error} />

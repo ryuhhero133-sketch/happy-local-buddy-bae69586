@@ -42,7 +42,7 @@ function isCaveMap(mapId: CollisionMapId): boolean {
 }
 
 function hasFootprintCollision(mapId: CollisionMapId): boolean {
-  return isCaveMap(mapId) || mapId === "arv" || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure" || mapId === "mapa_orange" || mapId === "laboratorio" || isProfUpdateMap(mapId);
+  return isCaveMap(mapId) || mapId === "arv" || mapId === "casinha" || mapId === "palletRoute" || mapId === "mapinha6" || mapId === "esfera_ancestral" || mapId === "casa1" || mapId === "casa2" || mapId === "land_revo" || mapId === "mapinha10" || mapId === "areia_de_anubis" || mapId === "torre_verdejante" || mapId === "torre_ancestral" || mapId === "elementure" || mapId === "mapa_orange" || mapId === "laboratorio" || isProfUpdateMap(mapId);
 }
 
 // Mapas do UPDATE (aba MAPAS do Professor): colisão estilo Laboratório —
@@ -80,6 +80,9 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
   const blueDom = b > r + 25 && b > g + 15; // água
 
   switch (mapId) {
+    // Casa: rosa/magenta na máscara é parede ou móvel e não pode ser atravessado.
+    case "casinha":
+      return !(r > 170 && b > 140 && g < 140);
     case "arv":
       return arvPaint(r, g, b) === 0;
     // ---- Revoland (mapinha6) com máscara exata COLD6.png ----

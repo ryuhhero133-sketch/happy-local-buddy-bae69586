@@ -148,7 +148,12 @@
 
 /* Right stack: genuine region artwork and live world-coordinate markers. */
 .revo-right-stack { position: absolute; top: 77px; right: 18px; width: clamp(248px, 19vw, 316px); display: flex; flex-direction: column; gap: 12px; }
-.revo-minimap { border-color: var(--hud-gold); overflow: hidden; }
+.revo-minimap { border-color: var(--hud-gold); overflow: hidden; transition: opacity .2s ease, filter .2s ease, box-shadow .2s ease, transform .2s ease; }
+/* O minimapa começa discreto para não cobrir o mundo. O primeiro toque/clique
+   o traz ao destaque; a prévia abre o mapa grande no próximo toque. */
+.revo-minimap.is-passive { opacity: .26; filter: saturate(.72); }
+.revo-minimap.is-passive:hover { opacity: .62; }
+.revo-minimap.is-focused { opacity: 1; filter: none; box-shadow: 0 0 0 1px #f7d77988, 0 0 20px #80c8ff66, 0 5px 14px #0008; }
 .revo-minimap .revo-panel__header { gap: 6px; padding-inline: 11px; }
 .revo-minimap .revo-panel__header > strong { flex: 1; font-size: 12px; }
 .revo-channel { font-size: 9px; font-weight: 800; padding: 3px 7px; border: 1px solid #6886a470; border-radius: 12px; color: #adc9d9; }
@@ -184,15 +189,22 @@
 /* Bottom left stays independent from the dock and action cluster. */
 .revo-chat { position: absolute; left: 18px; bottom: 18px; width: var(--hud-chat-width); height: 176px; display: flex; flex-direction: column; border-color: #b9ac7a; border-radius: 17px; overflow: hidden; }
 .revo-chat.is-collapsed { height: 40px; }
+.revo-chat.is-pvp-active { border-color: #ff4059; background: linear-gradient(145deg, #350c16ee, #110918ed); box-shadow: inset 0 0 22px #ff193536, 0 0 18px #ff193565, 0 5px 14px #0008; }
 .revo-chat__tabs { display: flex; align-items: center; gap: 3px; padding: 6px 7px 0; border-bottom: 1px solid #607d9a44; flex-shrink: 0; }
+.revo-chat.is-pvp-active .revo-chat__tabs { border-bottom-color: #ff536b77; background: linear-gradient(90deg, #700b1d88, #24091055); }
 .revo-chat__tabs button { flex: 1; padding: 6px 2px; border: 1px solid transparent; border-radius: 7px 7px 4px 4px; background: transparent; color: #b5cce5; font-size: 11px; }
 .revo-chat__tabs button[aria-selected="true"] { color: white; border-color: #8ad9ff; background: linear-gradient(#3a6f963b, #284e6f55); box-shadow: inset 0 -2px 5px #50c7ff40, 0 1px 5px #3fa5ef55; }
+.revo-chat.is-pvp-active .revo-chat__tabs button[aria-selected="true"] { border-color: #ff7588; background: linear-gradient(#b6183877, #5b0a1b77); box-shadow: inset 0 -2px 5px #ff334b55, 0 1px 7px #ff1b3d88; }
 .revo-chat__tabs .revo-chat__collapse { flex: 0 0 23px; color: var(--hud-gold); padding: 3px; }
+.revo-chat__pvp-status { flex: 0 0 auto; align-self: center; padding: 3px 5px; border: 1px solid #ff7d8e; border-radius: 6px; background: #5d0717; color: #fff0f1; font-size: 8px; font-weight: 900; white-space: nowrap; text-shadow: 0 0 7px #ff2945; }
 .revo-chat__collapse svg { width: 16px; height: 16px; }
 .revo-chat__feed { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #58738d transparent; padding: 7px 12px 3px; font-size: 11px; line-height: 1.55; overscroll-behavior: contain; }
 .revo-chat__feed p { padding: 0; margin: 0 0 3px; overflow-wrap: anywhere; color: #d4deec; }
+.revo-chat.is-pvp-active .revo-chat__feed p { color: #ffe1e5; }
 .revo-chat__tag { color: #67e1d8; }
 .revo-chat__feed p[data-kind="capture"] { color: #e8b5e2; }
+.revo-chat__feed p[data-kind="pvp"] { color: #ff8d9d; font-weight: 800; text-shadow: 0 0 7px #d7092c88; }
+.revo-icon.revo-pvp-active { color: #ffd7dc; border-color: #ff4b61; background: linear-gradient(#a71730, #4a0715); box-shadow: 0 0 11px #ff1c3c88, inset 0 1px 0 #fff4; }
 .revo-chat__input { display: flex; flex-shrink: 0; align-items: center; gap: 7px; margin: 4px 8px 8px; }
 .revo-chat__input > svg { width: 19px; color: #bfd0e2; }
 .revo-chat__input input { flex: 1; width: 0; min-width: 0; padding: 8px 9px; border: 1px solid #4d6b87; border-radius: 7px; font-size: 10px; background: #030d1bb8; color: #a9b9cc; }
@@ -237,6 +249,13 @@
 .revo-potion.is-active > span { animation: revo-potion-breathe 3.4s ease-in-out infinite; }
 .revo-potion > strong { position: relative; margin-top: -11px; padding: 2px 15px; background: linear-gradient(#243f62, #0a1b34); border: 1px solid #6e91b8; border-radius: 11px; font-size: 16px; }
 .revo-potion:not(:disabled):hover > span { border-color: #ff9fae; }
+.revo-epic-plant { position: absolute; right: 251px; bottom: 104px; border: 0; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; width: 87px; }
+.revo-epic-plant > span { width: 86px; height: 86px; display: grid; place-items: center; border: 2px solid #b8f25a; border-radius: 50%; background: radial-gradient(circle at 45% 35%, #487d27, #10270f 70%); box-shadow: inset 0 0 0 5px #061204, inset 0 0 0 7px #8fd44c88, 0 5px 12px #0008; font-size: 42px; filter: drop-shadow(0 2px 4px #000); }
+.revo-epic-plant > strong { position: relative; margin-top: -11px; padding: 2px 11px; background: linear-gradient(#315d21, #0d2410); border: 1px solid #b8f25a; border-radius: 11px; color: #f2ffd5; font-size: 13px; white-space: nowrap; }
+.revo-epic-plant.is-active > span { animation: revo-epic-plant-pulse .85s ease-in-out infinite; }
+.revo-epic-plant.is-active > strong { color: #fff; text-shadow: 0 0 7px #aaf45a; }
+.revo-epic-plant:disabled { opacity: .68; cursor: not-allowed; }
+@keyframes revo-epic-plant-pulse { 0%, 100% { transform: scale(1); box-shadow: inset 0 0 0 5px #061204, inset 0 0 0 7px #8fd44c88, 0 0 11px #90ec52aa; } 50% { transform: scale(1.11); box-shadow: inset 0 0 0 5px #061204, inset 0 0 0 7px #c4ff78, 0 0 29px #b3ff63; } }
 .revo-auto > span, .revo-potion > span { position: relative; overflow: visible; }
 .revo-auto { --combat-ring: #5cffe4; }
 .revo-potion { --combat-ring: #ff83c8; }

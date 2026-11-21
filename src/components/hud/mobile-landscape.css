@@ -53,6 +53,8 @@
   .revo-hud .revo-team.is-compact .revo-team__card { min-height: 40px; }
   .revo-hud .revo-right-stack { top: 68px; right: max(7px, env(safe-area-inset-right)); width: 144px; max-height: calc(100% - 160px); gap: 5px; overflow-y: auto; scrollbar-width: thin; pointer-events: auto; }
   .revo-hud .revo-minimap { flex: none; }
+  .revo-hud .revo-minimap.is-passive { opacity: .30; }
+  .revo-hud .revo-minimap.is-focused { opacity: 1; }
   .revo-hud .revo-minimap .revo-panel__header { min-height: 25px; padding: 2px 5px; }
   .revo-hud .revo-minimap .revo-panel__header > strong { font-size: 9px; }
   .revo-hud .revo-channel, .revo-hud .revo-minimap > footer { display: none; }

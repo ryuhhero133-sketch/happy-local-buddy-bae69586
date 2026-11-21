@@ -217,6 +217,7 @@ import worldMapRefAsset from "@/assets/world_map_reference.png.asset.json";
 
 import { supabase } from "@/integrations/supabase/client";
 import { assetUrl, assetUrlFromJson } from "@/lib/assetUrl";
+import { isOfflineTest } from "@/lib/offlineTest";
 import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
@@ -226,7 +227,7 @@ import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
-import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet } from "@/game/systems";
+import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet, rarityRank, tierHitChance } from "@/game/systems";
 import {
   detectTimezone, trustedNow, processMealCycles,
   TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS, LAB_MAP_ENERGY_COST,
@@ -266,7 +267,6 @@ import {
 import type { PartyRow, PartyMemberRow, PartyInviteRow } from "@/game/party";
 import { PARTY_MAX } from "@/game/party";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
-import { PokemonMarketPanel } from "@/components/PokemonMarketPanel";
 import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
 import { AspectroDialog } from "@/components/AspectroDialog";
 import { aspectroSteps } from "@/game/aspectroQuest";
@@ -516,6 +516,19 @@ import editorBushUrl from "@/ambiente/editsprite/MY.png";
 import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.png";
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
 import arvCollisionUrl from "@/ambiente/arvcolisao.jpg";
+// TESTE LOCAL — mapas de exploração do atlas (sem spawn, sem objetos).
+// Carregados só em DEV via import.meta.glob: as imagens não versionadas ficam
+// fora do Git e, se ausentes (build de produção/CI), valem "" e os mapas nem
+// entram em IDLE_MAPS — nada de teste chega ao build publicado.
+const testMapAssets = import.meta.glob("../ambiente/{mk1,guildas,mwt,emy,emy 1}.png", { eager: true, import: "default" }) as Record<string, string>;
+const mapMk1Url = testMapAssets["../ambiente/mk1.png"] ?? "";
+const mapGuildasUrl = testMapAssets["../ambiente/guildas.png"] ?? "";
+const mapMwtUrl = testMapAssets["../ambiente/mwt.png"] ?? "";
+const mapEmyUrl = testMapAssets["../ambiente/emy.png"] ?? "";
+const mapEmy1Url = testMapAssets["../ambiente/emy 1.png"] ?? "";
+import casinhaUrl from "@/ambiente/CASA/casinha.png";
+import casinhaCollisionUrl from "@/ambiente/CASA/casinhacolisao1.png";
+import epicPlantBridgeUrl from "@/ambiente/CASA/gP/epic plant.png";
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
 import saUrl from "@/ambiente/mascara colisao/sa.png";
 import arvMapDefault from "@/game/maps/arv.default.json";
@@ -524,6 +537,7 @@ const arvUrl = import.meta.env.DEV
   ? "/src/skill/srg/arv.png"
   : (import.meta.env.VITE_ARV_MAP_URL ?? "https://raw.githubusercontent.com/ryuhhero133-sketch/happy-local-buddy-bae69586/main/src/skill/srg/arv.png");
 import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
+import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
 import safariSnorlaxMythicSheet from "@/ambiente/xz/Snorlax Mitico.png";
@@ -1057,7 +1071,15 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapa_orange: { name: "Mapa Orange", diff: "Difícil+", bg: mapaOrangeUrl, rate: 2.2, minLevel: 60, maxLevel: 100, element: "Fogo", stars: 3 },
   elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   laboratorio: { name: "Laboratório", diff: "Especial", bg: laboratorioUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
-  arv: { name: "arv", diff: "Exploração", bg: arvUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  arv: { name: "Emerald Global", diff: "Exploração", bg: arvUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  // TESTE LOCAL — mapas de exploração: andar livre, sem Pokémon e sem objetos.
+  // Só entram em IDLE_MAPS quando a imagem existe (DEV/CI nunca as publica).
+  ...(import.meta.env.DEV && mapMk1Url ? { mk1: { name: "MK1", diff: "Exploração", bg: mapMk1Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
+  ...(import.meta.env.DEV && mapGuildasUrl ? { guildas: { name: "Guildas", diff: "Exploração", bg: mapGuildasUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
+  ...(import.meta.env.DEV && mapMwtUrl ? { mwt: { name: "MWT", diff: "Exploração", bg: mapMwtUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
+  ...(import.meta.env.DEV && mapEmyUrl ? { emy: { name: "EMY", diff: "Exploração", bg: mapEmyUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
+  ...(import.meta.env.DEV && mapEmy1Url ? { emy_1: { name: "EMY 1", diff: "Exploração", bg: mapEmy1Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
+  casinha: { name: "Casinha", diff: "Exploração", bg: casinhaUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
   // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
   iceblow: { name: "Iceblow", diff: "Especial", bg: PROF_MAP_BY_ID.iceblow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 2 },
@@ -1840,7 +1862,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     ];
   }
   // Novos mapas grátis + evento Torre: sem colisão, sem objetos (só máscara).
-  if (["cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"].includes(mapId)) {
+  if (["mk1","guildas","mwt","emy","emy_1","casinha","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"].includes(mapId)) {
     return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
@@ -4762,7 +4784,9 @@ const confirmName = () => {
               style={{
                 position: "absolute", left: x, top: y,
                 transform: "translate(-50%, -95%)", width: stump ? 70 : 110,
-                zIndex: Math.round(y), cursor: stump ? "default" : "pointer",
+                // Toco é objeto baixo de chão: o treinador passa por cima,
+                // sem parecer que entrou atrás da madeira.
+                zIndex: stump ? 2 : Math.round(y), cursor: stump ? "default" : "pointer",
               }}
               title={stump ? "Toco — volta em 30 min" : "Árvore — precisa de Pinsir! Clique para cortar (-1 ⚡, +1 🪵)"}
             >
@@ -5464,7 +5488,7 @@ const confirmName = () => {
   }, []);
 
 
-  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" };
+  type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" | "pvp" };
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const chatIdRef = useRef(1);
   // ===== Toasts (notificações não-bloqueantes) =====
@@ -5721,11 +5745,18 @@ const confirmName = () => {
     casa1: 0.65,
     casa2: 0.65,
     laboratorio: 0.65,
+    casinha: 0.65,
   };
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
     arv: arvUrl,
+    mk1: mapMk1Url,
+    guildas: mapGuildasUrl,
+    mwt: mapMwtUrl,
+    emy: mapEmyUrl,
+    emy_1: mapEmy1Url,
+    casinha: casinhaUrl,
     mapinha5: mapinha5Url,
     mapinha6: mapinha6Url,
     mapinha7: mapinha7Url,
@@ -5775,7 +5806,7 @@ const confirmName = () => {
     map_xz: mapaXzUrl,
     sa: saUrl,
   };
-  const [customDims, setCustomDims] = useState<{ w: number; h: number } | null>(null);
+  const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
   const [hallowFx, setHallowFx] = useState<{ agua: string; luz: string } | null>(null);
   const [arvWaterMask, setArvWaterMask] = useState<string | null>(null);
@@ -5785,49 +5816,72 @@ const confirmName = () => {
   const [arvDeathVideo, setArvDeathVideo] = useState<{ goldLost: number; levelLost: number } | null>(null);
   const arvDeathVideoRef = useRef<HTMLVideoElement | null>(null);
   const arvDeathBusyRef = useRef(false);
-  // ---- Entrada no ARV: TODOS os caminhos passam por aqui e pedem o código ----
-  // Sem código não entra (e, sem entrada, o servidor aceita o save normalmente).
-  const [arvEntryPrompt, setArvEntryPrompt] = useState<{ proceed: () => void } | null>(null);
-  const [arvCodeDraft, setArvCodeDraft] = useState("");
-  const [arvCodeError, setArvCodeError] = useState<string | null>(null);
-  const [arvCodeBusy, setArvCodeBusy] = useState(false);
-  const arvUnlockedRef = useRef(false);
-  /** true = entrou (código já validado nesta sessão); false = abriu o pedido de código. */
-  const requestArvEntry = (proceed: () => void): boolean => {
-    if (arvUnlockedRef.current) { proceed(); return true; }
-    setArvCodeDraft("");
-    setArvCodeError(null);
-    setArvEntryPrompt({ proceed });
-    return false;
+  type ArvEpicPlant = {
+    owner_id: string; map_id: "arv"; x1: number; y1: number; x2: number; y2: number;
+    created_at: string; expires_at: string; cooldown_until: string;
   };
-  const closeArvEntryPrompt = () => {
-    setArvEntryPrompt(null);
-    setArvCodeError(null);
-    setArvCodeDraft("");
-  };
-  const submitArvEntryCode = async () => {
-    if (arvCodeBusy || arvCodeDraft.length !== 5) return;
-    setArvCodeBusy(true);
-    try {
-      const { data, error } = await supabase.rpc("unlock_arv" as never, { p_code: arvCodeDraft } as never);
-      if (error || data !== true) {
-        setArvCodeError(error
-          ? "Falha ao validar — confira se o SQL foi aplicado no Supabase."
-          : "Código inválido ou tentativas excedidas. Tente de novo mais tarde.");
-        return;
-      }
-      arvUnlockedRef.current = true;
-      const proceed = arvEntryPrompt?.proceed;
-      closeArvEntryPrompt();
-      proceed?.();
-    } finally {
-      setArvCodeBusy(false);
-    }
-  };
+  const [arvEpicPlants, setArvEpicPlants] = useState<ArvEpicPlant[]>([]);
+  const [arvEpicPlantCasting, setArvEpicPlantCasting] = useState(false);
+  const [arvEpicPlantPrompt, setArvEpicPlantPrompt] = useState(false);
+  const arvEpicPlantPromptRef = useRef(false);
+  // Epic Plant é uma habilidade do líder, não apenas de um membro do time.
+  const hasEpicPlantLeader = team[0]?.species === "bulbasaur_shiny" || team[0]?.species === "venusaur_shiny";
+  const myArvEpicPlant = arvEpicPlants.find((plant) => plant.owner_id === identity?.id) ?? null;
+  const epicPlantCooldownMs = Math.max(0, myArvEpicPlant ? Date.parse(myArvEpicPlant.cooldown_until) - now : 0);
+  useEffect(() => {
+    if (idle.currentMap === "arv") return;
+    arvEpicPlantPromptRef.current = false;
+    setArvEpicPlantPrompt(false);
+  }, [idle.currentMap]);
   useEffect(() => {
     if (idle.currentMap !== "arv") { setArvWaterMask(null); return; }
     return loadArvWaterFx(arvCollisionUrl, setArvWaterMask);
   }, [idle.currentMap]);
+  // Pontes Epic Plant são dados reais compartilhados: qualquer jogador
+  // autenticado no ARV recebe a mesma ponte via Realtime.
+  useEffect(() => {
+    if (idle.currentMap !== "arv" || !identity?.id || isOfflineTest()) {
+      setArvEpicPlants([]);
+      return;
+    }
+    let alive = true;
+    const refresh = async () => {
+      const { data, error } = await (supabase as any)
+        .from("arv_epic_plants")
+        .select("owner_id,map_id,x1,y1,x2,y2,created_at,expires_at,cooldown_until")
+        .eq("map_id", "arv");
+      if (!alive || error) return;
+      setArvEpicPlants(data as ArvEpicPlant[]);
+    };
+    void refresh();
+    const channel = (supabase as any)
+      .channel(`arv-epic-plants:${identity.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "arv_epic_plants" }, () => { void refresh(); })
+      .subscribe();
+    return () => {
+      alive = false;
+      void (supabase as any).removeChannel(channel);
+    };
+  }, [idle.currentMap, identity?.id]);
+  // A expiração não emite um evento Realtime próprio. Este relógio remove a
+  // arte da ponte no segundo certo e mantém o cooldown do dono visível.
+  useEffect(() => {
+    if (idle.currentMap !== "arv" || arvEpicPlants.length === 0) return;
+    const timer = window.setInterval(() => {
+      const timestamp = Date.now();
+      setNow(timestamp);
+      setArvEpicPlants((current) => {
+        const next = current.filter((plant) => {
+          const limit = plant.owner_id === identity?.id
+            ? Date.parse(plant.cooldown_until)
+            : Date.parse(plant.expires_at);
+          return limit > timestamp;
+        });
+        return next.length === current.length ? current : next;
+      });
+    }, 1_000);
+    return () => window.clearInterval(timer);
+  }, [idle.currentMap, identity?.id, arvEpicPlants.length]);
   // Desbloqueio do DDT: iOS/Chrome só liberam vídeo COM som se um gesto do
   // jogador já tiver iniciado a reprodução daquele elemento. No primeiro
   // toque/tecla da partida o vídeo é "acordado" (volume 0 onde é respeitado),
@@ -5919,10 +5973,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["arv","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
+  const FREE_WALK_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["arv","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
+  const NO_HIGH_EVENT_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -5981,7 +6035,9 @@ const confirmName = () => {
       const width = img.naturalWidth;
       const height = img.naturalHeight;
       setCustomDims((previous) =>
-        previous?.w === width && previous.h === height ? previous : { w: width, h: height }
+        previous?.w === width && previous.h === height && previous.mapId === idle.currentMap
+          ? previous
+          : { w: width, h: height, mapId: idle.currentMap }
       );
       // Mapas com MAP_DISPLAY_SCALE < 1 têm o MUNDO menor que a imagem.
       // A grade de colisão precisa ser construída em pixels de MUNDO, senão
@@ -5991,6 +6047,7 @@ const confirmName = () => {
       const cw = Math.round(width * s);
       const chh = Math.round(height * s);
       if (idle.currentMap === "arv") ensureCollision("arv", arvCollisionUrl, cw, chh);
+      if (idle.currentMap === "casinha") ensureCollision("casinha", casinhaCollisionUrl, cw, chh);
       if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, cw, chh);
       if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, cw, chh);
       if (idle.currentMap === "casa1") ensureCollision("casa1", casa1MaskUrl, cw, chh);
@@ -6015,9 +6072,17 @@ const confirmName = () => {
     return () => { cancelled = true; };
   }, [idle.currentMap]);
   useEffect(() => {
-    if (customDims && customMapUrls[idle.currentMap]) {
+    // Aguarda as dimensões da imagem do mapa atual. Sem este vínculo, a troca
+    // Casinha → ARV usava temporariamente o tamanho anterior e resetava o
+    // jogador para o centro antes de a imagem do ARV carregar.
+    if (customDims?.mapId === idle.currentMap && customMapUrls[idle.currentMap]) {
       // Laboratório: nasce fora da máquina central (ponto andável verificado na máscara).
-      if (idle.currentMap === "laboratorio") setTrainerPos({ x: 499, y: 416 });
+      const pendingArrival = houseArrivalRef.current;
+      if (pendingArrival?.map === idle.currentMap) {
+        houseArrivalRef.current = null;
+        setTrainerPos({ x: pendingArrival.x, y: pendingArrival.y });
+      } else if (idle.currentMap === "casinha") setTrainerPos({ x: 469, y: 541 });
+      else if (idle.currentMap === "laboratorio") setTrainerPos({ x: 499, y: 416 });
       // Mapas do Professor: nasce no ponto andável verificado (maior região branca conectada).
       else if (PROF_SPAWNS[idle.currentMap]) setTrainerPos(PROF_SPAWNS[idle.currentMap]);
       else setTrainerPos({ x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) });
@@ -6122,7 +6187,7 @@ const confirmName = () => {
 
   const TRAINER_R = 10; // raio do treinador
   const handleArvRedDeath = async () => {
-    // A morte NÃO depende da nuvem: vídeo + retorno pra Revoland acontecem
+    // A morte NÃO depende da nuvem: vídeo + retorno pra Casinha acontecem
     // sempre. Servidor é best-effort — se falhar, a penalidade vira local.
     if (idleRef.current.currentMap !== "arv") return;
     let goldLost = 0;
@@ -6175,13 +6240,14 @@ const confirmName = () => {
         bank: { ...cur.bank, gold: Math.max(0, gold - goldLost) },
         trainerLevel: Math.max(1, lvl - levelLost),
         trainerXp: 0,
-        currentMap: "mapinha6",
+        currentMap: "casinha",
       };
     }
     idleRef.current = nextIdle;
     setIdle(nextIdle);
     saveIdleStamped(nextIdle);
-    setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
+    // A Casinha tem spawn próprio (porta); só cai no centro se o mapa for outro.
+    setTrainerPos(nextIdle.currentMap === "casinha" ? { x: 469, y: 541 } : { x: WORLD_W / 2, y: WORLD_H / 2 });
     setAuto(false);
     autoRef.current = false;
     walkTargetRef.current = null;
@@ -6195,18 +6261,106 @@ const confirmName = () => {
     arvDeathBusyRef.current = false;
     // Tela cheia com som (DDT); o aviso da penalidade aparece depois dela.
     setArvDeathVideo({ goldLost, levelLost });
-    pushChat(`☠️ Você morreu na área vermelha! Retornou para Revoland. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
+    pushChat(`☠️ Você morreu na área vermelha! Retornou para a Casinha. -${goldLost} ouro${levelLost ? " · -1 nível de treinador" : " · nível mínimo mantido"}.`, "info");
     // Persiste a penalidade em segundo plano (nunca trava a tela).
     if (cloudBlobReady) {
       try { void pushCloudSaveNow(buildFullBlob()); } catch { /* melhor esforço */ }
     }
   };
+  const isOnArvEpicPlant = (x: number, y: number) => {
+    const active = arvEpicPlants.filter((plant) => Date.parse(plant.expires_at) > Date.now());
+    return active.some((plant) => {
+      const vx = plant.x2 - plant.x1, vy = plant.y2 - plant.y1;
+      const lengthSq = vx * vx + vy * vy;
+      if (lengthSq <= 0) return false;
+      const t = Math.max(0, Math.min(1, ((x - plant.x1) * vx + (y - plant.y1) * vy) / lengthSq));
+      const px = plant.x1 + vx * t, py = plant.y1 + vy * t;
+      return Math.hypot(x - px, y - py) <= 42;
+    });
+  };
+  const castArvEpicPlant = async () => {
+    if (arvEpicPlantCasting || idleRef.current.currentMap !== "arv") return;
+    if (!hasEpicPlantLeader) {
+      pushChat("Epic Plant requer Venusaur Shiny ou Bulbasaur Shiny como líder do time.", "info");
+      return;
+    }
+    if (epicPlantCooldownMs > 0) {
+      pushChat(`🌿 Epic Plant recarrega em ${fmtMS(epicPlantCooldownMs)}.`, "info");
+      return;
+    }
+    const direction = walkDirRef.current;
+    const vector = direction === "left" ? { x: -1, y: 0 }
+      : direction === "right" ? { x: 1, y: 0 }
+        : direction === "up" ? { x: 0, y: -1 } : { x: 0, y: 1 };
+    const pos = trainerPosRef.current;
+    setArvEpicPlantCasting(true);
+    try {
+      // LOGIN TEST não acessa Supabase por design, mas ainda deve permitir
+      // conferir visual, colisão, duração e recarga da ponte localmente.
+      if (isOfflineTest()) {
+        const createdAt = new Date();
+        const plant: ArvEpicPlant = {
+          owner_id: identity?.id ?? "offline-epic-plant",
+          map_id: "arv",
+          x1: Math.round(pos.x + vector.x * 20),
+          y1: Math.round(pos.y + vector.y * 20),
+          x2: Math.round(pos.x + vector.x * 520),
+          y2: Math.round(pos.y + vector.y * 520),
+          created_at: createdAt.toISOString(),
+          expires_at: new Date(createdAt.getTime() + 60_000).toISOString(),
+          cooldown_until: new Date(createdAt.getTime() + 4 * 60_000).toISOString(),
+        };
+        setArvEpicPlants((current) => [...current.filter((row) => row.owner_id !== plant.owner_id), plant]);
+        arvEpicPlantPromptRef.current = false;
+        setArvEpicPlantPrompt(false);
+        pushChat("🧪 Prévia local: ponte Epic Plant criada por 1 minuto. Recarga: 4 minutos.", "cap");
+        return;
+      }
+      // Garante que o servidor valide o líder que está ativo agora, e não um
+      // checkpoint anterior ao jogador trocar a ordem do time.
+      if (!(await pushCloudSaveNow(buildFullBlob()))) {
+        pushChat("🌿 Salve o time na nuvem antes de usar Epic Plant.", "info");
+        return;
+      }
+      const { data, error } = await (supabase as any).rpc("cast_arv_epic_plant", {
+        p_x: Math.round(pos.x), p_y: Math.round(pos.y), p_dx: vector.x, p_dy: vector.y,
+      });
+      if (error || !data) {
+        pushChat(`🌿 Epic Plant: ${error?.message ?? "não foi possível criar a ponte."}`, "info");
+        return;
+      }
+      const plant = data as ArvEpicPlant;
+      setArvEpicPlants((current) => [...current.filter((row) => row.owner_id !== plant.owner_id), plant]);
+      arvEpicPlantPromptRef.current = false;
+      setArvEpicPlantPrompt(false);
+      pushChat("🌿 Epic Plant criou uma ponte por 1 minuto. Recarga: 4 minutos.", "cap");
+    } finally {
+      setArvEpicPlantCasting(false);
+    }
+  };
   const checkArvRedStep = (x: number, y: number) => {
     if (idleRef.current.currentMap !== "arv" || !collisionReady("arv")) return false;
+    if (isOnArvEpicPlant(x, y)) return false;
     // O corpo colide antes de o centro alcançar o vermelho; detectar a borda também.
     const touchingRed = [[0, 0], [14, 0], [-14, 0], [0, 14], [0, -14]]
       .some(([dx, dy]) => maskZoneAt("arv", x + dx, y + dy) === 3);
     if (!touchingRed) return false;
+    // Com o Pokémon certo como líder, a borda vermelha vira o gatilho da
+    // habilidade: o passo é bloqueado e o jogador escolhe criar a ponte,
+    // em vez de morrer imediatamente.
+    if (hasEpicPlantLeader) {
+      if (!arvEpicPlantPromptRef.current) {
+        arvEpicPlantPromptRef.current = true;
+        setArvEpicPlantPrompt(true);
+        pushChat(
+          epicPlantCooldownMs > 0
+            ? `🌿 Epic Plant está em recarga por ${fmtMS(epicPlantCooldownMs)}.`
+            : "🌿 Área vermelha à frente — use Epic Plant para criar uma ponte.",
+          "info",
+        );
+      }
+      return true;
+    }
     if (!arvDeathBusyRef.current) {
       arvDeathBusyRef.current = true;
       queueMicrotask(() => { void handleArvRedDeath(); });
@@ -6222,7 +6376,30 @@ const confirmName = () => {
       const radius = object.collideR > 0 ? object.collideR : Math.max(14, Math.min(90, Math.round(object.w * 0.22)));
       if (Math.hypot(x - object.x, y - object.y) < radius + TRAINER_R) return true;
     }
-    if (idle.currentMap === "arv") return !isWalkable("arv", x, y);
+    if (idle.currentMap === "arv") {
+      // Portal da Casinha, conforme as marcações do mpo.jpg:
+      // azul = entrar (2660,4491); amarelo = nascer ao sair (2660,4550).
+      // A máscara original do ARV pinta a fachada como bloqueada, então
+      // abrimos somente estas duas faixas pequenas para o jogador não prender.
+      const housePortalArea =
+        Math.hypot(x - 2660, y - 4491) < 34 ||
+        Math.hypot(x - 2660, y - 4550) < 36;
+      if (housePortalArea) return false;
+      // Epic Plant abre uma faixa temporária sobre a zona fatal e prevalece
+      // sobre a máscara vermelha enquanto a ponte existir no servidor.
+      if (isOnArvEpicPlant(x, y)) return false;
+      // A máscara do ARV inclui as árvores. Quando uma árvore colhível é
+      // derrubada pelo Pinsir, seu toco abre uma passagem temporária mesmo
+      // que a pintura estática da máscara ainda marque aquele pixel como muro.
+      const clearedByChop = editorObstacles.some((object) => {
+        if (!object.harvestable || !object.choppedAt || Date.now() - object.choppedAt >= 30 * 60_000) return false;
+        const clearRadius = object.collideR > 0
+          ? Math.max(object.collideR + 20, 48)
+          : Math.max(48, Math.min(82, Math.round(Math.max(object.w, object.h) * 0.32)));
+        return Math.hypot(x - object.x, y - object.y) < clearRadius + TRAINER_R;
+      });
+      return clearedByChop ? false : !isWalkable("arv", x, y);
+    }
     if (idle.currentMap === "mapinha6") {
       return !isWalkable("mapinha6", x, y);
     }
@@ -6230,7 +6407,7 @@ const confirmName = () => {
       return !isWalkable("esfera_ancestral", x, y);
     }
     // Mapas com máscara branco/preto: o grid manda (igual Revoland).
-    if (idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
+    if (idle.currentMap === "casinha" || idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
       return !isWalkable(idle.currentMap, x, y);
     }
     for (const o of obstacles) {
@@ -6262,6 +6439,14 @@ const confirmName = () => {
   };
 
   const [trainerPos, setTrainerPos] = useState({ x: WORLD_W / 2, y: WORLD_H / 2 });
+  // LOGIN TEST local começa dentro da Casinha; contas reais mantêm o mapa salvo.
+  const localHouseSpawnDoneRef = useRef(false);
+  useEffect(() => {
+    if (!isOfflineTest() || localHouseSpawnDoneRef.current) return;
+    localHouseSpawnDoneRef.current = true;
+    setIdle((state) => state.currentMap === "casinha" ? state : { ...state, currentMap: "casinha" });
+    setTrainerPos({ x: 469, y: 541 });
+  }, []);
   const [walkStep, setWalkStep] = useState(0);
   const [walkDir, setWalkDir] = useState<Dir>("right");
   const walkDirRef = useRef<Dir>("right");
@@ -7440,6 +7625,35 @@ const confirmName = () => {
       }
     } catch { /* ignore */ }
     if (alreadyUsed) { setCodeMsg({ kind: "err", text: "Código já utilizado nesta conta." }); return; }
+
+    // Pacote exclusivo do ambiente local: permite testar o corte de madeira
+    // e a habilidade Epic Plant sem disponibilizar recompensa no jogo publicado.
+    if (import.meta.env.DEV && raw === "TESTEPICPLANT") {
+      const base = idleRef.current;
+      const next: IdleState = {
+        ...base,
+        items: {
+          ...base.items,
+          egg_pinsir: (base.items.egg_pinsir ?? 0) + 1,
+          egg_venusaur_shiny: (base.items.egg_venusaur_shiny ?? 0) + 1,
+          // 100 de cada stone por ovo comum: entrega os materiais para chocar os dois.
+          stone_grass: (base.items.stone_grass ?? 0) + 200,
+          stone_fire: (base.items.stone_fire ?? 0) + 200,
+          stone_water: (base.items.stone_water ?? 0) + 200,
+          stone_electric: (base.items.stone_electric ?? 0) + 200,
+          stone_dark: (base.items.stone_dark ?? 0) + 200,
+          stone_dragon: (base.items.stone_dragon ?? 0) + 200,
+        },
+        redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+      };
+      setIdle(next);
+      persistCodeReward(next);
+      try { localStorage.setItem(codeKey, "1"); } catch { /* noop */ }
+      setCodeMsg({ kind: "ok", text: "2 ovos de teste e stones para chocá-los foram entregues!" });
+      setCodeInput("");
+      pushChat("🧪 TESTEPICPLANT: Ovo de Pinsir + Ovo de Venusaur Shiny + stones para chocagem.", "cap");
+      return;
+    }
 
     if (raw === "DESPERTARBLACK6") {
       if (blackAwakeningCodeBusyRef.current) return;
@@ -8940,9 +9154,83 @@ const confirmName = () => {
   const pvpLastHitRef = useRef<string | null>(null);
   const ownPvpFaintedRef = useRef(false);
   const ownPvpWasFaintedRef = useRef(false);
+  const [pvpScheduleNow, setPvpScheduleNow] = useState(() => Date.now());
+  const emeraldPvpWindow = useMemo(() => getGlobalPvpWindow(pvpScheduleNow), [pvpScheduleNow]);
+  const emeraldPvpActive = isPvpActiveOnMap(String(idle.currentMap), pvpScheduleNow);
+  const emeraldPvpLabel = emeraldPvpActive
+    ? `Emerald Global · PvP ativo · ${Math.ceil(emeraldPvpWindow.remainingMs / 60_000)} min restantes`
+    : "Emerald Global está em período de Paz";
+  const pvpSchedulePhaseRef = useRef<string | null>(null);
   useEffect(() => { pvpTargetUserIdRef.current = pvpTargetUserId; }, [pvpTargetUserId]);
+  // Posição mais recente dos alvos PvP — usada para o FX "ERROU!" do servidor.
+  const pvpPresenceRef = useRef(pvpPresence);
+  useEffect(() => { pvpPresenceRef.current = pvpPresence; }, [pvpPresence]);
+  // A agenda roda só no único mapa participante: horas pares de São Paulo
+  // são PvP e horas ímpares são Paz. O banco repete esta mesma regra.
+  useEffect(() => {
+    if (!isScheduledPvpMap(String(idle.currentMap))) return;
+    const tick = () => setPvpScheduleNow(Date.now());
+    tick();
+    const timer = window.setInterval(tick, 1_000);
+    return () => window.clearInterval(timer);
+  }, [idle.currentMap]);
+  // Avisa ao entrar e em cada virada de janela, sem repetir a mensagem a cada tick.
+  useEffect(() => {
+    if (!isScheduledPvpMap(String(idle.currentMap))) {
+      pvpSchedulePhaseRef.current = null;
+      return;
+    }
+    const phase = `${emeraldPvpWindow.phaseKey}:${emeraldPvpWindow.active ? "pvp" : "peace"}`;
+    if (phase === pvpSchedulePhaseRef.current) return;
+    const changed = pvpSchedulePhaseRef.current !== null;
+    pvpSchedulePhaseRef.current = phase;
+    if (emeraldPvpWindow.active) {
+      pushChat(
+        changed
+          ? "⚔️ EMERALD GLOBAL: a janela PvP começou! O chat ficou vermelho por 1 hora."
+          : "⚔️ EMERALD GLOBAL: PvP está ATIVO. O chat fica vermelho até a próxima hora.",
+        "pvp",
+      );
+    } else {
+      pushChat(
+        changed
+          ? "🕊️ EMERALD GLOBAL: período de PAZ iniciado. O PvP voltou a ficar bloqueado por 1 hora."
+          : "🕊️ EMERALD GLOBAL está em período de PAZ. A próxima janela PvP abre na hora cheia.",
+        "pvp",
+      );
+    }
+  }, [idle.currentMap, emeraldPvpWindow.phaseKey, emeraldPvpWindow.active]);
+  // Uma troca de mapa ou o fim da hora PvP encerra imediatamente modos e alvos locais.
+  useEffect(() => {
+    if (emeraldPvpActive) return;
+    if (pvpTargetUserIdRef.current !== null) setPvpTargetUserId(null);
+    if ((idle.pvpMode ?? "peace") !== "peace") {
+      setIdle((state) => state.pvpMode === "peace" ? state : { ...state, pvpMode: "peace" });
+    }
+  }, [emeraldPvpActive, idle.pvpMode]);
   const trainerPosRef = useRef(trainerPos);
   useEffect(() => { trainerPosRef.current = trainerPos; }, [trainerPos]);
+  const houseArrivalRef = useRef<{ map: IdleMapId; x: number; y: number } | null>(null);
+  const housePortalCooldownRef = useRef(0);
+  // Porta da Casinha <-> Emerald Global (PRODUÇÃO): a Casinha é a base dos
+  // jogadores do ARV — morrer na zona vermelha cai aqui, e a porta devolve ao
+  // mapa. O cooldown impede voltar instantaneamente para dentro ao sair.
+  useEffect(() => {
+    if (Date.now() < housePortalCooldownRef.current) return;
+    const p = trainerPosRef.current;
+    if (idle.currentMap === "arv" && Math.hypot(p.x - 2660, p.y - 4491) <= 54) {
+      housePortalCooldownRef.current = Date.now() + 900;
+      setIdle((s) => ({ ...s, currentMap: "casinha" }));
+      pushChat("🏠 Você entrou na Casinha.", "cap");
+      return;
+    }
+    if (idle.currentMap === "casinha" && Math.hypot(p.x - 470, p.y - 591) <= 34) {
+      housePortalCooldownRef.current = Date.now() + 1200;
+      houseArrivalRef.current = { map: "arv", x: 2660, y: 4550 };
+      setIdle((s) => ({ ...s, currentMap: "arv" }));
+      pushChat("❄️ Você voltou para Emerald Global.", "cap");
+    }
+  }, [idle.currentMap, trainerPos.x, trainerPos.y]);
   const walkStepRef = useRef(walkStep);
   useEffect(() => { walkStepRef.current = walkStep; }, [walkStep]);
   const leaderSpRef = useRef<Species | undefined>(team[0]?.species);
@@ -9191,7 +9479,7 @@ const confirmName = () => {
 
   // PK: sem alvo manual, marca automaticamente o líder PvP mais perto.
   useEffect(() => {
-    if ((idle.trainerLevel ?? 1) <= 10 || idle.pvpMode !== "pk" || pvpTargetUserId || !identity?.id) return;
+    if (!emeraldPvpActive || (idle.trainerLevel ?? 1) <= 10 || idle.pvpMode !== "pk" || pvpTargetUserId || !identity?.id) return;
     const me = trainerPosRef.current;
     const nearest = pvpPresence
       .filter((p) => p.user_id !== identity.id && p.hp > 0)
@@ -9199,7 +9487,7 @@ const confirmName = () => {
       .filter((x) => x.d <= 600)
       .sort((a, b) => a.d - b.d)[0]?.p;
     if (nearest) setPvpTargetUserId(nearest.user_id);
-  }, [idle.pvpMode, idle.trainerLevel, pvpPresence, pvpTargetUserId, identity?.id]);
+  }, [emeraldPvpActive, idle.pvpMode, idle.trainerLevel, pvpPresence, pvpTargetUserId, identity?.id]);
 
   // Presença de combate é separada da presença visual: HP nunca vem do cliente.
   useEffect(() => {
@@ -9268,6 +9556,10 @@ const confirmName = () => {
   // distância, cooldown e calcula o dano no banco.
   useEffect(() => {
     if (!pvpTargetUserId || !identity?.id) return;
+    if (!emeraldPvpActive) {
+      setPvpTargetUserId(null);
+      return;
+    }
     let cancelled = false;
     const attack = async () => {
       if ((idleRef.current.trainerLevel ?? 1) <= 10 || !autoRef.current || !(autoBattleRef.current?.enabled ?? true)) return;
@@ -9279,7 +9571,15 @@ const confirmName = () => {
         if (result.reason === "defeated") {
           pushChat(`🏆 Você derrotou o Pokémon de ${result.target_name}!`, "cap");
           setPvpTargetUserId(null);
+        } else if (result.reason === "miss") {
+          // O servidor errou o golpe (tier/nível do alvo acima do atacante).
+          const targetPos = pvpPresenceRef.current.find((p) => p.user_id === pvpTargetUserId);
+          if (targetPos) pushFxAt(targetPos.x, targetPos.y - 34, "ERROU!", "xp");
         }
+      } else if (["pvp_peace_window", "pvp_map_required"].includes(result.reason)) {
+        setPvpTargetUserId(null);
+        setIdle((state) => state.pvpMode === "peace" ? state : { ...state, pvpMode: "peace" });
+        pushChat("🕊️ O servidor encerrou este combate: PvP só funciona na janela ativa de Emerald Global.", "pvp");
       } else if (["offline", "different_map", "out_of_range", "target_fainted"].includes(result.reason)) {
         if (result.reason !== "target_fainted") pushChat("🎯 Alvo PvP saiu do alcance.", "info");
         setPvpTargetUserId(null);
@@ -9287,7 +9587,7 @@ const confirmName = () => {
     };
     const iv = window.setInterval(() => void attack(), 950);
     return () => { cancelled = true; clearInterval(iv); };
-  }, [pvpTargetUserId, identity?.id]);
+  }, [pvpTargetUserId, identity?.id, emeraldPvpActive]);
 
   // ===== Canal global de capturas (visível pra todos os jogadores) =====
   const captureChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -9428,7 +9728,7 @@ const confirmName = () => {
   const [rankLoading, setRankLoading] = useState(false);
   const [rankMode, setRankMode] = useState<RankMode>("trainer");
 
-  // Hotkeys: M = mapa mundi, B = mochila, C = coleção. Ranking permanece bloqueado.
+  // LOGIN TEST pode abrir o Ranked local; produção continua com a trava atual.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -9444,7 +9744,7 @@ const confirmName = () => {
 
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setMapTeleportOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); setTemporarilyClosed("Ranking"); return; }
+      if (k === "r") { e.preventDefault(); if (isOfflineTest()) setRankOpen(true); else setTemporarilyClosed("Ranking"); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
@@ -9490,11 +9790,12 @@ const confirmName = () => {
   // reset às 17h — NÃO refaz consulta toda hora.
   const RANKED_RESET_HOUR = 17;
   const rankedDayStr = () => new Date(Date.now() - RANKED_RESET_HOUR * 3_600_000).toISOString().slice(0, 10);
-  const rankSnapshotKey = () => `rank_snapshot_v1_${rankedDayStr()}`;
+  // v2 invalida snapshots antigos criados quando o LOGIN TEST usava linhas fictícias.
+  const rankSnapshotKey = () => `rank_snapshot_v2_${rankedDayStr()}`;
   const [rankSnapshotAt, setRankSnapshotAt] = useState<number | null>(null);
 
   // Monta o TOP 8 a partir de uma base (snapshot ou dados recém-capturados), no modo da aba.
-  const RANK_TOP_N = 8;
+  const RANK_TOP_N = 20;
   const toRankTop20 = (base: RankRow[]): RankRow[] => {
     const meId = identity?.id ?? "local-trainer";
     const sorted = [...base].sort((a, b) => {
@@ -9608,6 +9909,7 @@ const confirmName = () => {
   }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, idle.collection, team]);
 
   useEffect(() => {
+    if (isOfflineTest()) return;
     const t = setTimeout(() => {
       const collection = idle.collection ?? [];
       const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
@@ -9793,7 +10095,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   }, [idle.currentMap, customDims]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
-    if (p.to === "arv" && !requestArvEntry(() => enterWorldPortal(p))) return;
     const lv = idle.trainerLevel ?? 1;
     if (p.reqLevel && lv < p.reqLevel) {
       const now = Date.now();
@@ -10208,7 +10509,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       });
     }, 60);
     return () => clearInterval(iv);
-  }, [enemies, moving, obstacles, chests, idle.currentMap]);
+  }, [enemies, moving, obstacles, chests, idle.currentMap, arvEpicPlants]);
 
   // ---- IA dos inimigos: movimentação autônoma (SEMPRE roda, independente do auto) ----
   useEffect(() => {
@@ -11157,6 +11458,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // n2 debuff: enquanto ativo, reduz -40% do ataque do jogador
         if (Date.now() < atkDebuffUntilRef.current) dmg = Math.floor(dmg * 0.6);
         dmg = Math.max(1, Math.floor(dmg * playerDamageVsHighLevelMult(leader.level, target.level)));
+        // TIER GAP — o golpe PODE ERRAR: quanto maior o tier/nível do alvo em
+        // relação ao seu líder, menor a chance de acerto (piso de 55% — Pokémon
+        // de tier baixo ainda acerta em tiers altos, só erra mais). Mesma fórmula
+        // do servidor no PvP: tierHitChance (src/game/systems.tsx + migração SQL).
+        const playerMiss = Math.random() > tierHitChance(rarityRank(leader.rarity), leader.level, rarityRank(base.rarity), target.level);
+        if (playerMiss) dmg = 0;
 
         // Lunge: pokémon avança em direção ao inimigo
         const animId = attackAnimIdRef.current++;
@@ -11167,7 +11474,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 
         // Dano do meu pokémon → aparece EM CIMA DO INIMIGO (com pequeno delay = impacto do lunge)
         setTimeout(() => {
-          pushFxAt(target.x, target.y - 34, isCrit ? `CRIT ${dmg}!` : `${dmg}`, isCrit ? "crit" : "myDmg");
+          pushFxAt(target.x, target.y - 34, playerMiss ? "ERROU!" : isCrit ? `CRIT ${dmg}!` : `${dmg}`, playerMiss ? "xp" : isCrit ? "crit" : "myDmg");
         }, 180);
         // (dano rotineiro não vai para o chat — apenas floating text)
 
@@ -11176,6 +11483,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+        // TIER GAP (defesa) — inimigo de tier/nível bem abaixo do seu líder também
+        // erra: mesma chance de acerto espelhada, com piso de 55% para o defensor.
+        const enemyMiss = Math.random() > tierHitChance(rarityRank(target.rarity), target.level, rarityRank(leader.rarity), leader.level);
 
         // ==== Efeitos por mapa (Terry / n2 / n3) ====
         const mapNow = idle.currentMap;
@@ -11240,7 +11550,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         };
         const spec = SPECIAL_ABILITY[target.sp];
         if (spec) {
-          if (Math.random() < spec.crit) {
+          if (!enemyMiss && Math.random() < spec.crit) {
             eDmg = Math.floor(eDmg * 2.5);
             pushChat(`💥 ${target.sp.replace(/_/g," ").toUpperCase()} desferiu um GOLPE CRÍTICO!`, "hit");
           }
@@ -11315,6 +11625,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
         }
 
+        // Contra-ataque desviado: nenhum dano neste intercâmbio.
+        if (enemyMiss) eDmg = 0;
+
         // Alcance do contra-ataque: corpo a corpo (ATTACK_RANGE do pokémon).
         // Inimigo longe NÃO contra-ataca (sem anim/FX/dano) — p/ longe usa as skills.
         const counterInRange = fDist <= ATTACK_RANGE;
@@ -11328,7 +11641,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           });
           // Skill visual do contra-ataque (mesmo pipeline do ataque).
           fireSkillFx("offensive", elementOf(target.sp), ELEMENT_SKILL[elementOf(target.sp)] ?? null, target.x, target.y, followerAtX, followerAtY);
-          pushFxAt(followerAtX, followerAtY - 34, `-${eDmg}`, "enemyDmg");
+          pushFxAt(followerAtX, followerAtY - 34, enemyMiss ? "DESVIOU!" : `-${eDmg}`, enemyMiss ? "xp" : "enemyDmg");
         }, 480);
         if (counterInRange) setLeaderHp((h) => {
           let nh = Math.max(0, h - eDmg);
@@ -12358,8 +12671,18 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const mult = skill.damageMult ?? skill.damage ?? 1;
     if ((skill.damage ?? 0) > 0 || mult > 0) {
       const dmg = Math.max(1, Math.floor(enemySkillDamage(eSp, eLevel, eElite, mult)));
-      setLeaderHp((h) => Math.max(0, h - dmg));
-      pushFxAt(fx.x, fx.y - 40, `-${dmg}`, "enemyDmg");
+      // TIER GAP: skill de inimigo em tier/nível abaixo do seu líder também erra.
+      const leader = teamRef.current[0];
+      const skillMiss = Math.random() > tierHitChance(
+        rarityRank(SPECIES_BASE[eSp]?.rarity), eLevel,
+        rarityRank(leader?.rarity), leader?.level ?? eLevel,
+      );
+      if (skillMiss) {
+        pushFxAt(fx.x, fx.y - 40, "DESVIOU!", "xp");
+      } else {
+        setLeaderHp((h) => Math.max(0, h - dmg));
+        pushFxAt(fx.x, fx.y - 40, `-${dmg}`, "enemyDmg");
+      }
     }
     if (skill.status && skill.status !== "none") {
       // Sono: proteção pós-sono bloqueia reaplicação imediata; a resistência do
@@ -15523,7 +15846,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const profTravelTo = (mapId: string) => {
     const entryError = mapEntryError(idleRef.current, mapId);
     if (entryError) { pushChat(entryError, "info"); return; }
-    if (mapId === "arv" && !requestArvEntry(() => profTravelTo(mapId))) return;
     const m = IDLE_MAPS[mapId];
     const spawn = PROF_SPAWNS[mapId];
     if (!m || !spawn) return;
@@ -15532,24 +15854,24 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (def) {
       const bank = idle.scrapBank ?? 0;
       const tlv = idle.trainerLevel ?? 1;
-      if (def.reqPts != null && bank < def.reqPts) {
+      if (!import.meta.env.DEV && def.reqPts != null && bank < def.reqPts) {
         pushChat(`🔒 ${m.name} requer ${def.reqPts} pts de sucata no banco (você tem ${bank}). Troque na aba BARCO.`, "info");
         return;
       }
-      if (def.reqLevel != null && tlv < def.reqLevel) {
+      if (!import.meta.env.DEV && def.reqLevel != null && tlv < def.reqLevel) {
         pushChat(`🔒 ${m.name} requer Treinador Nv ${def.reqLevel} (você tem Nv ${tlv}).`, "info");
         return;
       }
     }
     // Jornada dos Navegantes: só a bordo. Sem barco (ou sem tier válido) a
     // viagem é recusada com aviso — nada é gasto e nada muda de mapa.
-    if (isWaterMap(mapId) && !idle.ship?.tier) {
+    if (!import.meta.env.DEV && isWaterMap(mapId) && !idle.ship?.tier) {
       pushChat("⛵ Precisa de um barco para entrar na água. Compre na aba BARCO do Professor.", "info");
       return;
     }
     // Mapas do laboratório: após desbloquear, cada entrada custa LAB_MAP_ENERGY_COST
     // de energia. Mapas `free` (Hallow, Caverna de Brok) não gastam nada.
-    const payableDef = def && !def.free ? def : null;
+    const payableDef = !import.meta.env.DEV && def && !def.free ? def : null;
     if (payableDef && trainerEnergy < LAB_MAP_ENERGY_COST) {
       pushChat(`⚡ ${m.name} exige ${LAB_MAP_ENERGY_COST} de energia para entrar (você tem ${trainerEnergy}).`, "info");
       return;
@@ -15602,10 +15924,22 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   }, [idle.currentMap]);
   const listMarketItem = async (itemId: string, qty: number, price: number, currency: "gold" | "crystal" | "safira" = "gold"): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para anunciar.", "info"); return false; }
-    if (!isVip()) { pushChat("✦ Anunciar no mercado é exclusivo VIP. Use um Livro VIP na Loja.", "info"); return false; }
+    if (!isVip() && currency === "safira") { pushChat("💚 Safira é exclusiva VIP. Não-VIP pode anunciar itens por ouro ou cristal.", "info"); return false; }
     const have = idleRef.current.items?.[itemId] ?? 0;
     if (have < qty) { pushChat("Estoque insuficiente para anunciar.", "info"); return false; }
     if (qty < 1 || price < 1 || price > 100_000_000) { pushChat("Quantidade ou preço inválido.", "info"); return false; }
+    if (import.meta.env.DEV && isOfflineTest()) {
+      const listings = readOfflineItemMarket();
+      listings.unshift({
+        id: `offline-item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        seller_id: identity.id, seller_name: identity.name || "LOGIN TEST",
+        item_id: itemId, qty, price, currency, created_at: new Date().toISOString(),
+      });
+      writeOfflineItemMarket(listings);
+      setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: Math.max(0, (s.items[itemId] ?? 0) - qty) } }));
+      pushChat(`📢 Anúncio local criado: ${qty}x ${itemId} por ${price} ${currency === "gold" ? "ouro" : "cristais"}.`, "cap");
+      return true;
+    }
     // Confirma criação com .select().single() — se o insert falhar por RLS/check,
     // detectamos ANTES de descontar o estoque local. Se retornar row, é seguro debitar.
     const { data, error } = await supabase
@@ -15641,6 +15975,24 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (cur === "gold" && cur_state.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
     if (cur === "crystal" && cur_state.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
     if (cur === "safira" && (cur_state.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
+    if (isOfflineTest()) {
+      const listings = readOfflineItemMarket();
+      const found = listings.find((row) => row.id === listing.id && !row.sold_at);
+      if (!found) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
+      found.sold_at = new Date().toISOString();
+      found.buyer_id = identity.id;
+      writeOfflineItemMarket(listings);
+      setIdle((s) => {
+        const bank = { ...s.bank }, items = { ...s.items };
+        if (cur === "gold") bank.gold -= listing.price;
+        else if (cur === "crystal") bank.crystals -= listing.price;
+        else items.safira_verde = (items.safira_verde ?? 0) - listing.price;
+        items[listing.item_id] = (items[listing.item_id] ?? 0) + listing.qty;
+        return { ...s, bank, items };
+      });
+      pushChat(`🛒 Compra local: ${listing.qty}x ${listing.item_id} por ${listing.price}.`, "cap");
+      return true;
+    }
     // Usa count em vez de .select().maybeSingle() — a policy de SELECT
     // pode filtrar a linha após sold_at deixar de ser null e retornar data=null
     // mesmo com o UPDATE tendo funcionado.
@@ -15686,6 +16038,19 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const claimMarketPayout = async (listing: { id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
     if (!identity?.id) return false;
     const cur = listing.currency ?? "gold";
+    if (isOfflineTest()) {
+      const listings = readOfflineItemMarket();
+      const found = listings.find((row) => row.id === listing.id && row.seller_id === identity.id && row.sold_at && !row.payout_claimed);
+      if (!found) return false;
+      found.payout_claimed = true;
+      writeOfflineItemMarket(listings);
+      setIdle((s) => cur === "gold"
+        ? { ...s, bank: { ...s.bank, gold: s.bank.gold + listing.price } }
+        : cur === "crystal"
+          ? { ...s, bank: { ...s.bank, crystals: s.bank.crystals + listing.price } }
+          : { ...s, items: { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + listing.price } });
+      return true;
+    }
     const { error, count } = await (supabase as any)
       .from("market_listings")
       .update({ payout_claimed: true }, { count: "exact" })
@@ -15708,6 +16073,16 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   const cancelMarketListing = async (listing: { id: string; item_id: string; qty: number; seller_id: string }): Promise<boolean> => {
     if (identity?.id !== listing.seller_id) return false;
+    if (isOfflineTest()) {
+      const listings = readOfflineItemMarket();
+      const index = listings.findIndex((row) => row.id === listing.id && row.seller_id === identity.id && !row.sold_at);
+      if (index < 0) return false;
+      listings.splice(index, 1);
+      writeOfflineItemMarket(listings);
+      setIdle((s) => ({ ...s, items: { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty } }));
+      pushChat(`Anúncio local cancelado — ${listing.qty}x ${listing.item_id} devolvido.`, "info");
+      return true;
+    }
     const { error } = await supabase.from("market_listings").delete().eq("id", listing.id).is("sold_at", null);
     if (error) { pushChat(`Falha ao cancelar: ${error.message}`, "info"); return false; }
     setIdle((s) => ({ ...s, items: { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty } }));
@@ -17196,7 +17571,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         trainerHp={idle.currentMap === "sa" ? idle.safariTrainerHp ?? SAFARI_TRAINER_MAX_HP : undefined}
         energy={trainerEnergy} hunger={idle.trainerHunger ?? 100}
         ballCount={idle.items?.pokeball ?? 0} throws={Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))} maxThrows={MAX_THROW_COUNT}
-        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)} pvpTargeted={!!pvpTarget} pvpMode={idle.pvpMode ?? "peace"}
+        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)}
+        pvpTargeted={!!pvpTarget} pvpMode={emeraldPvpActive ? idle.pvpMode ?? "peace" : "peace"}
+        pvpActive={emeraldPvpActive} pvpWindowLabel={emeraldPvpLabel}
         region={map.name} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
         enemies={enemies.filter((enemy) => enemy.hp > 0)} now={now} zoom={zoom}
         auto={auto && (idle.autoBattle?.enabled ?? true)} autoCapture={idle.autoBattle?.useBall ?? true}
@@ -17205,7 +17582,15 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           const enabled = !!(idle.autoHeal?.enabled);
           setIdle((s) => ({ ...s, autoHeal: { enabled: !enabled, threshold: (s.autoHeal?.threshold ?? 0.5) } }));
         }}
+        epicPlantPrompt={idle.currentMap === "arv" && hasEpicPlantLeader && arvEpicPlantPrompt}
+        epicPlantCasting={arvEpicPlantCasting}
+        epicPlantCooldownLabel={epicPlantCooldownMs > 0 ? fmtMS(epicPlantCooldownMs) : undefined}
+        onEpicPlant={() => { void castArvEpicPlant(); }}
         onPvpMode={() => {
+          if (!emeraldPvpActive) {
+            pushChat("🕊️ PvP fica disponível somente em Emerald Global durante a janela ativa.", "pvp");
+            return;
+          }
           const current = idle.pvpMode ?? "peace";
           if ((idle.trainerLevel ?? 1) <= 10 && current === "peace") {
             pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
@@ -19387,7 +19772,7 @@ A sucata afundou com o casco.
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); setTemporarilyClosed("Ranking"); }}
+              onClick={() => { playClick(); if (isOfflineTest()) setRankOpen(true); else setTemporarilyClosed("Ranking"); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -19965,6 +20350,36 @@ A sucata afundou com o casco.
               </div>
             )}
 
+            {/* ARV: pontes Epic Plant ativas (compartilhadas pelo banco). */}
+            {idle.currentMap === "arv" && arvEpicPlants
+              .filter((plant) => Date.parse(plant.expires_at) > now)
+              .map((plant) => {
+                const dx = plant.x2 - plant.x1, dy = plant.y2 - plant.y1;
+                const length = Math.hypot(dx, dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                const midX = (plant.x1 + plant.x2) / 2, midY = (plant.y1 + plant.y2) / 2;
+                // A arte vem numa tela transparente quadrada. Recortar o
+                // espaço vazio preserva a planta sem achatá-la.
+                const visualHeight = Math.max(122, Math.min(188, length * 0.35));
+                return (
+                  <div key={plant.owner_id} title="Epic Plant — ponte temporária" style={{
+                    position: "absolute", left: midX, top: midY,
+                    width: Math.max(1, length), height: visualHeight,
+                    transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+                    transformOrigin: "center",
+                    // É uma ponte no chão: treinador e Pokémon passam por cima.
+                    zIndex: 3, overflow: "hidden", pointerEvents: "none",
+                    filter: "drop-shadow(0 3px 5px rgba(5,45,10,0.85))",
+                  }}>
+                    <img src={epicPlantBridgeUrl} alt="" draggable={false} style={{
+                      position: "absolute", left: 0, top: "50%",
+                      width: "100%", height: "auto", maxWidth: "none",
+                      display: "block", transform: "translateY(-50%)",
+                      imageRendering: "auto",
+                    }} />
+                  </div>
+                );
+              })}
             {/* arv: água animada apenas sobre os pixels laranja da máscara. */}
             {idle.currentMap === "arv" && arvWaterMask && (
               <div className="arv-river-fx" aria-hidden="true" style={{
@@ -19996,36 +20411,6 @@ A sucata afundou com o casco.
               </div>,
               document.body
             )}
-            {/* Pedido de código do ARV — compartilhado por portal, portão e Professor. */}
-            {arvEntryPrompt && createPortal(
-              <div className="arv-code-backdrop" onClick={closeArvEntryPrompt}>
-                <form
-                  className="arv-code-box"
-                  onClick={(event) => event.stopPropagation()}
-                  onSubmit={(event) => { event.preventDefault(); void submitArvEntryCode(); }}
-                >
-                  <strong>🔒 ARV bloqueado</strong>
-                  <p>Área em teste. Digite o código de 5 caracteres para entrar.</p>
-                  <label htmlFor="arv-entry-code">Código de acesso</label>
-                  <input
-                    id="arv-entry-code"
-                    type="password"
-                    autoComplete="off"
-                    maxLength={5}
-                    value={arvCodeDraft}
-                    onChange={(event) => setArvCodeDraft(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                    autoFocus
-                  />
-                  {arvCodeError && <span className="arv-code-box__error" role="alert">{arvCodeError}</span>}
-                  <button type="submit" disabled={arvCodeDraft.length !== 5 || arvCodeBusy}>
-                    {arvCodeBusy ? "Validando…" : "Entrar para testar"}
-                  </button>
-                  <button type="button" className="arv-code-box__cancel" onClick={closeArvEntryPrompt}>Cancelar</button>
-                </form>
-              </div>,
-              document.body
-            )}
-
             {/* Render de orbs de energia removido — só mapOrbs abaixo */}
             {/* ===== LANDS do jogador (Land Revo) ===== */}
             {renderLands()}
@@ -20459,7 +20844,7 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: transparentObstacleIds.has(o.id) ? 0.38 : 1,
                   pointerEvents: (mapEditorOpen && editorObject) || editorObject?.harvestable ? "auto" : "none",
-                  zIndex: isGroundDecoration ? 2 : Math.round(o.y),
+                  zIndex: isGroundDecoration || editorStump ? 2 : Math.round(o.y),
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                   backgroundImage: `url(${o.src})`,
                   backgroundSize: `${cols * 100}% ${rows * 100}%`,
@@ -21699,6 +22084,23 @@ A sucata afundou com o casco.
               );
             })()}
 
+            {idle.currentMap === "arv" && (
+              <div
+                title="Entrada da Casinha"
+                style={{
+                  position: "absolute", left: 2660, top: 4491,
+                  width: 48, height: 24, transform: "translate(-50%, -50%)",
+                  borderRadius: "50%", pointerEvents: "none",
+                  border: "1px solid rgba(160,230,255,0.65)",
+                  background: "radial-gradient(ellipse, rgba(105,205,255,0.3) 0%, rgba(80,180,255,0.12) 45%, transparent 74%)",
+                  boxShadow: "0 0 10px 3px rgba(100,205,255,0.42)",
+                  animation: "pulse 2.4s ease-in-out infinite",
+                  zIndex: 1170,
+                }}
+              >
+                <span style={{ position: "absolute", left: "50%", top: -16, transform: "translateX(-50%)", color: "rgba(220,248,255,0.85)", fontSize: 8, fontWeight: 800, whiteSpace: "nowrap", textShadow: "0 1px 3px #00101c" }}>ENTRAR</span>
+              </div>
+            )}
             {!isWaterMap(idle.currentMap) && (() => {
               const mountActive = !!idle.mountOn && now < (idle.mountUntil ?? 0);
               return (<div style={{
@@ -21818,6 +22220,10 @@ A sucata afundou com o casco.
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
+                if (!emeraldPvpActive) {
+                  pushChat("🕊️ PvP só está disponível em Emerald Global durante a janela ativa.", "pvp");
+                  return;
+                }
                 if ((idle.trainerLevel ?? 1) <= 10) {
                   pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
                   return;
@@ -21869,11 +22275,11 @@ A sucata afundou com o casco.
                     filter: rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
                   }} />
                   {rpLeaderSrc && (
-                    <button type="button" onClick={selectRemotePvp} title={`Atacar o Pokémon de ${rp.name}`} style={{
+                    <button type="button" onClick={selectRemotePvp} disabled={!emeraldPvpActive} title={emeraldPvpActive ? `Atacar o Pokémon de ${rp.name}` : "PvP indisponível neste mapa ou período"} style={{
                       // Para observadores, a caveira fica no chão mesmo se o treinador andar.
                       position: "absolute", left: remotePvp?.hp === 0 ? remotePvp.x - rp.x + 29 : 29, top: remotePvp?.hp === 0 ? remotePvp.y - rp.y + 15 : 15, width: 48, height: 48, padding: 0,
                       borderRadius: "50%", border: pvpSelected ? "2px solid #ff1935" : "1px solid transparent",
-                      background: "transparent", cursor: "crosshair", pointerEvents: "auto", zIndex: 5,
+                      background: "transparent", cursor: emeraldPvpActive ? "crosshair" : "default", pointerEvents: "auto", zIndex: 5,
                       // O alvo fica marcado em neon, porém o sprite não pisca na tela do outro jogador.
                       boxShadow: pvpSelected || remoteLowHp ? "0 0 12px #ff1935, 0 0 28px #ff1935, inset 0 0 10px #ff1935" : "none",
                     }}>
@@ -22874,42 +23280,17 @@ A sucata afundou com o casco.
               onClaimMarketPayout={claimMarketPayout}
               isVip={isVip()}
               pokemonMarketNode={
-                <PokemonMarketPanel
+                <MarketScreen
+                  items={idle.items ?? {}}
+                  bank={idle.bank}
                   identity={identity}
-                  collection={idle.collection ?? []}
-                  gold={idle.bank.gold}
-                  crystals={idle.bank.crystals}
-                  safiras={idle.items?.safira_verde ?? 0}
                   isVip={isVip()}
-                  gifOf={(sp) => GIF[sp]}
-                  onListed={(uid) => setIdle((s) => ({ ...s, collection: (s.collection ?? []).filter(c => c.uid !== uid) }))}
-                  onReturned={(entry) => setIdle((s) => {
-                    const col = s.collection ?? [];
-                    if (col.some(c => c.uid === entry.uid)) return s;
-                    return { ...s, collection: [...col, entry] };
-                  })}
-                  onSpend={(cur, amount) => setIdle((s) => ({
-                    ...s,
-                    bank: cur === "gold"
-                      ? { ...s.bank, gold: Math.max(0, s.bank.gold - amount) }
-                      : { ...s.bank, crystals: Math.max(0, s.bank.crystals - amount) },
-                  }))}
-                  onEarn={(cur, amount) => setIdle((s) => ({
-                    ...s,
-                    bank: cur === "gold"
-                      ? { ...s.bank, gold: s.bank.gold + amount }
-                      : { ...s.bank, crystals: s.bank.crystals + amount },
-                  }))}
-                  onSpendSafira={(amount) => {
-                    const cur = idle.items?.safira_verde ?? 0;
-                    if (cur < amount) return false;
-                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - amount } }));
-                    return true;
-                  }}
-                  onEarnSafira={(amount) => {
-                    setIdle((s) => ({ ...s, items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) + amount } }));
-                  }}
-                  pushChat={pushChat}
+                  onList={listMarketItem}
+                  onBuy={buyMarketListing}
+                  onCancel={cancelMarketListing}
+                  onClaimPayout={claimMarketPayout}
+                  onNpcSell={sellItem}
+                  npcPrices={MARKET_SELL_PRICE}
                 />
               }
               skinId={skinId}
@@ -23030,8 +23411,6 @@ A sucata afundou com o casco.
                   return; // A luz abre a confirmação; nunca teleporta sem consentimento.
                 }
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
-                // ARV: todo portão/pin exige o código antes de entrar.
-                if (g.target === "arv" && !requestArvEntry(() => travelToGate(g))) return;
                 if (g.target === "sa") { profTravelTo("sa"); return; }
                 const targetMap = IDLE_MAPS[g.target];
                 if (["rota_pinsir", "deserto_alaka"].includes(g.target)) {
@@ -23969,7 +24348,7 @@ A sucata afundou com o casco.
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["mapinha6","arv","mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
+               const base = ["mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -23981,23 +24360,8 @@ A sucata afundou com o casco.
                   destinations={destinations}
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
-                  onTeleport={async (destination, arvCode) => {
-                    if (destination.id === "arv") {
-                      if (!arvCode || !/^[A-Z0-9]{5}$/.test(arvCode)) {
-                        pushChat("🔒 Informe um código de 5 caracteres.", "info");
-                        return;
-                      }
-                      if (trainerEnergy < teleportEnergyCostFor("arv")) {
-                        pushChat("⚡ Energia insuficiente para teleportar.", "info");
-                        return;
-                      }
-                      const { data, error } = await supabase.rpc("unlock_arv" as never, { p_code: arvCode } as never);
-                      if (error || data !== true) {
-                        pushChat(error ? "🔒 Não foi possível validar o código ARV. Confira se o SQL foi aplicado." : "🔒 Código inválido ou tentativas excedidas. Tente novamente mais tarde.", "info");
-                        return;
-                      }
-                      arvUnlockedRef.current = true;
-                    } else if (!isWorldMapDestinationUnlocked(destination.id)) {
+                  onTeleport={async (destination) => {
+                    if (!isWorldMapDestinationUnlocked(destination.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;
                     }
@@ -24005,12 +24369,12 @@ A sucata afundou com o casco.
                     if (entryError) { pushChat(entryError, "info"); return; }
                     const m = IDLE_MAPS[destination.id];
                     if (!m || teleportTransition || teleportTimerRef.current) return;
-                    if (["rota_pinsir", "deserto_alaka"].includes(destination.id)) {
+                    if (!import.meta.env.DEV && ["rota_pinsir", "deserto_alaka"].includes(destination.id)) {
                       pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi no momento!`, "info");
                       playClick();
                       return;
                     }
-                    if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"].includes(destination.id)) {
+                    if (!import.meta.env.DEV && ["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"].includes(destination.id)) {
                       pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi — entre só pela aba EVENTO!`, "info");
                       return;
                     }
@@ -24361,12 +24725,12 @@ A sucata afundou com o casco.
               </span>
             </button>
             {([
-              { id: "market",   label: "Marketplace", img: navMarket, disabled: true },
+              { id: "market",   label: "Marketplace", img: navMarket, disabled: !isOfflineTest() },
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
+              { id: "eventoLiga", label: "Torre Elemental", img: cardTorreFrenteUrl, highlight: true },
             ] as const).map((t) => {
-              const isShiny = (t as { shiny?: boolean }).shiny === true;
-              // EVENTO (Torre Elemental) removido — evento encerrado; volta depois.
-              if (isShiny) {
+              const isTowerEvent = (t as { highlight?: boolean }).highlight === true;
+              if (isTowerEvent) {
                 return (
                   <button
                     key={t.id}
@@ -29614,9 +29978,10 @@ function TabOverlay({
           bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
           egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico", egg_lugia: "Ovo de Lugia ✦",
-          egg_mew_7: "Ovo Mítico de Mew ✦", egg_lucario_7: "Ovo Mítico de Lucario ✦",
-          egg_ditto_shiny_1: "Ovo Raro de Ditto Shiny ✨",
-          egg_sprigatito: "Ovo Sprigatito 🌱",
+           egg_mew_7: "Ovo Mítico de Mew ✦", egg_lucario_7: "Ovo Mítico de Lucario ✦",
+           egg_ditto_shiny_1: "Ovo Raro de Ditto Shiny ✨",
+           egg_sprigatito: "Ovo Sprigatito 🌱",
+           ...(import.meta.env.DEV ? { egg_pinsir: "Ovo de Pinsir 🪓", egg_venusaur_shiny: "Ovo de Venusaur Shiny 🌿" } : {}),
           incenso_mel: "Incenso de Mel 🍯", incenso_mel_raro: "Incenso Raro ✨🍯", incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯",
           orb_xp_supreme_24h: "Orb Supremo 24h ✦✦✦",
           safira_verde: "Safira Verde 💚",
@@ -29689,7 +30054,8 @@ function TabOverlay({
           egg_ditto_shiny_1: "Ovo Raro · ao abrir nasce Ditto Shiny Mítico Shiny nível 1 na Coleção. Não é consumido se a Coleção estiver cheia.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
           egg_charizard_epic: "Ovo do Charizard Épico · choca sempre um Charizard ÉPICO (não shiny) Lv 50.",
-          egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
+           egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
+           ...(import.meta.env.DEV ? { egg_pinsir: "Ovo de Pinsir de teste · use Chocar para receber Pinsir Nv. 1 na Coleção.", egg_venusaur_shiny: "Ovo de Venusaur Shiny de teste · use Chocar para receber Venusaur Shiny Nv. 1 na Coleção." } : {}),
           egg_sprigatito: "Ovo Sprigatito 🌱 · choca Sprigatito MÍTICO Nv 1 (carta do evento).",
           safira_verde: "Safira Verde 💚 · moeda do evento Oddish. Converte em Esmeraldas (200:1) na Cash Shop.",
           berry: "Baga · restaura um pouco de HP em batalha.",
@@ -29731,7 +30097,7 @@ function TabOverlay({
           oleo: "Óleo · combustível bruto.",
           certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_ditto_shiny_1: "#ff97e1", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2" };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_ditto_shiny_1: "#ff97e1", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2", ...(import.meta.env.DEV ? { egg_pinsir: "#bd8a55", egg_venusaur_shiny: "#8df0a0" } : {}) };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
         if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
@@ -29786,9 +30152,9 @@ function TabOverlay({
 
         // Only IDs with actual useItem effects; upgrade books/ancestral eggs belong to other systems.
         const directUse = new Set([
-          "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet",
-          "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
-          "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1",
+           "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet",
+           "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
+           "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
           "carta_montaria",
@@ -29829,7 +30195,28 @@ function TabOverlay({
           renderIcon={(item, size) => item.image ? <img src={item.image} alt="" width={size} height={size} /> : <ItemPixelIcon id={item.id} size={size} color={item.color} />}
           onUse={(item, quantity) => {
             if (item.source === "equipment") { const eq = eqInfo(item.id); if (eq) { if (equippedItems[eq.slot] === item.id) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); } return; }
-            if (item.source !== "bag") return;
+             if (item.source !== "bag") return;
+            if (import.meta.env.DEV && (item.id === "egg_pinsir" || item.id === "egg_venusaur_shiny")) {
+              const stones = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
+              const stoneCost = 100;
+              if (!stones.every((stone) => (items[stone] ?? 0) >= stoneCost)) {
+                pushChat("Você precisa de 100 Stones de cada tipo para chocar este ovo.", "info");
+                return;
+              }
+              const species = item.id.replace("egg_", "") as Species;
+              const pet = makePet(species, 1);
+              setIdle((state: IdleState) => {
+                const nextItems = { ...state.items, [item.id]: Math.max(0, (state.items[item.id] ?? 0) - 1) };
+                stones.forEach((stone) => { nextItems[stone] = Math.max(0, (nextItems[stone] ?? 0) - stoneCost); });
+                const entry: CollectionEntry = {
+                  uid: pet.uid, species: pet.species, level: pet.level, xp: pet.xp,
+                  rarity: pet.rarity, capturedAt: Date.now(), traits: pet.traits ?? [],
+                };
+                return { ...state, items: nextItems, collection: [...(state.collection ?? []), entry] };
+              });
+              pushChat(`🥚 ${pet.species === "pinsir" ? "Pinsir" : "Venusaur Shiny"} nasceu! Coloque-o no time.`, "cap");
+              return;
+            }
             if (item.id === "rare_candy") {
               if ((idle.chestEnergy ?? 0) >= 200) { pushChat("Energia já está cheia!", "info"); return; }
               if ((items.rare_candy ?? 0) < 2) { pushChat("Você precisa de 2 Rare Candy para restaurar 100 de energia.", "info"); return; }
@@ -31608,7 +31995,8 @@ function TabOverlay({
         </div></div>
       )}
 
-      {tab === "market" && (
+      {tab === "market" && isOfflineTest() && pokemonMarketNode}
+      {tab === "market" && !isOfflineTest() && (
         <div style={{ minHeight: 320, display: "grid", placeItems: "center", textAlign: "center", padding: 24 }}>
           <div>
             <div style={{ fontSize: 54, filter: "grayscale(1)", opacity: 0.7 }}>🔒</div>
@@ -32128,7 +32516,27 @@ type MarketListing = {
   price: number;
   currency?: "gold" | "crystal" | "safira";
   created_at: string;
+  sold_at?: string | null;
+  buyer_id?: string | null;
+  payout_claimed?: boolean;
 };
+const OFFLINE_ITEM_MARKET_KEY = "rubym.offline-item-market.v1";
+const OFFLINE_ITEM_MARKET_SEED: MarketListing[] = [
+  { id: "offline-seed-potion", seller_id: "npc-joana", seller_name: "Joana", item_id: "potion", qty: 5, price: 250, currency: "gold", created_at: "2026-01-01T00:00:00.000Z" },
+  { id: "offline-seed-pokeball", seller_id: "npc-caio", seller_name: "Caio", item_id: "pokeball", qty: 10, price: 4, currency: "crystal", created_at: "2026-01-01T00:00:00.000Z" },
+];
+function readOfflineItemMarket(): MarketListing[] {
+  try {
+    const raw = localStorage.getItem(OFFLINE_ITEM_MARKET_KEY);
+    if (raw) return JSON.parse(raw) as MarketListing[];
+    const seed = OFFLINE_ITEM_MARKET_SEED.map((row) => ({ ...row }));
+    localStorage.setItem(OFFLINE_ITEM_MARKET_KEY, JSON.stringify(seed));
+    return seed;
+  } catch { return []; }
+}
+function writeOfflineItemMarket(rows: MarketListing[]) {
+  try { localStorage.setItem(OFFLINE_ITEM_MARKET_KEY, JSON.stringify(rows)); } catch { /* noop */ }
+}
 function MarketScreen({
   items, bank, identity, isVip, onList, onBuy, onCancel, onClaimPayout, onNpcSell, npcPrices,
 }: {
@@ -32170,6 +32578,13 @@ function MarketScreen({
 
   const refresh = async () => {
     setLoading(true);
+    if (isOfflineTest()) {
+      const rows = readOfflineItemMarket();
+      setListings(rows.filter((row) => !row.sold_at));
+      setSoldPayouts(rows.filter((row) => row.seller_id === identity?.id && !!row.sold_at && !row.payout_claimed));
+      setLoading(false);
+      return;
+    }
     const [openRes, soldRes] = await Promise.all([
       supabase
         .from("market_listings")
@@ -32204,7 +32619,7 @@ function MarketScreen({
         <div>
           <div style={{ color: "#ff9d3d", fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>🏷 MERCADO ENTRE TREINADORES</div>
           <div style={{ color: "#c8a878", fontSize: 12, marginTop: 4, fontStyle: "italic" }}>
-            Compre e venda itens de outros jogadores. Anunciar é exclusivo <b style={{ color: "#ffd94d" }}>VIP ✦</b>.
+            Itens: todos podem anunciar por ouro ou cristal. Safira e Pokémon são exclusivos <b style={{ color: "#ffd94d" }}>VIP ✦</b>.
           </div>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -32220,7 +32635,7 @@ function MarketScreen({
             background: mode === m ? "#3d2b0f" : "transparent",
             color: mode === m ? "#ff9d3d" : "#c8b8d0", cursor: "pointer",
           }}>
-            {m === "browse" ? "Anúncios" : m === "create" ? "Anunciar (VIP)" : "Vender NPC"}
+            {m === "browse" ? "Anúncios" : m === "create" ? "Anunciar item" : "Vender NPC"}
           </button>
         ))}
         <button onClick={() => void refresh()} disabled={loading} style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800, border: "1px solid #3a2a4a", background: "transparent", color: "#c8b8d0", cursor: loading ? "wait" : "pointer" }}>
@@ -32337,8 +32752,8 @@ function MarketScreen({
       {mode === "create" && (
         <div style={{ background: "#1a0f26", border: `1px solid ${isVip ? "#ffd94d" : "#3a2a4a"}`, borderRadius: 10, padding: 16, maxWidth: 480 }}>
           {!isVip && (
-            <div style={{ background: "#3a1010", border: "1px solid #ff6b6b55", borderRadius: 8, padding: 10, marginBottom: 12, color: "#ff9d9d", fontSize: 12 }}>
-              ✦ Anunciar no mercado é exclusivo VIP. Compre um <b>Livro VIP 30d/60d</b> na Loja para liberar.
+            <div style={{ background: "#10253a", border: "1px solid #6bd4ff55", borderRadius: 8, padding: 10, marginBottom: 12, color: "#b8e6ff", fontSize: 12 }}>
+              Você pode anunciar itens por <b>ouro</b> ou <b>cristal</b>. Safira e Pokémon exigem VIP.
             </div>
           )}
           <div style={{ color: "#ffd94d", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>Novo anúncio</div>
@@ -32371,7 +32786,7 @@ function MarketScreen({
             style={{ width: "100%", background: "#0e0818", color: "#f3e5c5", border: "1px solid #ffd94d55", borderRadius: 6, padding: 8, marginBottom: 10 }}>
             <option value="gold">💰 Ouro</option>
             <option value="crystal">💎 Cristal</option>
-            <option value="safira">💚 Safira Verde</option>
+            {isVip && <option value="safira">💚 Safira Verde (VIP)</option>}
           </select>
           <label style={{ fontSize: 12, color: "#c8b8d0", display: "block", marginBottom: 4 }}>Preço total ({CUR_LABEL[selCurrency]})</label>
           <input type="number" min={1} value={selPrice} onChange={(e) => setSelPrice(Math.max(1, parseInt(e.target.value) || 1))}
@@ -32380,12 +32795,12 @@ function MarketScreen({
             const stoneQty = isStoneId(selItem) ? Math.max(STONE_PACK_SIZE, selQty) : selQty;
             const belowMin = isStoneId(selItem) && stoneQty < STONE_PACK_SIZE;
             const noStock = (items[selItem] ?? 0) < stoneQty;
-            const disabled = !isVip || belowMin || noStock;
+            const disabled = belowMin || noStock;
             return (
               <button disabled={disabled}
                 onClick={async () => { const ok = await onList(selItem, stoneQty, selPrice, selCurrency); if (ok) { setMode("browse"); void refresh(); } }}
                 style={{ width: "100%", background: disabled ? "#333" : "linear-gradient(180deg,#ffd94d,#8b6a10)", color: "#0e0818", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" }}>
-                {!isVip ? "🔒 VIP necessário" : belowMin ? `Mínimo ${STONE_PACK_SIZE} stones` : noStock ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : `Publicar anúncio (${stoneQty}x)`}
+                {belowMin ? `Mínimo ${STONE_PACK_SIZE} stones` : noStock ? `Precisa de ${stoneQty}× ${LABELS[selItem] ?? selItem}` : `Publicar anúncio (${stoneQty}x)`}
               </button>
             );
           })()}

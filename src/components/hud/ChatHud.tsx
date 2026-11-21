@@ -4,7 +4,12 @@ import { ChevronDown, ChevronUp, MessageCircle, Send } from "lucide-react";
 export type HudMessage = { id: number; text: string; kind: string };
 type Filter = "all" | "system" | "world" | "captures";
 
-export function ChatHud({ messages }: { messages: HudMessage[] }) {
+export function ChatHud({ messages, pvpActive = false, pvpWindowLabel }: {
+  messages: HudMessage[];
+  /** Emerald Global está em uma janela ativa de PvP. */
+  pvpActive?: boolean;
+  pvpWindowLabel?: string;
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
@@ -20,10 +25,11 @@ export function ChatHud({ messages }: { messages: HudMessage[] }) {
     if (feed.current) feed.current.scrollTop = feed.current.scrollHeight;
   }, [messages, filter, collapsed]);
 
-  return <section className={`revo-chat revo-panel ${collapsed ? "is-collapsed" : ""}`} aria-label="Chat e eventos">
+  return <section className={`revo-chat revo-panel ${collapsed ? "is-collapsed" : ""} ${pvpActive ? "is-pvp-active" : ""}`} aria-label={pvpActive ? "Chat e eventos — PvP ativo" : "Chat e eventos"}>
     <div className="revo-chat__tabs" role="tablist" aria-label="Canais de mensagens">
       {([["all", "Global"], ["system", "Sistema"], ["world", "Mundo"], ["captures", "Capturas"]] as const).map(([id, label]) =>
         <button key={id} type="button" role="tab" aria-selected={filter === id} onClick={() => { setFilter(id); setCollapsed(false); }}>{label}</button>)}
+      {pvpActive && <span className="revo-chat__pvp-status" title={pvpWindowLabel}>⚔ PvP</span>}
       <button type="button" className="revo-chat__collapse" aria-label={collapsed ? "Expandir chat" : "Recolher chat"} aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)}>
         {collapsed ? <ChevronUp /> : <ChevronDown />}
       </button>

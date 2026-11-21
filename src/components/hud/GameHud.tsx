@@ -20,6 +20,9 @@ export type GameHudProps = {
   ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number; pepitas?: number;
   pvpTargeted?: boolean;
   pvpMode?: "peace" | "offensive" | "pk";
+  /** Janela de PvP ativa no mapa atual. */
+  pvpActive?: boolean;
+  pvpWindowLabel?: string;
   region: string; mapImage: string; world: { width: number; height: number }; player: Point;
   enemies: Point[]; mapFilter?: string; now: number; zoom: number; auto: boolean; autoCapture: boolean;
   activeTab: string; vip: boolean; questReset: string; quests: HudQuest[]; messages: HudMessage[];
@@ -28,6 +31,11 @@ export type GameHudProps = {
   onMap: () => void; onEvents: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
   onQuests: () => void; onClaimQuest: (id: string) => void; onAuto: () => void;
   onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number;
+  /** Ação contextual de Epic Plant — aparece ao tocar a zona vermelha no ARV. */
+  epicPlantPrompt?: boolean;
+  epicPlantCasting?: boolean;
+  epicPlantCooldownLabel?: string;
+  onEpicPlant?: () => void;
   onMapEditor: () => void; mapEditorActive: boolean; mapEditorEnabled?: boolean;
   onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
@@ -83,12 +91,27 @@ function ResourceBar({ hud }: { hud: GameHudProps }) {
 
 function MinimapHud({ hud }: { hud: GameHudProps }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [focused, setFocused] = useState(false);
   const position = (point: Point) => ({ left: `${Math.max(0, Math.min(100, point.x / Math.max(1, hud.world.width) * 100))}%`, top: `${Math.max(0, Math.min(100, point.y / Math.max(1, hud.world.height) * 100))}%` });
-  return <section className="revo-minimap revo-panel" aria-label={`Minimapa de ${hud.region}`}>
+  return <section
+    className={`revo-minimap revo-panel ${focused ? "is-focused" : "is-passive"}`}
+    aria-label={`${focused ? "Minimapa em destaque" : "Minimapa discreto"} de ${hud.region}`}
+    onClick={() => { if (!focused) setFocused(true); }}
+  >
     <header className="revo-panel__header"><MapPin className="revo-gold" /><strong title={hud.region}>{hud.region}</strong><span className="revo-channel" title="A instância atual não expõe seletor de canal">SOLO</span><button type="button" className="revo-icon" aria-label={collapsed ? "Expandir minimapa" : "Recolher minimapa"} aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)}>{collapsed ? <ChevronDown /> : <ChevronUp />}</button></header>
     {!collapsed && <>
       <div className="revo-minimap__body">
-        <button type="button" className="revo-minimap__preview" onClick={hud.onBigMap} title="Expandir mapa da região" aria-label="Expandir mapa da região">
+        <button
+          type="button"
+          className="revo-minimap__preview"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (!focused) { setFocused(true); return; }
+            hud.onBigMap();
+          }}
+          title={focused ? "Abrir mapa da região" : "Ativar destaque do minimapa"}
+          aria-label={focused ? "Abrir mapa da região" : "Ativar destaque do minimapa"}
+        >
           <img src={hud.mapImage} alt={`Mapa de ${hud.region}`} style={{ filter: hud.mapFilter }} />
           {hud.enemies.slice(0, 45).map((enemy, index) => <span key={index} className="revo-minimap__enemy" style={position(enemy)} />)}
           <span className="revo-minimap__player" style={position(hud.player)}><span /></span>
@@ -137,9 +160,23 @@ export function GameHud(hud: GameHudProps) {
         {hud.guideAccountId && <TrainerGuide accountId={hud.guideAccountId} />}
         <QuestTracker quests={hud.quests} region={hud.region} resetIn={hud.questReset} vip={hud.vip} onClaim={hud.onClaimQuest} onOpen={hud.onQuests} />
       </div>
-      <ChatHud messages={hud.messages} />
+      <ChatHud messages={hud.messages} pvpActive={hud.pvpActive} pvpWindowLabel={hud.pvpWindowLabel} />
       <TouchJoystick onMove={hud.onJoystickMove} />
       <div className="revo-actions" aria-label="Ações de combate">
+        {hud.epicPlantPrompt && hud.onEpicPlant && (
+          <button
+            type="button"
+            className={`revo-epic-plant ${!hud.epicPlantCasting && !hud.epicPlantCooldownLabel ? "is-active" : ""}`}
+            onClick={hud.onEpicPlant}
+            disabled={hud.epicPlantCasting || !!hud.epicPlantCooldownLabel}
+            title={hud.epicPlantCooldownLabel
+              ? `Epic Plant em recarga: ${hud.epicPlantCooldownLabel}`
+              : "Criar ponte Epic Plant na direção em que o treinador está olhando"}
+          >
+            <span aria-hidden="true">🌿</span>
+            <strong>{hud.epicPlantCasting ? "Criando…" : hud.epicPlantCooldownLabel ?? "Epic"}</strong>
+          </button>
+        )}
         <button type="button" className={`revo-auto ${hud.auto ? "is-active" : ""} ${hud.pvpTargeted ? "is-pvp-targeted" : ""}`} onClick={hud.onAuto} aria-pressed={hud.auto} title={hud.pvpTargeted ? "Alvo PvP marcado — clique em Auto para atacar" : (hud.auto ? "Desligar batalha automática (Espaço)" : "Ligar batalha automática (Espaço)")}>
           <span><img src={hud.icons.ball} alt="" /></span><strong>Auto</strong>
         </button>
@@ -149,7 +186,14 @@ export function GameHud(hud: GameHudProps) {
         <div className="revo-actions__secondary">
           {hud.mapEditorEnabled && <IconButton label="Editor de mapa: objetos e Pokémon" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>}
           <IconButton label="Mostrar ou recolher alvos próximos" active={hud.targetsOpen} onClick={hud.onTargets}><Crosshair /></IconButton>
-          <IconButton label={`PvP: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`} active={hud.pvpMode !== "peace"} onClick={hud.onPvpMode}><Shield /></IconButton>
+          <IconButton
+            label={hud.pvpActive
+              ? `PvP ativo: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`
+              : "PvP indisponível — Emerald Global está em período de Paz"}
+            active={!!hud.pvpActive && hud.pvpMode !== "peace"}
+            className={hud.pvpActive ? "revo-pvp-active" : ""}
+            onClick={hud.onPvpMode}
+          ><Shield /></IconButton>
           <IconButton label={hud.autoCapture ? "Captura automática ligada" : "Captura automática desligada"} guideTarget="capture" className="revo-capture-toggle" active={hud.autoCapture} onClick={hud.onCapture}><img src={hud.icons.ball} alt="" /></IconButton>
           <IconButton label="Configurar combate automático" onClick={hud.onCombatSettings}><Settings /></IconButton>
         </div>

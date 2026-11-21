@@ -31,3 +31,10 @@ src/lib/offlineTest.local.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Mapas de teste locais — carregados só via import.meta.glob em DEV (nunca no Git/produção)
+src/ambiente/mk1.png
+src/ambiente/guildas.png
+src/ambiente/mwt.png
+src/ambiente/emy.png
+src/ambiente/emy 1.png

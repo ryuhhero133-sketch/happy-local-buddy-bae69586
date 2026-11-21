@@ -29,7 +29,7 @@ type Props = {
   currentMap: string;
   trainerEnergy: number;
   onClose: () => void;
-  onTeleport: (destination: WorldMapDestination, code?: string) => void;
+  onTeleport: (destination: WorldMapDestination) => void;
   energyCostFor?: (destinationId: string) => number;
 };
 
@@ -72,8 +72,6 @@ const FILTERS: { id: MapFilterId; label: string }[] = [
 
 export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
   const [filter, setFilter] = useState<MapFilterId>("rotas");
-  const [arvDestination, setArvDestination] = useState<WorldMapDestination | null>(null);
-  const [arvCode, setArvCode] = useState("");
   const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
   const visible = destinations.filter((d) =>
     filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id),
@@ -144,10 +142,8 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                   <Button
                     type="button"
                     className="world-destination__button"
-                    disabled={isLocked && destination.id !== "arv"}
-                    onClick={() => destination.id === "arv"
-                      ? (setArvCode(""), setArvDestination({ ...destination, previewImage }))
-                      : onTeleport({ ...destination, previewImage })}
+                    disabled={isLocked}
+                    onClick={() => onTeleport({ ...destination, previewImage })}
                   >
                     {isCurrent ? "Atual" : isLocked ? "🔒 Bloqueado" : destination.id === "sa" ? "Entrar · 1.000 ouro + 10 pepitas" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
                     {!isCurrent && !isLocked && <span aria-hidden="true">→</span>}
@@ -157,37 +153,6 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
             );
           })}
         </div>
-
-        {arvDestination && (
-          <div className="world-atlas-backdrop" style={{ zIndex: 1000 }} onClick={() => setArvDestination(null)}>
-            <form
-              onClick={(event) => event.stopPropagation()}
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (arvCode.length !== 5) return;
-                onTeleport(arvDestination, arvCode);
-                setArvCode("");
-                setArvDestination(null);
-              }}
-              style={{ background: "#1a1324", border: "2px solid #ad8d5e", borderRadius: 12, padding: 24, width: "min(90vw, 340px)", color: "#fff", display: "grid", gap: 12 }}
-            >
-              <strong>🔒 ARV bloqueado</strong>
-              <label htmlFor="arv-access-code">Código de acesso (5 caracteres)</label>
-              <input
-                id="arv-access-code"
-                type="password"
-                autoComplete="off"
-                maxLength={5}
-                value={arvCode}
-                onChange={(event) => setArvCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                style={{ padding: 10, borderRadius: 6, color: "#111" }}
-                autoFocus
-              />
-              <Button type="submit" disabled={arvCode.length !== 5}>Entrar para testar</Button>
-              <Button type="button" variant="ghost" onClick={() => setArvDestination(null)}>Cancelar</Button>
-            </form>
-          </div>
-        )}
 
         <footer className="world-atlas__footer">
           <Sparkles aria-hidden="true" />

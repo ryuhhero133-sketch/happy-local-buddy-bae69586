@@ -90,8 +90,11 @@ export const DROP_RULES: DropRule[] = [
   { id: "escamas", mat: "escamas", label: "Escamas", img: escamasUrl, chance: 0.13, qty: 1, elements: ["agua", "gelo"] },
   // Flor (pokémon) — planta/inseto. 12%.
   { id: "flor", mat: "flor", label: "Flor", img: florRedUrl, chance: 0.12, qty: 1, elements: ["planta", "inseto"] },
+  // Cristal Vermelho — qualquer Pokémon, cai no chão como os demais recursos.
+  // A chance usa a mesma fonte da Pepita: 12%.
+  { id: "cr_red", mat: "cr_red", label: "Cristal Vermelho", img: crRedUrl, chance: PEPITA_CHANCE, qty: 1 },
   // Pepita de ouro — pedra. 12% (era 32%).
-  { id: "pepita", mat: "pepita", label: "Pepita de Ouro", img: pepitaUrl, chance: 0.12, qty: 1, elements: ["pedra"] },
+  { id: "pepita", mat: "pepita", label: "Pepita de Ouro", img: pepitaUrl, chance: PEPITA_CHANCE, qty: 1, elements: ["pedra"] },
   // Bronze — terra. 12% (era 32%).
   { id: "bronze", mat: "bronze", label: "Bronze", img: bronzeUrl, chance: 0.12, qty: 1, species: GROUND_SPECIES },
   // Esfera de Safira — QUALQUER pokémon (sem species/elements/maps).

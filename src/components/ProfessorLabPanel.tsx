@@ -1783,9 +1783,9 @@ export function ProfessorLabPanel(props: Props) {
                 >
                   {PROF_MAPS.map((c) => {
                     const m = ELEMENT_META[c.element];
-                    const needsBoat = c.continent === "JORNADA DOS NAVEGANTES" && !ship?.tier;
-                    const lockedPts = c.reqPts != null && scrapBankPts < c.reqPts;
-                    const lockedLv = c.reqLevel != null && (trainerLevel ?? 1) < c.reqLevel;
+                    const needsBoat = !import.meta.env.DEV && c.continent === "JORNADA DOS NAVEGANTES" && !ship?.tier;
+                    const lockedPts = !import.meta.env.DEV && c.reqPts != null && scrapBankPts < c.reqPts;
+                    const lockedLv = !import.meta.env.DEV && c.reqLevel != null && (trainerLevel ?? 1) < c.reqLevel;
                     const locked = lockedPts || lockedLv || isMapBlocked(c.id);
                     const reqLabel = c.reqPts != null
                       ? `${scrapBankPts}/${c.reqPts} PTS`
