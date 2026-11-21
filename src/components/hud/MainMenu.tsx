@@ -52,7 +52,7 @@ export function MainMenu({ hud, open, onOpenChange }: { hud: GameHudProps; open:
   ];
   const extras: { label: string; icon?: string; action: () => void }[] = [
     { label: "Sinergia", icon: iconSinergia, action: () => navigate("sinergia") },
-    { label: "Mercado · em breve", icon: iconMercado, action: () => navigate("market") },
+    { label: "Mercado", icon: iconMercado, action: () => navigate("market") },
     { label: "Código", action: () => act(hud.onCode) },
     { label: "Salvar", action: () => act(hud.onSave) },
   ];

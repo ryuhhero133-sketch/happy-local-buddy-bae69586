@@ -9821,20 +9821,15 @@ const confirmName = () => {
   // A posição é sempre calculada com o snapshot oficial salvo no servidor.
   const [rankSnapshotAt, setRankSnapshotAt] = useState<number | null>(null);
 
-  // Monta o TOP 8 a partir de uma base (snapshot ou dados recém-capturados), no modo da aba.
-  const RANK_TOP_N = 20;
-  const toRankTop20 = (base: RankRow[]): RankRow[] => {
-    const meId = identity?.id ?? "local-trainer";
+  // Exibe somente os dez melhores treinadores globais no critério selecionado.
+  const RANK_TOP_N = 10;
+  const toRankTop10 = (base: RankRow[]): RankRow[] => {
     const sorted = [...base].sort((a, b) => {
       const av = rankMode === "craft" ? a.craft_points : a.trainer_level;
       const bv = rankMode === "craft" ? b.craft_points : b.trainer_level;
       return bv - av;
     });
-    const myIdx = sorted.findIndex((r) => r.id === meId);
-    const topN: RankRow[] = sorted.slice(0, RANK_TOP_N).map((r, i) => ({ ...r, myRank: i + 1 }));
-    // Fora do Top 8? Mostra sua linha no final com a posição real.
-    if (myIdx >= RANK_TOP_N) topN.push({ ...sorted[myIdx], myRank: myIdx + 1 });
-    return topN;
+    return sorted.slice(0, RANK_TOP_N).map((r, i) => ({ ...r, myRank: i + 1 }));
   };
 
   // Foto do treinador no ranking: skin equipada (skin_url = URL do bundle) ou um retrato fixo.
@@ -9867,7 +9862,7 @@ const confirmName = () => {
           skin_url: r.skin_url ?? null,
         }));
         if (!cancelled) {
-          setRankRows(toRankTop20(rows));
+          setRankRows(toRankTop10(rows));
           setRankSnapshotAt(Date.now());
         }
       } catch (error) {
