@@ -192,145 +192,36 @@ function dedupeByUser(rows: RankedRow[]): RankedRow[] {
 }
 
 async function fetchPlayersFallback(limit: number): Promise<RankedRow[]> {
-  try {
-    // Fallback visual: usa a tabela de presença quando o ranked ainda não foi populado.
-    // ⚠️ NÃO select `guild_name`: a coluna NÃO existe em `players` e derrubava a query inteira
-    // (caía no select simples e todo mundo aparecia como Treinador Lv 1 / craft 0).
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .from("players")
-      .select("id, name, level, trainer_level, craft_points, leader_species, leader_rarity, skin_url, updated_at")
-      .order("trainer_level", { ascending: false })
-      .order("level", { ascending: false })
-      .limit(Math.max(limit * 4, 200));
-    if (!error) {
-      const rows = mapPlayersRows((data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
-      return dedupeByUser(rows).slice(0, limit);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const simple = await (supabase as any)
-      .from("players")
-      .select("id, name, level, updated_at")
-      .order("level", { ascending: false })
-      .limit(limit);
-    if (simple.error) {
-      console.warn("[ranked] players fallback:", simple.error.message);
-      return [];
-    }
-    const rows = mapPlayersRows((simple.data ?? []) as PlayerRankRow[]).sort((a, b) => b.score - a.score);
-    return dedupeByUser(rows).slice(0, limit);
-  } catch (e) {
-    console.warn("[ranked] players fallback exc:", e);
-    return [];
-  }
+  // Presença é gravada pelo navegador e nunca pode alimentar o ranking.
+  void limit;
+  return [];
 }
 
 async function fetchLegacyRankedScores(limit: number): Promise<RankedRow[]> {
-  try {
-    // Compatível com o setup antigo (`ranked_scores`) que o servidor já alimenta no save/sync.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .from("ranked_scores")
-      .select("user_id, username, trainer_level, pokedex_count, total_kills, updated_at")
-      .order("trainer_level", { ascending: false })
-      .order("pokedex_count", { ascending: false })
-      .order("total_kills", { ascending: false })
-      .limit(limit);
-    if (!error) {
-      return mapLegacyRankedRows((data ?? []) as LegacyRankedScore[])
-        .sort((a, b) => b.score - a.score || new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
-    }
-
-    // Compatível com `SUPABASE_FULL_SETUP.md`, que usa somente score/season.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fallback = await (supabase as any)
-      .from("ranked_scores")
-      .select("user_id, username, score, updated_at")
-      .order("score", { ascending: false })
-      .limit(limit);
-    if (fallback.error) {
-      console.warn("[ranked] legacy:", fallback.error.message);
-      return fetchPlayersFallback(limit);
-    }
-    const rows = mapLegacyRankedRows((fallback.data ?? []) as LegacyRankedScore[], true);
-    return rows.length ? rows : fetchPlayersFallback(limit);
-  } catch (e) {
-    console.warn("[ranked] legacy exc:", e);
-    return fetchPlayersFallback(limit);
-  }
+  // Tabelas legadas aceitam campos que não são a fonte de verdade do jogo.
+  void limit;
+  return [];
 }
 
-/** Envia/atualiza score do jogador na temporada corrente. */
-export async function recordRankedScore(level: number, craftPoints: number, guildName?: string | null) {
-  const trainerLevel = Math.max(1, Math.min(10000, Math.floor(level || 1)));
-  const craft = Math.max(0, Math.floor(craftPoints || 0));
-
-  // Somente via RPC server-side. Sem escrita direta: o servidor valida e calcula.
-  // Sem fallback direto — se a RPC falhar, o score simplesmente não é enviado.
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).rpc("record_ranked_score", {
-      _level: trainerLevel,
-      _craft_points: craft,
-      _guild_name: guildName ?? null,
-    });
-    if (error) console.warn("[ranked] record:", error.message);
-  } catch (e) {
-    console.warn("[ranked] record exc:", e);
-  }
-}
-
-/** Busca a temporada corrente (com ends_at para countdown). */
-export async function fetchCurrentSeason(): Promise<RankedSeason | null> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
-    .from("ranked_seasons")
-    .select("id, started_at, ends_at, is_current")
-    .eq("is_current", true)
-    .limit(1)
-    .maybeSingle();
-  if (error) { console.warn("[ranked] season:", error.message); return null; }
-  return data as RankedSeason | null;
-}
-
-/** Top N da temporada corrente, ordenado por score desc. */
+/** Top N oficial: a RPC lê exclusivamente o snapshot `game_saves` do servidor. */
 export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
   try {
-    // Fonte mais fiel: RPC segura lê o Lv real do blob `game_saves` e só retorna campos públicos.
+    const safeLimit = Math.max(1, Math.min(500, Math.floor(limit || 50)));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any).rpc("get_global_ranked", { _limit: limit });
-    if (!error && Array.isArray(data) && data.length) {
-      return mergeRankedRows(data as RankedRow[]).slice(0, limit);
+    const { data, error } = await (supabase as any).rpc("get_global_ranked", { _limit: safeLimit });
+    if (error) {
+      console.warn("[ranked] global rpc:", error.message);
+      return [];
     }
-    if (error) console.warn("[ranked] global rpc:", error.message);
+    if (!Array.isArray(data)) return [];
+    return (data as RankedRow[])
+      .map(normalizeRankedRow)
+      .sort((a, b) => b.score - a.score || rowTime(a) - rowTime(b))
+      .slice(0, safeLimit);
   } catch (e) {
     console.warn("[ranked] global rpc exc:", e);
+    return [];
   }
-
-  const season = await fetchCurrentSeason();
-  if (!season) {
-    const legacy = await fetchLegacyRankedScores(limit);
-    return legacy.length ? legacy : fetchPlayersFallback(limit);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
-    .from("ranked_leaderboard")
-    .select("user_id, username, trainer_level, craft_points, guild_name, score, updated_at")
-    .eq("season_id", season.id)
-    .order("score", { ascending: false })
-    .order("updated_at", { ascending: true })
-    .limit(limit);
-  if (error) {
-    console.warn("[ranked] top:", error.message);
-    const legacy = await fetchLegacyRankedScores(limit);
-    return legacy.length ? legacy : fetchPlayersFallback(limit);
-  }
-  const rows = ((data ?? []) as RankedRow[]).map(normalizeRankedRow);
-  const legacy = await fetchLegacyRankedScores(limit);
-  const online = await fetchPlayersFallback(limit);
-  const merged = mergeRankedRows(rows, legacy, online);
-  return merged.length ? merged.slice(0, limit) : online;
 }
 
 // ============================================================

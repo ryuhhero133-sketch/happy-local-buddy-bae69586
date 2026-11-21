@@ -225,7 +225,7 @@ import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudS
 import { runCheckpointMutation, alignServerCheckpoint } from "@/lib/saveManager";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
-import { fetchTopRanked, recordRankedScore, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
+import { fetchTopRanked, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
 import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet, rarityRank, tierHitChance } from "@/game/systems";
 import {
@@ -909,7 +909,10 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 const IDLE_KEY = "rubym.idle.v1";
 const MAP_EDITOR_KEY = "rubym.map-editor.v1";
-const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v1";
+const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v2";
+const MAP_EDITOR_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
+const ARV_CASINHA_EXIT_SPAWN = { x: 2800, y: 4550 };
+const ARV_CASINHA_EXIT_PROTECTION_MS = 3_500;
 const CLOUD_PRELOADED_KEY = "rubym.cloud.preloaded.v1";
 const MP_SESSION_KEY = "rubym.multiplayer.session.v1";
 const OFFLINE_CAP_MS = 8 * 60 * 60 * 1000;
@@ -2747,6 +2750,7 @@ export const Route = createFileRoute("/idle")({
 // ============ Page ============
 function IdlePage() {
   const identity = loadIdentity();
+  const canUseMapEditor = identity?.id === MAP_EDITOR_OWNER_ID;
   type PreregReward = { user_id: string; hatch_at: string; species: string; pokemon_id: string; hatched_at: string | null };
   const [preregReward, setPreregReward] = useState<PreregReward | null>(null);
   const [preregChecked, setPreregChecked] = useState(false);
@@ -3537,6 +3541,9 @@ const confirmName = () => {
   const [mapEditorPokemonRaid, setMapEditorPokemonRaid] = useState(false);
   const [mapEditorObjectMode, setMapEditorObjectMode] = useState<"none" | "solid" | "harvest">("none");
   const [mapEditorHarvestSpecies, setMapEditorHarvestSpecies] = useState<Species>("pinsir");
+  useEffect(() => {
+    if (!canUseMapEditor) setMapEditorOpen(false);
+  }, [canUseMapEditor]);
   const [mapEditorSpawns, setMapEditorSpawns] = useState<Record<string, EditorPokemonSpawn[]>>(() => {
     try {
       const raw = localStorage.getItem(MAP_EDITOR_SPAWNS_KEY);
@@ -5816,6 +5823,8 @@ const confirmName = () => {
   const [arvDeathVideo, setArvDeathVideo] = useState<{ goldLost: number; levelLost: number } | null>(null);
   const arvDeathVideoRef = useRef<HTMLVideoElement | null>(null);
   const arvDeathBusyRef = useRef(false);
+  // Protege a curta saída da Casinha enquanto a troca de mapa/câmera estabiliza.
+  const arvArrivalProtectionRef = useRef(0);
   type ArvEpicPlant = {
     owner_id: string; map_id: "arv"; x1: number; y1: number; x2: number; y2: number;
     created_at: string; expires_at: string; cooldown_until: string;
@@ -6080,8 +6089,14 @@ const confirmName = () => {
       const pendingArrival = houseArrivalRef.current;
       if (pendingArrival?.map === idle.currentMap) {
         houseArrivalRef.current = null;
-        setTrainerPos({ x: pendingArrival.x, y: pendingArrival.y });
-      } else if (idle.currentMap === "casinha") setTrainerPos({ x: 469, y: 541 });
+        const arrival = { x: pendingArrival.x, y: pendingArrival.y };
+        trainerPosRef.current = arrival;
+        setTrainerPos(arrival);
+      } else if (idle.currentMap === "casinha") {
+        const arrival = { x: 469, y: 541 };
+        trainerPosRef.current = arrival;
+        setTrainerPos(arrival);
+      }
       else if (idle.currentMap === "laboratorio") setTrainerPos({ x: 499, y: 416 });
       // Mapas do Professor: nasce no ponto andável verificado (maior região branca conectada).
       else if (PROF_SPAWNS[idle.currentMap]) setTrainerPos(PROF_SPAWNS[idle.currentMap]);
@@ -6341,10 +6356,17 @@ const confirmName = () => {
   const checkArvRedStep = (x: number, y: number) => {
     if (idleRef.current.currentMap !== "arv" || !collisionReady("arv")) return false;
     if (isOnArvEpicPlant(x, y)) return false;
+    const protectedHouseExit =
+      Date.now() < arvArrivalProtectionRef.current &&
+      x >= 2620 && x <= ARV_CASINHA_EXIT_SPAWN.x + 60 &&
+      Math.abs(y - ARV_CASINHA_EXIT_SPAWN.y) <= 86;
     // O corpo colide antes de o centro alcançar o vermelho; detectar a borda também.
     const touchingRed = [[0, 0], [14, 0], [-14, 0], [0, 14], [0, -14]]
       .some(([dx, dy]) => maskZoneAt("arv", x + dx, y + dy) === 3);
     if (!touchingRed) return false;
+    // A saída nasce em solo seguro, mas mantém um corredor curto protegido para
+    // não punir o jogador por uma máscara ainda carregando ou por um passo legado.
+    if (protectedHouseExit) return false;
     // Com o Pokémon certo como líder, a borda vermelha vira o gatilho da
     // habilidade: o passo é bloqueado e o jogador escolhe criar a ponte,
     // em vez de morrer imediatamente.
@@ -6378,12 +6400,16 @@ const confirmName = () => {
     }
     if (idle.currentMap === "arv") {
       // Portal da Casinha, conforme as marcações do mpo.jpg:
-      // azul = entrar (2660,4491); amarelo = nascer ao sair (2660,4550).
+      // azul = entrar (2660,4491); a saída nasce no solo seguro a leste.
       // A máscara original do ARV pinta a fachada como bloqueada, então
-      // abrimos somente estas duas faixas pequenas para o jogador não prender.
+      // abrimos a porta e, por poucos segundos, o corredor de saída.
       const housePortalArea =
         Math.hypot(x - 2660, y - 4491) < 34 ||
-        Math.hypot(x - 2660, y - 4550) < 36;
+        (
+          Date.now() < arvArrivalProtectionRef.current &&
+          x >= 2620 && x <= ARV_CASINHA_EXIT_SPAWN.x + 60 &&
+          Math.abs(y - ARV_CASINHA_EXIT_SPAWN.y) <= 86
+        );
       if (housePortalArea) return false;
       // Epic Plant abre uma faixa temporária sobre a zona fatal e prevalece
       // sobre a máscara vermelha enquanto a ponte existir no servidor.
@@ -9226,7 +9252,13 @@ const confirmName = () => {
     }
     if (idle.currentMap === "casinha" && Math.hypot(p.x - 470, p.y - 591) <= 34) {
       housePortalCooldownRef.current = Date.now() + 1200;
-      houseArrivalRef.current = { map: "arv", x: 2660, y: 4550 };
+      const arrival = ARV_CASINHA_EXIT_SPAWN;
+      // Atualiza a posição antes do mapa para que nenhum frame do ARV reutilize
+      // a posição da porta/uma célula fatal da Casinha.
+      houseArrivalRef.current = { map: "arv", ...arrival };
+      arvArrivalProtectionRef.current = Date.now() + ARV_CASINHA_EXIT_PROTECTION_MS;
+      trainerPosRef.current = arrival;
+      setTrainerPos(arrival);
       setIdle((s) => ({ ...s, currentMap: "arv" }));
       pushChat("❄️ Você voltou para Emerald Global.", "cap");
     }
@@ -9744,7 +9776,7 @@ const confirmName = () => {
 
       const k = e.key.toLowerCase();
       if (k === "m") { e.preventDefault(); setMapTeleportOpen((v) => !v); return; }
-      if (k === "r") { e.preventDefault(); if (isOfflineTest()) setRankOpen(true); else setTemporarilyClosed("Ranking"); return; }
+      if (k === "r") { e.preventDefault(); setRankOpen(true); return; }
       if (k === "b") { e.preventDefault(); setTab((t) => (t === "mochila" ? "batalha" : "mochila")); return; }
       if (k === "c") { e.preventDefault(); setTab((t) => (t === "colecao" ? "batalha" : "colecao")); return; }
     };
@@ -9784,14 +9816,7 @@ const confirmName = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [enemies]);
 
-  // ===== SNAPSHOT DIÁRIO DO RANKED =====
-  // Os dados REAIS (nível de treinador + pontos de craft) são capturados UMA vez por dia,
-  // quando o dia do ranked vira às 17h. Depois disso a tabela fica CONGELADA até o próximo
-  // reset às 17h — NÃO refaz consulta toda hora.
-  const RANKED_RESET_HOUR = 17;
-  const rankedDayStr = () => new Date(Date.now() - RANKED_RESET_HOUR * 3_600_000).toISOString().slice(0, 10);
-  // v2 invalida snapshots antigos criados quando o LOGIN TEST usava linhas fictícias.
-  const rankSnapshotKey = () => `rank_snapshot_v2_${rankedDayStr()}`;
+  // A posição é sempre calculada com o snapshot oficial salvo no servidor.
   const [rankSnapshotAt, setRankSnapshotAt] = useState<number | null>(null);
 
   // Monta o TOP 8 a partir de uma base (snapshot ou dados recém-capturados), no modo da aba.
@@ -9824,45 +9849,11 @@ const confirmName = () => {
   useEffect(() => {
     if (!rankOpen) return;
     let cancelled = false;
-    const snapKey = rankSnapshotKey();
-    // 1) Snapshot de hoje já existe (capturado no reset das 17h)? Usa ele — SEM consulta na rede.
-    try {
-      const raw = localStorage.getItem(snapKey);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { at: number; rows: RankRow[] };
-        if (parsed && Array.isArray(parsed.rows) && parsed.rows.length) {
-          setRankSnapshotAt(parsed.at);
-          setRankRows(toRankTop20(parsed.rows));
-          setRankLoading(false);
-          return;
-        }
-      }
-    } catch { /* ignore */ }
-    // 2) Primeira abertura do dia: captura os dados REAIS agora e congela até 17h.
     setRankLoading(true);
-    (async () => {
-      const collection = idle.collection ?? [];
-      const maxPokeLevel = Math.max(
-        1,
-        ...team.map((p) => p?.level ?? 0),
-        ...collection.map((p) => p?.level ?? 0),
-      );
-      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
-      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
-      const meRow = (): RankRow => ({
-        id: identity?.id ?? "local-trainer",
-        name: identity?.name || "Treinador",
-        level: maxPokeLevel,
-        trainer_level: idle.trainerLevel ?? 1,
-        craft_points: totalCraft,
-        leader_species: team[0]?.species ?? null,
-        leader_rarity: team[0]?.rarity ?? null,
-        guild_name: null,
-      });
+    void (async () => {
       try {
-        await recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
         const top = await fetchTopRanked(300);
-        let rows: RankRow[] = (top as RankedRow[]).map((r) => ({
+        const rows: RankRow[] = (top as RankedRow[]).map((r) => ({
           id: r.user_id,
           name: r.username || "Treinador",
           level: r.trainer_level,
@@ -9873,51 +9864,19 @@ const confirmName = () => {
           guild_name: r.guild_name ?? null,
           skin_url: r.skin_url ?? null,
         }));
-
-        if (rows.length === 0) {
-          const orderCol = rankMode === "craft" ? "craft_points" : "trainer_level";
-          // Sem guild_name: a coluna não existe em `players` e derrubava a query (virava Lv 1).
-          const { data, error } = await gameDb
-            .from("players")
-            .select("id,name,level,trainer_level,craft_points,leader_species,leader_rarity,skin_url")
-            .order(orderCol, { ascending: false })
-            .limit(300);
-          if (error) console.warn("[idle ranked] players:", error.message);
-          rows = (((data as RankRow[] | null) ?? [])).map((r) => ({ ...r, id: String(r.id).split(":")[0] || r.id }));
-        }
-
-        rows = rows.slice(0, 300);
-        // Mistura VOCÊ na base com os valores reais do momento (fica congelado no snapshot).
-        const meId = identity?.id ?? "local-trainer";
-        const myIdx = rows.findIndex((r) => r.id === meId);
-        if (myIdx >= 0) rows[myIdx] = { ...rows[myIdx], ...meRow() };
-        else rows.push(meRow());
-
         if (!cancelled) {
           setRankRows(toRankTop20(rows));
           setRankSnapshotAt(Date.now());
         }
-        try { localStorage.setItem(snapKey, JSON.stringify({ at: Date.now(), rows })); } catch { /* ignore */ }
-      } catch (e) {
-        console.warn("[idle ranked] load:", e);
-        const fallback = [meRow()];
-        if (!cancelled) setRankRows(fallback);
+      } catch (error) {
+        console.warn("[idle ranked] load:", error);
+        if (!cancelled) setRankRows([]);
+      } finally {
+        if (!cancelled) setRankLoading(false);
       }
-      finally { if (!cancelled) setRankLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [rankOpen, rankMode, identity?.id, identity?.name, idle.trainerLevel, idle.craftPoints, idle.collection, team]);
-
-  useEffect(() => {
-    if (isOfflineTest()) return;
-    const t = setTimeout(() => {
-      const collection = idle.collection ?? [];
-      const collectionCraft = collection.reduce((acc, p) => acc + (CRAFT_BY_RARITY[p.rarity] ?? 0), 0);
-      const totalCraft = (idle.craftPoints ?? 0) + collectionCraft;
-      void recordRankedScore(idle.trainerLevel ?? 1, totalCraft, null);
-    }, 4500);
-    return () => clearTimeout(t);
-  }, [idle.trainerLevel, idle.craftPoints, idle.collection]);
+  }, [rankOpen, rankMode, identity?.id]);
   // Ranking do evento Grass Oddish: envia o total de capturas com debounce.
   useEffect(() => {
     const total = idle.grassOddishCaptured ?? 0;
@@ -15922,12 +15881,102 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idle.currentMap]);
+  type MarketServerMutation = {
+    ok?: boolean;
+    reason?: string;
+    server_version?: number;
+    listing_id?: string;
+    item_qty?: number;
+    gold?: number;
+    crystals?: number;
+    safira?: number;
+  };
+  const marketAmount = (value: unknown): number | null => {
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount >= 0 ? Math.floor(amount) : null;
+  };
+  const patchMarketSnapshot = (
+    snapshot: unknown,
+    checkpoint: unknown,
+    itemId: string | null,
+    mutation: MarketServerMutation,
+  ) => {
+    const save = snapshot as { idle?: IdleState };
+    const base = checkpoint as { idle?: IdleState };
+    if (!save.idle || !base.idle) return snapshot;
+    const items = { ...(save.idle.items ?? {}) };
+    const bank = { ...save.idle.bank };
+    const baseItems = base.idle.items ?? {};
+    const baseBank = base.idle.bank ?? { gold: 0, crystals: 0 };
+    const applyServerValue = (server: number, current: number, previous: number) =>
+      Math.max(0, server + current - previous);
+
+    const itemQty = marketAmount(mutation.item_qty);
+    if (itemId && itemQty !== null) {
+      items[itemId] = applyServerValue(itemQty, marketAmount(items[itemId]) ?? 0, marketAmount(baseItems[itemId]) ?? 0);
+    }
+    const gold = marketAmount(mutation.gold);
+    if (gold !== null) {
+      bank.gold = applyServerValue(gold, marketAmount(bank.gold) ?? 0, marketAmount(baseBank.gold) ?? 0);
+    }
+    const crystals = marketAmount(mutation.crystals);
+    if (crystals !== null) {
+      bank.crystals = applyServerValue(crystals, marketAmount(bank.crystals) ?? 0, marketAmount(baseBank.crystals) ?? 0);
+    }
+    const safira = marketAmount(mutation.safira);
+    if (safira !== null) {
+      items.safira_verde = applyServerValue(
+        safira,
+        marketAmount(items.safira_verde) ?? 0,
+        marketAmount(baseItems.safira_verde) ?? 0,
+      );
+    }
+    return { ...save, idle: { ...save.idle, items, bank } };
+  };
+  const runMarketMutation = async (
+    rpcName: "market_list_item" | "market_buy_item" | "market_cancel_listing" | "market_claim_payout",
+    params: Record<string, unknown>,
+    itemId: string | null,
+    required: Array<keyof Pick<MarketServerMutation, "item_qty" | "gold" | "crystals" | "safira">>,
+  ): Promise<{ ok: boolean; reason?: string; data?: MarketServerMutation }> => {
+    if (!cloudBlobReady) return { ok: false, reason: "save_unavailable" };
+    let confirmed: MarketServerMutation | null = null;
+    const result = await runCheckpointMutation(
+      buildFullBlob(),
+      async (expectedVersion) => {
+        const { data, error } = await gameDb.rpc(rpcName, { ...params, p_expected_version: expectedVersion });
+        if (error) return { ok: false, reason: error.message };
+        const response = data as MarketServerMutation | null;
+        if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+        if (response.server_version !== expectedVersion + 1) {
+          throw new Error("market_invalid_server_version");
+        }
+        if (required.some((field) => marketAmount(response[field]) === null)) {
+          throw new Error("market_invalid_server_response");
+        }
+        confirmed = response;
+        return { ok: true, server_version: response.server_version, value: 0 };
+      },
+      (snapshot, _value, checkpoint) => {
+        if (!confirmed) throw new Error("market_confirmation_missing");
+        return patchMarketSnapshot(snapshot, checkpoint, itemId, confirmed);
+      },
+    );
+    return result.ok
+      ? { ok: true, data: confirmed ?? undefined }
+      : { ok: false, reason: result.reason };
+  };
+  const commitMarketIdle = (update: (state: IdleState) => IdleState) => {
+    const next = update(idleRef.current);
+    idleRef.current = next;
+    setIdle(next);
+  };
   const listMarketItem = async (itemId: string, qty: number, price: number, currency: "gold" | "crystal" | "safira" = "gold"): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para anunciar.", "info"); return false; }
     if (!isVip() && currency === "safira") { pushChat("💚 Safira é exclusiva VIP. Não-VIP pode anunciar itens por ouro ou cristal.", "info"); return false; }
     const have = idleRef.current.items?.[itemId] ?? 0;
     if (have < qty) { pushChat("Estoque insuficiente para anunciar.", "info"); return false; }
-    if (qty < 1 || price < 1 || price > 100_000_000) { pushChat("Quantidade ou preço inválido.", "info"); return false; }
+    if (qty < 1 || price < 1 || price > 50_000_000) { pushChat("Quantidade ou preço inválido.", "info"); return false; }
     if (import.meta.env.DEV && isOfflineTest()) {
       const listings = readOfflineItemMarket();
       listings.unshift({
@@ -15940,45 +15989,39 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushChat(`📢 Anúncio local criado: ${qty}x ${itemId} por ${price} ${currency === "gold" ? "ouro" : "cristais"}.`, "cap");
       return true;
     }
-    // Confirma criação com .select().single() — se o insert falhar por RLS/check,
-    // detectamos ANTES de descontar o estoque local. Se retornar row, é seguro debitar.
-    const { data, error } = await supabase
-      .from("market_listings")
-      .insert({
-        seller_id: identity.id,
-        seller_name: identity.name || "Treinador",
-        kind: "item",
-        item_id: itemId,
-        qty,
-        price,
-        currency,
-      })
-      .select("id")
-      .single();
-    if (error || !data?.id) {
-      console.error("[market] insert error", error, { itemId, qty, price, currency });
-      pushChat(`Falha ao anunciar: ${error?.message ?? "resposta vazia — nada foi descontado"}`, "info");
+    const result = await runMarketMutation(
+      "market_list_item",
+      { p_item_id: itemId, p_qty: qty, p_price: price, p_currency: currency },
+      itemId,
+      ["item_qty"],
+    );
+    if (!result.ok) {
+      pushChat(`Falha ao anunciar: ${result.reason ?? "salve novamente e tente de novo"}.`, "info");
       return false;
     }
-    // remove item do estoque local (custódia do anúncio) — só APÓS confirmação da linha
-    setIdle((s) => ({ ...s, items: { ...s.items, [itemId]: Math.max(0, (s.items[itemId] ?? 0) - qty) } }));
+    // O servidor já deixou os itens sob custódia do anúncio; reflete apenas
+    // a mutação confirmada localmente para manter a tela responsiva.
+    commitMarketIdle((s) => ({
+      ...s,
+      items: { ...s.items, [itemId]: Math.max(0, (s.items[itemId] ?? 0) - qty) },
+    }));
     const curLabel = currency === "gold" ? "ouro" : currency === "crystal" ? "💎 cristais" : "💚 safiras";
-    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ${curLabel}. (id ${data.id.slice(0, 8)})`, "cap");
+    const listingId = typeof result.data?.listing_id === "string" ? ` (id ${result.data.listing_id.slice(0, 8)})` : "";
+    pushChat(`📢 Anúncio criado: ${qty}x ${itemId} por ${price} ${curLabel}.${listingId}`, "cap");
     return true;
   };
   const buyMarketListing = async (listing: { id: string; seller_id: string; item_id: string; qty: number; price: number; currency?: "gold" | "crystal" | "safira" }): Promise<boolean> => {
     if (!identity?.id) { pushChat("Faça login para comprar.", "info"); return false; }
     if (listing.seller_id === identity.id) { pushChat("Você não pode comprar seu próprio anúncio.", "info"); return false; }
     const cur = listing.currency ?? "gold";
-    // usa idleRef pra evitar closure stale entre cliques rápidos
-    const cur_state = idleRef.current;
-    if (cur === "gold" && cur_state.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
-    if (cur === "crystal" && cur_state.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
-    if (cur === "safira" && (cur_state.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
     if (isOfflineTest()) {
       const listings = readOfflineItemMarket();
       const found = listings.find((row) => row.id === listing.id && !row.sold_at);
       if (!found) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
+      const curState = idleRef.current;
+      if (cur === "gold" && curState.bank.gold < listing.price) { pushChat("Ouro insuficiente.", "info"); return false; }
+      if (cur === "crystal" && curState.bank.crystals < listing.price) { pushChat("💎 Cristais insuficientes.", "info"); return false; }
+      if (cur === "safira" && (curState.items?.safira_verde ?? 0) < listing.price) { pushChat("💚 Safiras insuficientes.", "info"); return false; }
       found.sold_at = new Date().toISOString();
       found.buyer_id = identity.id;
       writeOfflineItemMarket(listings);
@@ -15993,43 +16036,36 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushChat(`🛒 Compra local: ${listing.qty}x ${listing.item_id} por ${listing.price}.`, "cap");
       return true;
     }
-    // Usa count em vez de .select().maybeSingle() — a policy de SELECT
-    // pode filtrar a linha após sold_at deixar de ser null e retornar data=null
-    // mesmo com o UPDATE tendo funcionado.
-    const { error, count } = await supabase
-      .from("market_listings")
-      .update(
-        { buyer_id: identity.id, sold_at: new Date().toISOString() },
-        { count: "exact" },
-      )
-      .eq("id", listing.id)
-      .is("sold_at", null);
-    if (error) { console.error("[market] buy error", error, listing); pushChat(`Falha ao comprar: ${error.message}`, "info"); return false; }
-    if (!count) { pushChat("Anúncio não está mais disponível.", "info"); return false; }
-    // Rechecagem atômica dentro do setIdle — evita débito duplicado se a UI dispararbuy 2x em paralelo
-    let insufficient = false;
-    setIdle((s) => {
+    const result = await runMarketMutation(
+      "market_buy_item",
+      { p_listing_id: listing.id },
+      listing.item_id,
+      ["item_qty", "gold", "crystals", "safira"],
+    );
+    if (!result.ok) {
+      const message = result.reason === "listing_unavailable"
+        ? "Anúncio não está mais disponível."
+        : result.reason === "insufficient_funds"
+          ? "Saldo insuficiente."
+          : `Falha ao comprar: ${result.reason ?? "tente novamente"}.`;
+      pushChat(message, "info");
+      return false;
+    }
+    commitMarketIdle((s) => {
       const bank = { ...s.bank };
       const items = { ...s.items };
       if (cur === "gold") {
-        if (bank.gold < listing.price) { insufficient = true; return s; }
-        bank.gold -= listing.price;
+        bank.gold = Math.max(0, bank.gold - listing.price);
       } else if (cur === "crystal") {
-        if (bank.crystals < listing.price) { insufficient = true; return s; }
-        bank.crystals -= listing.price;
+        bank.crystals = Math.max(0, bank.crystals - listing.price);
       } else {
-        const sv = s.items?.safira_verde ?? 0;
-        if (sv < listing.price) { insufficient = true; return s; }
-        items.safira_verde = sv - listing.price;
+        items.safira_verde = Math.max(0, (s.items?.safira_verde ?? 0) - listing.price);
       }
       items[listing.item_id] = (s.items[listing.item_id] ?? 0) + listing.qty;
       return { ...s, bank, items };
     });
-    if (insufficient) { pushChat("Saldo mudou — compra abortada, ninguém foi cobrado indevidamente.", "info"); return false; }
     const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "�x} cristais" : "�xa safiras";
     pushChat(`🛒 Comprou ${listing.qty}x ${listing.item_id} por ${listing.price} ${curLabel}.`, "cap");
-    // força persistência imediata da compra (item + débito) — evita perder no F5
-    void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
     return true;
   };
 
@@ -16051,23 +16087,28 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           : { ...s, items: { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + listing.price } });
       return true;
     }
-    const { error, count } = await (supabase as any)
-      .from("market_listings")
-      .update({ payout_claimed: true }, { count: "exact" })
-      .eq("id", listing.id)
-      .eq("seller_id", identity.id)
-      .eq("payout_claimed", false)
-      .not("sold_at", "is", null);
-    if (error) { pushChat(`Falha ao coletar: ${error.message}`, "info"); return false; }
-    if (!count) { pushChat("Este pagamento já foi coletado.", "info"); return false; }
-    setIdle((s) => {
+    const result = await runMarketMutation(
+      "market_claim_payout",
+      { p_listing_id: listing.id },
+      null,
+      ["gold", "crystals", "safira"],
+    );
+    if (!result.ok) {
+      pushChat(
+        result.reason === "payout_unavailable"
+          ? "Este pagamento já foi coletado."
+          : `Falha ao coletar: ${result.reason ?? "tente novamente"}.`,
+        "info",
+      );
+      return false;
+    }
+    commitMarketIdle((s) => {
       if (cur === "gold")    return { ...s, bank: { ...s.bank, gold: s.bank.gold + listing.price } };
       if (cur === "crystal") return { ...s, bank: { ...s.bank, crystals: s.bank.crystals + listing.price } };
       return { ...s, items: { ...s.items, safira_verde: (s.items?.safira_verde ?? 0) + listing.price } };
     });
     const curLabel = cur === "gold" ? "ouro" : cur === "crystal" ? "�x} cristais" : "�xa safiras";
     pushChat(`💰 Recebeu ${listing.price} ${curLabel} pela venda de ${listing.qty}x ${listing.item_id}.`, "cap");
-    void pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench, savedAt: Date.now() });
     return true;
   };
 
@@ -16083,9 +16124,25 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushChat(`Anúncio local cancelado — ${listing.qty}x ${listing.item_id} devolvido.`, "info");
       return true;
     }
-    const { error } = await supabase.from("market_listings").delete().eq("id", listing.id).is("sold_at", null);
-    if (error) { pushChat(`Falha ao cancelar: ${error.message}`, "info"); return false; }
-    setIdle((s) => ({ ...s, items: { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty } }));
+    const result = await runMarketMutation(
+      "market_cancel_listing",
+      { p_listing_id: listing.id },
+      listing.item_id,
+      ["item_qty"],
+    );
+    if (!result.ok) {
+      pushChat(
+        result.reason === "listing_unavailable"
+          ? "Este anúncio não está mais disponível."
+          : `Falha ao cancelar: ${result.reason ?? "tente novamente"}.`,
+        "info",
+      );
+      return false;
+    }
+    commitMarketIdle((s) => ({
+      ...s,
+      items: { ...s.items, [listing.item_id]: (s.items[listing.item_id] ?? 0) + listing.qty },
+    }));
     pushChat(`Anúncio cancelado — ${listing.qty}x ${listing.item_id} devolvido.`, "info");
     return true;
   };
@@ -17614,19 +17671,25 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         selectedPetUid={petDetailUid} onSelectPet={(uid) => { playClick(); setPetDetailUid(uid); }}
         icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: synergyDockIcon, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
         forgeNotification={Object.values(forgeNotifications).some(Boolean)}
-        onTab={(next) => { playClick(); if (next === "market") { pushChat("🛒 Mercado temporariamente bloqueado.", "info"); return; } setTab((current) => current === next ? "batalha" : next); }}
+        onTab={(next) => { playClick(); setTab((current) => current === next ? "batalha" : next); }}
         onProfile={() => { playClick(); setTrainerCardOpen(true); }}
         onMap={() => { playClick(); setMapTeleportOpen(true); }}
         onEvents={() => { playClick(); setTab("evento"); }}
         mapEditorActive={mapEditorOpen}
-        // O editor existe apenas no Vite local; jogadores na versão publicada
-        // recebem o mapa pronto, sem controles para alterar objetos ou spawns.
-        mapEditorEnabled={import.meta.env.DEV}
-        onMapEditor={() => { if (!import.meta.env.DEV) return; playClick(); setMapEditorOpen((open) => !open); setAuto(false); setTab("batalha"); }}
+        // O editor é pessoal: somente a conta proprietária pode abrir e alterar
+        // objetos ou spawns, inclusive em produção.
+        mapEditorEnabled={canUseMapEditor}
+        onMapEditor={() => {
+          if (!canUseMapEditor) return;
+          playClick();
+          setMapEditorOpen((open) => !open);
+          setAuto(false);
+          setTab("batalha");
+        }}
         onBigMap={() => { playClick(); setBigMapOpen(true); }}
         onSettings={() => { playClick(); setTab("config"); }}
         onCombatSettings={() => { playClick(); setShowAutoSettings((open) => !open); }}
-        onRank={() => { playClick(); setTemporarilyClosed("Ranking"); }}
+        onRank={() => { playClick(); setRankOpen(true); }}
         onQuests={() => { playClick(); setTab("tarefas"); }}
         onClaimQuest={claimQuest}
         onAuto={() => {
@@ -19772,7 +19835,7 @@ A sucata afundou com o casco.
             })()}
             <button onClick={() => { playClick(); setTab("config"); }} style={{ ...zoomBtn, marginTop: 6, fontSize: 14 }} title="Configurações">⚙</button>
             <button
-              onClick={() => { playClick(); if (isOfflineTest()) setRankOpen(true); else setTemporarilyClosed("Ranking"); }}
+              onClick={() => { playClick(); setRankOpen(true); }}
               style={{
                 ...zoomBtn,
                 padding: 0,
@@ -20966,7 +21029,7 @@ A sucata afundou com o casco.
                       Os maiores treinadores do nosso mundo!
                     </div>
                     <div style={{ fontSize: 10, opacity: 0.75, marginTop: 2 }}>
-                      Top {RANK_TOP_N} · 📸 {rankSnapshotAt ? new Date(rankSnapshotAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"} · atualiza às 17h
+                      Top {RANK_TOP_N} · servidor · atualizado {rankSnapshotAt ? new Date(rankSnapshotAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"}
                     </div>
                     <button
                       onClick={() => setRankOpen(false)}
@@ -24387,18 +24450,35 @@ A sucata afundou com o casco.
                     teleportTimerRef.current = setTimeout(() => {
                       const currentError = mapEntryError(idleRef.current, destination.id);
                       if (currentError) { pushChat(currentError, "info"); setTeleportTransition(null); teleportTimerRef.current = null; return; }
-                      setIdle((state) => applyMapEntry(state, destination.id as IdleMapId));
-                      // Laboratório: chega fora da máquina central (ponto andável verificado).
-                      if (destination.id === "laboratorio") setTrainerPos({ x: 499, y: 416 });
-                      else if (destination.id === "sa") setTrainerPos(PROF_SPAWNS.sa);
-                      else setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                       // Emerald Global sempre começa dentro da Casinha. A porta
+                       // é a única transição para o mapa perigoso, evitando nascer
+                       // numa célula fatal enquanto a máscara do ARV carrega.
+                       setIdle((state) => {
+                         const entered = applyMapEntry(state, destination.id as IdleMapId);
+                         return destination.id === "arv"
+                           ? { ...entered, currentMap: "casinha" as IdleMapId }
+                           : entered;
+                       });
+                       // Laboratório: chega fora da máquina central (ponto andável verificado).
+                       if (destination.id === "arv") {
+                         const arrival = { x: 469, y: 541 };
+                         trainerPosRef.current = arrival;
+                         setTrainerPos(arrival);
+                       } else if (destination.id === "laboratorio") setTrainerPos({ x: 499, y: 416 });
+                       else if (destination.id === "sa") setTrainerPos(PROF_SPAWNS.sa);
+                       else setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
                       walkTargetRef.current = null;
                       setWalkingTo(null);
                       setEnemies([]);
                       setChests([]);
                       setMapOrbs([]);
                       clearBattleScene();
-                      pushChat(`Teleportado para ${m.name}!${destination.id === "sa" ? " (-1.000 ouro · -10 Pepitas de Ouro)" : tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`, "info");
+                       pushChat(
+                         destination.id === "arv"
+                           ? `Teleportado para a Casinha de Emerald Global!${tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`
+                           : `Teleportado para ${m.name}!${destination.id === "sa" ? " (-1.000 ouro · -10 Pepitas de Ouro)" : tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`,
+                         "info",
+                       );
                       setTeleportTransition(null);
                       teleportTimerRef.current = null;
                     }, 4000);
@@ -24725,7 +24805,7 @@ A sucata afundou com o casco.
               </span>
             </button>
             {([
-              { id: "market",   label: "Marketplace", img: navMarket, disabled: !isOfflineTest() },
+              { id: "market",   label: "Marketplace", img: navMarket },
               { id: "wallet",   label: "Banco Medieval", img: navWallet },
               { id: "eventoLiga", label: "Torre Elemental", img: cardTorreFrenteUrl, highlight: true },
             ] as const).map((t) => {
@@ -24764,52 +24844,15 @@ A sucata afundou com o casco.
                   </button>
                 );
               }
-              const isDisabled = (t as { disabled?: boolean }).disabled === true;
               const active = tab === t.id;
-              if (!isDisabled) {
-                return (
-                  <BottomNavBtn
-                    key={t.id}
-                    label={t.label}
-                    img={t.img}
-                    active={active}
-                    onClick={() => { playClick(); setTab(t.id as typeof tab); }}
-                  />
-                );
-              }
               return (
-                <button
+                <BottomNavBtn
                   key={t.id}
-                  onClick={() => { playClick(); pushChat("🛒 Mercado temporariamente bloqueado.", "info"); }}
-                  title={`${t.label} (em breve)`}
-                  className="bottomnav-btn"
-                  style={{
-                    flex: 1, maxWidth: 120, minWidth: 0,
-                    background: "transparent", border: "none", padding: "3px 2px 2px", cursor: "not-allowed",
-                    borderRadius: 10, display: "flex", flexDirection: "column",
-                    alignItems: "center", gap: 2, position: "relative", opacity: 0.55,
-                  }}
-                >
-                  <img
-                    src={t.img}
-                    alt=""
-                    width={24}
-                    height={24}
-                    style={{
-                      width: 24, height: 24, imageRendering: "pixelated",
-                      filter: "grayscale(1) brightness(0.7) drop-shadow(0 2px 2px rgba(0,0,0,0.6))",
-                    }}
-                  />
-                  <span style={{ fontSize: 9, fontWeight: 500, letterSpacing: 0.3, color: "#6a5a70" }}>
-                    {t.label}
-                  </span>
-                  <span style={{
-                    position: "absolute", top: 2, right: 4,
-                    fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
-                    color: "#ffd66b", background: "rgba(0,0,0,0.55)",
-                    padding: "1px 4px", borderRadius: 4, border: "1px solid #ffd66b55",
-                  }}>EM BREVE</span>
-                </button>
+                  label={t.label}
+                  img={t.img}
+                  active={active}
+                  onClick={() => { playClick(); setTab(t.id as typeof tab); }}
+                />
               );
             })}
           </div>
@@ -26322,6 +26365,7 @@ onClick={(e) => {
             { id: "colecao", icon: "📖", label: "Coleção" },
             { id: "pokedex", icon: "📕", label: "Pokédex" },
             { id: "wallet", icon: "🏦", label: "Banco" },
+            { id: "market", icon: "🏪", label: "Marketplace" },
           ] as const).map((m) => (
             <button
               key={m.id}
@@ -26345,13 +26389,6 @@ onClick={(e) => {
           >
             <span className="mob-menuopt-icon">☁️</span>
             <span>Salvar na nuvem</span>
-          </button>
-          <button
-            className="mob-menuopt mob-menuopt-off"
-            onClick={() => { playClick(); pushChat("🛒 Mercado temporariamente bloqueado.", "info"); }}
-          >
-            <span className="mob-menuopt-icon">🏪</span>
-            <span>Marketplace (em breve)</span>
           </button>
         </div>
       </div>
@@ -29499,7 +29536,7 @@ function TabOverlay({
     tab === "pokedex"   ? "POKÉDEX" :
     tab === "loja"      ? "LOJA" :
     tab === "wallet"    ? "BANCO MEDIEVAL" :
-    tab === "market"    ? "MERCADO BLOQUEADO" :
+    tab === "market"    ? "MERCADO ENTRE TREINADORES" :
 
     tab === "melhorias" ? "MELHORIAS" :
     tab === "config"    ? "CONFIGURAÇÕES" :
@@ -31995,16 +32032,7 @@ function TabOverlay({
         </div></div>
       )}
 
-      {tab === "market" && isOfflineTest() && pokemonMarketNode}
-      {tab === "market" && !isOfflineTest() && (
-        <div style={{ minHeight: 320, display: "grid", placeItems: "center", textAlign: "center", padding: 24 }}>
-          <div>
-            <div style={{ fontSize: 54, filter: "grayscale(1)", opacity: 0.7 }}>🔒</div>
-            <div style={{ marginTop: 12, color: "#f5cf6b", fontSize: 20, fontWeight: 900 }}>MERCADO BLOQUEADO</div>
-            <div style={{ marginTop: 8, color: "#c8b8d0", fontSize: 13 }}>Este sistema está temporariamente indisponível.</div>
-          </div>
-        </div>
-      )}
+      {tab === "market" && pokemonMarketNode}
 
 
 
@@ -32586,28 +32614,16 @@ function MarketScreen({
       return;
     }
     const [openRes, soldRes] = await Promise.all([
-      supabase
-        .from("market_listings")
-        .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at")
-        .is("sold_at", null)
-        .order("created_at", { ascending: false })
-        .limit(100),
+      (supabase as any).rpc("get_market_listings", { p_limit: 100 }),
       identity?.id
-        ? (supabase as any)
-            .from("market_listings")
-            .select("id, seller_id, seller_name, item_id, qty, price, currency, created_at, sold_at, payout_claimed")
-            .eq("seller_id", identity.id)
-            .eq("payout_claimed", false)
-            .not("sold_at", "is", null)
-            .order("sold_at", { ascending: false })
-            .limit(50)
+        ? (supabase as any).rpc("get_market_payouts", { p_limit: 50 })
         : Promise.resolve({ data: [], error: null } as any),
     ]);
     setLoading(false);
     if (!openRes.error && openRes.data) setListings(openRes.data as unknown as MarketListing[]);
     if (!soldRes.error && soldRes.data) setSoldPayouts(soldRes.data as unknown as MarketListing[]);
   };
-  useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, [identity?.id]);
 
   const mine = listings.filter((l) => l.seller_id === (identity?.id ?? ""));
   const others = listings.filter((l) => l.seller_id !== (identity?.id ?? ""));
