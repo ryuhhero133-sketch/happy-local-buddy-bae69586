@@ -127,7 +127,11 @@ import catPotionsAsset from "@/assets/cat2-potions.png.asset.json";
 import catBooksAsset from "@/assets/cat2-books.png.asset.json";
 import catEggsAsset from "@/assets/cat2-eggs.png.asset.json";
 import catOtherAsset from "@/assets/cat2-other.png.asset.json";
-import { CashShopModal } from "@/components/CashShopModal";
+import {
+  RedCrystalCashShopModal,
+  type RedCrystalPurchaseResult,
+  type RedCrystalShopProductId,
+} from "@/components/RedCrystalCashShopModal";
 import { BlackMiticEggSprite, BlackMiticEggHud, BlackMiticEggQuickIcon, BLACK_EGG_ITEM_ID, hasReadyEgg, seedReadyPlusEggs, rollRewardMythicEggTraits } from "@/components/BlackMiticEggPet";
 import { AncestralOrbitAura } from "@/components/AncestralOrbitAura";
 import { PreregEggHud } from "@/components/PreregEggHud";
@@ -3321,6 +3325,149 @@ function IdlePage() {
     restingBench,
     savedAt: Date.now(),
   }), [restingBench]);
+  type RedCrystalCashShopMutation = {
+    ok?: boolean;
+    reason?: string;
+    server_version?: number;
+    red_crystals?: number;
+    item_id?: string | null;
+    item_qty?: number | null;
+    skin?: string | null;
+  };
+  const redCrystalCashAmount = (value: unknown): number | null => {
+    return typeof value === "number"
+      && Number.isSafeInteger(value)
+      && value >= 0
+      && value <= 999_999
+      ? value
+      : null;
+  };
+  const patchRedCrystalCashShopSnapshot = (
+    snapshot: unknown,
+    checkpoint: unknown,
+    mutation: RedCrystalCashShopMutation,
+  ) => {
+    const save = snapshot as { idle?: IdleState };
+    const base = checkpoint as { idle?: IdleState };
+    if (!save.idle || !base.idle) throw new Error("cash_shop_snapshot_invalid");
+
+    const serverRedCrystals = redCrystalCashAmount(mutation.red_crystals);
+    if (serverRedCrystals === null) throw new Error("cash_shop_red_crystals_invalid");
+
+    const items = { ...(save.idle.items ?? {}) };
+    const baseItems = base.idle.items ?? {};
+    const reconcileItem = (server: number, current: unknown, initial: unknown) => {
+      const currentAmount = redCrystalCashAmount(current) ?? 0;
+      const initialAmount = redCrystalCashAmount(initial) ?? 0;
+      return Math.max(0, Math.min(999_999, server + currentAmount - initialAmount));
+    };
+
+    items.cr_red = reconcileItem(serverRedCrystals, items.cr_red, baseItems.cr_red);
+
+    if (mutation.item_id != null) {
+      const allowedItems = new Set([
+        "pokeball", "ultraball", "book_atk", "book_exp", "book_vip", "egg_epic",
+        "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
+      ]);
+      const itemQty = redCrystalCashAmount(mutation.item_qty);
+      if (!allowedItems.has(mutation.item_id) || itemQty === null) {
+        throw new Error("cash_shop_item_invalid");
+      }
+      items[mutation.item_id] = reconcileItem(itemQty, items[mutation.item_id], baseItems[mutation.item_id]);
+    } else if (mutation.item_qty != null) {
+      throw new Error("cash_shop_item_invalid");
+    }
+
+    let unlockedSkins = Array.isArray(save.idle.unlockedSkins) ? [...save.idle.unlockedSkins] : [];
+    if (!unlockedSkins.includes("default")) unlockedSkins.unshift("default");
+    if (mutation.skin === "vegeta" && !unlockedSkins.includes("vegeta")) {
+      unlockedSkins.push("vegeta");
+    } else if (mutation.skin != null && mutation.skin !== "vegeta") {
+      throw new Error("cash_shop_skin_invalid");
+    }
+
+    return { ...save, idle: { ...save.idle, items, unlockedSkins } };
+  };
+  const buyRedCrystalCashProduct = async (
+    productId: RedCrystalShopProductId,
+  ): Promise<RedCrystalPurchaseResult> => {
+    if (!identity?.id || !cloudBlobReady) {
+      return { ok: false, message: "Entre em uma conta e aguarde o save carregar para comprar." };
+    }
+
+    const expectedItems: Record<RedCrystalShopProductId, string | null> = {
+      pokeball_50: "pokeball",
+      pokeball_100: "pokeball",
+      ultraball_50: "ultraball",
+      book_atk: "book_atk",
+      book_exp: "book_exp",
+      orb_xp_minor: "orb_xp_minor",
+      orb_xp_major: "orb_xp_major",
+      orb_xp_supreme: "orb_xp_supreme",
+      orb_team: "orb_team",
+      vip_epic: "book_vip",
+      egg_epic: "egg_epic",
+      vegeta_skin: null,
+    };
+    let confirmed: RedCrystalCashShopMutation | null = null;
+    let checkpointIdle: IdleState | null = null;
+    const result = await runCheckpointMutation(
+      buildFullBlob(),
+      async (expectedVersion) => {
+        const { data, error } = await gameDb.rpc("buy_red_crystal_cash_product", {
+          p_product_id: productId,
+          p_expected_version: expectedVersion,
+        });
+        if (error) return { ok: false, reason: error.message };
+        const response = data as RedCrystalCashShopMutation | null;
+        if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+        if (response.server_version !== expectedVersion + 1
+          || redCrystalCashAmount(response.red_crystals) === null
+          || response.item_id !== expectedItems[productId]
+          || (productId === "vegeta_skin"
+            ? response.skin !== "vegeta" || response.item_qty != null
+            : response.skin != null || redCrystalCashAmount(response.item_qty) === null)
+        ) {
+          throw new Error("cash_shop_invalid_server_response");
+        }
+        confirmed = response;
+        return { ok: true, server_version: response.server_version, value: response.red_crystals! };
+      },
+      (snapshot, _value, checkpoint) => {
+        if (!confirmed) throw new Error("cash_shop_confirmation_missing");
+        const base = checkpoint as { idle?: IdleState };
+        if (!base.idle) throw new Error("cash_shop_checkpoint_invalid");
+        checkpointIdle = base.idle;
+        return patchRedCrystalCashShopSnapshot(snapshot, checkpoint, confirmed);
+      },
+    );
+
+    if (!result.ok || !confirmed || !checkpointIdle) {
+      const messages: Record<string, string> = {
+        insufficient_red_crystals: "Você não tem Cristais Vermelhos suficientes.",
+        already_owned: "A Skin Vegeta já foi adquirida nesta conta.",
+        inventory_cap: "Sua mochila atingiu o limite desse item.",
+        stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+        save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+        save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
+        checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
+        confirmation_unknown: "Não foi possível confirmar a compra. Recarregue para consultar o estado oficial.",
+      };
+      return { ok: false, message: messages[result.reason ?? ""] ?? "A compra não foi concluída. Tente novamente." };
+    }
+
+    setIdle((current) => {
+      const patched = patchRedCrystalCashShopSnapshot({ idle: current }, { idle: checkpointIdle }, confirmed!);
+      const next = (patched as { idle: IdleState }).idle;
+      idleRef.current = next;
+      return next;
+    });
+    const message = productId === "vegeta_skin"
+      ? "Skin Vegeta desbloqueada permanentemente!"
+      : "Compra confirmada e item entregue na Mochila.";
+    pushChat(`🔴 ${message}`, "cap");
+    return { ok: true, message };
+  };
   const claimPreregEgg = async () => {
     if (preregBusy || preregReward || !cloudBlobReady) return;
     setPreregBusy(true);
@@ -17783,7 +17930,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onCapture={() => { playClick(); setIdle((state) => ({ ...state, autoBattle: { ...(state.autoBattle ?? { enabled: true, preferredBall: "auto", captureHpPct: 1 }), useBall: !(state.autoBattle?.useBall ?? true) } })); }}
         targetsOpen={hudTargetsOpen} onTargets={() => setHudTargetsOpen((open) => !open)}
         onForge={() => { playClick(); setForgeWindowOpen(true); setForgeMinimized(false); setForgeShowOrbit(false); }}
-        onSave={() => { void tryManualCloudSave(); }} onShop={() => setTemporarilyClosed("Loja Cash")} onGuild={() => setTab("guilda")}
+        onSave={() => { void tryManualCloudSave(); }} onShop={() => { playClick(); setCashShopOpen(true); }} onGuild={() => setTab("guilda")}
         onCode={() => { setCodeOpen(true); setCodeMsg(null); }}
         mountActive={(idle.mountUntil ?? 0) > now}
         mountOn={!!idle.mountOn && (idle.mountUntil ?? 0) > now}
@@ -28717,41 +28864,14 @@ onClick={(e) => {
       {/* Guia do Professor fica abaixo do minimapa, dentro do GameHud. */}
       <PreregEggHud open={preregHudOpen} onClose={() => setPreregHudOpen(false)} reward={preregReward} now={preregNow} busy={preregBusy} error={preregError} delivered={!!preregReward && idle.preregRewardDeliveredId === preregReward.pokemon_id} onHatch={() => void hatchPreregEgg()} />
 
-      {/* ============ LOJINHA CASH ============ */}
-      <CashShopModal
+      {/* ============ LOJA CASH — CRISTAL VERMELHO ============ */}
+      <RedCrystalCashShopModal
         open={cashShopOpen}
         onClose={() => setCashShopOpen(false)}
-        identity={identity ? { id: identity.id, name: identity.name || "Treinador" } : null}
-        wallet={{
-          coins: idle.bank.gold,
-          crystals: idle.bank.crystals,
-          level: idle.trainerLevel ?? 1,
-          xp: idle.trainerXp ?? 0,
-          xpNext: trainerXpToNext(idle.trainerLevel ?? 1),
-          safiras: idle.items?.safira_verde ?? 0,
-        }}
-        onSpendSafiras={(n) => {
-          const cur = idle.items?.safira_verde ?? 0;
-          if (cur < n) return false;
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), safira_verde: (s.items?.safira_verde ?? 0) - n },
-          }));
-          return true;
-        }}
-
-        onGrantCoins={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, gold: s.bank.gold + n } }))}
-        onGrantCrystals={(n) => setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals + n } }))}
-        onGrantItem={(id, qty) => {
-          setIdle((s) => ({
-            ...s,
-            items: { ...(s.items ?? {}), [id]: (s.items?.[id] ?? 0) + qty },
-          }));
-        }}
-        codeInput={codeInput}
-        setCodeInput={setCodeInput}
-        codeMsg={codeMsg}
-        onRedeemCode={() => redeemCrystalCode()}
+        redCrystals={idle.items?.cr_red ?? 0}
+        ready={cloudBlobReady && !!identity?.id}
+        ownsVegeta={idle.unlockedSkins?.includes("vegeta") ?? false}
+        onPurchase={buyRedCrystalCashProduct}
       />
 
       <BlackMiticEggHud

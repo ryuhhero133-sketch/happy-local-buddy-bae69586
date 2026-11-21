@@ -1,0 +1,372 @@
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { assetUrlFromJson } from "@/lib/assetUrl";
+import crystalRedImg from "@/assets/materials/cristal-red.png";
+import pokeballImg from "@/assets/items/icon-pokeball.png";
+import ultraballImg from "@/assets/items/icon-ultraball.png";
+import bookAtkImg from "@/assets/icons/book-atk.png";
+import bookExpImg from "@/assets/icons/book-exp.png";
+import vipEpicImg from "@/ambiente/Vip Epic.png";
+import vegetaImg from "@/CHAR/vegeta-profile.png";
+import eggImg from "@/CHAR/kg/Drop card/CARD EGG.png";
+import orbMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
+import orbMajorAsset from "@/assets/orb-xp-major.png.asset.json";
+import orbSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
+import orbTeamAsset from "@/assets/orb-xp-team.png.asset.json";
+
+const orbMinorImg = assetUrlFromJson(orbMinorAsset);
+const orbMajorImg = assetUrlFromJson(orbMajorAsset);
+const orbSupremeImg = assetUrlFromJson(orbSupremeAsset);
+const orbTeamImg = assetUrlFromJson(orbTeamAsset);
+
+export const RED_CRYSTAL_SHOP_PRODUCTS = [
+  {
+    id: "pokeball_50",
+    name: "Pacote Poké Ball ×50",
+    description: "50 Poké Balls utilizáveis em combate.",
+    price: 300,
+    image: pokeballImg,
+    accent: "#ff6b6b",
+    tag: "BOLAS",
+  },
+  {
+    id: "pokeball_100",
+    name: "Pacote Poké Ball ×100",
+    description: "100 Poké Balls utilizáveis em combate.",
+    price: 1_000,
+    image: pokeballImg,
+    accent: "#ff9f43",
+    tag: "BOLAS",
+  },
+  {
+    id: "ultraball_50",
+    name: "Pacote Ultra Ball ×50",
+    description: "50 Ultra Balls com alta chance de captura.",
+    price: 2_500,
+    image: ultraballImg,
+    accent: "#ffd166",
+    tag: "BOLAS",
+  },
+  {
+    id: "book_atk",
+    name: "Livro de Ataque",
+    description: "Use na Mochila para ganhar +10% de dano permanente.",
+    price: 500,
+    image: bookAtkImg,
+    accent: "#ff5b5b",
+    tag: "LIVRO",
+  },
+  {
+    id: "book_exp",
+    name: "Livro de EXP",
+    description: "Use na Mochila: +30% de EXP por 1 hora.",
+    price: 1_000,
+    image: bookExpImg,
+    accent: "#67d9ff",
+    tag: "LIVRO",
+  },
+  {
+    id: "orb_xp_minor",
+    name: "Orb Menor",
+    description: "Use na Mochila: +10% de EXP por 1 hora.",
+    price: 2_000,
+    image: orbMinorImg,
+    accent: "#7ce38b",
+    tag: "ORB",
+  },
+  {
+    id: "orb_xp_major",
+    name: "Orb Maior",
+    description: "Use na Mochila: +20% de EXP por 1 hora.",
+    price: 2_000,
+    image: orbMajorImg,
+    accent: "#b78cff",
+    tag: "ORB",
+  },
+  {
+    id: "orb_xp_supreme",
+    name: "Orb Supremo",
+    description: "Use na Mochila: +30% de EXP por 1 hora.",
+    price: 2_000,
+    image: orbSupremeImg,
+    accent: "#ffd166",
+    tag: "ORB",
+  },
+  {
+    id: "orb_team",
+    name: "Orb de Time",
+    description: "Use na Mochila: todo o time ganha EXP por 3 horas.",
+    price: 2_000,
+    image: orbTeamImg,
+    accent: "#fb8cff",
+    tag: "ORB",
+  },
+  {
+    id: "vip_epic",
+    name: "VIP EPIC · 1 hora",
+    description: "Livro VIP usável: +20% de Ouro e EXP durante 1 hora.",
+    price: 10_000,
+    image: vipEpicImg,
+    accent: "#f7c948",
+    tag: "VIP",
+  },
+  {
+    id: "egg_epic",
+    name: "Ovo Épico Aleatório",
+    description: "Chocar na Mochila para sortear um Pokémon de alto nível de raridade.",
+    price: 10_000,
+    image: eggImg,
+    accent: "#bd8cff",
+    tag: "OVO",
+  },
+  {
+    id: "vegeta_skin",
+    name: "Skin Vegeta",
+    description: "Desbloqueio permanente e exclusivo para usar na aba Início.",
+    price: 50_000,
+    image: vegetaImg,
+    accent: "#f6bd60",
+    tag: "SKIN ÚNICA",
+    oneTime: true,
+  },
+] as const;
+
+export type RedCrystalShopProductId = typeof RED_CRYSTAL_SHOP_PRODUCTS[number]["id"];
+
+export type RedCrystalPurchaseResult = {
+  ok: boolean;
+  message: string;
+};
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  redCrystals: number;
+  ready: boolean;
+  ownsVegeta: boolean;
+  onPurchase: (productId: RedCrystalShopProductId) => Promise<RedCrystalPurchaseResult>;
+};
+
+export function RedCrystalCashShopModal({
+  open,
+  onClose,
+  redCrystals,
+  ready,
+  ownsVegeta,
+  onPurchase,
+}: Props) {
+  const [pendingId, setPendingId] = useState<RedCrystalShopProductId | null>(null);
+  const [notice, setNotice] = useState<RedCrystalPurchaseResult | null>(null);
+
+  if (!open || typeof document === "undefined") return null;
+
+  const buy = async (productId: RedCrystalShopProductId) => {
+    if (pendingId) return;
+    setPendingId(productId);
+    setNotice(null);
+    try {
+      setNotice(await onPurchase(productId));
+    } catch {
+      setNotice({ ok: false, message: "Não foi possível concluir a compra. Tente novamente." });
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  return createPortal(
+    <div
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 60000,
+        display: "grid",
+        placeItems: "center",
+        padding: 12,
+        background: "rgba(3, 5, 12, 0.86)",
+        backdropFilter: "blur(10px)",
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="red-crystal-cash-shop-title"
+        style={{
+          width: "min(1060px, 100%)",
+          maxHeight: "min(92vh, 830px)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          border: "1px solid rgba(255, 95, 95, .65)",
+          borderRadius: 18,
+          color: "#fff8f4",
+          background: "radial-gradient(circle at 18% 0%, rgba(171, 31, 55, .43), transparent 32%), radial-gradient(circle at 88% 100%, rgba(109, 36, 41, .34), transparent 37%), linear-gradient(135deg, #180b16, #080b16 58%, #160b12)",
+          boxShadow: "0 20px 80px rgba(0, 0, 0, .72), 0 0 42px rgba(255, 69, 69, .23)",
+        }}
+      >
+        <header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "14px 16px",
+            borderBottom: "1px solid rgba(255,255,255,.1)",
+            background: "rgba(0,0,0,.28)",
+          }}
+        >
+          <img
+            src={crystalRedImg}
+            alt=""
+            width={44}
+            height={44}
+            style={{ width: 44, height: 44, objectFit: "contain", filter: "drop-shadow(0 0 9px #ff4559)" }}
+          />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 id="red-crystal-cash-shop-title" style={{ margin: 0, fontSize: "clamp(18px, 3vw, 25px)", fontWeight: 950, letterSpacing: ".06em", color: "#ffe3df" }}>
+              LOJA CASH
+            </h2>
+            <p style={{ margin: "2px 0 0", color: "#ffc2bc", fontSize: 12, lineHeight: 1.35 }}>
+              Use Cristais Vermelhos coletados nos mapas. Entrega imediata na Mochila.
+            </p>
+          </div>
+          <div
+            aria-label={`${redCrystals.toLocaleString("pt-BR")} Cristais Vermelhos`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 10px",
+              borderRadius: 10,
+              border: "1px solid rgba(255, 113, 113, .55)",
+              background: "rgba(117, 18, 30, .37)",
+              color: "#ffe5e2",
+              fontWeight: 900,
+              fontSize: 13,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <img src={crystalRedImg} alt="" width={20} height={20} style={{ width: 20, height: 20, objectFit: "contain" }} />
+            {Math.max(0, Math.floor(redCrystals)).toLocaleString("pt-BR")}
+          </div>
+          <button
+            type="button"
+            aria-label="Fechar Loja Cash"
+            onClick={onClose}
+            style={{
+              width: 34,
+              height: 34,
+              border: "1px solid rgba(255,255,255,.18)",
+              borderRadius: 9,
+              color: "#fff",
+              background: "rgba(255,255,255,.06)",
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+            }}
+          >×</button>
+        </header>
+
+        <div style={{ overflowY: "auto", padding: "14px 16px 20px" }}>
+          {!ready && (
+            <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255, 207, 103, .5)", color: "#ffe09b", background: "rgba(108, 72, 22, .28)", fontSize: 12, fontWeight: 700 }}>
+              ⏳ Entre em uma conta e aguarde o save carregar para comprar com segurança.
+            </div>
+          )}
+          {notice && (
+            <div
+              role="status"
+              style={{
+                marginBottom: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: `1px solid ${notice.ok ? "rgba(104, 229, 160, .62)" : "rgba(255, 128, 128, .65)"}`,
+                background: notice.ok ? "rgba(32, 132, 79, .26)" : "rgba(151, 35, 45, .3)",
+                color: notice.ok ? "#b8ffd5" : "#ffd1d1",
+                fontSize: 12,
+                fontWeight: 750,
+              }}
+            >
+              {notice.ok ? "✓ " : "⚠ "}{notice.message}
+            </div>
+          )}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+              gap: 10,
+            }}
+          >
+            {RED_CRYSTAL_SHOP_PRODUCTS.map((product) => {
+              const alreadyOwned = !!product.oneTime && ownsVegeta;
+              const unaffordable = redCrystals < product.price;
+              const buying = pendingId === product.id;
+              const disabled = !ready || alreadyOwned || unaffordable || !!pendingId;
+              return (
+                <article
+                  key={product.id}
+                  style={{
+                    position: "relative",
+                    minHeight: 252,
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                    padding: 12,
+                    borderRadius: 13,
+                    border: `1px solid ${alreadyOwned ? "rgba(117, 255, 178, .48)" : `${product.accent}85`}`,
+                    background: "linear-gradient(150deg, rgba(255,255,255,.1), rgba(255,255,255,.025) 38%, rgba(0,0,0,.3))",
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,.09), 0 8px 24px ${product.accent}18`,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, minHeight: 80 }}>
+                    <div style={{ width: 70, height: 70, flex: "0 0 70px", display: "grid", placeItems: "center", borderRadius: 11, border: `1px solid ${product.accent}70`, background: "rgba(0,0,0,.3)" }}>
+                      <img src={product.image} alt="" width={64} height={64} style={{ width: 64, height: 64, objectFit: "contain", imageRendering: "auto", filter: `drop-shadow(0 0 9px ${product.accent}88)` }} />
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 6px", borderRadius: 99, color: product.accent, border: `1px solid ${product.accent}80`, background: "rgba(0,0,0,.22)", fontSize: 9, fontWeight: 950, letterSpacing: ".1em" }}>
+                        {product.tag}
+                      </span>
+                      <h3 style={{ margin: 0, color: "#fff", fontSize: 14, lineHeight: 1.16, fontWeight: 900 }}>{product.name}</h3>
+                    </div>
+                  </div>
+                  <p style={{ margin: "10px 0", minHeight: 48, color: "#e9d9db", fontSize: 11.5, lineHeight: 1.38 }}>
+                    {product.description}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 9, marginTop: "auto" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#ffe3e0", fontWeight: 950, fontSize: 14 }}>
+                      <img src={crystalRedImg} alt="" width={19} height={19} style={{ width: 19, height: 19, objectFit: "contain" }} />
+                      {product.price.toLocaleString("pt-BR")}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void buy(product.id)}
+                      disabled={disabled}
+                      style={{
+                        minWidth: 89,
+                        padding: "9px 10px",
+                        border: "none",
+                        borderRadius: 9,
+                        background: disabled ? "rgba(255,255,255,.1)" : `linear-gradient(135deg, ${product.accent}, #b91c3a)`,
+                        color: disabled ? "rgba(255,255,255,.42)" : "#140a0e",
+                        cursor: disabled ? "not-allowed" : "pointer",
+                        fontSize: 10,
+                        fontWeight: 950,
+                        letterSpacing: ".05em",
+                      }}
+                    >
+                      {buying ? "COMPRANDO…" : alreadyOwned ? "ADQUIRIDA" : unaffordable ? "FALTAM CRISTAIS" : "COMPRAR"}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    </div>,
+    document.body,
+  );
+}
