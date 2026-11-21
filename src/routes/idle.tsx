@@ -7859,6 +7859,16 @@ const confirmName = () => {
   const blackAwakeningCodeBusyRef = useRef(false);
   const gokuSkinCodeBusyRef = useRef(false);
   const vegetaSkinCodeBusyRef = useRef(false);
+  const globalRewardVoucherBusyRef = useRef(false);
+  type GlobalRewardVoucherResponse = {
+    ok?: boolean;
+    reason?: string;
+    server_version?: number;
+    saved_at?: number;
+    reward_kind?: "ancestral_tickets" | "vip_annual";
+    item_id?: "ticket_ancestral" | "book_vip_60";
+    item_qty?: number;
+  };
   const normalizeCode = (value: string) => value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -8015,6 +8025,117 @@ const confirmName = () => {
           setCodeMsg({ kind: "err", text: message });
         } finally {
           mythicEggCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
+    // Vouchers promocionais globais: o código legível nunca entra no bundle.
+    // O servidor armazena apenas seu hash e concede o item junto da baixa
+    // atômica do voucher, portanto só uma conta de todo o jogo consegue usá-lo.
+    if (/^(?:ANC2|VIP365)[A-Z2-9]{20}$/.test(raw)) {
+      if (globalRewardVoucherBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      globalRewardVoucherBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Validando o código único no servidor…" });
+      void (async () => {
+        try {
+          const expectedKind = raw.startsWith("ANC2") ? "ancestral_tickets" : "vip_annual";
+          const expectedItem = expectedKind === "ancestral_tickets" ? "ticket_ancestral" : "book_vip_60";
+          let confirmed: GlobalRewardVoucherResponse | null = null;
+          let checkpointIdle: IdleState | null = null;
+          const patchRewardSnapshot = (snapshot: unknown, serverItemQty: number, checkpoint: unknown) => {
+            if (!confirmed) throw new Error("global_reward_confirmation_missing");
+            const save = snapshot as { idle?: IdleState; savedAt?: number };
+            const base = checkpoint as { idle?: IdleState };
+            if (!save.idle || !base.idle) throw new Error("global_reward_snapshot_invalid");
+
+            const items = { ...(save.idle.items ?? {}) };
+            const currentItems = save.idle.items ?? {};
+            const baseItems = base.idle.items ?? {};
+            const currentQty = redCrystalCashAmount(currentItems[expectedItem]) ?? 0;
+            const baseQty = redCrystalCashAmount(baseItems[expectedItem]) ?? 0;
+            items[expectedItem] = Math.max(0, Math.min(999_999, serverItemQty + currentQty - baseQty));
+            const serverSavedAt = typeof confirmed.saved_at === "number"
+              && Number.isSafeInteger(confirmed.saved_at)
+              && confirmed.saved_at >= 0
+              ? confirmed.saved_at
+              : 0;
+
+            checkpointIdle = base.idle;
+            return {
+              ...save,
+              savedAt: Math.max(save.savedAt ?? 0, serverSavedAt),
+              idle: {
+                ...save.idle,
+                items,
+                redeemedCodes: { ...(save.idle.redeemedCodes ?? {}), [raw]: true },
+              },
+            };
+          };
+          const result = await runCheckpointMutation(
+            buildFullBlob(),
+            async (expectedVersion) => {
+              const { data, error } = await (supabase as any).rpc("redeem_global_reward_voucher", {
+                p_code: raw,
+                p_expected_version: expectedVersion,
+              });
+              if (error) throw error;
+              const response = data as GlobalRewardVoucherResponse | null;
+              if (response?.ok !== true) {
+                return { ok: false, reason: response?.reason ?? "mutation_failed" };
+              }
+              const itemQty = redCrystalCashAmount(response.item_qty);
+              if (response.server_version !== expectedVersion + 1
+                || response.reward_kind !== expectedKind
+                || response.item_id !== expectedItem
+                || itemQty === null) {
+                throw new Error("global_reward_invalid_server_response");
+              }
+              confirmed = response;
+              return { ok: true, server_version: response.server_version, value: itemQty };
+            },
+            patchRewardSnapshot,
+          );
+          const confirmedReward = confirmed as GlobalRewardVoucherResponse | null;
+          const confirmedCheckpointIdle = checkpointIdle;
+          if (!result.ok || !confirmedReward || !confirmedCheckpointIdle) {
+            const messages: Record<string, string> = {
+              invalid_or_used: "Código inválido ou já utilizado por outra conta.",
+              inventory_cap: "Sua mochila atingiu o limite desse item.",
+              stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
+              checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
+              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue antes de repetir.",
+              unauthenticated: "Entre em sua conta para resgatar este código.",
+            };
+            throw new Error(messages[result.reason ?? ""] ?? "Não foi possível resgatar o código. Tente novamente.");
+          }
+          const confirmedItemQty = redCrystalCashAmount(confirmedReward.item_qty);
+          if (confirmedItemQty === null) throw new Error("global_reward_invalid_server_response");
+          setIdle((current) => {
+            const patched = patchRewardSnapshot(
+              { idle: current },
+              confirmedItemQty,
+              { idle: confirmedCheckpointIdle },
+            ) as { idle: IdleState };
+            idleRef.current = patched.idle;
+            return patched.idle;
+          });
+          setCodeInput("");
+          const message = expectedKind === "ancestral_tickets"
+            ? "🎫 2 Tickets Ancestrais entregues! Use-os no Baú Ancestral da Incubadora."
+            : "👑 Livro VIP GOLD entregue! Use-o na Mochila para ativar 365 dias de VIP.";
+          setCodeMsg({ kind: "ok", text: message });
+          pushChat(message, "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o código." });
+        } finally {
+          globalRewardVoucherBusyRef.current = false;
         }
       })();
       return;
