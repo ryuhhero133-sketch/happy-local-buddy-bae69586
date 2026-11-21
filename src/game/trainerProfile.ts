@@ -78,6 +78,9 @@ export function vipTierOf(goldMult: number | undefined, until: number | undefine
         "Venda de Pokémon por Cristais no Mercado",
         "Missão diária Coleta Dourada (quest VIP)",
         "Distinção ✦ dourada no seu nome",
+        ...(tier === "vip60"
+          ? ["Com AUTO ligado, coleta drops do chão sem interromper a batalha do Pokémon"]
+          : []),
       ]
     : [];
   return {

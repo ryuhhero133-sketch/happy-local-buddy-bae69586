@@ -3033,6 +3033,7 @@ export function ProfessorLabPanel(props: Props) {
                     {[
                       ["📈", "+30% Ouro e EXP por 30 dias (Livro VIP 30d)"],
                       ["🚀", "+40% Ouro e EXP por 1 ANO (Livro VIP Anual)"],
+                      ["🧺", "VIP GOLD + AUTO: busca drops do chão sem interromper a batalha"],
                       ["🏷️", "Anunciar no Mercado é exclusivo VIP"],
                       ["⭐", "Acesso à quest diária dourada (Coleta Dourada)"],
                       ["🎁", "Bônus extras em pacotes premium"],
@@ -3189,7 +3190,7 @@ export function ProfessorLabPanel(props: Props) {
                     {[
                       { id: "book_vip" as VipBookId, name: "EPIC ✦", desc: "+20% ouro e EXP · 1 hora", price: 10_000 },
                       { id: "book_vip_30" as VipBookId, name: "CRISTAL ✦✦", desc: "+30% ouro e EXP · 30 dias", price: 30_000 },
-                      { id: "book_vip_60" as VipBookId, name: "GOLD ✦✦✦", desc: "+40% ouro e EXP · 1 ANO", price: 50_000 },
+                      { id: "book_vip_60" as VipBookId, name: "GOLD ✦✦✦", desc: "+40% ouro e EXP · 1 ANO · AUTO coleta drops durante batalhas", price: 50_000 },
                     ].map((b) => {
                       const can = (crystals ?? 0) >= b.price;
                       return (
