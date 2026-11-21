@@ -909,7 +909,9 @@ import venusaurHallowShinyPng from "@/ambiente/mascara colisao/Venusaur Hallow S
 
 const IDLE_KEY = "rubym.idle.v1";
 const MAP_EDITOR_KEY = "rubym.map-editor.v1";
-const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v2";
+// O mapa ARV v3 tem spawns novos (inclusive níveis altos); não reutiliza a
+// cópia v2 que o navegador salvou antes da publicação deste mapa.
+const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v3";
 const MAP_EDITOR_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 const ARV_CASINHA_EXIT_SPAWN = { x: 2800, y: 4550 };
 const ARV_CASINHA_EXIT_PROTECTION_MS = 3_500;
