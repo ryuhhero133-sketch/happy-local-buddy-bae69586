@@ -3368,7 +3368,8 @@ function IdlePage() {
 
     if (mutation.item_id != null) {
       const allowedItems = new Set([
-        "pokeball", "ultraball", "book_atk", "book_exp", "book_vip", "egg_epic",
+        "pokeball", "ultraball", "book_atk", "book_exp", "book_vip", "book_vip_30",
+        "egg_epic", "egg_mystic",
         "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
       ]);
       const itemQty = redCrystalCashAmount(mutation.item_qty);
@@ -3382,9 +3383,9 @@ function IdlePage() {
 
     let unlockedSkins = Array.isArray(save.idle.unlockedSkins) ? [...save.idle.unlockedSkins] : [];
     if (!unlockedSkins.includes("default")) unlockedSkins.unshift("default");
-    if (mutation.skin === "vegeta" && !unlockedSkins.includes("vegeta")) {
-      unlockedSkins.push("vegeta");
-    } else if (mutation.skin != null && mutation.skin !== "vegeta") {
+    if ((mutation.skin === "vegeta" || mutation.skin === "goku") && !unlockedSkins.includes(mutation.skin)) {
+      unlockedSkins.push(mutation.skin);
+    } else if (mutation.skin != null && mutation.skin !== "vegeta" && mutation.skin !== "goku") {
       throw new Error("cash_shop_skin_invalid");
     }
 
@@ -3407,9 +3408,11 @@ function IdlePage() {
       orb_xp_major: "orb_xp_major",
       orb_xp_supreme: "orb_xp_supreme",
       orb_team: "orb_team",
-      vip_epic: "book_vip",
+      vip_epic: "book_vip_30",
       egg_epic: "egg_epic",
+      egg_mythic: "egg_mystic",
       vegeta_skin: null,
+      goku_skin: null,
     };
     let confirmed: RedCrystalCashShopMutation | null = null;
     let checkpointIdle: IdleState | null = null;
@@ -3423,12 +3426,18 @@ function IdlePage() {
         if (error) return { ok: false, reason: error.message };
         const response = data as RedCrystalCashShopMutation | null;
         if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+        const expectedSkin = productId === "vegeta_skin"
+          ? "vegeta"
+          : productId === "goku_skin"
+            ? "goku"
+            : null;
         if (response.server_version !== expectedVersion + 1
           || redCrystalCashAmount(response.red_crystals) === null
           || response.item_id !== expectedItems[productId]
-          || (productId === "vegeta_skin"
-            ? response.skin !== "vegeta" || response.item_qty != null
-            : response.skin != null || redCrystalCashAmount(response.item_qty) === null)
+          || response.skin !== expectedSkin
+          || (expectedSkin !== null
+            ? response.item_qty != null
+            : redCrystalCashAmount(response.item_qty) === null)
         ) {
           throw new Error("cash_shop_invalid_server_response");
         }
@@ -3444,10 +3453,12 @@ function IdlePage() {
       },
     );
 
-    if (!result.ok || !confirmed || !checkpointIdle) {
+    const confirmedPurchase = confirmed as RedCrystalCashShopMutation | null;
+    const confirmedCheckpointIdle = checkpointIdle as IdleState | null;
+    if (!result.ok || !confirmedPurchase || !confirmedCheckpointIdle) {
       const messages: Record<string, string> = {
         insufficient_red_crystals: "Você não tem Cristais Vermelhos suficientes.",
-        already_owned: "A Skin Vegeta já foi adquirida nesta conta.",
+        already_owned: "Essa skin já foi adquirida nesta conta.",
         inventory_cap: "Sua mochila atingiu o limite desse item.",
         stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
         save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
@@ -3459,13 +3470,15 @@ function IdlePage() {
     }
 
     setIdle((current) => {
-      const patched = patchRedCrystalCashShopSnapshot({ idle: current }, { idle: checkpointIdle }, confirmed!);
+      const patched = patchRedCrystalCashShopSnapshot({ idle: current }, { idle: confirmedCheckpointIdle }, confirmedPurchase);
       const next = (patched as { idle: IdleState }).idle;
       idleRef.current = next;
       return next;
     });
-    const message = productId === "vegeta_skin"
+    const message = confirmedPurchase.skin === "vegeta"
       ? "Skin Vegeta desbloqueada permanentemente!"
+      : confirmedPurchase.skin === "goku"
+        ? "Skin Goku desbloqueada permanentemente!"
       : "Compra confirmada e item entregue na Mochila.";
     pushChat(`🔴 ${message}`, "cap");
     return { ok: true, message };
@@ -28871,6 +28884,7 @@ onClick={(e) => {
         redCrystals={idle.items?.cr_red ?? 0}
         ready={cloudBlobReady && !!identity?.id}
         ownsVegeta={idle.unlockedSkins?.includes("vegeta") ?? false}
+        ownsGoku={idle.unlockedSkins?.includes("goku") ?? false}
         onPurchase={buyRedCrystalCashProduct}
       />
 

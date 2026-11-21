@@ -8,6 +8,7 @@ import bookAtkImg from "@/assets/icons/book-atk.png";
 import bookExpImg from "@/assets/icons/book-exp.png";
 import vipEpicImg from "@/ambiente/Vip Epic.png";
 import vegetaImg from "@/CHAR/vegeta-profile.png";
+import gokuImg from "@/CHAR/goku-profile.png";
 import eggImg from "@/CHAR/kg/Drop card/CARD EGG.png";
 import orbMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbMajorAsset from "@/assets/orb-xp-major.png.asset.json";
@@ -33,7 +34,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "pokeball_100",
     name: "Pacote Poké Ball ×100",
     description: "100 Poké Balls utilizáveis em combate.",
-    price: 1_000,
+    price: 600,
     image: pokeballImg,
     accent: "#ff9f43",
     tag: "BOLAS",
@@ -60,7 +61,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "book_exp",
     name: "Livro de EXP",
     description: "Use na Mochila: +30% de EXP por 1 hora.",
-    price: 1_000,
+    price: 300,
     image: bookExpImg,
     accent: "#67d9ff",
     tag: "LIVRO",
@@ -69,7 +70,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "orb_xp_minor",
     name: "Orb Menor",
     description: "Use na Mochila: +10% de EXP por 1 hora.",
-    price: 2_000,
+    price: 500,
     image: orbMinorImg,
     accent: "#7ce38b",
     tag: "ORB",
@@ -78,7 +79,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "orb_xp_major",
     name: "Orb Maior",
     description: "Use na Mochila: +20% de EXP por 1 hora.",
-    price: 2_000,
+    price: 1_000,
     image: orbMajorImg,
     accent: "#b78cff",
     tag: "ORB",
@@ -103,8 +104,8 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
   },
   {
     id: "vip_epic",
-    name: "VIP EPIC · 1 hora",
-    description: "Livro VIP usável: +20% de Ouro e EXP durante 1 hora.",
+    name: "VIP EPIC · 30 dias",
+    description: "Livro VIP usável: +30% de Ouro e EXP durante 30 dias.",
     price: 10_000,
     image: vipEpicImg,
     accent: "#f7c948",
@@ -120,6 +121,15 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     tag: "OVO",
   },
   {
+    id: "egg_mythic",
+    name: "Ovo Mítico Aleatório",
+    description: "Chocar na Mochila para sortear um Pokémon de alta raridade, incluindo míticos.",
+    price: 150_000,
+    image: eggImg,
+    accent: "#ff8cdb",
+    tag: "OVO",
+  },
+  {
     id: "vegeta_skin",
     name: "Skin Vegeta",
     description: "Desbloqueio permanente e exclusivo para usar na aba Início.",
@@ -127,7 +137,15 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     image: vegetaImg,
     accent: "#f6bd60",
     tag: "SKIN ÚNICA",
-    oneTime: true,
+  },
+  {
+    id: "goku_skin",
+    name: "Skin Goku",
+    description: "Desbloqueio permanente e exclusivo para usar na aba Início.",
+    price: 200_000,
+    image: gokuImg,
+    accent: "#ff9f43",
+    tag: "SKIN ÚNICA",
   },
 ] as const;
 
@@ -144,6 +162,7 @@ type Props = {
   redCrystals: number;
   ready: boolean;
   ownsVegeta: boolean;
+  ownsGoku: boolean;
   onPurchase: (productId: RedCrystalShopProductId) => Promise<RedCrystalPurchaseResult>;
 };
 
@@ -153,6 +172,7 @@ export function RedCrystalCashShopModal({
   redCrystals,
   ready,
   ownsVegeta,
+  ownsGoku,
   onPurchase,
 }: Props) {
   const [pendingId, setPendingId] = useState<RedCrystalShopProductId | null>(null);
@@ -301,7 +321,9 @@ export function RedCrystalCashShopModal({
             }}
           >
             {RED_CRYSTAL_SHOP_PRODUCTS.map((product) => {
-              const alreadyOwned = !!product.oneTime && ownsVegeta;
+              const alreadyOwned = product.id === "vegeta_skin"
+                ? ownsVegeta
+                : product.id === "goku_skin" && ownsGoku;
               const unaffordable = redCrystals < product.price;
               const buying = pendingId === product.id;
               const disabled = !ready || alreadyOwned || unaffordable || !!pendingId;
