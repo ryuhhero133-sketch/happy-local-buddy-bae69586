@@ -546,6 +546,7 @@ const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
 // Mapas de teste (Emerald) — sem Pokémon/baús/obstáculos; entrada com senha.
 import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
+import rota1MapUrl from "@/ambiente/map/Rota1.webp";
 import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
@@ -1137,6 +1138,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   // Mapas de teste: só o cenário, nada de conteúdo.
   emerald: { name: "Emerald", diff: "Teste", bg: emeraldMapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   emerald_01: { name: "Emerald 01", diff: "Teste", bg: emerald01MapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  rota1: { name: "Rota 1", diff: "Teste", bg: rota1MapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
   // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
   iceblow: { name: "Iceblow", diff: "Especial", bg: PROF_MAP_BY_ID.iceblow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 2 },
@@ -1883,9 +1885,12 @@ type Obstacle = {
   };
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
+/** Mapas de teste (Emerald, Emerald 01, Rota 1): sem Pokémon, baús ou obstáculos. */
+const TEST_MAP_IDS = ["emerald", "emerald_01", "rota1"] as const;
+const isTestMap = (id: string) => (TEST_MAP_IDS as readonly string[]).includes(id);
+
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
-  // Mapas de teste: nada de obstáculos gerados.
-  if (mapId === "emerald" || mapId === "emerald_01") return [];
+  if (isTestMap(mapId)) return [];
   // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
   if (mapId === "arv") return [];
   // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
@@ -6181,6 +6186,7 @@ const confirmName = () => {
     map_0077: mapa0077Url,
     emerald: emeraldMapUrl,
     emerald_01: emerald01MapUrl,
+    rota1: rota1MapUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
@@ -6351,10 +6357,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["emerald","emerald_01","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const FREE_WALK_MAPS = ["emerald","emerald_01","rota1","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","rota1","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -6376,8 +6382,7 @@ const confirmName = () => {
   // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
   // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
-    // Mapas de teste: nenhum selvagem.
-    if (mapId === "emerald" || mapId === "emerald_01") return [];
+    if (isTestMap(mapId)) return [];
     if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "valley_plume") return ["oddish", "gloom", "vileplume", "paras", "parasect", "eevee", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "paras_shiny", "parasect_shiny", "snolax"];
@@ -6886,7 +6891,7 @@ const confirmName = () => {
   // Mapas de teste protegidos por senha (pedida ao clicar em Teleportar).
   const [mapPasswordPrompt, setMapPasswordPrompt] = useState<{ id: string; name: string; value: string; error: boolean } | null>(null);
   const mapPasswordResolveRef = useRef<((ok: boolean) => void) | null>(null);
-  const MAP_PASSWORDS: Record<string, string> = { emerald: "123", emerald_01: "123" };
+  const MAP_PASSWORDS: Record<string, string> = { emerald: "123", emerald_01: "123", rota1: "123" };
   const askMapPassword = (id: string, name: string) =>
     new Promise<boolean>((resolve) => {
       mapPasswordResolveRef.current = resolve;
@@ -14741,7 +14746,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
-    if (idle.currentMap === "emerald" || idle.currentMap === "emerald_01") return null;
+    if (isTestMap(idle.currentMap)) return null;
     // Esfera Ancestral (Mapa Banido): sem pokémons selvagens.
     if (idle.currentMap === "esfera_ancestral") {
       return null;
@@ -15688,7 +15693,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
-    if (idle.currentMap === "emerald" || idle.currentMap === "emerald_01") return [];
+    if (isTestMap(idle.currentMap)) return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
@@ -17022,7 +17027,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   // ===== Baús espalhados no mapa =====
   function spawnChests(count = 4): Chest[] {
-    if (idle.currentMap === "emerald" || idle.currentMap === "emerald_01") return [];
+    if (isTestMap(idle.currentMap)) return [];
     // Esfera Ancestral (Mapa Banido): sem baús.
     if (idle.currentMap === "esfera_ancestral") return [];
     const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
@@ -25020,7 +25025,7 @@ A sucata afundou com o casco.
             )}
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["emerald","emerald_01","mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
+               const base = ["emerald","emerald_01","rota1","mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
