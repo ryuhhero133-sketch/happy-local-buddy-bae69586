@@ -21440,7 +21440,9 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: 1,
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
-                  zIndex: 2,
+                  // Ordem de profundidade: o mato cobre as pernas de quem pisa,
+                  // mas fica atrás de quem está abaixo dele na tela (como no GBA).
+                  zIndex: Math.round(o.y) + 1,
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
