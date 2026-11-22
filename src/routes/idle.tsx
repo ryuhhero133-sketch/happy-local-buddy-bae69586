@@ -543,6 +543,9 @@ import arvMapDefault from "@/game/maps/arv.default.json";
 // continua podendo apontar para outra origem quando for necessário.
 import arvMapUrl from "@/skill/srg/arv.webp";
 const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
+// Mapas de teste (Emerald) — sem Pokémon/baús/obstáculos; entrada com senha.
+import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
+import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
 import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
@@ -1131,6 +1134,9 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   ...(import.meta.env.DEV && mapEmyUrl ? { emy: { name: "EMY", diff: "Exploração", bg: mapEmyUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
   ...(import.meta.env.DEV && mapEmy1Url ? { emy_1: { name: "EMY 1", diff: "Exploração", bg: mapEmy1Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
   casinha: { name: "Casinha", diff: "Exploração", bg: casinhaUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  // Mapas de teste: só o cenário, nada de conteúdo.
+  emerald: { name: "Emerald", diff: "Teste", bg: emeraldMapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  emerald_01: { name: "Emerald 01", diff: "Teste", bg: emerald01MapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
   // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
   iceblow: { name: "Iceblow", diff: "Especial", bg: PROF_MAP_BY_ID.iceblow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 2 },
@@ -1878,6 +1884,8 @@ type Obstacle = {
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
+  // Mapas de teste: nada de obstáculos gerados.
+  if (mapId === "emerald" || mapId === "emerald_01") return [];
   // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
   if (mapId === "arv") return [];
   // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
@@ -6171,6 +6179,8 @@ const confirmName = () => {
     map_0055: mapa0055Url,
     map_0066: mapa0066Url,
     map_0077: mapa0077Url,
+    emerald: emeraldMapUrl,
+    emerald_01: emerald01MapUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
@@ -6341,10 +6351,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const FREE_WALK_MAPS = ["emerald","emerald_01","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
@@ -6366,6 +6376,8 @@ const confirmName = () => {
   // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
   // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
+    // Mapas de teste: nenhum selvagem.
+    if (mapId === "emerald" || mapId === "emerald_01") return [];
     if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "valley_plume") return ["oddish", "gloom", "vileplume", "paras", "parasect", "eevee", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "paras_shiny", "parasect_shiny", "snolax"];
@@ -6871,6 +6883,27 @@ const confirmName = () => {
   const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
+  // Mapas de teste protegidos por senha (pedida ao clicar em Teleportar).
+  const [mapPasswordPrompt, setMapPasswordPrompt] = useState<{ id: string; name: string; value: string; error: boolean } | null>(null);
+  const mapPasswordResolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const MAP_PASSWORDS: Record<string, string> = { emerald: "123", emerald_01: "123" };
+  const askMapPassword = (id: string, name: string) =>
+    new Promise<boolean>((resolve) => {
+      mapPasswordResolveRef.current = resolve;
+      setMapPasswordPrompt({ id, name, value: "", error: false });
+    });
+  const closeMapPassword = (ok: boolean) => {
+    const resolve = mapPasswordResolveRef.current;
+    mapPasswordResolveRef.current = null;
+    setMapPasswordPrompt(null);
+    resolve?.(ok);
+  };
+  const submitMapPassword = () => {
+    if (!mapPasswordPrompt) return;
+    const expected = MAP_PASSWORDS[mapPasswordPrompt.id] ?? "";
+    if (mapPasswordPrompt.value.trim() === expected) closeMapPassword(true);
+    else setMapPasswordPrompt((p) => (p ? { ...p, error: true } : p));
+  };
   const [teleportTransition, setTeleportTransition] = useState<WorldMapDestination | null>(null);
   const teleportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revolandDoorTriggeredRef = useRef(false);
@@ -14708,6 +14741,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
+    if (idle.currentMap === "emerald" || idle.currentMap === "emerald_01") return null;
     // Esfera Ancestral (Mapa Banido): sem pokémons selvagens.
     if (idle.currentMap === "esfera_ancestral") {
       return null;
@@ -15654,6 +15688,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
+    if (idle.currentMap === "emerald" || idle.currentMap === "emerald_01") return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
@@ -16987,6 +17022,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   // ===== Baús espalhados no mapa =====
   function spawnChests(count = 4): Chest[] {
+    if (idle.currentMap === "emerald" || idle.currentMap === "emerald_01") return [];
     // Esfera Ancestral (Mapa Banido): sem baús.
     if (idle.currentMap === "esfera_ancestral") return [];
     const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
@@ -24954,9 +24990,37 @@ A sucata afundou com o casco.
           </Panel>
 
 
+{mapPasswordPrompt && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ position: "fixed", inset: 0, zIndex: 100000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,10,0.82)" }}
+              >
+                <div style={{ width: 300, maxWidth: "88vw", background: "#1a1024", border: "2px solid #f5cf6b", borderRadius: 10, padding: 16, boxShadow: "0 0 30px rgba(245,207,107,0.35)" }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#f5cf6b", marginBottom: 6 }}>🔒 Mapa protegido</div>
+                  <div style={{ fontSize: 11, color: "#cfc2dd", marginBottom: 10 }}>
+                    Digite a senha para entrar em <b>{mapPasswordPrompt.name}</b>.
+                  </div>
+                  <input
+                    autoFocus
+                    type="password"
+                    inputMode="numeric"
+                    value={mapPasswordPrompt.value}
+                    onChange={(e) => setMapPasswordPrompt((p) => (p ? { ...p, value: e.target.value, error: false } : p))}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submitMapPassword(); } else if (e.key === "Escape") { closeMapPassword(false); } }}
+                    placeholder="Senha"
+                    style={{ width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 6, border: `1px solid ${mapPasswordPrompt.error ? "#ff5c5c" : "#4a3a5e"}`, background: "#0e0816", color: "#fff", fontSize: 14, outline: "none", marginBottom: mapPasswordPrompt.error ? 4 : 10 }}
+                  />
+                  {mapPasswordPrompt.error && <div style={{ fontSize: 10, color: "#ff7a7a", marginBottom: 8 }}>Senha incorreta.</div>}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" onClick={() => closeMapPassword(false)} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: "1px solid #4a3a5e", background: "transparent", color: "#b8a8cc", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Cancelar</button>
+                    <button type="button" onClick={submitMapPassword} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: "none", background: "#f5cf6b", color: "#231609", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>Entrar</button>
+                  </div>
+                </div>
+              </div>
+            )}
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
+               const base = ["emerald","emerald_01","mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -24969,6 +25033,11 @@ A sucata afundou com o casco.
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
                   onTeleport={async (destination) => {
+                    // Mapas de teste: senha antes de qualquer outra verificação.
+                    if (MAP_PASSWORDS[destination.id]) {
+                      const ok = await askMapPassword(destination.id, destination.name);
+                      if (!ok) return;
+                    }
                     if (!isWorldMapDestinationUnlocked(destination.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;

@@ -1,7 +1,7 @@
 // Mapa Mundi público: somente a progressão inicial fica disponível no atlas.
 // Os demais mapas continuam existentes, mas não podem ser escolhidos por este
 // teleporte até uma liberação futura explícita.
-export const WORLD_MAP_FREE_DESTINATION_IDS = ["mapinha6", "mapinha10", "mapinha13", "valley_plume", "laboratorio", "florest_ice", "florest_bone", "ruinas", "ruinas_de_venus", "arv"] as const;
+export const WORLD_MAP_FREE_DESTINATION_IDS = ["mapinha6", "mapinha10", "mapinha13", "valley_plume", "laboratorio", "florest_ice", "florest_bone", "ruinas", "ruinas_de_venus", "arv", "emerald", "emerald_01"] as const;
 
 // TESTE LOCAL: no dev o atlas libera todos os destinos (mk1/guildas/mwt/emy).
 // Em produção vale só a lista acima — import.meta.env.DEV vira false no build.

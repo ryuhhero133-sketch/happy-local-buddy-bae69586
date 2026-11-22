@@ -42,3 +42,6 @@ src/ambiente/emy 1.png
 # Arte-fonte / exports locais (nao entram no build)
 src/full.png
 src/mapa-arv (16).json
+
+# Mapas-fonte locais (o build usa os .webp)
+src/ambiente/map/*.png

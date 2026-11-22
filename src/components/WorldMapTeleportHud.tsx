@@ -145,7 +145,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
                     disabled={isLocked}
                     onClick={() => onTeleport({ ...destination, previewImage })}
                   >
-                    {isCurrent ? "Atual" : isLocked ? "🔒 Bloqueado" : destination.id === "sa" ? "Entrar · 1.000 ouro + 10 pepitas" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
+                    {isCurrent ? "Atual" : isLocked ? "🔒 Bloqueado" : `Teleportar · ${costFor(destination.id) > 0 ? `${costFor(destination.id)}⚡` : "grátis"}`}
                     {!isCurrent && !isLocked && <span aria-hidden="true">→</span>}
                   </Button>
                 </div>
