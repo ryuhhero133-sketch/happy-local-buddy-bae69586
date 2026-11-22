@@ -260,7 +260,7 @@ import type { Guild, GuildElement } from "@/game/guild";
 import { guildImageFor } from "@/game/guild";
 import {
   loadGuildMissionProgress,
-  updateGuildMissionProgress, loadFriends, saveFriends, loadParty, saveParty,
+  updateGuildMissionProgress, loadFriends, saveFriends,
   type FriendEntry, type GuildMission,
 } from "@/game/guildMissions";
 import {
@@ -268,8 +268,13 @@ import {
   acceptInvite, declineInvite, leaveGuildRemote, kickMemberRemote, subscribeMyInvites,
   type GuildInvite,
 } from "@/lib/guildApi";
-import type { PartyRow, PartyMemberRow, PartyInviteRow } from "@/game/party";
-import { PARTY_MAX } from "@/game/party";
+import type { PartyInviteRow, PartyState } from "@/game/party";
+import {
+  PARTY_MAX, isPartyMemberOnline, getMyParty, listInvitesFor,
+  invitePlayerToParty, acceptInvite as acceptPartyInviteRemote,
+  declineInvite as declinePartyInviteRemote, leaveParty as leavePartyRemote,
+  kickMember as kickPartyMemberRemote, pingPresence as pingPartyPresence,
+} from "@/game/party";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
 import { AspectroDialog } from "@/components/AspectroDialog";
@@ -4016,8 +4021,10 @@ const confirmName = () => {
   const [guildLoading, setGuildLoading] = useState(false);
   const [guildInvites, setGuildInvites] = useState<GuildInvite[]>([]);
   const [friends, setFriends] = useState<FriendEntry[]>(() => { try { return loadFriends(); } catch { return []; } });
-  const [partyNames, setPartyNames] = useState<string[]>(() => { try { return loadParty(); } catch { return []; } });
+  const [party, setParty] = useState<PartyState | null>(null);
   const [partyInvites, setPartyInvites] = useState<PartyInviteRow[]>([]);
+  const [remotePlayerAction, setRemotePlayerAction] = useState<{ userId: string; name: string } | null>(null);
+  useEffect(() => { setRemotePlayerAction(null); }, [idle.currentMap]);
   const [legacyMissionProgress] = useState<Record<string, number>>(() => { try { return loadGuildMissionProgress(); } catch { return {}; } });
   const missionProgress = idle.guildMissionProgress ?? legacyMissionProgress;
   const [claimedMissions, setClaimedMissions] = useState<string[]>([]);
@@ -4051,15 +4058,54 @@ const confirmName = () => {
     })();
     return () => { alive = false; try { off?.(); } catch { /* ignore */ } };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const partyForPanel: { party: PartyRow; members: PartyMemberRow[] } | null =
-    partyNames.length === 0 ? null : {
-      party: { id: "local", name: `Grupo de ${myName}`, leader_id: myId, leader_name: myName, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      members: partyNames.map((n) => ({
-        party_id: "local", player_id: n === myName ? myId : `local-${n}`, player_name: n,
-        level: n === myName ? myLevel : 1, map_id: (idle as any).currentMap ?? null,
-        joined_at: new Date().toISOString(), last_seen: new Date().toISOString(),
-      })),
+  const refreshParty = useCallback(async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.user?.id) {
+        setParty(null);
+        setPartyInvites([]);
+        return;
+      }
+      const [nextParty, nextInvites] = await Promise.all([getMyParty(), listInvitesFor()]);
+      setParty(nextParty);
+      setPartyInvites(nextInvites);
+    } catch (error) {
+      // Mantém o último estado válido enquanto a conexão se recupera.
+      console.warn("[party] falha ao atualizar party", error);
+    }
+  }, []);
+  useEffect(() => {
+    void refreshParty();
+    const timer = window.setInterval(() => { void refreshParty(); }, 15_000);
+    return () => window.clearInterval(timer);
+  }, [identity?.id, refreshParty]);
+  useEffect(() => {
+    if (!party?.party.id) return;
+    let alive = true;
+    const heartbeat = async () => {
+      try {
+        await pingPartyPresence(myId, String(idle.currentMap), myLevel);
+        if (alive) await refreshParty();
+      } catch (error) {
+        console.warn("[party] falha no heartbeat", error);
+      }
     };
+    void heartbeat();
+    const timer = window.setInterval(() => { void heartbeat(); }, 20_000);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, [party?.party.id, myId, myLevel, idle.currentMap, refreshParty]);
+  const partyOnlineMemberCount = useMemo(
+    () => party?.members.filter((member) => isPartyMemberOnline(member, now)).length ?? 0,
+    [party, now],
+  );
+  const partyRewardMultiplier = partyOnlineMemberCount >= 2
+    ? ((idle.buffs?.goldMultUntil ?? 0) > now ? 2.5 : 1.5)
+    : 1;
+  const partyRewardMultiplierRef = useRef(partyRewardMultiplier);
+  useEffect(() => { partyRewardMultiplierRef.current = partyRewardMultiplier; }, [partyRewardMultiplier]);
   const GUILD_CREATE_COST = 5000;
   const handleCreateGuild = async (name: string, element: GuildElement) => {
     try {
@@ -4181,28 +4227,88 @@ const confirmName = () => {
     setFriends(next);
     try { saveFriends(next); } catch { /* ignore */ }
   };
-  const handlePartyAdd = (target: { id: string; name: string }) => {
-    if (partyNames.includes(target.name)) return;
-    if (partyNames.length >= PARTY_MAX) { pushChat(`Grupo cheio (${PARTY_MAX}).`, "info"); return; }
-    const next = [...partyNames, target.name];
-    setPartyNames(next);
-    try { saveParty(next); } catch { /* ignore */ }
+  const handlePartyAdd = async (target: { id: string; name: string }) => {
+    if (!target.id) {
+      pushChat("Para convidar à party online, clique no personagem do jogador no mapa.", "info");
+      return;
+    }
+    if (target.id === myId) return;
+    if (party?.members.some((member) => member.player_id === target.id)) {
+      pushChat(`${target.name} já está na sua party.`, "info");
+      return;
+    }
+    if (party && party.members.length >= PARTY_MAX) {
+      pushChat(`Party cheia (${PARTY_MAX} jogadores).`, "info");
+      return;
+    }
+    try {
+      const uid = await getUid();
+      if (!uid) { pushChat("Entre na sua conta para convidar jogadores.", "info"); return; }
+      const created = !party;
+      const invite = await invitePlayerToParty({
+        targetId: target.id,
+        level: myLevel,
+        mapId: String(idle.currentMap),
+      });
+      await refreshParty();
+      setRemotePlayerAction(null);
+      pushChat(
+        `${created ? "⚔️ Party criada! " : ""}Convite para ${target.name} enviado (${invite.party_name}).`,
+        "cap",
+      );
+    } catch (error) {
+      pushChat(`Não foi possível convidar para a party: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    }
   };
-  const handlePartyRemove = (targetName: string) => {
-    const next = partyNames.filter((n) => n !== targetName);
-    setPartyNames(next);
-    try { saveParty(next); } catch { /* ignore */ }
+  const handlePartyRemove = async (targetId: string) => {
+    const member = party?.members.find((entry) => entry.player_id === targetId);
+    if (!party || !member) return;
+    if (party.party.leader_id !== myId) {
+      pushChat("Apenas o líder pode remover membros da party.", "info");
+      return;
+    }
+    try {
+      await kickPartyMemberRemote(party.party.id, myId, targetId);
+      await refreshParty();
+      pushChat(`${member.player_name} foi removido da party.`, "info");
+    } catch (error) {
+      pushChat(`Não foi possível remover: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    }
   };
-  const handleAcceptPartyInvite = (inv: PartyInviteRow) => {
-    handlePartyAdd({ id: inv.from_id, name: inv.from_name });
-    setPartyInvites((prev) => prev.filter((x) => x.id !== inv.id));
+  const handleAcceptPartyInvite = async (inv: PartyInviteRow) => {
+    try {
+      const uid = await getUid();
+      if (!uid) { pushChat("Entre na sua conta para aceitar o convite.", "info"); return; }
+      await acceptPartyInviteRemote(inv, {
+        id: uid,
+        name: myName,
+        level: myLevel,
+        mapId: String(idle.currentMap),
+      });
+      await refreshParty();
+      pushChat(`⚔️ Você entrou em ${inv.party_name}!`, "cap");
+    } catch (error) {
+      pushChat(`Não foi possível entrar na party: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    }
   };
-  const handleDeclinePartyInvite = (id: string) => {
-    setPartyInvites((prev) => prev.filter((x) => x.id !== id));
+  const handleDeclinePartyInvite = async (id: string) => {
+    try {
+      await declinePartyInviteRemote(id);
+      await refreshParty();
+    } catch (error) {
+      pushChat(`Não foi possível recusar o convite: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    }
   };
-  const handleLeaveParty = () => {
-    setPartyNames([]);
-    try { saveParty([]); } catch { /* ignore */ }
+  const handleLeaveParty = async () => {
+    if (!party) return;
+    try {
+      const wasLeader = party.party.leader_id === myId;
+      await leavePartyRemote(myId, party.party.id, wasLeader);
+      await refreshParty();
+      pushChat(wasLeader ? "Party dissolvida ou liderança transferida." : "Você saiu da party.", "info");
+    } catch (error) {
+      pushChat(`Não foi possível sair da party: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    }
   };
   const handleLeaveGuild = async () => {
     try {
@@ -12345,8 +12451,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const oddishEventXpMult = (idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "arena") ? ODDISH_EVENT_XP_MULT : 1;
           // 🌑 Mapas Bônus Dark — XP MUITO maior (é o único ganho relevante lá).
           const darkBonusXpMult = isDarkBonusMap(idle.currentMap) ? 8 : 1;
+          // Party ativa (2+ membros com heartbeat recente): ×1,5; com VIP ativo: ×2,5.
+          // O valor vem de uma ref para o tick de batalha sempre usar o estado mais recente.
+          const partyRewardMult = partyRewardMultiplierRef.current;
           const xpBase = Math.floor((60 + Math.random() * 100) * boostMult * lvlMult * mapMult * sync.xpMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
-          const xp = Math.max(1, Math.floor(xpBase * (ancestralBonus ? ANCESTRAL_PET_XP_MULT : 1)));
+          const xp = Math.max(1, Math.floor(xpBase * partyRewardMult * (ancestralBonus ? ANCESTRAL_PET_XP_MULT : 1)));
           const ancestralCrystal = ancestralBonus && Math.random() < ANCESTRAL_CRYSTAL_DROP_CHANCE ? 1 : 0;
           // Ouro NERFADO — teto ~40k/2h. Mapas altos dão +15% só.
           const mapGoldMult: Record<string, number> = {
@@ -12373,17 +12482,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const overCapGold = mapCapGold != null ? Math.max(0, (idle.trainerLevel ?? 1) - mapCapGold) : 0;
           const goldCapPenalty = isRiderKill ? 1 : (overCapGold > 0 ? 0.05 : 1);
           const rawGold = baseGold * totalMult * (1 + elemSyn.goldMult) * enemyRarityMult * goldCapPenalty * overLvlPenalty * riderGoldMult * sync.xpMult;
-          const gold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)))
+          // Aplica a party depois do teto base, igual ao bônus ancestral: os
+          // stacks normais continuam limitados, mas a recompensa de party fica visível.
+          const cappedGold = Math.max(1, Math.min(KILL_GOLD_CAP, Math.floor(rawGold)));
+          const gold = Math.floor(cappedGold * partyRewardMult)
             * (ancestralBonus ? ANCESTRAL_GOLD_MULT : 1);
           // 🪲 BIDRIL RAIDER gigante: bônus garantido de ouro ao derrotar (fora do cap).
           const isBidrilKill = target.giant && speciesBaseOf(target.sp) === "beedrill";
           const giantGoldBonus = isBidrilKill
             ? (250 + Math.floor(Math.random() * 151)) * (ancestralBonus ? ANCESTRAL_GOLD_MULT : 1)
             : 0;
+          const partyGiantGoldBonus = Math.floor(giantGoldBonus * partyRewardMult);
           if (isBidrilKill) {
             queueMicrotask(() => {
-              pushChat(`🪲 BIDRIL RAIDER derrotado! +${giantGoldBonus} ouro de recompensa!`, "cap");
-              pushFxAt(target.x, target.y - 60, `+${giantGoldBonus} OURO`, "gold");
+              pushChat(`🪲 BIDRIL RAIDER derrotado! +${partyGiantGoldBonus} ouro de recompensa!`, "cap");
+              pushFxAt(target.x, target.y - 60, `+${partyGiantGoldBonus} OURO`, "gold");
             });
           }
           if (isRiderKill) {
@@ -12397,6 +12510,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (expActive) bonusParts.push(`EXP+${Math.round(idle.buffs.expMult * 100)}%`);
           if (orbActive) bonusParts.push(`ORB+${Math.round((idle.buffs.orbMult ?? 0) * 100)}%`);
           if (goldActive) bonusParts.push(`Ouro+${Math.round((idle.buffs.goldMult ?? 0) * 100)}%`);
+          if (partyRewardMult > 1) bonusParts.push(`PARTY ×${partyRewardMult.toFixed(1)}`);
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
           if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
           const suffix = bonusParts.length ? ` (${bonusParts.join(" · ")})` : "";
@@ -12406,7 +12520,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           xpAccumRef.current.kills += 1;
           xpAccumRef.current.map = idle.currentMap;
           // 📋 Loot do Mapa (resumo na Forja): ouro concedido neste abate
-          setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus }));
+          setMapLoot((l) => ({ ...l, gold: l.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + partyGiantGoldBonus }));
           if (ancestralCrystal) {
             setMapLoot((l) => ({ ...l, crystals: l.crystals + ancestralCrystal }));
             pushFxAt(target.x, target.y - 85, "+1 CRISTAL ANCESTRAL", "capture");
@@ -12876,8 +12990,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
             const killTrainerXp = Math.max(1, Math.round((8 + target.level * 2.5) * rMult * finalScale * (1 + (expActive ? idle.buffs.expMult : 0)) * 0.3 * mythEvKillMult * trXpMult));
             const captureTrainerXp = captured ? Math.max(2, Math.round((25 + target.level * 6) * rMult * finalScale * 0.3 * trXpMult)) : 0;
-            const totalTrainerXp = (killTrainerXp + captureTrainerXp)
-              * (ancestralBonus ? ANCESTRAL_TRAINER_XP_MULT : 1);
+            const totalTrainerXp = Math.max(1, Math.round(
+              (killTrainerXp + captureTrainerXp)
+              * partyRewardMult
+              * (ancestralBonus ? ANCESTRAL_TRAINER_XP_MULT : 1),
+            ));
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
               // level up de treinador — chat + fx (fora do setState via microtask)
@@ -12930,8 +13047,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             }
             return {
               ...applied.state,
-              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, crystals: s.pending.crystals + ancestralCrystal },
-              totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + giantGoldBonus, captured: s.totals.captured + capturedInc, kills: newKills },
+              pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + partyGiantGoldBonus, crystals: s.pending.crystals + ancestralCrystal },
+              totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + partyGiantGoldBonus, captured: s.totals.captured + capturedInc, kills: newKills },
               grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddishAuto ? 1 : 0),
               tasks: nt2,
               items: itemsWithDrops,
@@ -22640,6 +22757,7 @@ A sucata afundou com o casco.
               const pvpSelected = pvpTargetUserId === rp.userId;
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const remotePvpEligible = !!remotePvp && remotePvp.hp > 0 && remotePvp.trainer_level >= 11;
+              const actionMenuOpen = remotePlayerAction?.userId === rp.userId;
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
                 if (!emeraldPvpActive) {
@@ -22673,15 +22791,21 @@ A sucata afundou com o casco.
                 pushChat(`🎯 ${rp.name}: ${pvpLeaderSp?.replace(/_/g, " ") ?? "Pokémon"} (líder) marcado para PvP. Clique em AUTO para atacar.`, "info");
               };
               return (
-                <div key={rp.id} style={{
+                <div key={rp.id} onClick={(ev) => {
+                  ev.stopPropagation();
+                  setRemotePlayerAction((current) => current?.userId === rp.userId
+                    ? null
+                    : { userId: rp.userId, name: rp.name });
+                }} title={`Clique para interagir com ${rp.name}`} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
                   width: 56, height: 56,
                   transform: "translate(-50%, -50%)",
                   transition: "left 220ms linear, top 220ms linear",
                   filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
-                  zIndex: Math.round(rp.y),
-                  pointerEvents: "none",
+                  zIndex: Math.round(rp.y) + (actionMenuOpen ? 20000 : 0),
+                  pointerEvents: "auto",
+                  cursor: "pointer",
                 }}>
                   {/* Nome */}
                   <div style={{
@@ -22723,6 +22847,72 @@ A sucata afundou com o casco.
                       )}
                       {remotePvp && <span aria-label={`HP ${remotePvp.hp} de ${remotePvp.max_hp}`} style={{ position: "absolute", left: 1, right: 1, bottom: -3, height: 4, border: "1px solid #220308", borderRadius: 3, background: "#220308", overflow: "hidden" }}><i style={{ display: "block", width: `${Math.max(0, remotePvp.hp / Math.max(1, remotePvp.max_hp) * 100)}%`, height: "100%", background: remoteLowHp ? "#ff1935" : "#62db72", boxShadow: remoteLowHp ? "0 0 7px #ff1935" : undefined }} /></span>}
                     </button>
+                  )}
+                  {actionMenuOpen && (
+                    <div
+                      role="dialog"
+                      aria-label={`Ações para ${rp.name}`}
+                      onClick={(ev) => ev.stopPropagation()}
+                      style={{
+                        position: "absolute", left: 42, top: -42, width: 178,
+                        padding: 7, borderRadius: 8, zIndex: 100,
+                        background: "linear-gradient(160deg, #182d52, #0b142a)",
+                        border: "2px solid #79c5ff",
+                        boxShadow: "0 5px 18px rgba(0,0,0,0.72)",
+                        fontFamily: '"Pixelify Sans", ui-monospace, monospace',
+                        cursor: "default",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 5 }}>
+                        <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 9, fontWeight: 900, color: "#eaf7ff" }}>
+                          👤 {rp.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setRemotePlayerAction(null)}
+                          aria-label="Fechar ações"
+                          style={{ width: 19, height: 19, padding: 0, borderRadius: 4, border: "1px solid #678cb5", color: "#d9edff", background: "#14233b", cursor: "pointer", fontWeight: 900 }}
+                        >×</button>
+                      </div>
+                      <div style={{ display: "grid", gap: 4 }}>
+                        <button
+                          type="button"
+                          disabled={!guild}
+                          title={guild ? "Enviar convite para a guilda" : "Crie ou entre em uma guilda primeiro"}
+                          onClick={() => {
+                            if (!guild) return;
+                            setRemotePlayerAction(null);
+                            void handleInviteUsername(rp.name);
+                          }}
+                          style={{
+                            padding: "5px 6px", borderRadius: 5, border: "1px solid #3a9b65",
+                            background: guild ? "#1f7047" : "#34445a", color: guild ? "#ecffef" : "#9aafc6",
+                            cursor: guild ? "pointer" : "not-allowed", fontSize: 8, fontWeight: 900, textAlign: "left",
+                          }}
+                        >🏰 ADICIONAR À GUILDA</button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const alreadyFriend = friends.some((friend) => friend.name.toLowerCase() === rp.name.toLowerCase());
+                            handleAddFriend(rp.name);
+                            setRemotePlayerAction(null);
+                            pushChat(alreadyFriend ? `${rp.name} já está nos seus amigos.` : `💚 ${rp.name} adicionado aos amigos.`, "info");
+                          }}
+                          style={{
+                            padding: "5px 6px", borderRadius: 5, border: "1px solid #d4a94a",
+                            background: "#785e1d", color: "#fff7d7", cursor: "pointer", fontSize: 8, fontWeight: 900, textAlign: "left",
+                          }}
+                        >💚 ADICIONAR AMIGO</button>
+                        <button
+                          type="button"
+                          onClick={() => { void handlePartyAdd({ id: rp.userId, name: rp.name }); }}
+                          style={{
+                            padding: "5px 6px", borderRadius: 5, border: "1px solid #4aa4e8",
+                            background: "#1f5f98", color: "#ebf8ff", cursor: "pointer", fontSize: 8, fontWeight: 900, textAlign: "left",
+                          }}
+                        >⚔️ JUNTAR À PARTY</button>
+                      </div>
+                    </div>
                   )}
 
                 </div>
@@ -23650,8 +23840,8 @@ A sucata afundou com o casco.
               trainerTheme={trainerTheme}
               toggleTrainerTheme={toggleTrainerTheme}
               guildPanelProps={{
-                guild, guildLoading, invites: guildInvites, friends, party: partyForPanel,
-                partyInvites, missionProgress, claimedMissions,
+                guild, guildLoading, invites: guildInvites, friends, party,
+                partyInvites, partyOnlineMemberCount, partyRewardMultiplier, missionProgress, claimedMissions,
                 myId, myName, myLevel, myGold, mySpecies,
                 onCreateGuild: handleCreateGuild, onInviteUsername: handleInviteUsername,
                 onAcceptInvite: handleAcceptInvite, onDeclineInvite: handleDeclineInvite,
@@ -23660,7 +23850,7 @@ A sucata afundou com o casco.
                 onPartyRemove: handlePartyRemove, onAcceptPartyInvite: handleAcceptPartyInvite,
                 onDeclinePartyInvite: handleDeclinePartyInvite, onLeaveParty: handleLeaveParty,
                 onLeaveGuild: handleLeaveGuild, onKickMember: handleKickMember,
-                onRefresh: () => { void refreshGuild(); },
+                onRefresh: () => { void refreshGuild(); void refreshParty(); },
               }}
 
 

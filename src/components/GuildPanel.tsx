@@ -1,5 +1,5 @@
 // HUD da Guilda & Amigos — abas: MISSÕES (captura) | MEMBROS | AMIGOS | CASAR (bloqueado).
-// Trade bloqueado por enquanto. Guilda usa Supabase (guildApi); amigos/party são locais.
+// Guilda e party usam RPCs Supabase; a lista de amigos continua local.
 import { useState } from "react";
 import type { Guild, GuildElement } from "@/game/guild";
 import { GUILD_ELEMENTS, bonusesFor } from "@/game/guild";
@@ -16,6 +16,8 @@ type Props = {
   friends: FriendEntry[];
   party: { party: PartyRow; members: PartyMemberRow[] } | null;
   partyInvites: PartyInviteRow[];
+  partyOnlineMemberCount: number;
+  partyRewardMultiplier: number;
   missionProgress: Record<string, number>;
   claimedMissions: string[];
   myId: string;
@@ -32,7 +34,7 @@ type Props = {
   onAddFriend: (name: string) => void;
   onRemoveFriend: (name: string) => void;
   onPartyAdd: (target: { id: string; name: string }) => void;
-  onPartyRemove: (targetName: string) => void;
+  onPartyRemove: (targetId: string) => void;
   onAcceptPartyInvite: (inv: PartyInviteRow) => void;
   onDeclinePartyInvite: (id: string) => void;
   onLeaveParty: () => void;
@@ -64,6 +66,7 @@ export function GuildPanel(p: Props) {
   const [friendName, setFriendName] = useState("");
   const g = p.guild;
   const isLeader = !!g && g.founderId === p.myId;
+  const isPartyLeader = p.party?.party.leader_id === p.myId;
   const bonus = g ? bonusesFor(g.level) : null;
 
   const btn = (bg: string, fg = "#1a0f2a"): React.CSSProperties => ({
@@ -84,9 +87,14 @@ export function GuildPanel(p: Props) {
         onClick={() => p.onInviteUsername(name)}
       >CONVIDAR</button>
       {isInParty(p.party, name) ? (
-        <button style={btn("#9a9a9a", "#fff")} onClick={() => p.onPartyRemove(name)}>SAIR PARTY</button>
+        (() => {
+          const member = p.party?.members.find((entry) => entry.player_name.toLowerCase() === name.toLowerCase());
+          return isPartyLeader && member && member.player_id !== p.myId ? (
+            <button style={btn("#9a9a9a", "#fff")} onClick={() => p.onPartyRemove(member.player_id)}>REMOVER PARTY</button>
+          ) : <span style={{ fontSize: 8, color: "#7dc4ff", fontWeight: 900, alignSelf: "center" }}>⚔️ NA PARTY</span>;
+        })()
       ) : (
-        <button style={btn("#7dc4ff")} onClick={() => p.onPartyAdd({ id: "", name })}>CHAMAR PARTY</button>
+        <button style={btn("#7dc4ff")} title="Clique no personagem do jogador no mapa para convidar" onClick={() => p.onPartyAdd({ id: "", name })}>PARTY NO MAPA</button>
       )}
       <button
         style={{ ...btn("#3a3a5a", "#8a8aa8"), cursor: "not-allowed", opacity: 0.7 }}
@@ -268,17 +276,43 @@ export function GuildPanel(p: Props) {
         <div style={{ marginTop: 8 }}>
           {safePartyMembers(p.party).length > 0 && (
             <div style={{ background: "rgba(125,196,255,0.1)", border: "1px solid #7dc4ff", borderRadius: 8, padding: 6, marginBottom: 6 }}>
-              <div style={{ fontSize: 9, fontWeight: 900, color: "#7dc4ff", marginBottom: 4 }}>⚔️ MINHA PARTY ({safePartyMembers(p.party).length}/{PARTY_MAX})</div>
-              {safePartyMembers(p.party).map((m) => (
-                <div key={m.player_id} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
-                  <span style={{ flex: 1, fontSize: 10, color: "#fff" }}>
-                    {m.player_name} <span style={{ color: "#9ab8d8" }}>Lv.{m.level}</span>
-                  </span>
-                  {m.player_id !== p.myId && (
-                    <button style={btn("#9a9a9a", "#fff")} onClick={() => p.onPartyRemove(m.player_name)}>TIRAR</button>
-                  )}
+              <div style={{ display: "flex", gap: 5, alignItems: "center", marginBottom: 4 }}>
+                <div style={{ flex: 1, minWidth: 0, fontSize: 9, fontWeight: 900, color: "#7dc4ff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  ⚔️ {p.party?.party.name ?? "MINHA PARTY"} ({safePartyMembers(p.party).length}/{PARTY_MAX})
                 </div>
-              ))}
+                <span style={{ fontSize: 8, color: p.partyOnlineMemberCount >= 2 ? "#7dd87d" : "#9ab8d8", fontWeight: 900 }}>
+                  ● {p.partyOnlineMemberCount} online
+                </span>
+              </div>
+              <div style={{
+                marginBottom: 5, padding: "4px 6px", borderRadius: 5,
+                background: p.partyRewardMultiplier > 1 ? "rgba(91,203,124,0.16)" : "rgba(8,20,40,0.5)",
+                color: p.partyRewardMultiplier > 1 ? "#b9f5c2" : "#9ab8d8", fontSize: 8.5, fontWeight: 900,
+              }}>
+                {p.partyRewardMultiplier > 1
+                  ? `✦ BÔNUS ATIVO: ×${p.partyRewardMultiplier.toFixed(1).replace(".", ",")} Ouro e EXP`
+                  : "Aguardando 2 membros online para ativar ×1,5 Ouro e EXP"}
+              </div>
+              {safePartyMembers(p.party).map((m) => {
+                const online = Math.abs(Date.now() - new Date(m.last_seen).getTime()) < 90_000;
+                return (
+                  <div key={m.player_id} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {m.player_id === p.party?.party.leader_id ? "👑 " : ""}{m.player_name} <span style={{ color: "#9ab8d8" }}>Lv.{m.level}</span>
+                    </span>
+                    <span title={online ? "Online" : "Ausente"} style={{ fontSize: 8, color: online ? "#7dd87d" : "#8b99ad" }}>●</span>
+                    {isPartyLeader && m.player_id !== p.myId && (
+                      <button style={btn("#9a9a9a", "#fff")} onClick={() => p.onPartyRemove(m.player_id)}>TIRAR</button>
+                    )}
+                  </div>
+                );
+              })}
+              <button style={{ ...btn("#3a3a5a", "#e6ecff"), width: "100%", marginTop: 3 }} onClick={p.onLeaveParty}>SAIR DA PARTY</button>
+            </div>
+          )}
+          {!p.party && (
+            <div style={{ background: "rgba(125,196,255,0.08)", border: "1px solid rgba(125,196,255,0.45)", borderRadius: 8, padding: 7, marginBottom: 6, fontSize: 9, color: "#b9dfff" }}>
+              ⚔️ Party online: clique em outro jogador no mapa e escolha <b>JUNTAR À PARTY</b>. Com 2 jogadores online: ×1,5 Ouro e EXP; VIP: ×2,5.
             </div>
           )}
           <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>

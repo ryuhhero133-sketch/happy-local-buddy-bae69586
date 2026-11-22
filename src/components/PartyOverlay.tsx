@@ -7,7 +7,6 @@ import {
   pingPresence,
   type PartyRow, type PartyMemberRow, type PartyInviteRow,
 } from "@/game/party";
-import { supabase } from "@/integrations/supabase/client";
 
 type Me = { id: string; name: string; level: number; mapId: string };
 type WildInfo = { id: string; name: string; level: number; hpPct: number; rarity: string };
@@ -46,14 +45,12 @@ export function PartyOverlay({
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Party tables intentionally deny direct Data API reads. Poll the secure
+  // RPC instead of subscribing to raw rows.
   useEffect(() => {
-    const ch = supabase.channel(`party-overlay-${me.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "party_members" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "party_invites" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "parties" }, refresh)
-      .subscribe();
-    return () => { void supabase.removeChannel(ch); };
-  }, [me.id, refresh]);
+    const timer = window.setInterval(() => { void refresh(); }, 15_000);
+    return () => window.clearInterval(timer);
+  }, [refresh]);
 
   useEffect(() => {
     if (!state) return;
@@ -188,7 +185,7 @@ export function PartyOverlay({
                 CRIAR PARTY
               </button>
               <div className="text-[10px] text-emerald-400/70 mt-3 leading-relaxed p-2 rounded border border-emerald-900/40 bg-black/30">
-                ★ Em party, XP de mobs é dividido entre membros no mesmo mapa, com <b>+10% por membro</b>.
+                ★ Com ao menos 2 membros online, a party dá <b>×1,5 Ouro e EXP</b>. Com VIP ativo, o bônus é <b>×2,5</b>.
               </div>
             </div>
           ) : tab === "members" ? (
@@ -199,7 +196,7 @@ export function PartyOverlay({
                   <div className="text-[10px] text-emerald-400">Líder: {state.party.leader_name}</div>
                 </div>
                 <div className="text-[11px] text-emerald-300">
-                  XP share: <b style={{ color: "#fde047" }}>+{(state.members.length - 1) * 10}%</b>
+                  Bônus: <b style={{ color: "#fde047" }}>×1,5 (VIP ×2,5)</b>
                 </div>
               </div>
 

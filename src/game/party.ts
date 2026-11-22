@@ -1,12 +1,14 @@
-// Party system — up to 5 players. Backed by Supabase (parties/party_members/
-// party_invites) for cross-client sync, but the local game save is never
-// blocked by it: if Supabase is down, party features simply go offline.
+// Online party API. Party state is owned by authenticated Supabase RPCs:
+// clients never write party tables directly or choose party leaders/counts.
 
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sb = supabase as any;
 
 export const PARTY_MAX = 5;
+export const PARTY_ONLINE_MS = 90_000;
 
 export type PartyRow = {
   id: string;
@@ -25,6 +27,7 @@ export type PartyMemberRow = {
   map_id: string | null;
   joined_at: string;
   last_seen: string;
+  online?: boolean;
 };
 
 export type PartyInviteRow = {
@@ -39,119 +42,214 @@ export type PartyInviteRow = {
   created_at: string;
 };
 
-export async function createParty(opts: { name: string; leaderId: string; leaderName: string; level: number; mapId: string }) {
-  const partyName = (opts.name || `Grupo de ${opts.leaderName}`).slice(0, 32);
-  // Remove any prior membership for this player (one party at a time).
-  await sb.from("party_members").delete().eq("player_id", opts.leaderId);
-  const { data, error } = await sb
-    .from("parties")
-    .insert({ name: partyName, leader_id: opts.leaderId, leader_name: opts.leaderName })
-    .select()
-    .single();
-  if (error || !data) throw new Error(error?.message ?? "Falha ao criar party");
-  await sb.from("party_members").insert({
-    party_id: data.id,
-    player_id: opts.leaderId,
-    player_name: opts.leaderName,
-    level: opts.level,
-    map_id: opts.mapId,
-  });
-  return data as PartyRow;
+export type PartyState = { party: PartyRow; members: PartyMemberRow[] };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function safeLevel(level: number | undefined): number {
+  return Math.max(1, Math.min(1_000_000, Math.floor(Number(level) || 1)));
 }
 
-export async function getMyParty(playerId: string): Promise<{ party: PartyRow; members: PartyMemberRow[] } | null> {
-  const { data: m } = await sb.from("party_members").select("party_id").eq("player_id", playerId).maybeSingle();
-  if (!m) return null;
-  const partyId = (m as { party_id: string }).party_id;
-  const [pRes, mRes] = await Promise.all([
-    sb.from("parties").select("*").eq("id", partyId).maybeSingle(),
-    sb.from("party_members").select("*").eq("party_id", partyId),
-  ]);
-  if (!pRes.data) return null;
-  return { party: pRes.data as PartyRow, members: (mRes.data ?? []) as PartyMemberRow[] };
+function safeMapId(mapId: string | undefined): string | null {
+  const value = (mapId ?? "").trim().slice(0, 64);
+  return value || null;
 }
 
-export async function leaveParty(playerId: string, partyId: string, isLeader: boolean) {
-  await sb.from("party_members").delete().eq("player_id", playerId).eq("party_id", partyId);
-  if (isLeader) {
-    // Delete the whole party (cascades to members & invites).
-    await sb.from("parties").delete().eq("id", partyId);
-  }
-}
-
-export async function kickMember(partyId: string, leaderId: string, targetId: string) {
-  if (targetId === leaderId) return;
-  await sb.from("party_members").delete().eq("party_id", partyId).eq("player_id", targetId);
-}
-
-export async function transferLeadership(partyId: string, newLeaderId: string, newLeaderName: string) {
-  await sb.from("parties").update({ leader_id: newLeaderId, leader_name: newLeaderName, updated_at: new Date().toISOString() }).eq("id", partyId);
-}
-
-export async function invitePlayer(opts: { partyId: string; partyName: string; fromId: string; fromName: string; targetId: string; targetName: string }) {
-  // Cancel any prior pending invite to the same target for this party.
-  await sb.from("party_invites").delete()
-    .eq("party_id", opts.partyId).eq("target_id", opts.targetId).eq("status", "pending");
-  const { error } = await sb.from("party_invites").insert({
-    party_id: opts.partyId, party_name: opts.partyName,
-    from_id: opts.fromId, from_name: opts.fromName,
-    target_id: opts.targetId, target_name: opts.targetName,
-    status: "pending",
-  });
+async function rpc<T>(name: string, params?: Record<string, unknown>): Promise<T> {
+  const { data, error } = await sb.rpc(name, params);
   if (error) throw new Error(error.message);
+  return data as T;
 }
 
-export async function listInvitesFor(targetId: string): Promise<PartyInviteRow[]> {
-  const { data } = await sb.from("party_invites").select("*").eq("target_id", targetId).eq("status", "pending").order("created_at", { ascending: false });
-  return (data ?? []) as PartyInviteRow[];
+function asPartyState(value: unknown): PartyState | null {
+  if (!value || typeof value !== "object") return null;
+  const state = value as Partial<PartyState>;
+  if (!state.party || !Array.isArray(state.members)) return null;
+  return state as PartyState;
 }
 
-export async function acceptInvite(invite: PartyInviteRow, me: { id: string; name: string; level: number; mapId: string }) {
-  // Check capacity.
-  const { data: members } = await sb.from("party_members").select("player_id").eq("party_id", invite.party_id);
-  if ((members?.length ?? 0) >= PARTY_MAX) {
-    await sb.from("party_invites").update({ status: "declined" }).eq("id", invite.id);
-    throw new Error("Party já está cheia.");
+/** `true` only while the server heartbeat is fresh. */
+export function isPartyMemberOnline(
+  member: Pick<PartyMemberRow, "last_seen">,
+  at = Date.now(),
+): boolean {
+  const lastSeen = Date.parse(member.last_seen);
+  return Number.isFinite(lastSeen) && Math.abs(at - lastSeen) < PARTY_ONLINE_MS;
+}
+
+/** Creates a one-person party. The server returns an existing party if present. */
+export async function createParty(opts: {
+  name?: string;
+  leaderId?: string;
+  leaderName?: string;
+  level: number;
+  mapId: string;
+}): Promise<PartyRow> {
+  // Name/leader fields are intentionally ignored: identity comes from auth.uid().
+  void opts.name;
+  void opts.leaderId;
+  void opts.leaderName;
+  return rpc<PartyRow>("create_player_party", {
+    p_level: safeLevel(opts.level),
+    p_map_id: safeMapId(opts.mapId),
+  });
+}
+
+/** Loads only the signed-in player's own party. Legacy id parameter is ignored. */
+export async function getMyParty(_playerId?: string): Promise<PartyState | null> {
+  void _playerId;
+  return asPartyState(await rpc<unknown>("get_my_party"));
+}
+
+/** Leaves the signed-in player's party; leaders transfer leadership or dissolve it. */
+export async function leaveParty(
+  _playerId?: string,
+  _partyId?: string,
+  _isLeader?: boolean,
+): Promise<boolean> {
+  void _playerId;
+  void _partyId;
+  void _isLeader;
+  return rpc<boolean>("leave_my_party");
+}
+
+/** Removes a member only when the authenticated caller is the current leader. */
+export async function kickMember(
+  _partyId: string,
+  _leaderId: string,
+  targetId: string,
+): Promise<boolean> {
+  void _partyId;
+  void _leaderId;
+  return rpc<boolean>("kick_party_member", { p_member: targetId });
+}
+
+/** Transfers leadership only when the authenticated caller is the current leader. */
+export async function transferLeadership(
+  _partyId: string,
+  newLeaderId: string,
+  _newLeaderName?: string,
+): Promise<boolean> {
+  void _partyId;
+  void _newLeaderName;
+  return rpc<boolean>("transfer_party_leadership", { p_member: newLeaderId });
+}
+
+export async function invitePlayerToParty(opts: {
+  targetId: string;
+  level: number;
+  mapId: string;
+}): Promise<{ invite_id: string; party_id: string; party_name: string }> {
+  if (!UUID_RE.test(opts.targetId)) {
+    throw new Error("Este jogador não está disponível para convite online.");
   }
-  await sb.from("party_members").delete().eq("player_id", me.id);
-  await sb.from("party_members").insert({
-    party_id: invite.party_id, player_id: me.id, player_name: me.name,
-    level: me.level, map_id: me.mapId,
+  return rpc("invite_player_to_party", {
+    p_target: opts.targetId,
+    p_level: safeLevel(opts.level),
+    p_map_id: safeMapId(opts.mapId),
   });
-  await sb.from("party_invites").update({ status: "accepted" }).eq("id", invite.id);
 }
 
-export async function declineInvite(inviteId: string) {
-  await sb.from("party_invites").update({ status: "declined" }).eq("id", inviteId);
+/** Compatibility wrapper for the unused PartyOverlay. Server ignores supplied names/party ids. */
+export async function invitePlayer(opts: {
+  partyId?: string;
+  partyName?: string;
+  fromId?: string;
+  fromName?: string;
+  targetId: string;
+  targetName?: string;
+}): Promise<{ invite_id: string; party_id: string; party_name: string }> {
+  void opts.partyId;
+  void opts.partyName;
+  void opts.fromId;
+  void opts.fromName;
+  void opts.targetName;
+  return invitePlayerToParty({ targetId: opts.targetId, level: 1, mapId: "" });
 }
 
-export async function pingPresence(playerId: string, mapId: string, level: number) {
-  await sb.from("party_members").update({
-    last_seen: new Date().toISOString(),
-    map_id: mapId,
-    level,
-  }).eq("player_id", playerId);
+/** Lists only invitations addressed to the authenticated user. */
+export async function listInvitesFor(_targetId?: string): Promise<PartyInviteRow[]> {
+  void _targetId;
+  const data = await rpc<unknown>("list_my_party_invites");
+  return Array.isArray(data) ? (data as PartyInviteRow[]) : [];
 }
-// ===== Realtime broadcast (XP share, PvP pings) =====
-import type { RealtimeChannel } from "@supabase/supabase-js";
 
+export async function acceptInvite(
+  invite: Pick<PartyInviteRow, "id">,
+  me: { id?: string; name?: string; level: number; mapId: string },
+): Promise<string> {
+  // ID/name are intentionally ignored: the RPC accepts only the logged-in user.
+  void me.id;
+  void me.name;
+  return rpc<string>("accept_party_invite", {
+    p_invite: invite.id,
+    p_level: safeLevel(me.level),
+    p_map_id: safeMapId(me.mapId),
+  });
+}
+
+export async function declineInvite(inviteId: string): Promise<boolean> {
+  return rpc<boolean>("decline_party_invite", { p_invite: inviteId });
+}
+
+/** Updates the caller's own party heartbeat, level and map. */
+export async function pingPresence(
+  _playerId: string | undefined,
+  mapId: string,
+  level: number,
+): Promise<boolean> {
+  void _playerId;
+  return rpc<boolean>("party_presence_heartbeat", {
+    p_level: safeLevel(level),
+    p_map_id: safeMapId(mapId),
+  });
+}
+
+// ===== Optional Realtime broadcast bus (combat visual coordination only) =====
 export type PartyBroadcastEvent =
-  | { type: "xp_share"; fromId: string; fromName: string; mapId: string; xpEach: number; channelId?: number; spawnKey?: string; baseXp?: number; targetLevel?: number; targetRarity?: string }
+  | {
+      type: "xp_share";
+      fromId: string;
+      fromName: string;
+      mapId: string;
+      xpEach: number;
+      channelId?: number;
+      spawnKey?: string;
+      baseXp?: number;
+      targetLevel?: number;
+      targetRarity?: string;
+    }
   | { type: "kill_ping"; fromId: string; fromName: string; mapId: string; speciesId: string }
-  // Canal 3 coop: o autor do kill/captura avisa a party para despawnar o
-  // spawn compartilhado (sem recompensa para quem não participou via xp_share).
-  | { type: "shared_kill"; fromId: string; fromName: string; mapId: string; channelId: number; spawnKey: string; speciesId: string };
+  | {
+      type: "shared_kill";
+      fromId: string;
+      fromName: string;
+      mapId: string;
+      channelId: number;
+      spawnKey: string;
+      speciesId: string;
+    };
 
-export function subscribePartyChannel(partyId: string, onEvent: (e: PartyBroadcastEvent) => void): { channel: RealtimeChannel; unsubscribe: () => void } {
-  const ch = supabase.channel(`party-bus-${partyId}`, { config: { broadcast: { self: false } } });
-  ch.on("broadcast", { event: "msg" }, (payload) => {
-    const data = payload.payload as PartyBroadcastEvent;
-    if (data) onEvent(data);
+export function subscribePartyChannel(
+  partyId: string,
+  onEvent: (event: PartyBroadcastEvent) => void,
+): {
+  channel: RealtimeChannel;
+  unsubscribe: () => void;
+} {
+  const channel = supabase.channel(`party-bus-${partyId}`, {
+    config: { broadcast: { self: false } },
   });
-  ch.subscribe();
+  channel.on("broadcast", { event: "msg" }, (payload) => {
+    const event = payload.payload as PartyBroadcastEvent;
+    if (event) onEvent(event);
+  });
+  channel.subscribe();
   return {
-    channel: ch,
-    unsubscribe: () => { void supabase.removeChannel(ch); },
+    channel,
+    unsubscribe: () => {
+      void supabase.removeChannel(channel);
+    },
   };
 }
 
