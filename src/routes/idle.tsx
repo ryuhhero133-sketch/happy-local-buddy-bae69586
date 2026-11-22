@@ -547,6 +547,7 @@ const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
 import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
 import rota1MapUrl from "@/ambiente/map/Rota1.webp";
+import matoVerdeFramesUrl from "@/ambiente/map/MATO VERDE.webp";
 import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap, TEST_MAP_IDS } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
@@ -1830,7 +1831,7 @@ const HEAL_SHEET = "fada";
 type EditorObstacle = Obstacle & { name: string; assetId?: string; baseW?: number; baseH?: number; harvestable?: boolean; harvestSpecies?: Species; choppingUntil?: number; choppedAt?: number };
 const EMPTY_EDITOR_OBSTACLES: EditorObstacle[] = [];
 type EditorPokemonSpawn = { id: number; x: number; y: number; species: Species; level: number; rarity: Rarity; radius: number; respawnSeconds?: number; sizePercent?: number; raid?: boolean };
-type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; harvestable?: boolean };
+type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; stepGrass?: number; harvestable?: boolean };
 const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "casa1", name: "Casa 1", src: casa1Url, w: 140, h: 120, blocks: true, collideR: 38 },
   { id: "casa2", name: "Casa 2", src: casa2Url, w: 140, h: 120, blocks: true, collideR: 38 },
@@ -1842,6 +1843,7 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
   { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
   { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
+  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 96, h: 96, blocks: false, collideR: 0, stepGrass: 3 },
   { id: "editor_snow_tree", name: "Pinheiro nevado", src: editorSnowTreeUrl, w: 157, h: 207, blocks: false, collideR: 0 },
   { id: "editor_grass", name: "Capim", src: editorGrassUrl, w: 140, h: 140, blocks: false, collideR: 0 },
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
@@ -1858,7 +1860,7 @@ function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[
       return { ...saved, src: asset.src, assetId: asset.id, name: asset.name,
         w: hasSize ? saved.w : asset.w, h: hasSize ? saved.h : asset.h, baseW: hasSize ? saved.baseW : asset.w,
         baseH: hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
-        collideR: saved.collideR ?? asset.collideR, bgAnim: asset.bgAnim,
+        collideR: saved.collideR ?? asset.collideR, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
         harvestable: saved.harvestable ?? asset.harvestable, harvestSpecies: saved.harvestSpecies ?? "pinsir" };
     }) : [],
   ]));
@@ -1883,6 +1885,8 @@ type Obstacle = {
     frames: number;          // total de frames usados
     ms: number;              // duração da animação em segundos
   };
+  /** Mato estilo GBA: nº de frames (0 normal, 1 balançado, 2 pisado). */
+  stepGrass?: number;
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
@@ -6842,6 +6846,8 @@ const confirmName = () => {
   };
   const getCoveringObstacle = (x: number, y: number) => {
     for (const o of obstacles) {
+      // Mato/grama nunca fica transparente: ele reage (anima) ao pisar.
+      if (o.stepGrass) continue;
       const left = o.x - o.w / 2;
       const right = o.x + o.w / 2;
       const top = o.y - o.h + 8;
@@ -17463,6 +17469,23 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     [getCoveringObstacle(trainerPos.x, trainerPos.y), getCoveringObstacle(followerX, followerY)]
       .filter((id): id is number => id !== null)
   );
+  // Mato estilo GBA: 0 = normal, 1 = balançado (alguém perto), 2 = pisado.
+  const grassFrameFor = (o: Obstacle): number => {
+    if (!o.stepGrass) return 0;
+    const halfW = o.w * 0.45;
+    const top = o.y - o.h + 8;
+    const bottom = o.y + 8;
+    const innerTop = top + o.h * 0.25;
+    const isOn = (x: number, y: number) =>
+      Math.abs(x - o.x) <= halfW && y >= innerTop && y <= bottom;
+    const isNear = (x: number, y: number) =>
+      Math.abs(x - o.x) <= halfW * 1.7 && y >= top - o.h * 0.35 && y <= bottom + o.h * 0.1;
+    if (isOn(trainerPos.x, trainerPos.y) || isOn(followerState.x, followerState.y)) return 2;
+    for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y)) return 2;
+    if (isNear(trainerPos.x, trainerPos.y) || isNear(followerState.x, followerState.y)) return 1;
+    for (const e of enemies) if (e.hp > 0 && isNear(e.x, e.y)) return 1;
+    return 0;
+  };
 
   const upgradeCrystal = (element: CrystalElement) => {
       const data = CRYSTAL_NODES[element];
@@ -18835,7 +18858,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                   { id, x: wx, y: wy, name: asset.name, src: asset.src, w: asset.w, h: asset.h,
                     baseW: asset.w, baseH: asset.h, blocks: mapEditorObjectMode !== "none",
                     collideR: Math.max(asset.collideR, Math.round(asset.w * 0.22)),
-                    assetId: asset.id, bgAnim: asset.bgAnim,
+                    assetId: asset.id, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
                     harvestable: mapEditorObjectMode === "harvest", harvestSpecies: mapEditorHarvestSpecies }] }));
                 setMapEditorSelectedId(null);
               }
@@ -21405,6 +21428,35 @@ A sucata afundou com o casco.
               const objectW = editorStump ? Math.round(o.w * 0.55) : o.w;
               const objectH = editorStump ? Math.round(o.h * 0.45) : o.h;
               const isGroundDecoration = [editorGrassUrl, editorBushUrl, matoFramesUrl, gramaFramesUrl, floresFramesUrl, folhasFramesUrl].includes(o.src);
+              // Mato GBA: 3 frames (normal / balançado / pisado) conforme quem passa.
+              if (o.stepGrass && !editorStump && !editorChopping) {
+                const cols = o.stepGrass;
+                const frame = grassFrameFor(o);
+                const posPct = cols > 1 ? Math.round((frame / (cols - 1)) * 100) : 0;
+                const style: React.CSSProperties = {
+                  position: "absolute",
+                  left: o.x - o.w / 2,
+                  top: o.y - o.h + 8,
+                  width: o.w, height: o.h,
+                  opacity: 1,
+                  pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
+                  zIndex: 2,
+                  backgroundImage: "url(" + o.src + ")",
+                  backgroundSize: (cols * 100) + "% 100%",
+                  backgroundPosition: posPct + "% 0%",
+                  backgroundRepeat: "no-repeat",
+                  imageRendering: "pixelated",
+                  transition: "background-position 90ms steps(1, end)",
+                  outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #ffe08a" : undefined,
+                  cursor: mapEditorOpen && editorObject ? (mapEditorAsset ? "crosshair" : "grab") : undefined,
+                  touchAction: "none",
+                };
+                return <div key={"obs-" + o.id} data-editor-entity={editorObject ? "object" : undefined} style={style}
+                  onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); setMapEditorSelectedId(o.id); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
+                  onContextMenu={(event) => { if (mapEditorOpen && editorObject) { event.preventDefault(); event.stopPropagation(); removeEditorObject(o.id); } }}
+                  onPointerDown={(event) => { if (editorObject) startEditorDrag(event, "object", o.id, o.x, o.y); }}
+                  onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag} />;
+              }
               // Animação por sprite sheet (CSS steps + background-position)
               if (o.bgAnim && !editorStump && !editorChopping) {
                 const { cols, rows, frames, ms } = o.bgAnim;
