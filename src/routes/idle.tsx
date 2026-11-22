@@ -547,7 +547,7 @@ const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
 import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
 import rota1MapUrl from "@/ambiente/map/Rota1.webp";
-import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap, TEST_MAP_IDS } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
@@ -1885,10 +1885,6 @@ type Obstacle = {
   };
 };
 // Gera obstáculos espalhados de forma determinística (mesma disposição sempre)
-/** Mapas de teste (Emerald, Emerald 01, Rota 1): sem Pokémon, baús ou obstáculos. */
-const TEST_MAP_IDS = ["emerald", "emerald_01", "rota1"] as const;
-const isTestMap = (id: string) => (TEST_MAP_IDS as readonly string[]).includes(id);
-
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
   if (isTestMap(mapId)) return [];
   // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
@@ -2519,6 +2515,8 @@ function loadIdle(): IdleState {
       // Mapa que não existe mais (ex.: Safari/Nissan/XZ removidos): devolve o
       // jogador para Revoland em vez de deixar o save preso num mapa ausente.
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "mapinha6";
+      // Mapas de teste: save de outra conta nunca mantém o mapa (falha fechada).
+      if (isTestMap(s.currentMap) && !canSeeTestMaps(loadIdentity()?.id)) s.currentMap = "mapinha6";
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {
@@ -3301,6 +3299,7 @@ function IdlePage() {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
             if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
             if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
+            if (isTestMap(merged.currentMap) && !canSeeTestMaps(identity?.id)) merged.currentMap = "mapinha6";
             if (!merged.saga) merged.saga = freshSaga();
             if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
@@ -16331,7 +16330,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Viagem pelos mapas do Professor (aba MAPAS): sem nível, sem energia,
   // sem transição longa — instantânea, igual portais internos do jogo.
   const profTravelTo = (mapId: string) => {
-    const entryError = mapEntryError(idleRef.current, mapId);
+    const entryError = mapEntryError(idleRef.current, mapId, identity?.id);
     if (entryError) { pushChat(entryError, "info"); return; }
     const m = IDLE_MAPS[mapId];
     const spawn = PROF_SPAWNS[mapId];
@@ -16366,7 +16365,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     playClick();
     setProfessorOpen(false);
     if (payableDef) setTrainerEnergy((e) => Math.max(0, (e ?? 0) - LAB_MAP_ENERGY_COST));
-    setIdle((state) => applyMapEntry(state, mapId as IdleMapId));
+    setIdle((state) => applyMapEntry(state, mapId as IdleMapId, identity?.id));
     setTrainerPos(spawn);
     walkTargetRef.current = null;
     setWalkingTo(null);
@@ -25025,7 +25024,7 @@ A sucata afundou com o casco.
             )}
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["emerald","emerald_01","rota1","mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
+               const base = [...(canSeeTestMaps(identity?.id) ? TEST_MAP_IDS : []), "mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -25043,11 +25042,11 @@ A sucata afundou com o casco.
                       const ok = await askMapPassword(destination.id, destination.name);
                       if (!ok) return;
                     }
-                    if (!isWorldMapDestinationUnlocked(destination.id)) {
+                    if (!isWorldMapDestinationUnlocked(destination.id, identity?.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;
                     }
-                    const entryError = mapEntryError(idleRef.current, destination.id);
+                    const entryError = mapEntryError(idleRef.current, destination.id, identity?.id);
                     if (entryError) { pushChat(entryError, "info"); return; }
                     const m = IDLE_MAPS[destination.id];
                     if (!m || teleportTransition || teleportTimerRef.current) return;
@@ -25067,13 +25066,13 @@ A sucata afundou com o casco.
                     setMapTeleportOpen(false);
                     setTeleportTransition(destination);
                     teleportTimerRef.current = setTimeout(() => {
-                      const currentError = mapEntryError(idleRef.current, destination.id);
+                      const currentError = mapEntryError(idleRef.current, destination.id, identity?.id);
                       if (currentError) { pushChat(currentError, "info"); setTeleportTransition(null); teleportTimerRef.current = null; return; }
                        // Emerald Global sempre começa dentro da Casinha. A porta
                        // é a única transição para o mapa perigoso, evitando nascer
                        // numa célula fatal enquanto a máscara do ARV carrega.
                        setIdle((state) => {
-                         const entered = applyMapEntry(state, destination.id as IdleMapId);
+                         const entered = applyMapEntry(state, destination.id as IdleMapId, identity?.id);
                          return destination.id === "arv"
                            ? { ...entered, currentMap: "casinha" as IdleMapId }
                            : entered;
