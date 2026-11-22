@@ -4399,11 +4399,19 @@ const confirmName = () => {
       setPlacePreview(null);
     }
   }, [idle.currentMap]);
-  // ===== Drops de recurso no CHÃO (não entram na mochila; coletar depois) =====
+  // ===== Drops de recurso no CHÃO (VIP GOLD + AUTO recolhe instantaneamente) =====
   type GroundDrop = { uid: string; mat: MaterialId; qty: number; x: number; y: number; droppedAt: number; card?: "ball" | "ouro" | "ouro500" | "cristal" | "egg" | "stone"; itemId?: string; currency?: "crystals"; map: string };
   const [groundDrops, setGroundDrops] = useState<GroundDrop[]>([]);
   const groundDropsRef = useRef<GroundDrop[]>(groundDrops);
   useEffect(() => { groundDropsRef.current = groundDrops; }, [groundDrops]);
+  // Impede uma mesma recompensa de ser entregue duas vezes entre renders.
+  const claimedGroundDropsRef = useRef(new Set<string>());
+  useEffect(() => {
+    const visible = new Set(groundDrops.map((drop) => drop.uid));
+    for (const uid of claimedGroundDropsRef.current) {
+      if (!visible.has(uid)) claimedGroundDropsRef.current.delete(uid);
+    }
+  }, [groundDrops]);
   const collectedCrystalDropsRef = useRef(new Set<string>());
   // Carta girando (animação de coleta).
   const [cardSpinning, setCardSpinning] = useState<string | null>(null);
@@ -4463,38 +4471,31 @@ const confirmName = () => {
     const buffs = idleRef.current.buffs;
     return vipTierOf(buffs?.goldMult, buffs?.goldMultUntil).tier === "vip60";
   };
-  const collectGroundDrop = (uid: string) => {
+  const canVipGoldAutoCollectGroundDrops = () => (
+    hasVipGoldGroundPickup()
+    && autoRef.current
+    && (autoBattleRef.current?.enabled ?? true)
+  );
+  const collectGroundDrop = (uid: string, options: { automatic?: boolean } = {}) => {
+    const automatic = options.automatic === true;
     const d = groundDropsRef.current.find((o) => o.uid === uid);
     if (!d || d.map !== idleRef.current.currentMap) return;
     const trainer = trainerPosRef.current;
     const distT = Math.hypot(trainer.x - d.x, trainer.y - d.y);
-    if (distT > DROP_COLLECT_PX) {
-      // VIP GOLD deixa o treinador buscar o drop, mas não desliga o AUTO:
-      // o líder fica na posição de combate e continua atacando normalmente.
-      const keepBattle = hasVipGoldGroundPickup()
-        && autoRef.current
-        && (autoBattleRef.current?.enabled ?? true)
-        && !isWaterMap(idleRef.current.currentMap);
-      if (keepBattle) {
-        const label = `drop-vip:${uid}`;
-        if (walkTargetRef.current?.label !== label) {
-          walkTargetRef.current = {
-            x: d.x,
-            y: d.y,
-            label,
-            resumeAuto: false,
-            startedAt: Date.now(),
-            onArrive: () => collectGroundDrop(uid),
-          };
-          setWalkingTo("drop VIP");
-          setWalkMarker({ x: d.x, y: d.y });
-          pushChat("👑 VIP GOLD: indo coletar o drop; o AUTO e a batalha continuam.", "cap");
-        }
+    if (!automatic && distT > DROP_COLLECT_PX) {
+      // Proteção para um clique que aconteça antes do effect de coleta:
+      // VIP GOLD + AUTO credita o drop imediatamente, sem mover o treinador.
+      if (canVipGoldAutoCollectGroundDrops()) {
+        collectGroundDrop(uid, { automatic: true });
         return;
       }
       pushChat("Chegue mais perto para coletar.", "info");
       return;
     }
+    // A carta manual aguarda a animação atual; a coleta VIP é imediata.
+    if (d.card && !automatic && cardSpinning) return;
+    if (claimedGroundDropsRef.current.has(uid)) return;
+    claimedGroundDropsRef.current.add(uid);
     if (d.currency === "crystals") {
       if (collectedCrystalDropsRef.current.has(uid)) return;
       collectedCrystalDropsRef.current.add(uid);
@@ -4504,13 +4505,9 @@ const confirmName = () => {
       playBonus();
       return;
     }
-    // Cartas do evento: giram ao clicar e depois entregam a recompensa.
+    // Cartas do evento: o VIP GOLD entrega na hora; sem VIP, gira ao clicar.
     if (d.card) {
-      if (cardSpinning) return;
-      setCardSpinning(uid);
-      playClick();
-      setTimeout(() => {
-        setCardSpinning(null);
+      const awardCard = () => {
         setGroundDrops((prev) => prev.filter((o) => o.uid !== uid));
         if (d.card === "ball") {
           // 10 pokébolas sorteadas entre great/pokeball/ultra.
@@ -4552,7 +4549,17 @@ const confirmName = () => {
           pushChat(`🃏 Carta Ovo! +1 Ovo que choca Sprigatito MÍTICO Nv 1! Use na mochila!`, "cap");
         }
         playBonus();
-      }, 650);
+      };
+      if (automatic) {
+        awardCard();
+      } else {
+        setCardSpinning(uid);
+        playClick();
+        setTimeout(() => {
+          setCardSpinning(null);
+          awardCard();
+        }, 650);
+      }
       return;
     }
     // Item direto no chão (ex.: pokébolas do Venusaur de Hallow).
@@ -4574,6 +4581,21 @@ const confirmName = () => {
     pushChat(`🧺 Coletou: +${d.qty} ${label}!`, "cap");
     playClick();
   };
+  // VIP GOLD: qualquer drop recém-criado (recurso, item, carta ou cristal)
+  // é creditado automaticamente enquanto o AUTO estiver ligado.
+  useEffect(() => {
+    if (!canVipGoldAutoCollectGroundDrops()) return;
+    for (const drop of groundDrops) {
+      if (drop.map === idle.currentMap) collectGroundDrop(drop.uid, { automatic: true });
+    }
+  }, [
+    groundDrops,
+    auto,
+    idle.autoBattle?.enabled,
+    idle.buffs.goldMult,
+    idle.buffs.goldMultUntil,
+    idle.currentMap,
+  ]);
   const renderGroundDrops = () => {
     const nowG = now;
     return (
@@ -4593,7 +4615,7 @@ const confirmName = () => {
                   zIndex: Math.round(d.y) + 2, cursor: "pointer",
                   animation: spinning ? "cardspin 0.65s linear" : "float 1.8s ease-in-out infinite",
                 }}
-                title={`${CARD_LABEL[d.card]} — ${hasVipGoldGroundPickup() ? "VIP GOLD + AUTO busca sem interromper a batalha" : "clique para girar e coletar"}`}
+                title={`${CARD_LABEL[d.card]} — ${hasVipGoldGroundPickup() ? "VIP GOLD + AUTO recolhe automaticamente" : "clique para girar e coletar"}`}
               >
                 <img
                   src={CARD_IMG[d.card]} alt={CARD_LABEL[d.card]} draggable={false}
@@ -4618,7 +4640,7 @@ const confirmName = () => {
                 zIndex: Math.round(d.y) + 2, cursor: "pointer",
                 animation: "float 1.8s ease-in-out infinite",
               }}
-              title={`${label} ×${d.qty} — ${hasVipGoldGroundPickup() ? "VIP GOLD + AUTO busca sem interromper a batalha" : "clique para coletar"}`}
+              title={`${label} ×${d.qty} — ${hasVipGoldGroundPickup() ? "VIP GOLD + AUTO recolhe automaticamente" : "clique para coletar"}`}
               className={d.currency ? "safari-crystal-drop" : undefined}
             >
               {img ? (
@@ -30385,7 +30407,7 @@ function TabOverlay({
           book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
           book_vip: "Livro VIP EPIC ✦ · +20% Ouro e EXP por 1 hora.",
           book_vip_30: "Livro VIP CRISTAL ✦✦ · +30% Ouro e EXP por 30 dias.",
-          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 1 ANO. Com AUTO ligado, busca drops do chão sem interromper a batalha do Pokémon.",
+          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 1 ANO. Com AUTO ligado, recolhe automaticamente todos os drops do chão sem interromper a batalha do Pokémon.",
           orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
           orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
           orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",

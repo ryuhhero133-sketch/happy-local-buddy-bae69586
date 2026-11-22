@@ -79,7 +79,7 @@ export function vipTierOf(goldMult: number | undefined, until: number | undefine
         "Missão diária Coleta Dourada (quest VIP)",
         "Distinção ✦ dourada no seu nome",
         ...(tier === "vip60"
-          ? ["Com AUTO ligado, coleta drops do chão sem interromper a batalha do Pokémon"]
+          ? ["Com AUTO ligado, recolhe automaticamente todos os drops do chão sem interromper a batalha do Pokémon"]
           : []),
       ]
     : [];
