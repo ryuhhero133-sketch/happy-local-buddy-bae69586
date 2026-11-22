@@ -4,17 +4,17 @@ import {
   crystalBonuses, crystalCost, crystalTierBonuses, crystalTierCost,
   type CrystalElement, type CrystalNetwork, type CrystalTier, type CrystalTiers,
 } from "@/game/elementalNetwork";
-import background from "@/ambiente/aba/backgroud.png";
-import header from "@/ambiente/aba/hud cima.png";
-import buttonClose from "@/assets/synergy2/btn-close.png";
-import fire from "@/ambiente/aba/Cristal Ember.gif";
-import water from "@/ambiente/aba/Cristal raro.gif";
-import nature from "@/ambiente/aba/Cristal Natural.gif";
-import earth from "@/ambiente/aba/Cristal terra01.gif";
-import electric from "@/ambiente/aba/Cristal Epico.gif";
-import legendary from "@/ambiente/aba/Cristal Lendario.gif";
-import ancestral from "@/ambiente/aba/Cristal ancestral.gif";
-import upgradeOrb from "@/ambiente/aba/Aprimoramento.gif";
+import background from "@/ambiente/aba/backgroud.webp";
+import header from "@/ambiente/aba/hud cima.webp";
+import buttonClose from "@/assets/synergy2/btn-close.webp";
+import fire from "@/ambiente/aba/Cristal Ember.webp";
+import water from "@/ambiente/aba/Cristal raro.webp";
+import nature from "@/ambiente/aba/Cristal Natural.webp";
+import earth from "@/ambiente/aba/Cristal terra01.webp";
+import electric from "@/ambiente/aba/Cristal Epico.webp";
+import legendary from "@/ambiente/aba/Cristal Lendario.webp";
+import ancestral from "@/ambiente/aba/Cristal ancestral.webp";
+import upgradeOrb from "@/ambiente/aba/Aprimoramento.webp";
 import "./elemental-synergy.css";
 
 type Props = {

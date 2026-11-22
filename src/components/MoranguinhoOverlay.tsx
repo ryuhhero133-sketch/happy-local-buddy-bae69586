@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import imgMorango from "@/assets/materials/morango.png";
-import imgBuque from "@/assets/materials/buque.png";
-import imgFlorRed from "@/assets/materials/flor-red.png";
+import imgMorango from "@/assets/materials/morango.webp";
+import imgBuque from "@/assets/materials/buque.webp";
+import imgFlorRed from "@/assets/materials/flor-red.webp";
 import imgFlorBlue from "@/assets/materials/flor-blue.png";
-import imgFlorPurple from "@/assets/materials/flor-purple.png";
-import imgRareCandy from "@/assets/items/rare-candy.png";
-import imgStarDust from "@/assets/items/star-dust.png";
+import imgFlorPurple from "@/assets/materials/flor-purple.webp";
+import imgRareCandy from "@/assets/items/rare-candy.webp";
+import imgStarDust from "@/assets/items/star-dust.webp";
 import npcMoranguinhoAsset from "@/assets/npc-moranguinho.png.asset.json";
 const npcMoranguinho = npcMoranguinhoAsset.url;
 import { loadKurtStore, saveKurtStore } from "@/components/KurtCraftOverlay";

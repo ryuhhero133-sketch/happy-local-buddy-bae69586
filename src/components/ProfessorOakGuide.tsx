@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import npcOakSprite from "@/assets/npc-oak.png";
+import npcOakSprite from "@/assets/npc-oak.webp";
 
 export type GuideTopic =
   | "welcome"

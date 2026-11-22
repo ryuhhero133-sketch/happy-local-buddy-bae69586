@@ -37,30 +37,30 @@ import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import type { LucideIcon } from "lucide-react";
-import navInicio from "@/assets/icons/nav-inicio.png";
-import navPokemon from "@/assets/icons/nav-pokemon.png";
-import navMochila from "@/assets/icons/nav-mochila.png";
+import navInicio from "@/assets/icons/nav-inicio.webp";
+import navPokemon from "@/assets/icons/nav-pokemon.webp";
+import navMochila from "@/assets/icons/nav-mochila.webp";
 import { InventoryPanel } from "@/components/inventory/InventoryPanel";
-import trainerLevelUpAnimation from "@/lands/UPEI.gif";
-import mapLoadingImage from "@/game/maps/01.png";
+import trainerLevelUpAnimation from "@/lands/UPEI.webp";
+import mapLoadingImage from "@/game/maps/01.webp";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { collectionProgress, pokemonName, pokemonNumber, type PokemonRecord } from "@/components/collection/collectionModel";
 import { inventoryCategory, inventoryRarity, type InventoryItem } from "@/components/inventory/inventoryModel";
 import { PROFILE_SPRITES } from "@/game/trainerProfile";
-import navMelhorias from "@/CHAR/Melhorias.png";
-import navColecao from "@/assets/icons/nav-colecao.png";
-import navLoja from "@/assets/icons/nav-loja.png";
-import navWallet from "@/assets/icons/nav-wallet.png";
-import navMarket from "@/assets/icons/nav-market.png";
+import navMelhorias from "@/CHAR/Melhorias.webp";
+import navColecao from "@/assets/icons/nav-colecao.webp";
+import navLoja from "@/assets/icons/nav-loja.webp";
+import navWallet from "@/assets/icons/nav-wallet.webp";
+import navMarket from "@/assets/icons/nav-market.webp";
 // Ícones da HUD (pasta CHAR) + fotos de perfil do treinador + skinbox
-import hudAmigosPng from "@/CHAR/Amigos.png";
+import hudAmigosPng from "@/CHAR/Amigos.webp";
 import hudColecaoPng from "@/CHAR/Coleção.png";
 import hudConfigPng from "@/CHAR/Config.png";
-import hudMelhoriasPng from "@/CHAR/Melhorias.png";
+import hudMelhoriasPng from "@/CHAR/Melhorias.webp";
 import hudMissoesPng from "@/CHAR/Missoes.png";
 import skinBoxPng from "@/CHAR/skinbox.png";
 import bottanPng from "@/CHAR/bottan.png";
-import montariaIconPng from "@/CHAR/montaria.png";
+import montariaIconPng from "@/CHAR/montaria.webp";
 import sawsbuckMountPng from "@/CHAR/SAWSBUCK-S3.png";
 import barbaBrancaPng from "@/CHAR/Barba Branca.png";
 import bonnyBiPng from "@/CHAR/Bonny bi.png";
@@ -93,27 +93,27 @@ import taurosShinyIconPng from "@/CHAR/Tauros Shiny_icon.png";
 import farfetchdIconPng from "@/CHAR/Farfetch_icon.png";
 import farfetchdShinyIconPng from "@/CHAR/Farfetch Shiny_icon.png";
 import pinsirShinyIconPng from "@/CHAR/Pinsir Shiny_icon.png";
-import ligaPng from "@/CHAR/Liga.png";
-import torreElementalBg from "@/CHAR/kg/CP Torre Elemental.png";
-import cardTorreFrenteUrl from "@/CHAR/kg/cartas animadas/card torre frente.png";
-import cardBallUrl from "@/CHAR/kg/Drop card/CARD Ball.png";
-import cardCristalUrl from "@/CHAR/kg/Drop card/CARD Cristal.png";
-import cardEggUrl from "@/CHAR/kg/Drop card/CARD EGG.png";
-import cardOuroUrl from "@/CHAR/kg/Drop card/Card Ouro.png";
+import ligaPng from "@/CHAR/Liga.webp";
+import torreElementalBg from "@/CHAR/kg/CP Torre Elemental.webp";
+import cardTorreFrenteUrl from "@/CHAR/kg/cartas animadas/card torre frente.webp";
+import cardBallUrl from "@/CHAR/kg/Drop card/CARD Ball.webp";
+import cardCristalUrl from "@/CHAR/kg/Drop card/CARD Cristal.webp";
+import cardEggUrl from "@/CHAR/kg/Drop card/CARD EGG.webp";
+import cardOuroUrl from "@/CHAR/kg/Drop card/Card Ouro.webp";
 import barneyPng from "@/CHAR/Barney Mercador.png";
 import professorPng from "@/CHAR/kg/Professor.png";
 import florzinhaPng from "@/CHAR/Florzinha.png";
 import gatoancyPng from "@/CHAR/gatoancy.png";
-import aspectroPng from "@/CHAR/aspectro.png";
-import aspecLoadImg from "@/load/aspec.png";
-import mapaBanidoUrl from "@/assets/mapabanido/mapa banido.png";
+import aspectroPng from "@/CHAR/aspectro.webp";
+import aspecLoadImg from "@/load/aspec.webp";
+import mapaBanidoUrl from "@/assets/mapabanido/mapa banido.webp";
 import mapaBanidoMaskUrl from "@/assets/mapabanido/mapa banido colisao.png";
-import perfilChar01Png from "@/CHAR/perfil. char 01.png";
-import perfilChar02Png from "@/CHAR/perfil. char 02.png";
-import perfilCharAshPng from "@/CHAR/perfil. char Ash.png";
-import perfilCharF1Png from "@/CHAR/perfil. char f1.png";
-import perfilCharF2Png from "@/CHAR/perfil. char f2.png";
-import pokemonTabBg from "@/assets/pokemon-tab-bg.jpg";
+import perfilChar01Png from "@/CHAR/perfil. char 01.webp";
+import perfilChar02Png from "@/CHAR/perfil. char 02.webp";
+import perfilCharAshPng from "@/CHAR/perfil. char Ash.webp";
+import perfilCharF1Png from "@/CHAR/perfil. char f1.webp";
+import perfilCharF2Png from "@/CHAR/perfil. char f2.webp";
+import pokemonTabBg from "@/assets/pokemon-tab-bg.webp";
 import iconFragmentCrystal from "@/assets/icon-fragment-crystal.png.asset.json";
 import iconWorldGlobe from "@/assets/icon-world-globe-v2.png.asset.json";
 import iconCrystalBlue from "@/assets/icon-crystal-blue-diamond.png.asset.json";
@@ -139,19 +139,19 @@ import { hasStarterProgress } from "@/game/starterGuard";
 import { EmeraldEggSprite, EmeraldEggHud, EMERALD_EGG_ITEM_ID } from "@/components/EmeraldEggPet";
 import { grantEmeraldFor } from "@/lib/emerald";
 
-import chestClosedImg from "@/assets/icons/chest-closed.png";
-import chestOpenImg from "@/assets/icons/chest-open.png";
-import ballPokeImg from "@/assets/items/icon-pokeball.png";
-import ballGreatImg from "@/assets/items/icon-greatball.png";
-import ballUltraImg from "@/assets/items/icon-ultraball.png";
-import potionNewImg from "@/assets/items/icon-potion.png";
-import premiumBoxImg from "@/assets/items/icon-premium-box.png";
-import chestEmeraldImg from "@/assets/chest-emerald.png";
-import chestAmuletImg from "@/assets/items/icon-chest-amulet.png";
-import bagIconImg from "@/assets/items/icon-bag.png";
-import reviveIconImg from "@/assets/items/icon-revive.png";
-import berryIconImg from "@/assets/items/icon-berry.png";
-import keyIconImg from "@/assets/items/icon-key.png";
+import chestClosedImg from "@/assets/icons/chest-closed.webp";
+import chestOpenImg from "@/assets/icons/chest-open.webp";
+import ballPokeImg from "@/assets/items/icon-pokeball.webp";
+import ballGreatImg from "@/assets/items/icon-greatball.webp";
+import ballUltraImg from "@/assets/items/icon-ultraball.webp";
+import potionNewImg from "@/assets/items/icon-potion.webp";
+import premiumBoxImg from "@/assets/items/icon-premium-box.webp";
+import chestEmeraldImg from "@/assets/chest-emerald.webp";
+import chestAmuletImg from "@/assets/items/icon-chest-amulet.webp";
+import bagIconImg from "@/assets/items/icon-bag.webp";
+import reviveIconImg from "@/assets/items/icon-revive.webp";
+import berryIconImg from "@/assets/items/icon-berry.webp";
+import keyIconImg from "@/assets/items/icon-key.webp";
 // Comidas / colheita / certificado (ícones da mochila).
 import macaBagImg from "@/assets/comida/fruit_apple.png";
 import laranjaBagImg from "@/assets/comida/fruit_orange.png";
@@ -162,55 +162,55 @@ import chaVerdeBagImg from "@/assets/comida/coffee_greentea.png";
 import boloMorangoBagImg from "@/assets/comida/cake_strawberry.png";
 import leiteMangaBagImg from "@/assets/comida/soymilk_mango.png";
 import limaBagImg from "@/assets/comida/fruit_lime.png";
-import morangoBagImg from "@/assets/materials/morango.png";
+import morangoBagImg from "@/assets/materials/morango.webp";
 import bananaBagImg from "@/lands/land01/bananas.png";
 import certificadoBagAsset from "@/assets/carta-governante.png.asset.json";
-import fxSlashImg from "@/assets/items/fx-slash.png";
-import skillAguaImg from "@/skill/agua.png";
-import skillFadaImg from "@/skill/fada.png";
-import skillFogoImg from "@/skill/fogo.png";
-import skillGeloImg from "@/skill/gelo.png";
-import skillPedraImg from "@/skill/pedra.png";
-import skillPlantaImg from "@/skill/planta.png";
+import fxSlashImg from "@/assets/items/fx-slash.webp";
+import skillAguaImg from "@/skill/agua.webp";
+import skillFadaImg from "@/skill/fada.webp";
+import skillFogoImg from "@/skill/fogo.webp";
+import skillGeloImg from "@/skill/gelo.webp";
+import skillPedraImg from "@/skill/pedra.webp";
+import skillPlantaImg from "@/skill/planta.webp";
 import skillVenenoImg from "@/skill/veneno.png";
-import skillDarkFieldImg from "@/skill/skill-area/DARK FIELD.png";
-import skillEarthquakeImg from "@/skill/skill-area/EARTHQUAKE.png";
-import skillElectricFieldImg from "@/skill/skill-area/ELECTRIC FIELD.png";
+import skillDarkFieldImg from "@/skill/skill-area/DARK FIELD.webp";
+import skillEarthquakeImg from "@/skill/skill-area/EARTHQUAKE.webp";
+import skillElectricFieldImg from "@/skill/skill-area/ELECTRIC FIELD.webp";
 import skillElectricImg from "@/skill/skill-area/electric.png";
 import skillFightingImg from "@/skill/skill-area/fighting.png";
-import skillFireBurstImg from "@/skill/skill-area/FIRE BURST.png";
-import skillFlyingImg from "@/skill/skill-area/Flying.png";
-import skillFundoImg from "@/skill/skill-area/FUNDO SKILL AREA.png";
-import skillGhostMistImg from "@/skill/skill-area/GHOST MIST.png";
+import skillFireBurstImg from "@/skill/skill-area/FIRE BURST.webp";
+import skillFlyingImg from "@/skill/skill-area/Flying.webp";
+import skillFundoImg from "@/skill/skill-area/FUNDO SKILL AREA.webp";
+import skillGhostMistImg from "@/skill/skill-area/GHOST MIST.webp";
 import skillNormalImg from "@/skill/skill-area/normal.png";
-import skillPoisonCloudImg from "@/skill/skill-area/POISON CLOUD.png";
-import skillPsychicFieldImg from "@/skill/skill-area/PSYCHIC FIELD.png";
+import skillPoisonCloudImg from "@/skill/skill-area/POISON CLOUD.webp";
+import skillPsychicFieldImg from "@/skill/skill-area/PSYCHIC FIELD.webp";
 import skillPsychicImg from "@/skill/skill-area/Psychic.png";
-import skillRootFieldImg from "@/skill/skill-area/ROOT FIELD.png";
+import skillRootFieldImg from "@/skill/skill-area/ROOT FIELD.webp";
 import skillSoniferoImg from "@/skill/skill-area/Sonifero.png";
-import skillSporeImg from "@/skill/skill-area/SPORE  ESPOROS.png";
-import skillStunSporeImg from "@/skill/skill-area/STUN SPORE  ESPOROS DE PARALISIA.png";
-import fxGrassImg from "@/assets/fx/fx-grass.png";
-import fxFireImg from "@/assets/fx/fx-fire.png";
-import fxWaterImg from "@/assets/fx/fx-water.png";
-import fxElectricImg from "@/assets/fx/fx-electric.png";
-import fxPoisonImg from "@/assets/fx/fx-poison.png";
-import fxPsychicImg from "@/assets/fx/fx-psychic.png";
-import fxIceImg from "@/assets/fx/fx-ice.png";
-import fxRockImg from "@/assets/fx/fx-rock.png";
-import fxFightingImg from "@/assets/fx/fx-fighting.png";
-import fxFlyingImg from "@/assets/fx/fx-flying.png";
-import autoIconImg from "@/assets/items/icon-auto.png";
-import bookAtkImg from "@/assets/icons/book-atk.png";
-import bookDefImg from "@/assets/icons/book-def.png";
-import bookExpImg from "@/assets/icons/book-exp.png";
+import skillSporeImg from "@/skill/skill-area/SPORE  ESPOROS.webp";
+import skillStunSporeImg from "@/skill/skill-area/STUN SPORE  ESPOROS DE PARALISIA.webp";
+import fxGrassImg from "@/assets/fx/fx-grass.webp";
+import fxFireImg from "@/assets/fx/fx-fire.webp";
+import fxWaterImg from "@/assets/fx/fx-water.webp";
+import fxElectricImg from "@/assets/fx/fx-electric.webp";
+import fxPoisonImg from "@/assets/fx/fx-poison.webp";
+import fxPsychicImg from "@/assets/fx/fx-psychic.webp";
+import fxIceImg from "@/assets/fx/fx-ice.webp";
+import fxRockImg from "@/assets/fx/fx-rock.webp";
+import fxFightingImg from "@/assets/fx/fx-fighting.webp";
+import fxFlyingImg from "@/assets/fx/fx-flying.webp";
+import autoIconImg from "@/assets/items/icon-auto.webp";
+import bookAtkImg from "@/assets/icons/book-atk.webp";
+import bookDefImg from "@/assets/icons/book-def.webp";
+import bookExpImg from "@/assets/icons/book-exp.webp";
 import potionIconAsset from "@/assets/potion-icon.png.asset.json";
-import houseLarImg from "@/assets/house-lar.png";
-import houseLabImg from "@/assets/house-lab.png";
-import walletHero from "@/assets/wallet-exchange.jpg";
-import npcOakSprite from "@/assets/npc-oak.png";
-import npcAbyssWitch from "@/assets/npc-abyss-witch.png";
-import continent4Bg from "@/assets/continent4-abyss.jpg";
+import houseLarImg from "@/assets/house-lar.webp";
+import houseLabImg from "@/assets/house-lab.webp";
+import walletHero from "@/assets/wallet-exchange.webp";
+import npcOakSprite from "@/assets/npc-oak.webp";
+import npcAbyssWitch from "@/assets/npc-abyss-witch.webp";
+import continent4Bg from "@/assets/continent4-abyss.webp";
 import npcTraderAsset from "@/assets/npc-trader.png.asset.json";
 import pokemarktClerkAsset from "@/assets/pokemarkt-clerk.png.asset.json";
 
@@ -253,7 +253,7 @@ import { SynergyPanel } from "@/components/SynergyPanel";
 import { SynergyStatusScreen } from "@/components/SynergyStatusScreen";
 import { ElementalSynergyScreen } from "@/components/ElementalSynergyScreen";
 import { CRYSTAL_MAX_LEVEL, CRYSTAL_NODES, CRYSTAL_TIER_NODES, crystalBonuses, crystalCost, crystalTierBonuses, crystalTierCost, type CrystalElement, type CrystalNetwork, type CrystalTier, type CrystalTiers } from "@/game/elementalNetwork";
-import synergyDockIcon from "@/assets/synergy2/c-core.png";
+import synergyDockIcon from "@/assets/synergy2/c-core.webp";
 import { GuildPanel } from "@/components/GuildPanel";
 import { QuestBookPanel } from "@/components/QuestBookPanel";
 import type { Guild, GuildElement } from "@/game/guild";
@@ -412,12 +412,12 @@ type Dir = keyof typeof DIR_ROW;
 // ============ assets ============
 import idleArenaAsset from "@/assets/idle-arena.jpg.asset.json";
 import trophyIconAsset from "@/assets/trophy-icon.png.asset.json";
-import chestGrassImg from "@/assets/chest-grass.png";
-import chestFireImg from "@/assets/chest-fire.png";
-import chestWaterImg from "@/assets/chest-water.png";
-import chestElectricImg from "@/assets/chest-electric.png";
-import chestDarkImg from "@/assets/chest-dark.png";
-import chestDragonImg from "@/assets/chest-dragon.png";
+import chestGrassImg from "@/assets/chest-grass.webp";
+import chestFireImg from "@/assets/chest-fire.webp";
+import chestWaterImg from "@/assets/chest-water.webp";
+import chestElectricImg from "@/assets/chest-electric.webp";
+import chestDarkImg from "@/assets/chest-dark.webp";
+import chestDragonImg from "@/assets/chest-dragon.webp";
 const STONE_CHEST: Record<string, string> = {
   stone_grass: chestGrassImg, stone_fire: chestFireImg, stone_water: chestWaterImg,
   stone_electric: chestElectricImg, stone_dark: chestDarkImg, stone_dragon: chestDragonImg,
@@ -454,7 +454,7 @@ import mapOddish1Asset from "@/assets/map-oddish-1.png.asset.json";
 import mapGrassOddish2Asset from "@/assets/grass-oddish-2.png.asset.json";
 import mapGrassOddish3Asset from "@/assets/grass-oddish-3.png.asset.json";
 import mapOddish2Asset from "@/assets/map-oddish-2.png.asset.json";
-import mapOddish3Url from "@/assets/map-oddish3.png";
+import mapOddish3Url from "@/assets/map-oddish3.webp";
 import absolStartMapAsset from "@/assets/absol-start-map.png.asset.json";
 import governanteHallMapAsset from "@/assets/governante-hall-map.png.asset.json";
 import continent3Map1Asset from "@/assets/maps/map-continent3-1.png.asset.json";
@@ -490,61 +490,65 @@ import orbXpMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbXpMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbXpSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
 import orbXpTeamAsset from "@/assets/orb-xp-team.png.asset.json";
-import orbIncubatorImg from "@/assets/orb-incubator.png";
+import orbIncubatorImg from "@/assets/orb-incubator.webp";
 import redLakeAsset from "@/assets/red-lake.png.asset.json";
 import volcanoAsset from "@/assets/volcano.png.asset.json";
-import mapBeachUrl from "@/assets/map-beach-idle.png";
+import mapBeachUrl from "@/assets/map-beach-idle.webp";
 import mapCidadeAsset from "@/assets/map-village.webp.asset.json";
-import mapinha5Url from "@/assets/mapinha5.png";
-import mapinha6Url from "@/assets/mapinha6.png";
-import mapinha7Url from "@/assets/mapinha7.png";
-import mapinha8Url from "@/assets/mapinha8.png";
-import mapinha9Url from "@/assets/mapinha9.png";
-import mapinha11Url from "@/assets/revoland.png";
-import cold6MaskUrl from "@/assets/colidir/COLD6.png";
-import casa1MaskUrl from "@/ambiente/mascara colisao/casa1 mascara.png";
-import casa2MaskUrl from "@/ambiente/mascara colisao/casa2 mascara.png";
-import landRevoMaskUrl from "@/ambiente/mascara colisao/land revo colisao.png";
-import pokemarktMaskUrl from "@/ambiente/mascara colisao/Pokemarkt mascara.png";
-import areiaAnubisUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis.png";
-import torreVerdejanteUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante.png";
-import torreAncestralUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral.png";
-import mapaOrangeUrl from "@/ambiente/mascara colisao/mapa original/Orange.png";
-import elementureUrl from "@/ambiente/mascara colisao/mapa original/Elementure.png";
-import areiaAnubisMaskUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis Colisao.png";
-import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante Colisao.png";
-import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.png";
-import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.png";
-import laboratorioUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio.png";
-import editorSnowTreeUrl from "@/ambiente/editsprite/ARV NV.png";
-import editorGrassUrl from "@/ambiente/editsprite/ARV1.gif";
-import editorTreeUrl from "@/ambiente/editsprite/DH.png";
-import editorTreeVariantUrl from "@/ambiente/editsprite/c0406398-d011-45d5-a577-e36db41a2466 (2).png";
-import editorBushUrl from "@/ambiente/editsprite/MY.png";
-import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.png";
-import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.png";
+import mapinha5Url from "@/assets/mapinha5.webp";
+import mapinha6Url from "@/assets/mapinha6.webp";
+import mapinha7Url from "@/assets/mapinha7.webp";
+import mapinha8Url from "@/assets/mapinha8.webp";
+import mapinha9Url from "@/assets/mapinha9.webp";
+import mapinha11Url from "@/assets/revoland.webp";
+import cold6MaskUrl from "@/assets/colidir/COLD6.webp";
+import casa1MaskUrl from "@/ambiente/mascara colisao/casa1 mascara.webp";
+import casa2MaskUrl from "@/ambiente/mascara colisao/casa2 mascara.webp";
+import landRevoMaskUrl from "@/ambiente/mascara colisao/land revo colisao.webp";
+import pokemarktMaskUrl from "@/ambiente/mascara colisao/Pokemarkt mascara.webp";
+import areiaAnubisUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis.webp";
+import torreVerdejanteUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante.webp";
+import torreAncestralUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral.webp";
+import mapaOrangeUrl from "@/ambiente/mascara colisao/mapa original/Orange.webp";
+import elementureUrl from "@/ambiente/mascara colisao/mapa original/Elementure.webp";
+import areiaAnubisMaskUrl from "@/ambiente/mascara colisao/mapa original/Areia de Anubis Colisao.webp";
+import torreVerdejanteMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Verdejante Colisao.webp";
+import torreAncestralMaskUrl from "@/ambiente/mascara colisao/mapa original/Torre Ancestral Colisao.webp";
+import mapaOrangeMaskUrl from "@/ambiente/mascara colisao/mapa original/Orange colisao.webp";
+import laboratorioUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio.webp";
+import editorSnowTreeUrl from "@/ambiente/editsprite/ARV NV.webp";
+import editorGrassUrl from "@/ambiente/editsprite/ARV1.webp";
+import editorTreeUrl from "@/ambiente/editsprite/DH.webp";
+import editorTreeVariantUrl from "@/ambiente/editsprite/c0406398-d011-45d5-a577-e36db41a2466 (2).webp";
+import editorBushUrl from "@/ambiente/editsprite/MY.webp";
+import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.webp";
+import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.webp";
 import arvCollisionUrl from "@/ambiente/arvcolisao.jpg";
 // TESTE LOCAL — mapas de exploração do atlas (sem spawn, sem objetos).
 // Carregados só em DEV via import.meta.glob: as imagens não versionadas ficam
 // fora do Git e, se ausentes (build de produção/CI), valem "" e os mapas nem
 // entram em IDLE_MAPS — nada de teste chega ao build publicado.
 const testMapAssets = import.meta.glob("../ambiente/{mk1,guildas,mwt,emy,emy 1}.png", { eager: true, import: "default" }) as Record<string, string>;
-const mapMk1Url = testMapAssets["../ambiente/mk1.png"] ?? "";
-const mapGuildasUrl = testMapAssets["../ambiente/guildas.png"] ?? "";
-const mapMwtUrl = testMapAssets["../ambiente/mwt.png"] ?? "";
-const mapEmyUrl = testMapAssets["../ambiente/emy.png"] ?? "";
-const mapEmy1Url = testMapAssets["../ambiente/emy 1.png"] ?? "";
-import casinhaUrl from "@/ambiente/CASA/casinha.png";
-import casinhaCollisionUrl from "@/ambiente/CASA/casinhacolisao1.png";
-import epicPlantBridgeUrl from "@/ambiente/CASA/gP/epic plant.png";
+const mapMk1Url = testMapAssets["../ambiente/mk1.webp"] ?? "";
+const mapGuildasUrl = testMapAssets["../ambiente/guildas.webp"] ?? "";
+const mapMwtUrl = testMapAssets["../ambiente/mwt.webp"] ?? "";
+const mapEmyUrl = testMapAssets["../ambiente/emy.webp"] ?? "";
+const mapEmy1Url = testMapAssets["../ambiente/emy 1.webp"] ?? "";
+import casinhaUrl from "@/ambiente/CASA/casinha.webp";
+// Mapa privado (só a conta dona): versão otimizada de src/full.png — 4096×2048,
+// RGBA. As áreas transparentes/pretas dela são exatamente a colisão do mapa.
+import nissanFullUrl from "@/ambiente/nissan-full.webp";
+import casinhaCollisionUrl from "@/ambiente/CASA/casinhacolisao1.webp";
+import epicPlantBridgeUrl from "@/ambiente/CASA/gP/epic plant.webp";
 // SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
-import saUrl from "@/ambiente/mascara colisao/sa.png";
+import saUrl from "@/ambiente/mascara colisao/sa.webp";
 import arvMapDefault from "@/game/maps/arv.default.json";
-// O PNG original é carregado externamente em produção devido ao limite de assets.
-const arvUrl = import.meta.env.DEV
-  ? "/src/skill/srg/arv.png"
-  : (import.meta.env.VITE_ARV_MAP_URL ?? "https://raw.githubusercontent.com/ryuhhero133-sketch/happy-local-buddy-bae69586/main/src/skill/srg/arv.png");
-import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
+// Mapa ARV: WebP de 5,4 MB empacotado no build (antes era um PNG de 53 MB
+// baixado do raw.githubusercontent.com, sem cache de CDN). VITE_ARV_MAP_URL
+// continua podendo apontar para outra origem quando for necessário.
+import arvMapUrl from "@/skill/srg/arv.webp";
+const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
+import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canAccessPrivateMap, PRIVATE_MAP_ID } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
@@ -557,12 +561,12 @@ import safariSnorlaxMythicIcon from "@/ambiente/xz/Snorlax Mitico-icon.png";
 import safariKabutopsIcon from "@/ambiente/xz/Kabutops-icon.png";
 import safariKabutopsShinyIcon from "@/ambiente/xz/Kabutops Shiny-icon.png";
 import safariAerodactylIcon from "@/ambiente/xz/aerodactyl-icon.png";
-import safariBallImg from "@/assets/items/icon-safariball.png";
+import safariBallImg from "@/assets/items/icon-safariball.webp";
 // Quatro frames recortados por planta, com fundo transparente.
 import matoFramesUrl from "@/ambiente/xz/mato-frames.png";
-import gramaFramesUrl from "@/ambiente/xz/grama-frames.png";
-import floresFramesUrl from "@/ambiente/xz/flores-frames.png";
-import folhasFramesUrl from "@/ambiente/xz/folhas-frames.png";
+import gramaFramesUrl from "@/ambiente/xz/grama-frames.webp";
+import floresFramesUrl from "@/ambiente/xz/flores-frames.webp";
+import folhasFramesUrl from "@/ambiente/xz/folhas-frames.webp";
 import { collisionReady, ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT, POKEMARKT_EXIT_APPROACH_Y } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
 import { loadArvWaterFx } from "@/game/arvWaterFx";
@@ -580,32 +584,32 @@ import {
   landReqsFor, landReqsMet, takeLandReqs, combinedMats, fruitGains, fruitYieldFor,
   newLandId, newPlantId,
 } from "@/game/lands";
-import mapinha12Url from "@/assets/bidril e kakuna.png";
-import mapinha13Url from "@/assets/mp plus.png";
-import cave01Url from "@/assets/Cave 01.png";
-import cristalCaveUrl from "@/assets/Cristal Cave.png";
-import florestBoneUrl from "@/assets/Florest Bone.png";
-import florestIceUrl from "@/assets/Florest Ice.png";
-import florestShinyUrl from "@/assets/Florest Shiny.png";
-import ruinasDeVenusUrl from "@/assets/Ruinas De Venus.png";
-import ruinasUrl from "@/assets/Ruinas.png";
-import valleyPlumeUrl from "@/assets/Valley Plume.png";
-import revoRoutUrl from "@/assets/revo rout.png";
-import cidadePrincipalUrl from "@/assets/cidade-principal.png";
+import mapinha12Url from "@/assets/bidril e kakuna.webp";
+import mapinha13Url from "@/assets/mp plus.webp";
+import cave01Url from "@/assets/Cave 01.webp";
+import cristalCaveUrl from "@/assets/Cristal Cave.webp";
+import florestBoneUrl from "@/assets/Florest Bone.webp";
+import florestIceUrl from "@/assets/Florest Ice.webp";
+import florestShinyUrl from "@/assets/Florest Shiny.webp";
+import ruinasDeVenusUrl from "@/assets/Ruinas De Venus.webp";
+import ruinasUrl from "@/assets/Ruinas.webp";
+import valleyPlumeUrl from "@/assets/Valley Plume.webp";
+import revoRoutUrl from "@/assets/revo rout.webp";
+import cidadePrincipalUrl from "@/assets/cidade-principal.webp";
 import portalImg from "@/assets/Portal.png";
-import pokemarktUrl from "@/assets/POKEMARKT.png";
-import landRevoUrl from "@/lands/land revo.png";
-import landGeloUrl from "@/lands/land de gelo.png";
-import casa1Url from "@/lands/casa1.png";
-import casa2Url from "@/lands/casa2.png";
-import rotaPinsirUrl from "@/lands/Rota Pinsir.png";
-import desertoAlakaUrl from "@/lands/Deserto de alaka.png";
+import pokemarktUrl from "@/assets/POKEMARKT.webp";
+import landRevoUrl from "@/lands/land revo.webp";
+import landGeloUrl from "@/lands/land de gelo.webp";
+import casa1Url from "@/lands/casa1.webp";
+import casa2Url from "@/lands/casa2.webp";
+import rotaPinsirUrl from "@/lands/Rota Pinsir.webp";
+import desertoAlakaUrl from "@/lands/Deserto de alaka.webp";
 // Mapas lisos (arquivos 0000/0055/0066/0077) — sem máscara de colisão.
-import mapaXzUrl from "@/ambiente/xz/xz.png";
-import mapa0000Url from "@/ambiente/0000.png";
-import mapa0055Url from "@/ambiente/0055.png";
-import mapa0066Url from "@/ambiente/0066.png";
-import mapa0077Url from "@/ambiente/0077.png";
+import mapaXzUrl from "@/ambiente/xz/xz.webp";
+import mapa0000Url from "@/ambiente/0000.webp";
+import mapa0055Url from "@/ambiente/0055.webp";
+import mapa0066Url from "@/ambiente/0066.webp";
+import mapa0077Url from "@/ambiente/0077.webp";
 import bulbasaurFlowerAsset from "@/assets/npcs/bulbasaur-flower.png.asset.json";
 import bulbasaurOrangeAsset from "@/assets/npcs/bulbasaur-orange.png.asset.json";
 import rubyGemAsset from "@/assets/ruby-gem.png.asset.json";
@@ -755,12 +759,12 @@ import squirtlePlusShinySheetPng from "@/assets/plus/Squirtle Shiny.png";
 import ivysaurPlusSheetPng from "@/assets/plus/Ivysaur.png";
 import ivysaurPlusShinySheetPng from "@/assets/plus/Ivysaur Shiny.png";
 // Telas de loading do teleport (pasta load/) � uma aleatória por transição, com fallback.
-import loadImg1 from "@/load/l1.png";
-import loadImg2 from "@/load/l2.png";
-import loadImg3 from "@/load/l3.png";
-import loadImg4 from "@/load/l4.png";
-import loadImg5 from "@/load/l5.png";
-import loadImg6 from "@/load/l6.png";
+import loadImg1 from "@/load/l1.webp";
+import loadImg2 from "@/load/l2.webp";
+import loadImg3 from "@/load/l3.webp";
+import loadImg4 from "@/load/l4.webp";
+import loadImg5 from "@/load/l5.webp";
+import loadImg6 from "@/load/l6.webp";
 const LOAD_IMGS = [loadImg1, loadImg2, loadImg3, loadImg4, loadImg5, loadImg6];
 // Ruínas — geodude/graveler/golem/arcanine/growlithe/sprigatito + shinys/plus + graveler alola (sprites 4x4)
 import geodudeSheetPng from "@/assets/Geodude.png";
@@ -975,9 +979,9 @@ const orbXpMajorUrl = assetUrlFromJson(orbXpMajorAsset);
 const orbXpSupremeUrl = assetUrlFromJson(orbXpSupremeAsset);
 const orbXpTeamUrl = assetUrlFromJson(orbXpTeamAsset);
 // Ícones "de buff" bonitos (HUD do treinador) — orb XP, incenso e orb de time
-const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.png", import.meta.url)).href;
-const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.png", import.meta.url)).href;
-const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.png", import.meta.url)).href;
+const buffOrbXpUrl = (new URL("../assets/buff-orb-xp.webp", import.meta.url)).href;
+const buffIncenseHoneyUrl = (new URL("../assets/buff-incense-honey.webp", import.meta.url)).href;
+const buffTeamOrbUrl = (new URL("../assets/buff-team-orb.webp", import.meta.url)).href;
 const npcTraderUrl = assetUrlFromJson(npcTraderAsset);
 const pokemarktClerkUrl = assetUrlFromJson(pokemarktClerkAsset);
 const redLakeUrl = assetUrlFromJson(redLakeAsset);
@@ -1087,6 +1091,9 @@ type IdleMapDef = {
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
   raid?: boolean;
 };
+// Mapa privado (full.png): ponto de nascimento verificado no solo caminhável
+// do mapa otimizado 4096×2048 (maior componente livre, folga de ~324 px).
+const NISSAN_MAP_SPAWN = { x: 2724, y: 1044 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha6: { name: "Revoland",        diff: "Inicial", bg: mapinha6Url,  rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Normal",  stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
@@ -1162,6 +1169,10 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   // SA (Mapa Mundi): campo aberto com árvores/pedras e selvagens tipo Venusaur.
   // Entrada grátis pelo Mapa Mundi — FORA de FREE_WALK_MAPS (tem obstáculos e spawn).
   sa: { name: "Safari", diff: "Especial", bg: saUrl, rate: 1.0, minLevel: 1, maxLevel: 600, element: "Planta", stars: 1 },
+  // Mapa privado (src/full.png): exploração sem Pokémon/baús e com colisão
+  // própria (preto/transparente bloqueia). Sem maxLevel — igual a arv, não
+  // força migração nem limita nível. Entrada só pela conta dona (mapAccess).
+  nissan_full: { name: "Mapa Nissan", diff: "Privado", bg: nissanFullUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -1282,9 +1293,9 @@ import ancLugiaAncestralFrame from "@/ambiente/ANCESTRAIS/frames/Lugia Ancestral
 import ancMegaCharizardFrame from "@/ambiente/ANCESTRAIS/frames/Mega Charizard.png";
 import ancCharizardMegaXFrame from "@/ambiente/ANCESTRAIS/frames/Charizard Mega x.png";
 // ═══ EGG SELADO ANCESTRAL — arte dos 3 ovos (aba ANCESTRAL do Professor) ═══
-import eggSeladoAncPng from "@/ambiente/Egg selado ancestral.png";
-import eggAncPlusPng from "@/ambiente/Egg Ancestral Plus.png";
-import eggAncLuckPng from "@/ambiente/Egg Ancestral Luck.png";
+import eggSeladoAncPng from "@/ambiente/Egg selado ancestral.webp";
+import eggAncPlusPng from "@/ambiente/Egg Ancestral Plus.webp";
+import eggAncLuckPng from "@/ambiente/Egg Ancestral Luck.webp";
 import esferaSafiraImg from "@/ambiente/Esfera de Safira.png";
 // ═══ Regras puras do ovo selado (selar/alimentar/3 dias/liberar) ═══
 import {
@@ -1886,6 +1897,8 @@ type Obstacle = {
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
   // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
   if (mapId === "arv") return [];
+  // Mapa privado (full.png): nada de obstáculos gerados — a colisão é a imagem.
+  if (mapId === PRIVATE_MAP_ID) return [];
   // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
   if (mapId === "arena" || mapId === "arena" || mapId === "arena" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
   // Revoland (mapinha11): colisão invisível no lago (3 círculos ao longo da água)
@@ -2419,8 +2432,8 @@ const ITEM_IMG: Record<string, string> = {
   premium_box: premiumBoxImg,
   bau_esmeralda: chestEmeraldImg,
   orb_xp_minor: orbXpMinorUrl, orb_xp_major: orbXpMajorUrl, orb_xp_supreme: orbXpSupremeUrl, orb_team: orbXpTeamUrl,
-  orb_xp_supreme_24h: (new URL("../assets/orb-24h.png", import.meta.url)).href,
-  incenso_mel_raro_24h: (new URL("../assets/incense-24h.png", import.meta.url)).href,
+  orb_xp_supreme_24h: (new URL("../assets/orb-24h.webp", import.meta.url)).href,
+  incenso_mel_raro_24h: (new URL("../assets/incense-24h.webp", import.meta.url)).href,
   safira_verde: assetUrlFromJson(safiraVerdeAsset),
   maca: macaBagImg, laranja: laranjaBagImg, picole: picoleBagImg,
   refrigerante: refrigeranteBagImg, cafe: cafeBagImg, cha_verde: chaVerdeBagImg,
@@ -2509,6 +2522,8 @@ function loadIdle(): IdleState {
     if (raw) {
       const s: IdleState = { ...freshIdle(), ...JSON.parse(raw) };
       if (isMapBlocked(s.currentMap)) s.currentMap = "laboratorio";
+      // Mapa privado: save local de outra conta nunca mantém o mapa — falha fechada.
+      if (s.currentMap === PRIVATE_MAP_ID && !canAccessPrivateMap(loadIdentity()?.id)) s.currentMap = "mapinha6";
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {
@@ -3291,6 +3306,8 @@ function IdlePage() {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
             if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
             if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
+            // Mapa privado: snapshot vindo do servidor só vale para a conta dona.
+            if (merged.currentMap === PRIVATE_MAP_ID && !canAccessPrivateMap(identity?.id)) merged.currentMap = "mapinha6";
             if (!merged.saga) merged.saga = freshSaga();
             if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
@@ -6176,6 +6193,7 @@ const confirmName = () => {
     map_0077: mapa0077Url,
     map_xz: mapaXzUrl,
     sa: saUrl,
+    nissan_full: nissanFullUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
@@ -6349,8 +6367,13 @@ const confirmName = () => {
   const FREE_WALK_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa"];
+  const NO_HIGH_EVENT_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa","nissan_full"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
+    // Mapa privado: o mundo inteiro é válido — quem limita é a grade de colisão
+    // da própria imagem (preto/transparente bloqueia), não uma caixa central.
+    if (mapId === PRIVATE_MAP_ID) {
+      return { minX: 0, maxX: w, minY: 0, maxY: h };
+    }
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
       return { minX: w * 0.05, maxX: w * 0.95, minY: h * 0.05, maxY: h * 0.95 };
@@ -6371,6 +6394,8 @@ const confirmName = () => {
   // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
   // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
+    // Mapa privado (full.png): exploração limpa — sem selvagens.
+    if (mapId === PRIVATE_MAP_ID) return [];
     if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "valley_plume") return ["oddish", "gloom", "vileplume", "paras", "parasect", "eevee", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "paras_shiny", "parasect_shiny", "snolax"];
@@ -6441,6 +6466,8 @@ const confirmName = () => {
       if (idle.currentMap === "venenot") ensureCollision("venenot", PROF_MAP_BY_ID.venenot.mask!, cw, chh);
       if (idle.currentMap === "hallow") ensureCollision("hallow", PROF_MAP_BY_ID.hallow.mask!, cw, chh);
       if (idle.currentMap === "caverna_brok") ensureCollision("caverna_brok", PROF_MAP_BY_ID.caverna_brok.mask!, cw, chh);
+      // Mapa privado: a própria imagem é a máscara (preto/transparente bloqueia).
+      if (idle.currentMap === PRIVATE_MAP_ID) ensureCollision(PRIVATE_MAP_ID, nissanFullUrl, cw, chh);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
@@ -6472,6 +6499,9 @@ const confirmName = () => {
       // Laboratório e mapas do Professor: pontos andáveis verificados na máscara.
       else if (idle.currentMap === "laboratorio") arrival = { x: 499, y: 416 };
       else if (PROF_SPAWNS[idle.currentMap]) arrival = PROF_SPAWNS[idle.currentMap];
+      // Mapa privado: nasce no solo seguro verificado — nunca no centro, que
+      // cai no vazio preto do meio do mapa.
+      else if (idle.currentMap === PRIVATE_MAP_ID) arrival = { ...NISSAN_MAP_SPAWN };
       else arrival = { x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) };
 
       trainerPositionRestoredRef.current = true;
@@ -6810,7 +6840,8 @@ const confirmName = () => {
       return !isWalkable("esfera_ancestral", x, y);
     }
     // Mapas com máscara branco/preto: o grid manda (igual Revoland).
-    if (idle.currentMap === "casinha" || idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
+    // Mapa privado: a própria imagem é a máscara — preto/transparente bloqueia.
+    if (idle.currentMap === PRIVATE_MAP_ID || idle.currentMap === "casinha" || idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
       return !isWalkable(idle.currentMap, x, y);
     }
     for (const o of obstacles) {
@@ -9786,6 +9817,9 @@ const confirmName = () => {
     // Presença multiplayer ativa em QUALQUER mapa.
     if (!identity?.id) return;
     const mapId = idle.currentMap;
+    // Mapa privado: não publica presença nem carrega outros treinadores —
+    // quem está no mapa da conta dona não aparece para ninguém mais.
+    if (mapId === PRIVATE_MAP_ID) return;
     const meUserId = identity.id;
     const meId = getMultiplayerSessionId(meUserId);
     const meName = identity.name || "Treinador";
@@ -14718,6 +14752,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (idle.currentMap === "esfera_ancestral") {
       return null;
     }
+    // Mapa privado (full.png): exploração limpa, sem selvagens.
+    if (idle.currentMap === PRIVATE_MAP_ID) {
+      return null;
+    }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
     // Mapas do EVENTO (Torre Elemental) SPAWNAM — são zonas de batalha do evento.
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") {
@@ -15660,6 +15698,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
+    // Mapa privado (full.png): exploração limpa, sem selvagens.
+    if (idle.currentMap === PRIVATE_MAP_ID) return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
@@ -16297,7 +16337,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Viagem pelos mapas do Professor (aba MAPAS): sem nível, sem energia,
   // sem transição longa — instantânea, igual portais internos do jogo.
   const profTravelTo = (mapId: string) => {
-    const entryError = mapEntryError(idleRef.current, mapId);
+    const entryError = mapEntryError(idleRef.current, mapId, identity?.id);
     if (entryError) { pushChat(entryError, "info"); return; }
     const m = IDLE_MAPS[mapId];
     const spawn = PROF_SPAWNS[mapId];
@@ -16995,6 +17035,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   function spawnChests(count = 4): Chest[] {
     // Esfera Ancestral (Mapa Banido): sem baús.
     if (idle.currentMap === "esfera_ancestral") return [];
+    // Mapa privado (full.png): exploração limpa, sem baús.
+    if (idle.currentMap === PRIVATE_MAP_ID) return [];
     const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
     const useH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
     const isSmallMapChest = idle.currentMap === "arena" || idle.currentMap === "arena";
@@ -20672,6 +20714,27 @@ A sucata afundou com o casco.
 
 
 
+          {/* FUNDO DO MAPA — elemento do TAMANHO DA VIEWPORT, fora da camada
+              transformada. Antes a imagem (até 4071×5200) vivia dentro do mundo
+              escalado e virava uma textura gigante no compositor: no iOS Safari
+              isso estoura o limite de textura e cai para rasterização em CPU,
+              travando até em aparelho forte. Aqui só a área visível é pintada. */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 0,
+              pointerEvents: "none",
+              backgroundColor: viewportBg,
+              backgroundImage: map.bg ? `url(${map.bg})` : undefined,
+              backgroundSize: `${curWorldW * zoom}px ${curWorldH * zoom}px`,
+              backgroundPosition: `${-renderCamX * zoom + centerOffX}px ${-renderCamY * zoom + centerOffY}px`,
+              backgroundRepeat: "no-repeat",
+              imageRendering: "pixelated",
+            }}
+          />
+
           {/* MUNDO — camada em px que se move sob a câmera */}
           <div style={{
             position: "absolute",
@@ -20680,33 +20743,12 @@ A sucata afundou com o casco.
             transform: `translate3d(${-renderCamX * zoom + centerOffX}px, ${-renderCamY * zoom + centerOffY}px, 0) scale(${zoom})`,
             transformOrigin: "0 0",
             transition: "none",
-            backgroundColor: viewportBg,
             overflow: "hidden",
             contain: "layout paint style",
             willChange: "transform",
             backfaceVisibility: "hidden",
           }}>
 
-            {/* Fundo real do mapa: escala uniforme e pixel art nítida na viewport fullscreen. */}
-            <img
-              src={map.bg}
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "fill",
-                pointerEvents: "none",
-                userSelect: "none",
-                imageRendering: "pixelated",
-                transform: "translateZ(0)",
-                backfaceVisibility: "hidden",
-                zIndex: 0,
-              }}
-            />
             {idle.currentMap === "mapinha10" && (
               <div aria-hidden="true" style={{
                 position: "absolute",
@@ -24026,6 +24068,7 @@ A sucata afundou com o casco.
                   return; // A luz abre a confirmação; nunca teleporta sem consentimento.
                 }
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
+                if (g.target === PRIVATE_MAP_ID && !canAccessPrivateMap(identity?.id)) { pushChat("🔒 Mapa privado — acesso restrito.", "info"); return; }
                 if (g.target === "sa") { profTravelTo("sa"); return; }
                 const targetMap = IDLE_MAPS[g.target];
                 if (["rota_pinsir", "deserto_alaka"].includes(g.target)) {
@@ -24963,7 +25006,7 @@ A sucata afundou com o casco.
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa"];
+               const base = ["mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa", ...(canAccessPrivateMap(identity?.id) ? [PRIVATE_MAP_ID] : [])];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -24976,11 +25019,11 @@ A sucata afundou com o casco.
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
                   onTeleport={async (destination) => {
-                    if (!isWorldMapDestinationUnlocked(destination.id)) {
+                    if (!isWorldMapDestinationUnlocked(destination.id, identity?.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;
                     }
-                    const entryError = mapEntryError(idleRef.current, destination.id);
+                    const entryError = mapEntryError(idleRef.current, destination.id, identity?.id);
                     if (entryError) { pushChat(entryError, "info"); return; }
                     const m = IDLE_MAPS[destination.id];
                     if (!m || teleportTransition || teleportTimerRef.current) return;
@@ -25000,13 +25043,13 @@ A sucata afundou com o casco.
                     setMapTeleportOpen(false);
                     setTeleportTransition(destination);
                     teleportTimerRef.current = setTimeout(() => {
-                      const currentError = mapEntryError(idleRef.current, destination.id);
+                      const currentError = mapEntryError(idleRef.current, destination.id, identity?.id);
                       if (currentError) { pushChat(currentError, "info"); setTeleportTransition(null); teleportTimerRef.current = null; return; }
                        // Emerald Global sempre começa dentro da Casinha. A porta
                        // é a única transição para o mapa perigoso, evitando nascer
                        // numa célula fatal enquanto a máscara do ARV carrega.
                        setIdle((state) => {
-                         const entered = applyMapEntry(state, destination.id as IdleMapId);
+                         const entered = applyMapEntry(state, destination.id as IdleMapId, identity?.id);
                          return destination.id === "arv"
                            ? { ...entered, currentMap: "casinha" as IdleMapId }
                            : entered;
@@ -25018,6 +25061,7 @@ A sucata afundou com o casco.
                          setTrainerPos(arrival);
                        } else if (destination.id === "laboratorio") setTrainerPos({ x: 499, y: 416 });
                        else if (destination.id === "sa") setTrainerPos(PROF_SPAWNS.sa);
+                       else if (destination.id === PRIVATE_MAP_ID) setTrainerPos({ ...NISSAN_MAP_SPAWN });
                        else setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
                       walkTargetRef.current = null;
                       setWalkingTo(null);

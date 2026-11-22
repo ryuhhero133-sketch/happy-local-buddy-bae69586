@@ -1,25 +1,25 @@
-// Discos de Habilidade — 20 cards cortados de src/assets/DISCOS.png (1536x1024, 5x4).
+// Discos de Habilidade — 20 cards cortados de src/assets/DISCOS.webp (1536x1024, 5x4).
 // Registro visual + efeito Sonífero (player-side, 3s). Sem mudar economia/save.
-import disc01 from "@/assets/01_skill_disc_raiz_aprisionante.png";
-import disc02 from "@/assets/02_skill_disc_combustao.png";
-import disc03 from "@/assets/03_skill_disc_mare_cortante.png";
-import disc04 from "@/assets/04_skill_disc_pulso_voltaico.png";
-import disc05 from "@/assets/05_skill_disc_impacto_rochoso.png";
-import disc06 from "@/assets/06_skill_disc_toxina_sombria.png";
-import disc07 from "@/assets/07_skill_disc_lamina_de_vendaval.png";
-import disc08 from "@/assets/08_skill_disc_geada_paralisante.png";
-import disc09 from "@/assets/09_skill_disc_golpe_brutal.png";
-import disc10 from "@/assets/10_skill_disc_onda_mental.png";
-import disc11 from "@/assets/11_skill_disc_eclipse.png";
-import disc12 from "@/assets/12_skill_disc_raio_purificador.png";
-import disc13 from "@/assets/13_skill_disc_ruptura_draconica.png";
-import disc14 from "@/assets/14_skill_disc_abalo_sismico.png";
-import disc15 from "@/assets/15_skill_disc_veu_fantasma.png";
-import disc16 from "@/assets/16_skill_disc_lanca_metalica.png";
-import disc17 from "@/assets/17_skill_disc_sonifero.png";
-import disc18 from "@/assets/18_skill_disc_explosao_solar.png";
-import disc19 from "@/assets/19_skill_disc_areia_dominante.png";
-import disc20 from "@/assets/20_skill_disc_instinto_ancestral.png";
+import disc01 from "@/assets/01_skill_disc_raiz_aprisionante.webp";
+import disc02 from "@/assets/02_skill_disc_combustao.webp";
+import disc03 from "@/assets/03_skill_disc_mare_cortante.webp";
+import disc04 from "@/assets/04_skill_disc_pulso_voltaico.webp";
+import disc05 from "@/assets/05_skill_disc_impacto_rochoso.webp";
+import disc06 from "@/assets/06_skill_disc_toxina_sombria.webp";
+import disc07 from "@/assets/07_skill_disc_lamina_de_vendaval.webp";
+import disc08 from "@/assets/08_skill_disc_geada_paralisante.webp";
+import disc09 from "@/assets/09_skill_disc_golpe_brutal.webp";
+import disc10 from "@/assets/10_skill_disc_onda_mental.webp";
+import disc11 from "@/assets/11_skill_disc_eclipse.webp";
+import disc12 from "@/assets/12_skill_disc_raio_purificador.webp";
+import disc13 from "@/assets/13_skill_disc_ruptura_draconica.webp";
+import disc14 from "@/assets/14_skill_disc_abalo_sismico.webp";
+import disc15 from "@/assets/15_skill_disc_veu_fantasma.webp";
+import disc16 from "@/assets/16_skill_disc_lanca_metalica.webp";
+import disc17 from "@/assets/17_skill_disc_sonifero.webp";
+import disc18 from "@/assets/18_skill_disc_explosao_solar.webp";
+import disc19 from "@/assets/19_skill_disc_areia_dominante.webp";
+import disc20 from "@/assets/20_skill_disc_instinto_ancestral.webp";
 
 export type SkillDisc = {
   id: string;

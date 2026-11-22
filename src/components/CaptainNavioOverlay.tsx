@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { loadCraftStore, saveCraftStore, type CraftId } from "@/components/VelhoDosMaresOverlay";
-import imgMadeira from "@/assets/craft/madeira.png";
-import imgPecas from "@/assets/craft/pecas.png";
-import imgCorda from "@/assets/craft/corda.png";
-import imgCarta from "@/assets/craft/carta.png";
-import imgAncora from "@/assets/craft/ancora.png";
+import imgMadeira from "@/assets/craft/madeira.webp";
+import imgPecas from "@/assets/craft/pecas.webp";
+import imgCorda from "@/assets/craft/corda.webp";
+import imgCarta from "@/assets/craft/carta.webp";
+import imgAncora from "@/assets/craft/ancora.webp";
 import imgCombustivel from "@/assets/craft/combustivel.png";
 
 

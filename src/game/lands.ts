@@ -8,22 +8,22 @@ import {
 } from "@/components/MercadorMateriaisOverlay";
 
 // Sprites das Lands (níveis 1/2/3) — assets já existentes em src/lands/land01.
-import landFruto1Url from "@/lands/land01/LAND FRUTO (1).png";
-import landFruto2Url from "@/lands/land01/LAND FRUTO (2).png";
-import landFruto3Url from "@/lands/land01/LAND FRUTO (3).png";
+import landFruto1Url from "@/lands/land01/LAND FRUTO (1).webp";
+import landFruto2Url from "@/lands/land01/LAND FRUTO (2).webp";
+import landFruto3Url from "@/lands/land01/LAND FRUTO (3).webp";
 // Sprites das plantações (base / evoluída / fruto) — assets já existentes.
 import laranjeiraUrl from "@/lands/land01/Laranjeira.png";
-import laranjeira1Url from "@/lands/land01/Laranjeira 1.png";
+import laranjeira1Url from "@/lands/land01/Laranjeira 1.webp";
 import laranjinhaUrl from "@/lands/land01/Laranjinha.png";
 import morango00Url from "@/lands/land01/morango 00.png";
-import morango1Url from "@/lands/land01/Morango 1.png";
+import morango1Url from "@/lands/land01/Morango 1.webp";
 import moranguinhoUrl from "@/lands/land01/Moranguinho.png";
-import bananeiraUrl from "@/lands/land01/bananeira.png";
-import bananeira1Url from "@/lands/land01/Bananeira 1.png";
+import bananeiraUrl from "@/lands/land01/bananeira.webp";
+import bananeira1Url from "@/lands/land01/Bananeira 1.webp";
 import bananasUrl from "@/lands/land01/bananas.png";
 // Madeira (requisito de evolução) — assets já existentes.
-import lenhaUrl from "@/assets/materials/lenha.png";
-import madeiraUrl from "@/assets/craft/madeira.png";
+import lenhaUrl from "@/assets/materials/lenha.webp";
+import madeiraUrl from "@/assets/craft/madeira.webp";
 
 export type LandLevel = 1 | 2 | 3;
 export type PlantKind = "laranja" | "morango" | "banana";

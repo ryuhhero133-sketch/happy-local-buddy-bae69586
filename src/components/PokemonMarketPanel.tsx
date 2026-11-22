@@ -12,7 +12,7 @@ import { SPECIES_BASE, RARITY_NAME } from "@/game/systems";
 import { computePower, elementsOf, ELEMENT_META } from "@/game/synergies";
 import { TRAITS, TIER_COLOR } from "@/game/traits";
 import { readEmeraldFor, writeEmeraldFor, spendEmeraldFor, grantEmeraldFor } from "@/lib/emerald";
-import emeraldCoinImg from "@/assets/emerald-coin.png";
+import emeraldCoinImg from "@/assets/emerald-coin.webp";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 

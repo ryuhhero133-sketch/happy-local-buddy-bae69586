@@ -8,7 +8,7 @@ import { getHudScale, type HudMapBounds } from "./hudLayout";
 import { MainMenu } from "./MainMenu";
 import { TouchJoystick } from "./TouchJoystick";
 import { TrainerGuide } from "@/components/TrainerGuide";
-import eventIcon from "@/skill/srg/ICONE DE EVENTO.png";
+import eventIcon from "@/skill/srg/ICONE DE EVENTO.webp";
 import "./hud.css";
 import "./mobile-landscape.css";
 

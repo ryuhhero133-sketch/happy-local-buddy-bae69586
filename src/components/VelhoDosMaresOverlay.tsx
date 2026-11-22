@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import imgMadeira from "@/assets/craft/madeira.png";
-import imgPecas from "@/assets/craft/pecas.png";
-import imgCorda from "@/assets/craft/corda.png";
-import imgAncora from "@/assets/craft/ancora.png";
-import imgCarta from "@/assets/craft/carta.png";
+import imgMadeira from "@/assets/craft/madeira.webp";
+import imgPecas from "@/assets/craft/pecas.webp";
+import imgCorda from "@/assets/craft/corda.webp";
+import imgAncora from "@/assets/craft/ancora.webp";
+import imgCarta from "@/assets/craft/carta.webp";
 import imgCombustivel from "@/assets/craft/combustivel.png";
 
 // Materiais do mercador (mesmos itens / mesmos ícones)
-import imgLenha from "@/assets/materials/lenha.png";
-import imgFibra from "@/assets/materials/fibra.png";
-import imgFerro from "@/assets/materials/ferro.png";
-import imgPedra from "@/assets/materials/pedra.png";
-import imgBronze from "@/assets/materials/bronze.png";
-import imgOleo from "@/assets/materials/oleo.png";
-import imgChicote from "@/assets/materials/chicote.png";
-import imgSucata from "@/assets/materials/sucata.png";
+import imgLenha from "@/assets/materials/lenha.webp";
+import imgFibra from "@/assets/materials/fibra.webp";
+import imgFerro from "@/assets/materials/ferro.webp";
+import imgPedra from "@/assets/materials/pedra.webp";
+import imgBronze from "@/assets/materials/bronze.webp";
+import imgOleo from "@/assets/materials/oleo.webp";
+import imgChicote from "@/assets/materials/chicote.webp";
+import imgSucata from "@/assets/materials/sucata.webp";
 import imgLaranja from "@/lands/land01/Laranjinha.png";
 import imgBanana from "@/lands/land01/bananas.png";
 

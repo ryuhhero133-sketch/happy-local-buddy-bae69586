@@ -7,7 +7,7 @@
 // ============================================================
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import eggSprite from "@/assets/black-mitic-egg.png";
+import eggSprite from "@/assets/black-mitic-egg.webp";
 import { ELEMENTS } from "@/components/BlackMiticEggPet";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 

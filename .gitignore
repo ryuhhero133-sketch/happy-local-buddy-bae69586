@@ -38,3 +38,7 @@ src/ambiente/guildas.png
 src/ambiente/mwt.png
 src/ambiente/emy.png
 src/ambiente/emy 1.png
+
+# Arte-fonte / exports locais (nao entram no build)
+src/full.png
+src/mapa-arv (16).json

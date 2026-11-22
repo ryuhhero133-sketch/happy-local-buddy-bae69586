@@ -4,13 +4,13 @@
 // O sheet "Barco spritemovimento.png" é uma grade 4x4 de células 192x192 com
 // origem em (216, 24) — medido por análise de pixels, não por palpite. A
 // artoria não tem linha "baixo": DOWN usa a linha 0 espelhada em Y.
-import boatSheetUrl from "@/ambiente/EFECT AGUA/Barco spritemovimento.png";
-import boatBrokenUrl from "@/ambiente/EFECT AGUA/barco quebrado.png";
+import boatSheetUrl from "@/ambiente/EFECT AGUA/Barco spritemovimento.webp";
+import boatBrokenUrl from "@/ambiente/EFECT AGUA/barco quebrado.webp";
 import boatShopUrl from "@/ambiente/EFECT AGUA/modelinho barco loja.png";
-import oilUrl from "@/ambiente/EFECT AGUA/oleo.png";
-import waterFxUrl from "@/ambiente/EFECT AGUA/Efeito nas aguas..png";
-import whirlFxUrl from "@/ambiente/EFECT AGUA/Efeito Redemoinho.png";
-import whirlBigUrl from "@/ambiente/EFECT AGUA/Redemoinho.png";
+import oilUrl from "@/ambiente/EFECT AGUA/oleo.webp";
+import waterFxUrl from "@/ambiente/EFECT AGUA/Efeito nas aguas..webp";
+import whirlFxUrl from "@/ambiente/EFECT AGUA/Efeito Redemoinho.webp";
+import whirlBigUrl from "@/ambiente/EFECT AGUA/Redemoinho.webp";
 
 export const BOAT_SHEET_URL = boatSheetUrl;
 export const BOAT_BROKEN_URL = boatBrokenUrl;
@@ -296,7 +296,7 @@ export const WATER_PATCHES: Record<string, { x: number; y: number; s: number }[]
 // Tentacool / Tentacool Shiny — sprites em grade 4x4 de 64x64 (256x256).
 import tentacoolUrl from "@/ambiente/EFECT AGUA/Tentacool.png";
 import tentacoolShinyUrl from "@/ambiente/EFECT AGUA/Tentacool Shiny.png";
-import waterSkillUrl from "@/ambiente/EFECT AGUA/Skill atak pokemon Aquatico.png";
+import waterSkillUrl from "@/ambiente/EFECT AGUA/Skill atak pokemon Aquatico.webp";
 
 export const TENTACOOL_URL = tentacoolUrl;
 export const TENTACOOL_SHINY_URL = tentacoolShinyUrl;
@@ -350,8 +350,8 @@ export function tentFrameStylePx(row: number, col: number, size: number) {
 }
 
 // ============ SUCATA FLUTUANTE ============
-import sucataUrl from "@/ambiente/EFECT AGUA/sucata.png";
-import fxWaterUrl from "@/assets/fx/fx-water.png";
+import sucataUrl from "@/ambiente/EFECT AGUA/sucata.webp";
+import fxWaterUrl from "@/assets/fx/fx-water.webp";
 
 export const SUCATA_URL = sucataUrl;
 export const FX_WATER_URL = fxWaterUrl;

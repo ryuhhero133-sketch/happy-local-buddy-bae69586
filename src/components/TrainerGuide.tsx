@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import professorPortrait from "@/assets/npc-oak.png";
+import professorPortrait from "@/assets/npc-oak.webp";
 
 const REMIND_AFTER_MS = 6 * 60 * 60 * 1000;
 const pages = [

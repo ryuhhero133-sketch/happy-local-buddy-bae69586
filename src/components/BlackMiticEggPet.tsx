@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useServerFn } from "@tanstack/react-start";
-import eggSprite from "@/assets/black-mitic-egg.png";
-import incubatorSprite from "@/assets/black-mitic-incubator.png";
+import eggSprite from "@/assets/black-mitic-egg.webp";
+import incubatorSprite from "@/assets/black-mitic-incubator.webp";
 import eggMusicAsset from "@/assets/egg-transitus.mp3.asset.json";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { getBlackEggSave, saveBlackEggSave } from "@/lib/blackEgg.functions";

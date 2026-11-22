@@ -37,10 +37,10 @@ import {
   type VipBookId,
 } from "@/game/trainerProfile";
 import { HATCH_MS, FED_CAP } from "@/game/ancestralEggs";
-import eggSeladoUrl from "@/ambiente/Egg selado ancestral.png";
-import eggPlusUrl from "@/ambiente/Egg Ancestral Plus.png";
-import eggLuckUrl from "@/ambiente/Egg Ancestral Luck.png";
-import bauAncUrl from "@/assets/chest-emerald.png";
+import eggSeladoUrl from "@/ambiente/Egg selado ancestral.webp";
+import eggPlusUrl from "@/ambiente/Egg Ancestral Plus.webp";
+import eggLuckUrl from "@/ambiente/Egg Ancestral Luck.webp";
+import bauAncUrl from "@/assets/chest-emerald.webp";
 import { BookArt, PatenteCrown, SpiritWings } from "@/components/trainerProfileArt";
 import {
   BOATS,

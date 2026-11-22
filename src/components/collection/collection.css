@@ -7,7 +7,7 @@
   gap: 6px;
   border: 0;
   border-radius: 24px;
-  background: #2a0b52 url("../../HDD.png") center / 100% 100% no-repeat;
+  background: #2a0b52 url("../../HDD.webp") center / 100% 100% no-repeat;
   box-shadow: 0 24px 70px #000c, 0 0 0 1px #f2c56a33;
 }
 /* Título à esquerda para não colidir com o crest central da moldura. */

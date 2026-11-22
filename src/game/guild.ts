@@ -2,13 +2,13 @@
 export const GUILD_KEY = "rubym.guild.v1";
 export const GUILD_OPEN_COST = 5000;
 
-import waterIcon from "@/assets/guild/water.png";
-import fireIcon from "@/assets/guild/fire.png";
-import grassIcon from "@/assets/guild/grass.png";
-import psychicIcon from "@/assets/guild/psychic.png";
-import poisonIcon from "@/assets/guild/poison.png";
-import fairyIcon from "@/assets/guild/fairy.png";
-import flyingIcon from "@/assets/guild/flying.png";
+import waterIcon from "@/assets/guild/water.webp";
+import fireIcon from "@/assets/guild/fire.webp";
+import grassIcon from "@/assets/guild/grass.webp";
+import psychicIcon from "@/assets/guild/psychic.webp";
+import poisonIcon from "@/assets/guild/poison.webp";
+import fairyIcon from "@/assets/guild/fairy.webp";
+import flyingIcon from "@/assets/guild/flying.webp";
 
 export type GuildElement = "fire" | "water" | "grass" | "psychic" | "poison" | "fairy" | "flying";
 

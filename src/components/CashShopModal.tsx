@@ -9,22 +9,22 @@ import {
   type TicketMsg, type AdminThreadSummary, type PendingSale,
 } from "@/lib/cashshopChat";
 import { motion, AnimatePresence } from "framer-motion";
-import blackEggImg from "@/assets/black-mythic-plus-egg.jpg";
-import rubyVipImg from "@/assets/ruby-vip.jpg";
-import rubyEmeraldPackImg from "@/assets/ruby-emerald-pack.jpg";
-import chestEmeraldImg from "@/assets/chest-emerald.png";
-import packUltraballImg from "@/assets/pack-ultraball.png";
-import orb24hImg from "@/assets/orb-24h.png";
-import incense24hImg from "@/assets/incense-24h.png";
-import emeraldCoinImg from "@/assets/emerald-coin.png";
+import blackEggImg from "@/assets/black-mythic-plus-egg.webp";
+import rubyVipImg from "@/assets/ruby-vip.webp";
+import rubyEmeraldPackImg from "@/assets/ruby-emerald-pack.webp";
+import chestEmeraldImg from "@/assets/chest-emerald.webp";
+import packUltraballImg from "@/assets/pack-ultraball.webp";
+import orb24hImg from "@/assets/orb-24h.webp";
+import incense24hImg from "@/assets/incense-24h.webp";
+import emeraldCoinImg from "@/assets/emerald-coin.webp";
 import safiraVerdeAsset from "@/assets/icon-safira-verde.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 const SAFIRA_URL = assetUrlFromJson(safiraVerdeAsset);
-import safariBallImg from "@/assets/items/icon-safariball.png";
+import safariBallImg from "@/assets/items/icon-safariball.webp";
 import ultraBallIconImg from "@/assets/icon-ultraball.png";
 import crystalDiamondAsset from "@/assets/icon-crystal-blue-diamond.png.asset.json";
 const CRYSTAL_URL = assetUrlFromJson(crystalDiamondAsset);
-import dragoniteEggImg from "@/assets/egg-dragonite-shiny.jpg";
+import dragoniteEggImg from "@/assets/egg-dragonite-shiny.webp";
 import { emeraldKeyFor, readEmeraldFor, writeEmeraldFor } from "@/lib/emerald";
 
 // Mantém tipos exportados p/ compat externa (não usados internamente agora)

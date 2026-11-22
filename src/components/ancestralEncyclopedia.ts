@@ -4,14 +4,14 @@
 import darkraiUrl from "@/ambiente/ancestral/darkrai.jpg";
 import dragoniteMgUrl from "@/ambiente/ancestral/dragonite-mg.jpg";
 import dragoniteAncestralUrl from "@/ambiente/DRAGONITE ANCESTRAL X.png";
-import mewtwoAncestralUrl from "@/ambiente/MEWTWO ANCESTRAL.png";
+import mewtwoAncestralUrl from "@/ambiente/MEWTWO ANCESTRAL.webp";
 import giratinaUrl from "@/ambiente/ancestral/giratina.jpg";
 import groudonShinyUrl from "@/ambiente/ancestral/groudon-shiny.jpg";
 import cresseliaUrl from "@/ambiente/ancestral/cresselia.jpg";
 import kyuremUrl from "@/ambiente/ancestral/kyurem.jpg";
 import latiosAncestralUrl from "@/ambiente/ancestral/latios-ancestral.jpg";
 import lugiaMShinyUrl from "@/ambiente/ancestral/lugia-m-shiny.jpg";
-import lugiaShinyAncestralUrl from "@/ambiente/ancestral/lugia-shiny-ancestral.jpg";
+import lugiaShinyAncestralUrl from "@/ambiente/ancestral/lugia-shiny-ancestral.webp";
 import megaCharizardUrl from "@/ambiente/ancestral/mega-charizard.jpg";
 import megaLugiaAncestralUrl from "@/ambiente/ancestral/mega-lugia-ancestral.jpg";
 import megaCharizardXUrl from "@/ambiente/ancestral/mega-charizard-x.jpg";

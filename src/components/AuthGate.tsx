@@ -7,10 +7,10 @@ import { claimSnapshotOwner, clearSnapshotOwner } from "@/lib/saveManager";
 import { computeIsExisting, saveShowsProgress } from "@/lib/accountExists";
 import { recoverVaultIdentity, readVault } from "@/lib/emergencyVault";
 import { makePet } from "@/game/systems";
-import perfilChar01Png from "@/CHAR/perfil. char 01.png";
-import perfilChar02Png from "@/CHAR/perfil. char 02.png";
-import perfilCharF1Png from "@/CHAR/perfil. char f1.png";
-import perfilCharF2Png from "@/CHAR/perfil. char f2.png";
+import perfilChar01Png from "@/CHAR/perfil. char 01.webp";
+import perfilChar02Png from "@/CHAR/perfil. char 02.webp";
+import perfilCharF1Png from "@/CHAR/perfil. char f1.webp";
+import perfilCharF2Png from "@/CHAR/perfil. char f2.webp";
 import charmanderGif from "@/assets/charmander.gif";
 import bulbasaurGif from "@/assets/bulbasaur.gif";
 import squirtleGif from "@/assets/squirtle.gif";
@@ -19,11 +19,11 @@ import { canUseOfflineTest, enterOfflineTest, exitOfflineTest, isOfflineTest } f
 import type { Session } from "@supabase/supabase-js";
 import { checkMaintenanceMode, isAdmin as checkIsAdmin } from "@/lib/maintenance.functions";
 import { updateActiveSession, getActiveSessionToken, clearActiveSession } from "@/lib/session.functions";
-import pokeEmeraldLoginPng from "@/ambiente/POKE EMERALD.png";
+import pokeEmeraldLoginPng from "@/ambiente/POKE EMERALD.webp";
 import introMapMusicMp3 from "@/ambiente/Mapa random.mp3";
 
 
-const loginBgAsset = { url: "/login-bg.png" };
+const loginBgAsset = { url: "/login-bg.webp" };
 // Arte oficial da entrada. Importada pelo Vite para não depender de arquivo
 // público ausente e para receber URL versionada no deploy.
 const loginSplashUrl = pokeEmeraldLoginPng;

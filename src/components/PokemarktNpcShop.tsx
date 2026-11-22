@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import lojinhaImg from "@/assets/lojinha.png";
+import lojinhaImg from "@/assets/lojinha.webp";
 import clerkAsset from "@/assets/pokemarkt-clerk.png.asset.json";
 import { assetUrlFromJson } from "@/lib/assetUrl";
-import ballPokeImg from "@/assets/items/icon-pokeball.png";
-import ballGreatImg from "@/assets/items/icon-greatball.png";
-import ballUltraImg from "@/assets/items/icon-ultraball.png";
-import potionImg from "@/assets/items/icon-potion.png";
-import bookAtkImg from "@/assets/icons/book-atk.png";
-import bookDefImg from "@/assets/icons/book-def.png";
-import bookExpImg from "@/assets/icons/book-exp.png";
+import ballPokeImg from "@/assets/items/icon-pokeball.webp";
+import ballGreatImg from "@/assets/items/icon-greatball.webp";
+import ballUltraImg from "@/assets/items/icon-ultraball.webp";
+import potionImg from "@/assets/items/icon-potion.webp";
+import bookAtkImg from "@/assets/icons/book-atk.webp";
+import bookDefImg from "@/assets/icons/book-def.webp";
+import bookExpImg from "@/assets/icons/book-exp.webp";
 import orbMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbTeamAsset from "@/assets/orb-xp-team.png.asset.json";
 // Comidas (sprites em src/assets/comida).
@@ -23,10 +23,10 @@ import cakeImg from "@/assets/comida/cake_strawberry.png";
 import mangoImg from "@/assets/comida/soymilk_mango.png";
 import greenteaImg from "@/assets/comida/coffee_greentea.png";
 import popsicleImg from "@/assets/comida/popsicle_pink.png";
-import emeraldEggImg from "@/assets/black-mitic-egg.png";
+import emeraldEggImg from "@/assets/black-mitic-egg.webp";
 import certGovAsset from "@/assets/carta-governante.png.asset.json";
-import mountIconImg from "@/CHAR/montaria.png";
-import mountBannerImg from "@/CHAR/evento 0.png";
+import mountIconImg from "@/CHAR/montaria.webp";
+import mountBannerImg from "@/CHAR/evento 0.webp";
 
 type StoreItem = {
   id: string;

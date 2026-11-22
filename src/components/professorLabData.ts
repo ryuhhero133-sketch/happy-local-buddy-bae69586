@@ -1,43 +1,43 @@
 // Missões do Professor do Laboratório — 3 diálogos → quests com progresso real.
 // Módulo de dados (sem JSX) para não acionar a regra react-refresh dos componentes.
 import type { Element } from "@/game/synergies";
-import iceblowUrl from "@/ambiente/mascara colisao/UPDATE/ICEBLOW.png";
+import iceblowUrl from "@/ambiente/mascara colisao/UPDATE/ICEBLOW.webp";
 import iceblowMaskUrl from "@/ambiente/mascara colisao/UPDATE/ICEBLOW colisao.jpg";
 import iceblowCristalUrl from "@/ambiente/mascara colisao/UPDATE/efeito-cristal-iceblow.png";
-import monteFloretoUrl from "@/ambiente/mascara colisao/UPDATE/MONTE FLORETO.png";
-import monteFloretoMaskUrl from "@/ambiente/mascara colisao/UPDATE/MONTE FLORETO COLISAO.png";
-import monteFloretoAmareloUrl from "@/ambiente/mascara colisao/UPDATE/efeito-amarelo-monte-floreto.png";
+import monteFloretoUrl from "@/ambiente/mascara colisao/UPDATE/MONTE FLORETO.webp";
+import monteFloretoMaskUrl from "@/ambiente/mascara colisao/UPDATE/MONTE FLORETO COLISAO.webp";
+import monteFloretoAmareloUrl from "@/ambiente/mascara colisao/UPDATE/efeito-amarelo-monte-floreto.webp";
 import monteFloretoBolhasUrl from "@/ambiente/mascara colisao/UPDATE/efeito-bolhas-monte-floreto.png";
 import rayowRaiosUrl from "@/ambiente/mascara colisao/UPDATE/efeito-raios-rayow.png";
-import rayowUrl from "@/ambiente/mascara colisao/UPDATE/RAYOW.png";
-import rayowMaskUrl from "@/ambiente/mascara colisao/UPDATE/RAYOWCOLISAO.png";
-import sakuraUrl from "@/ambiente/mascara colisao/UPDATE/Sakura City.png";
-import sakuraMaskUrl from "@/ambiente/mascara colisao/UPDATE/Sakura City COLISAO.png";
-import sakuraRosaUrl from "@/ambiente/mascara colisao/UPDATE/efeito-rosa-sakura-city.png";
-import sakuraAmareloUrl from "@/ambiente/mascara colisao/UPDATE/efeito-amarelo-sakura-city.png";
-import venenotUrl from "@/ambiente/mascara colisao/UPDATE/venenot.png";
-import venenotMaskUrl from "@/ambiente/mascara colisao/UPDATE/venenot colisao.png";
+import rayowUrl from "@/ambiente/mascara colisao/UPDATE/RAYOW.webp";
+import rayowMaskUrl from "@/ambiente/mascara colisao/UPDATE/RAYOWCOLISAO.webp";
+import sakuraUrl from "@/ambiente/mascara colisao/UPDATE/Sakura City.webp";
+import sakuraMaskUrl from "@/ambiente/mascara colisao/UPDATE/Sakura City COLISAO.webp";
+import sakuraRosaUrl from "@/ambiente/mascara colisao/UPDATE/efeito-rosa-sakura-city.webp";
+import sakuraAmareloUrl from "@/ambiente/mascara colisao/UPDATE/efeito-amarelo-sakura-city.webp";
+import venenotUrl from "@/ambiente/mascara colisao/UPDATE/venenot.webp";
+import venenotMaskUrl from "@/ambiente/mascara colisao/UPDATE/venenot colisao.webp";
 import venenotBolhasVerdesUrl from "@/ambiente/mascara colisao/UPDATE/efeito-bolhas-verdes-venenot.png";
 import venenotBolhasRoxasUrl from "@/ambiente/mascara colisao/UPDATE/efeito-bolhas-roxas-venenot.png";
-import azulanteUrl from "@/CHAR/kg/Jornada Dos Navegantes/Azulante.png";
+import azulanteUrl from "@/CHAR/kg/Jornada Dos Navegantes/Azulante.webp";
 import azulanteMaskUrl from "@/CHAR/kg/Jornada Dos Navegantes/Azulante COLISAO.png";
 import azulanteMarUrl from "@/CHAR/kg/Jornada Dos Navegantes/efeito-mar-azulante.png";
-import margrandeUrl from "@/CHAR/kg/Jornada Dos Navegantes/MARGRANDE.png";
+import margrandeUrl from "@/CHAR/kg/Jornada Dos Navegantes/MARGRANDE.webp";
 import margrandeMaskUrl from "@/CHAR/kg/Jornada Dos Navegantes/MARGRANDE COLISAO.png";
 import margrandeMarUrl from "@/CHAR/kg/Jornada Dos Navegantes/efeito-mar-margrande.png";
-import naveganteUrl from "@/CHAR/kg/Jornada Dos Navegantes/Navegante.png";
+import naveganteUrl from "@/CHAR/kg/Jornada Dos Navegantes/Navegante.webp";
 import naveganteMaskUrl from "@/CHAR/kg/Jornada Dos Navegantes/Navegante COLISAO.png";
 import naveganteMarUrl from "@/CHAR/kg/Jornada Dos Navegantes/efeito-mar-navegante.png";
-import hallowUrl from "@/ambiente/mascara colisao/hallow.png";
-import hallowMaskUrl from "@/ambiente/mascara colisao/hallow Colisao.png";
-import cavernaBrokUrl from "@/ambiente/mascara colisao/Caverna de Brok.png";
-import cavernaBrokMaskUrl from "@/ambiente/mascara colisao/Caverna de brok Colisao.png";
+import hallowUrl from "@/ambiente/mascara colisao/hallow.webp";
+import hallowMaskUrl from "@/ambiente/mascara colisao/hallow Colisao.webp";
+import cavernaBrokUrl from "@/ambiente/mascara colisao/Caverna de Brok.webp";
+import cavernaBrokMaskUrl from "@/ambiente/mascara colisao/Caverna de brok Colisao.webp";
 // Mapas lisos (sem máscara de colisão): só o fundo PNG original.
-import mapaXzUrl from "@/ambiente/xz/xz.png";
-import mapa0000Url from "@/ambiente/0000.png";
-import mapa0055Url from "@/ambiente/0055.png";
-import mapa0066Url from "@/ambiente/0066.png";
-import mapa0077Url from "@/ambiente/0077.png";
+import mapaXzUrl from "@/ambiente/xz/xz.webp";
+import mapa0000Url from "@/ambiente/0000.webp";
+import mapa0055Url from "@/ambiente/0055.webp";
+import mapa0066Url from "@/ambiente/0066.webp";
+import mapa0077Url from "@/ambiente/0077.webp";
 
 export type ProfQuestId =
   | "q1" | "q2" | "q3"

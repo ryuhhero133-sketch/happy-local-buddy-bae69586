@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import eggSprite from "@/assets/black-mitic-egg.png";
+import eggSprite from "@/assets/black-mitic-egg.webp";
 
 type Reward = { hatch_at: string; hatched_at: string | null };
 

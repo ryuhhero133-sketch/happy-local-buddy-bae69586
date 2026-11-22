@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { isMapBlocked, isWorldMapDestinationUnlocked } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, canAccessPrivateMap, PRIVATE_MAP_ID } from "@/game/mapAccess";
+import { loadIdentity } from "@/components/AuthGate";
 import { Map, Sparkles, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ballImg from "@/assets/items/icon-pokeball.png";
-import forestImage from "@/assets/worldmap-forest.jpg";
-import iceImage from "@/assets/worldmap-ice.jpg";
-import caveImage from "@/assets/worldmap-cave.jpg";
-import ruinsImage from "@/assets/worldmap-ruins.jpg";
-import townImage from "@/assets/worldmap-town.jpg";
-import marketImage from "@/assets/worldmap-market.jpg";
-import meadowImage from "@/assets/worldmap-meadow.jpg";
-import hiveImage from "@/assets/worldmap-hive.jpg";
-import crystalImage from "@/assets/worldmap-crystal.jpg";
-import blossomImage from "@/assets/worldmap-blossom.jpg";
+import ballImg from "@/assets/items/icon-pokeball.webp";
+import forestImage from "@/assets/worldmap-forest.webp";
+import iceImage from "@/assets/worldmap-ice.webp";
+import caveImage from "@/assets/worldmap-cave.webp";
+import ruinsImage from "@/assets/worldmap-ruins.webp";
+import townImage from "@/assets/worldmap-town.webp";
+import marketImage from "@/assets/worldmap-market.webp";
+import meadowImage from "@/assets/worldmap-meadow.webp";
+import hiveImage from "@/assets/worldmap-hive.webp";
+import crystalImage from "@/assets/worldmap-crystal.webp";
+import blossomImage from "@/assets/worldmap-blossom.webp";
 
 export type WorldMapDestination = {
   id: string;
@@ -72,14 +73,17 @@ const FILTERS: { id: MapFilterId; label: string }[] = [
 
 export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
   const [filter, setFilter] = useState<MapFilterId>("rotas");
+  // Mapa privado: fora da lista para qualquer conta que não seja a dona.
+  const privateMapAllowed = canAccessPrivateMap(loadIdentity()?.id);
   const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
   const visible = destinations.filter((d) =>
-    filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id),
+    (d.id !== PRIVATE_MAP_ID || privateMapAllowed)
+    && (filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id)),
   );
   const countFor = (id: MapFilterId) =>
     id === "village"
-      ? destinations.filter((d) => VILLAGE_IDS.has(d.id)).length
-      : destinations.filter((d) => !VILLAGE_IDS.has(d.id)).length;
+      ? destinations.filter((d) => d.id !== PRIVATE_MAP_ID || privateMapAllowed).filter((d) => VILLAGE_IDS.has(d.id)).length
+      : destinations.filter((d) => d.id !== PRIVATE_MAP_ID || privateMapAllowed).filter((d) => !VILLAGE_IDS.has(d.id)).length;
   return (
     <div className="world-atlas-backdrop" onClick={onClose}>
       <section className="world-atlas" onClick={(event) => event.stopPropagation()} aria-label="Mapa Mundi">
@@ -118,7 +122,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <div className="world-atlas__grid">
           {visible.map((destination) => {
             const isCurrent = currentMap === destination.id;
-            const isLocked = !isWorldMapDestinationUnlocked(destination.id) || isMapBlocked(destination.id);
+            const isLocked = !isWorldMapDestinationUnlocked(destination.id, loadIdentity()?.id) || isMapBlocked(destination.id);
             const previewImage = imageForDestination(destination);
             return (
               <article className={`world-destination ${isCurrent ? "is-current" : ""}`} key={destination.id}>
