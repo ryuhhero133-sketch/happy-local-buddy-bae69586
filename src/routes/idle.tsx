@@ -535,20 +535,15 @@ const mapMwtUrl = testMapAssets["../ambiente/mwt.webp"] ?? "";
 const mapEmyUrl = testMapAssets["../ambiente/emy.webp"] ?? "";
 const mapEmy1Url = testMapAssets["../ambiente/emy 1.webp"] ?? "";
 import casinhaUrl from "@/ambiente/CASA/casinha.webp";
-// Mapa privado (só a conta dona): versão otimizada de src/full.png — 4096×2048,
-// RGBA. As áreas transparentes/pretas dela são exatamente a colisão do mapa.
-import nissanFullUrl from "@/ambiente/nissan-full.webp";
 import casinhaCollisionUrl from "@/ambiente/CASA/casinhacolisao1.webp";
 import epicPlantBridgeUrl from "@/ambiente/CASA/gP/epic plant.webp";
-// SA: mapa grande do Mapa Mundi (campo aberto central) — SEM máscara de colisão.
-import saUrl from "@/ambiente/mascara colisao/sa.webp";
 import arvMapDefault from "@/game/maps/arv.default.json";
 // Mapa ARV: WebP de 5,4 MB empacotado no build (antes era um PNG de 53 MB
 // baixado do raw.githubusercontent.com, sem cache de CDN). VITE_ARV_MAP_URL
 // continua podendo apontar para outra origem quando for necessário.
 import arvMapUrl from "@/skill/srg/arv.webp";
 const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
-import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canAccessPrivateMap, PRIVATE_MAP_ID } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
@@ -605,7 +600,6 @@ import casa2Url from "@/lands/casa2.webp";
 import rotaPinsirUrl from "@/lands/Rota Pinsir.webp";
 import desertoAlakaUrl from "@/lands/Deserto de alaka.webp";
 // Mapas lisos (arquivos 0000/0055/0066/0077) — sem máscara de colisão.
-import mapaXzUrl from "@/ambiente/xz/xz.webp";
 import mapa0000Url from "@/ambiente/0000.webp";
 import mapa0055Url from "@/ambiente/0055.webp";
 import mapa0066Url from "@/ambiente/0066.webp";
@@ -1091,9 +1085,6 @@ type IdleMapDef = {
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
   raid?: boolean;
 };
-// Mapa privado (full.png): ponto de nascimento verificado no solo caminhável
-// do mapa otimizado 4096×2048 (maior componente livre, folga de ~324 px).
-const NISSAN_MAP_SPAWN = { x: 2724, y: 1044 };
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha6: { name: "Revoland",        diff: "Inicial", bg: mapinha6Url,  rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Normal",  stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
@@ -1165,14 +1156,6 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   map_0055: { name: "Trilha 0055", diff: "Especial", bg: mapa0055Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Terra", stars: 1 },
   map_0066: { name: "Lagoa 0066", diff: "Especial", bg: mapa0066Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Água", stars: 1 },
   map_0077: { name: "Bosque 0077", diff: "Especial", bg: mapa0077Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Planta", stars: 1 },
-  map_xz: { name: "Mundo XZ", diff: "Especial", bg: mapaXzUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
-  // SA (Mapa Mundi): campo aberto com árvores/pedras e selvagens tipo Venusaur.
-  // Entrada grátis pelo Mapa Mundi — FORA de FREE_WALK_MAPS (tem obstáculos e spawn).
-  sa: { name: "Safari", diff: "Especial", bg: saUrl, rate: 1.0, minLevel: 1, maxLevel: 600, element: "Planta", stars: 1 },
-  // Mapa privado (src/full.png): exploração sem Pokémon/baús e com colisão
-  // própria (preto/transparente bloqueia). Sem maxLevel — igual a arv, não
-  // força migração nem limita nível. Entrada só pela conta dona (mapAccess).
-  nissan_full: { name: "Mapa Nissan", diff: "Privado", bg: nissanFullUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -1897,8 +1880,6 @@ type Obstacle = {
 function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "arena"): Obstacle[] {
   // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
   if (mapId === "arv") return [];
-  // Mapa privado (full.png): nada de obstáculos gerados — a colisão é a imagem.
-  if (mapId === PRIVATE_MAP_ID) return [];
   // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
   if (mapId === "arena" || mapId === "arena" || mapId === "arena" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
   // Revoland (mapinha11): colisão invisível no lago (3 círculos ao longo da água)
@@ -1928,7 +1909,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     ];
   }
   // Novos mapas grátis + evento Torre: sem colisão, sem objetos (só máscara).
-  if (["mk1","guildas","mwt","emy","emy_1","casinha","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"].includes(mapId)) {
+  if (["mk1","guildas","mwt","emy","emy_1","casinha","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"].includes(mapId)) {
     return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
@@ -2522,8 +2503,9 @@ function loadIdle(): IdleState {
     if (raw) {
       const s: IdleState = { ...freshIdle(), ...JSON.parse(raw) };
       if (isMapBlocked(s.currentMap)) s.currentMap = "laboratorio";
-      // Mapa privado: save local de outra conta nunca mantém o mapa — falha fechada.
-      if (s.currentMap === PRIVATE_MAP_ID && !canAccessPrivateMap(loadIdentity()?.id)) s.currentMap = "mapinha6";
+      // Mapa que não existe mais (ex.: Safari/Nissan/XZ removidos): devolve o
+      // jogador para Revoland em vez de deixar o save preso num mapa ausente.
+      if (!IDLE_MAPS[s.currentMap]) s.currentMap = "mapinha6";
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {
@@ -3306,8 +3288,6 @@ function IdlePage() {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
             if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
             if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
-            // Mapa privado: snapshot vindo do servidor só vale para a conta dona.
-            if (merged.currentMap === PRIVATE_MAP_ID && !canAccessPrivateMap(identity?.id)) merged.currentMap = "mapinha6";
             if (!merged.saga) merged.saga = freshSaga();
             if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
@@ -6191,9 +6171,6 @@ const confirmName = () => {
     map_0055: mapa0055Url,
     map_0066: mapa0066Url,
     map_0077: mapa0077Url,
-    map_xz: mapaXzUrl,
-    sa: saUrl,
-    nissan_full: nissanFullUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
@@ -6364,16 +6341,11 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz"];
+  const FREE_WALK_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077","map_xz","sa","nissan_full"];
+  const NO_HIGH_EVENT_MAPS = ["arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
-    // Mapa privado: o mundo inteiro é válido — quem limita é a grade de colisão
-    // da própria imagem (preto/transparente bloqueia), não uma caixa central.
-    if (mapId === PRIVATE_MAP_ID) {
-      return { minX: 0, maxX: w, minY: 0, maxY: h };
-    }
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
       return { minX: w * 0.05, maxX: w * 0.95, minY: h * 0.05, maxY: h * 0.95 };
@@ -6394,8 +6366,6 @@ const confirmName = () => {
   // POOL ESTRITA POR MAPA — fonte única: cada mapa só mostra suas espécies.
   // Retorna null = sem restrição (pool genérica por nível); [] = sem spawn.
   const allowedSpeciesForMap = (mapId: string): Species[] | null => {
-    // Mapa privado (full.png): exploração limpa — sem selvagens.
-    if (mapId === PRIVATE_MAP_ID) return [];
     if (mapId === "florest_bone") return ["cubone", "marowak", "rhyhorn", "cubone_shiny", "marowak_shiny", "rhyhorn_shiny", "marowak_plus"];
     if (mapId === "florest_ice") return ["vaporeon", "sandshrew", "sandslash", "sandshrew_shiny", "sandslash_shiny"];
     if (mapId === "valley_plume") return ["oddish", "gloom", "vileplume", "paras", "parasect", "eevee", "oddish_shiny", "gloom_shiny", "vileplume_shiny", "paras_shiny", "parasect_shiny", "snolax"];
@@ -6415,7 +6385,6 @@ const confirmName = () => {
     if (mapId === "caverna_brok") return [...CAVERNA_BROK_POOL.map((e) => e[0])];
     // SA (Mapa Mundi): campo aberto tipo Planta — Venusaur em destaque, com a
     // linha evolutiva e alguns Grass comuns. Shiny só via marco global de shiny.
-    if (mapId === "sa") return [...SAFARI_PLANT_SPECIES, ...SAFARI_SPECIES];
     if (mapId === "arena" || mapId === "mapinha6" || mapId === "mapinha9" || mapId === "mapinha10" || mapId === "mapinha11" || mapId === "arena" || mapId === "arena" || mapId === "esfera_ancestral" || FREE_WALK_MAPS.includes(mapId)) return [];
     return null;
   };
@@ -6466,8 +6435,6 @@ const confirmName = () => {
       if (idle.currentMap === "venenot") ensureCollision("venenot", PROF_MAP_BY_ID.venenot.mask!, cw, chh);
       if (idle.currentMap === "hallow") ensureCollision("hallow", PROF_MAP_BY_ID.hallow.mask!, cw, chh);
       if (idle.currentMap === "caverna_brok") ensureCollision("caverna_brok", PROF_MAP_BY_ID.caverna_brok.mask!, cw, chh);
-      // Mapa privado: a própria imagem é a máscara (preto/transparente bloqueia).
-      if (idle.currentMap === PRIVATE_MAP_ID) ensureCollision(PRIVATE_MAP_ID, nissanFullUrl, cw, chh);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
@@ -6499,9 +6466,6 @@ const confirmName = () => {
       // Laboratório e mapas do Professor: pontos andáveis verificados na máscara.
       else if (idle.currentMap === "laboratorio") arrival = { x: 499, y: 416 };
       else if (PROF_SPAWNS[idle.currentMap]) arrival = PROF_SPAWNS[idle.currentMap];
-      // Mapa privado: nasce no solo seguro verificado — nunca no centro, que
-      // cai no vazio preto do meio do mapa.
-      else if (idle.currentMap === PRIVATE_MAP_ID) arrival = { ...NISSAN_MAP_SPAWN };
       else arrival = { x: Math.round(customDims.w * dispScale / 2), y: Math.round(customDims.h * dispScale / 2) };
 
       trainerPositionRestoredRef.current = true;
@@ -6840,8 +6804,7 @@ const confirmName = () => {
       return !isWalkable("esfera_ancestral", x, y);
     }
     // Mapas com máscara branco/preto: o grid manda (igual Revoland).
-    // Mapa privado: a própria imagem é a máscara — preto/transparente bloqueia.
-    if (idle.currentMap === PRIVATE_MAP_ID || idle.currentMap === "casinha" || idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
+    if (idle.currentMap === "casinha" || idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
       return !isWalkable(idle.currentMap, x, y);
     }
     for (const o of obstacles) {
@@ -9817,9 +9780,6 @@ const confirmName = () => {
     // Presença multiplayer ativa em QUALQUER mapa.
     if (!identity?.id) return;
     const mapId = idle.currentMap;
-    // Mapa privado: não publica presença nem carrega outros treinadores —
-    // quem está no mapa da conta dona não aparece para ninguém mais.
-    if (mapId === PRIVATE_MAP_ID) return;
     const meUserId = identity.id;
     const meId = getMultiplayerSessionId(meUserId);
     const meName = identity.name || "Treinador";
@@ -14752,10 +14712,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (idle.currentMap === "esfera_ancestral") {
       return null;
     }
-    // Mapa privado (full.png): exploração limpa, sem selvagens.
-    if (idle.currentMap === PRIVATE_MAP_ID) {
-      return null;
-    }
     // Zonas sagradas ou seguras, sem spawns. Revoland (mapinha6) é cidade inicial sem pokémons. Novos mapas grátis sem pokémons (exceto ice/bone/plume/mapinha13/mapinha5/ruinas/venus).
     // Mapas do EVENTO (Torre Elemental) SPAWNAM — são zonas de batalha do evento.
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && !EVENT_MAPS.includes(idle.currentMap) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "mapinha13" && idle.currentMap !== "mapinha5" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "rota_pinsir" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") {
@@ -15698,8 +15654,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
   function spawnEnemies(): Enemy[] {
-    // Mapa privado (full.png): exploração limpa, sem selvagens.
-    if (idle.currentMap === PRIVATE_MAP_ID) return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
@@ -16337,7 +16291,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Viagem pelos mapas do Professor (aba MAPAS): sem nível, sem energia,
   // sem transição longa — instantânea, igual portais internos do jogo.
   const profTravelTo = (mapId: string) => {
-    const entryError = mapEntryError(idleRef.current, mapId, identity?.id);
+    const entryError = mapEntryError(idleRef.current, mapId);
     if (entryError) { pushChat(entryError, "info"); return; }
     const m = IDLE_MAPS[mapId];
     const spawn = PROF_SPAWNS[mapId];
@@ -17035,8 +16989,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   function spawnChests(count = 4): Chest[] {
     // Esfera Ancestral (Mapa Banido): sem baús.
     if (idle.currentMap === "esfera_ancestral") return [];
-    // Mapa privado (full.png): exploração limpa, sem baús.
-    if (idle.currentMap === PRIVATE_MAP_ID) return [];
     const useW = customDims && customMapUrls[idle.currentMap] ? customDims.w : WORLD_W;
     const useH = customDims && customMapUrls[idle.currentMap] ? customDims.h : WORLD_H;
     const isSmallMapChest = idle.currentMap === "arena" || idle.currentMap === "arena";
@@ -24068,8 +24020,6 @@ A sucata afundou com o casco.
                   return; // A luz abre a confirmação; nunca teleporta sem consentimento.
                 }
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
-                if (g.target === PRIVATE_MAP_ID && !canAccessPrivateMap(identity?.id)) { pushChat("🔒 Mapa privado — acesso restrito.", "info"); return; }
-                if (g.target === "sa") { profTravelTo("sa"); return; }
                 const targetMap = IDLE_MAPS[g.target];
                 if (["rota_pinsir", "deserto_alaka"].includes(g.target)) {
                   pushChat(`🔒 ${targetMap.name} está bloqueado no momento!`, "info");
@@ -25006,7 +24956,7 @@ A sucata afundou com o casco.
 
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
-               const base = ["mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok","sa", ...(canAccessPrivateMap(identity?.id) ? [PRIVATE_MAP_ID] : [])];
+               const base = ["mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
               const destinations = [...base, ...eventual]
                 .filter((id) => Boolean(IDLE_MAPS[id]))
@@ -25019,11 +24969,11 @@ A sucata afundou com o casco.
                   onClose={() => setMapTeleportOpen(false)}
                   energyCostFor={teleportEnergyCostFor}
                   onTeleport={async (destination) => {
-                    if (!isWorldMapDestinationUnlocked(destination.id, identity?.id)) {
+                    if (!isWorldMapDestinationUnlocked(destination.id)) {
                       pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
                       return;
                     }
-                    const entryError = mapEntryError(idleRef.current, destination.id, identity?.id);
+                    const entryError = mapEntryError(idleRef.current, destination.id);
                     if (entryError) { pushChat(entryError, "info"); return; }
                     const m = IDLE_MAPS[destination.id];
                     if (!m || teleportTransition || teleportTimerRef.current) return;
@@ -25043,13 +24993,13 @@ A sucata afundou com o casco.
                     setMapTeleportOpen(false);
                     setTeleportTransition(destination);
                     teleportTimerRef.current = setTimeout(() => {
-                      const currentError = mapEntryError(idleRef.current, destination.id, identity?.id);
+                      const currentError = mapEntryError(idleRef.current, destination.id);
                       if (currentError) { pushChat(currentError, "info"); setTeleportTransition(null); teleportTimerRef.current = null; return; }
                        // Emerald Global sempre começa dentro da Casinha. A porta
                        // é a única transição para o mapa perigoso, evitando nascer
                        // numa célula fatal enquanto a máscara do ARV carrega.
                        setIdle((state) => {
-                         const entered = applyMapEntry(state, destination.id as IdleMapId, identity?.id);
+                         const entered = applyMapEntry(state, destination.id as IdleMapId);
                          return destination.id === "arv"
                            ? { ...entered, currentMap: "casinha" as IdleMapId }
                            : entered;
@@ -25060,8 +25010,6 @@ A sucata afundou com o casco.
                          trainerPosRef.current = arrival;
                          setTrainerPos(arrival);
                        } else if (destination.id === "laboratorio") setTrainerPos({ x: 499, y: 416 });
-                       else if (destination.id === "sa") setTrainerPos(PROF_SPAWNS.sa);
-                       else if (destination.id === PRIVATE_MAP_ID) setTrainerPos({ ...NISSAN_MAP_SPAWN });
                        else setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
                       walkTargetRef.current = null;
                       setWalkingTo(null);

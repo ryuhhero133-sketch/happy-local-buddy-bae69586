@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { isMapBlocked, isWorldMapDestinationUnlocked, canAccessPrivateMap, PRIVATE_MAP_ID } from "@/game/mapAccess";
-import { loadIdentity } from "@/components/AuthGate";
+import { isMapBlocked, isWorldMapDestinationUnlocked } from "@/game/mapAccess";
 import { Map, Sparkles, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ballImg from "@/assets/items/icon-pokeball.webp";
@@ -73,17 +72,14 @@ const FILTERS: { id: MapFilterId; label: string }[] = [
 
 export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, onClose, onTeleport, energyCostFor }: Props) {
   const [filter, setFilter] = useState<MapFilterId>("rotas");
-  // Mapa privado: fora da lista para qualquer conta que não seja a dona.
-  const privateMapAllowed = canAccessPrivateMap(loadIdentity()?.id);
   const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
   const visible = destinations.filter((d) =>
-    (d.id !== PRIVATE_MAP_ID || privateMapAllowed)
-    && (filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id)),
+    filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id),
   );
   const countFor = (id: MapFilterId) =>
     id === "village"
-      ? destinations.filter((d) => d.id !== PRIVATE_MAP_ID || privateMapAllowed).filter((d) => VILLAGE_IDS.has(d.id)).length
-      : destinations.filter((d) => d.id !== PRIVATE_MAP_ID || privateMapAllowed).filter((d) => !VILLAGE_IDS.has(d.id)).length;
+      ? destinations.filter((d) => VILLAGE_IDS.has(d.id)).length
+      : destinations.filter((d) => !VILLAGE_IDS.has(d.id)).length;
   return (
     <div className="world-atlas-backdrop" onClick={onClose}>
       <section className="world-atlas" onClick={(event) => event.stopPropagation()} aria-label="Mapa Mundi">
@@ -122,7 +118,7 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
         <div className="world-atlas__grid">
           {visible.map((destination) => {
             const isCurrent = currentMap === destination.id;
-            const isLocked = !isWorldMapDestinationUnlocked(destination.id, loadIdentity()?.id) || isMapBlocked(destination.id);
+            const isLocked = !isWorldMapDestinationUnlocked(destination.id) || isMapBlocked(destination.id);
             const previewImage = imageForDestination(destination);
             return (
               <article className={`world-destination ${isCurrent ? "is-current" : ""}`} key={destination.id}>

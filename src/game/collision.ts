@@ -72,8 +72,7 @@ function pixelZone(r: number, g: number, b: number): 0 | 1 | 2 {
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
 // Mantemos as regras LARGAS — depois um passe de dilatação cobre o resto.
-// `a` é o alfa do pixel (255 = opaco); só o mapa privado o utiliza.
-function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0, y = 0, a = 255): boolean {
+function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0, y = 0): boolean {
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const l = (max + min) / 510;
@@ -81,12 +80,6 @@ function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0
   const blueDom = b > r + 25 && b > g + 15; // água
 
   switch (mapId) {
-    // ---- Mapa privado (full.png): a PRÓPRIA imagem é a máscara ----
-    // Vazio transparente, bordas translúcidas e preto puro bloqueiam; só o
-    // desenho opaco e colorido é chão. Falha fechada: sem alfa/coloração não anda.
-    case "nissan_full":
-      if (a < 240) return false;
-      return max > 24;
     // Casa: rosa/magenta na máscara é parede ou móvel e não pode ser atravessado.
     case "casinha":
       return !(r > 170 && b > 140 && g < 140);
@@ -347,14 +340,12 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
         const canvas = document.createElement("canvas");
         // arv usa uma máscara de 4071×5200: amostragem 2× menor reduz ~63 MB
         // de canvas sem mudar as coordenadas ou o tamanho da grade do mundo.
-        // nissan_full é 4096×2048 e usa a própria imagem como máscara: a mesma
-        // redução segura o canvas (~8 MB de imageData) com detalhe suficiente.
-        const sampleScale = mapId === "arv" || mapId === "nissan_full" ? 2 : 1;
+        const sampleScale = mapId === "arv" ? 2 : 1;
         canvas.width = Math.ceil(w / sampleScale);
         canvas.height = Math.ceil(h / sampleScale);
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
-          walk.fill(mapId === "arv" || mapId === "nissan_full" ? 0 : 1);
+          walk.fill(mapId === "arv" ? 0 : 1);
           return resolve({ cols, rows, walk, zone });
         }
         if (mapId === "arv") ctx.imageSmoothingEnabled = false;
@@ -380,7 +371,7 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
               else if (z === 2) yellowHits++;
               else if (z === 3) redHits++;
               else if (z === 4) orangeHits++;
-              if (pixelWalk(mapId, data[idx], data[idx + 1], data[idx + 2], px, py, data[idx + 3])) hits++;
+              if (pixelWalk(mapId, data[idx], data[idx + 1], data[idx + 2], px, py)) hits++;
             }
             // Cavernas precisam de maioria real pra não deixar cortar parede.
             // Pallet usa 4 amostras: segura contorno de árvore, mas não prende na grama.
@@ -493,12 +484,12 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
           }
         }
       } catch {
-        walk.fill(mapId === "arv" || mapId === "nissan_full" ? 0 : 1);
+        walk.fill(mapId === "arv" ? 0 : 1);
       }
       resolve({ cols, rows, walk, zone });
     };
     img.onerror = () => {
-      walk.fill(mapId === "arv" || mapId === "nissan_full" ? 0 : 1);
+      walk.fill(mapId === "arv" ? 0 : 1);
       resolve({ cols, rows, walk, zone });
     };
     img.src = src;
@@ -530,8 +521,8 @@ export function maskZoneAt(mapId: CollisionMapId, x: number, y: number): 0 | 1 |
 
 export function isWalkable(mapId: CollisionMapId, x: number, y: number): boolean {
   const g = cache.get(mapId);
-  // arv/nissan_full: nunca atravessar a máscara antes de carregar (falha fechada).
-  if (!g) return mapId !== "arv" && mapId !== "nissan_full";
+  // arv: nunca atravessar a máscara antes de carregar (falha fechada).
+  if (!g) return mapId !== "arv";
 
   const cellWalkable = (px: number, py: number) => {
     const cx = Math.floor(px / TILE);

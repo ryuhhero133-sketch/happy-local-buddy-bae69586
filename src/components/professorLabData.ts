@@ -33,7 +33,6 @@ import hallowMaskUrl from "@/ambiente/mascara colisao/hallow Colisao.webp";
 import cavernaBrokUrl from "@/ambiente/mascara colisao/Caverna de Brok.webp";
 import cavernaBrokMaskUrl from "@/ambiente/mascara colisao/Caverna de brok Colisao.webp";
 // Mapas lisos (sem máscara de colisão): só o fundo PNG original.
-import mapaXzUrl from "@/ambiente/xz/xz.webp";
 import mapa0000Url from "@/ambiente/0000.webp";
 import mapa0055Url from "@/ambiente/0055.webp";
 import mapa0066Url from "@/ambiente/0066.webp";
@@ -257,8 +256,7 @@ export type ProfMapId =
   | "map_0000"
   | "map_0055"
   | "map_0066"
-  | "map_0077"
-  | "map_xz";
+  | "map_0077";
 
 export type ProfMapDef = {
   id: ProfMapId;
@@ -484,18 +482,6 @@ const M_MAP_0077: ProfMapDef = {
   stars: 1,
   desc: "Bosque de outono com clareiras, muros baixos e lagoa. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
 };
-const M_MAP_XZ: ProfMapDef = {
-  id: "map_xz",
-  name: "Mundo XZ",
-  emoji: "🗺️",
-  continent: "MAPAS LISOS",
-  bg: mapaXzUrl,
-  free: true,
-  spawn: { x: 872, y: 1396 },
-  element: "normal",
-  stars: 1,
-  desc: "Mundo gigante com cidade, rotas, caverna, lagos e farol. Mapa liso para passear: sem selvagens, sem baús e sem custo.",
-};
 
 export const PROF_MAPS: ProfMapDef[] = [
   M_ICEBLOW,
@@ -510,7 +496,6 @@ export const PROF_MAPS: ProfMapDef[] = [
   M_MAP_0055,
   M_MAP_0066,
   M_MAP_0077,
-  M_MAP_XZ,
 ];
 
 export const PROF_MAP_BY_ID: Record<ProfMapId, ProfMapDef> = {
@@ -528,7 +513,6 @@ export const PROF_MAP_BY_ID: Record<ProfMapId, ProfMapDef> = {
   map_0055: M_MAP_0055,
   map_0066: M_MAP_0066,
   map_0077: M_MAP_0077,
-  map_xz: M_MAP_XZ,
 };
 
 /** Posições de chegada (instantânea, sem custo) — inclui o retorno ao Laboratório. */
@@ -547,9 +531,6 @@ export const PROF_SPAWNS: Record<string, { x: number; y: number }> = {
   map_0055: { x: 900, y: 1150 },
   map_0066: { x: 900, y: 1150 },
   map_0077: { x: 1250, y: 620 },
-  map_xz: { x: 872, y: 1396 },
-  // SA (Mapa Mundi): grama no meio do grande campo aberto — longe da cidade.
-  sa: { x: 1900, y: 1150 },
   laboratorio: { x: 499, y: 416 },
 };
 
