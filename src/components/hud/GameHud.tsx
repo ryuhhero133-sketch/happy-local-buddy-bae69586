@@ -65,7 +65,6 @@ function IconButton({ label, children, onClick, active = false, badge = false, c
 function PlayerHud({ hud }: { hud: GameHudProps }) {
   const hp = Math.max(0, Math.min(hud.maxHp, Math.round(hud.hp)));
   const pct = Math.round((hp / Math.max(1, hud.maxHp)) * 100);
-  const energy = Math.max(0, Math.min(100, Math.round(hud.energy)));
   const label = `Perfil de ${hud.name}, nível ${hud.level}. HP do líder: ${hp}/${hud.maxHp}`;
   if (!hud.newHud) {
     return <button type="button" className="revo-player revo-panel" onClick={hud.onProfile} title="Perfil do treinador · HP do Pokémon líder" aria-label={label}>
@@ -87,7 +86,7 @@ function PlayerHud({ hud }: { hud: GameHudProps }) {
     <span className="revo-player__info">
       <span className="revo-player__name"><strong>{hud.name}</strong><b>Lv. {hud.level}</b></span>
       <span className="revo-player__hp"><b>{hp}</b><span>/{hud.maxHp} HP</span></span>
-      <span className="revo-player__meta">⚡ {energy}%{hud.trainerHp != null ? " · ❤ " + Math.round(hud.trainerHp) : ""}</span>
+      {hud.trainerHp != null && <span className="revo-player__meta">❤ {Math.round(hud.trainerHp)}</span>}
     </span>
   </button>;
 }
@@ -108,12 +107,33 @@ function ResourceBar({ hud }: { hud: GameHudProps }) {
   </div>;
 }
 
+function QuestOrb({ hud }: { hud: GameHudProps }) {
+  const pending = hud.quests.filter((quest) => !quest.claimed);
+  const ready = pending.find((quest) => quest.progress >= quest.target && (!quest.vipOnly || hud.vip));
+  const shown = ready ?? pending[0];
+  const progress = shown ? Math.max(0, Math.min(100, shown.progress / Math.max(1, shown.target) * 100)) : 0;
+  return <div className={`revo-questorb ${shown ? "is-live" : ""} ${ready ? "is-ready" : ""}`}>
+    {shown && <button type="button" className="revo-questorb__banner" onClick={hud.onQuests} aria-label={`Missão ${shown.title}`}>
+      <span className="revo-questorb__spark" aria-hidden="true">{ready ? "✨" : shown.icon}</span>
+      <span className="revo-questorb__text">
+        <strong>{ready ? "Missão pronta!" : shown.title}</strong>
+        <span>{ready ? "toque para resgatar" : `${Math.min(shown.progress, shown.target)}/${shown.target}`}</span>
+        <i className="revo-questorb__bar"><i style={{ width: `${progress}%` }} /></i>
+      </span>
+    </button>}
+    <button type="button" className={`revo-questorb__ball ${ready ? "is-ready" : ""}`} onClick={hud.onQuests} title={shown ? `Missões: ${shown.title}` : "Missões"} aria-label={shown ? `Missões — ${shown.title}` : "Missões"}>
+      <img src={hud.icons.ball} alt="" />
+      {pending.length > 0 && <span className="revo-questorb__dot">{ready ? "!" : pending.length}</span>}
+    </button>
+  </div>;
+}
+
 function MinimapHud({ hud }: { hud: GameHudProps }) {
   const [collapsed, setCollapsed] = useState(false);
   const [focused, setFocused] = useState(false);
   const position = (point: Point) => ({ left: `${Math.max(0, Math.min(100, point.x / Math.max(1, hud.world.width) * 100))}%`, top: `${Math.max(0, Math.min(100, point.y / Math.max(1, hud.world.height) * 100))}%` });
   return <section
-    className={`revo-minimap revo-panel ${focused ? "is-focused" : "is-passive"}`}
+    className={`revo-minimap revo-panel ${focused ? "is-focused" : "is-passive"} ${hud.newHud ? "is-compass" : ""}`}
     aria-label={`${focused ? "Minimapa em destaque" : "Minimapa discreto"} de ${hud.region}`}
     onClick={() => { if (!focused) setFocused(true); }}
   >
@@ -176,8 +196,10 @@ export function GameHud(hud: GameHudProps) {
       <TeamHud newHud={!!hud.newHud} members={hud.team} selectedUid={hud.selectedPetUid} onSelect={hud.onSelectPet} onManage={() => hud.onTab("pokemon")} />
       <div className="revo-right-stack">
         <MinimapHud hud={hud} />
-        {hud.guideAccountId && <TrainerGuide accountId={hud.guideAccountId} />}
-        <QuestTracker quests={hud.quests} region={hud.region} resetIn={hud.questReset} vip={hud.vip} onClaim={hud.onClaimQuest} onOpen={hud.onQuests} />
+        {!hud.newHud && hud.guideAccountId && <TrainerGuide accountId={hud.guideAccountId} />}
+        {hud.newHud
+          ? <QuestOrb hud={hud} />
+          : <QuestTracker quests={hud.quests} region={hud.region} resetIn={hud.questReset} vip={hud.vip} onClaim={hud.onClaimQuest} onOpen={hud.onQuests} />}
       </div>
       <ChatHud messages={hud.messages} pvpActive={hud.pvpActive} pvpWindowLabel={hud.pvpWindowLabel} />
       <TouchJoystick onMove={hud.onJoystickMove} />

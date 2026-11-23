@@ -633,3 +633,236 @@
   border: 1.5px solid var(--pet-tier, #b1c3d4);
   box-shadow: 0 0 8px var(--pet-tier, #b1c3d4);
 }
+
+
+/* =====================================================================
+   Ajustes finais da HUD V2 (só na conta liberada)
+   - branco fosco (sem brilho de vidro)
+   - anel de HP vermelho fofinho
+   - chat branco com letras azuis
+   - minimapa em bússola redonda
+   - quest na pokébola + faixa
+   ===================================================================== */
+
+/* ---- Branco fosco ---- */
+.revo-hud.is-newhud .revo-player--ring {
+  background: #f6f3ea !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.34), inset 0 0 0 2px rgba(212,175,55,.32) !important;
+}
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__card {
+  background: #faf8f1 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.34) !important;
+}
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait {
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.5) !important;
+}
+.revo-hud.is-newhud .revo-team__card.revo-panel {
+  background: #faf8f1 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.3), inset 0 0 0 2px rgba(212,175,55,.2) !important;
+}
+
+/* ---- Anel de HP vermelho fofinho ---- */
+.revo-hud.is-newhud .revo-player--ring .revo-player__ring {
+  background: conic-gradient(from -90deg, #ffa3b1 0deg, #ef4157 calc(var(--pct, 100) * 3.6deg), rgba(239,65,87,.16) calc(var(--pct, 100) * 3.6deg));
+  box-shadow: inset 0 0 0 2px #ffe6ea, 0 0 9px rgba(239,65,87,.35);
+}
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait::after {
+  background: conic-gradient(from -90deg, #ffa3b1 0deg, #ef4157 calc(var(--hp, 100) * 3.6deg), rgba(239,65,87,.16) calc(var(--hp, 100) * 3.6deg));
+  filter: drop-shadow(0 0 2px rgba(239,65,87,.45));
+}
+
+/* ---- Chat branco com letras azuis ---- */
+.revo-hud.is-newhud .revo-chat {
+  background: #fbfaf5 !important;
+  border: 2px solid #b9dcc1 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.32) !important;
+}
+.revo-hud.is-newhud .revo-chat__tabs { border-bottom: 1px solid #cfe3d3; }
+.revo-hud.is-newhud .revo-chat__tabs button { color: #1d4ed8; font-weight: 700; }
+.revo-hud.is-newhud .revo-chat__tabs button[aria-selected="true"] {
+  color: #0b3ea8;
+  border-color: #9cc2ff;
+  background: #e8f1ff;
+  box-shadow: none;
+}
+.revo-hud.is-newhud .revo-chat__tabs .revo-chat__collapse { color: #2f9e44; }
+.revo-hud.is-newhud .revo-chat__feed p { color: #1e40af; }
+.revo-hud.is-newhud .revo-chat__feed p[data-kind="capture"] { color: #7c3aed; }
+.revo-hud.is-newhud .revo-chat__feed p[data-kind="pvp"] { color: #c1121f; text-shadow: none; }
+.revo-hud.is-newhud .revo-chat__tag { color: #2563eb; font-weight: 800; }
+.revo-hud.is-newhud .revo-muted { color: #64748b; }
+.revo-hud.is-newhud .revo-chat__input { margin: 4px 8px 8px; }
+.revo-hud.is-newhud .revo-chat__input > svg { color: #3b82f6; }
+.revo-hud.is-newhud .revo-chat__input input {
+  background: #ffffff;
+  color: #1e3a8a;
+  border: 1px solid #b9cdf0;
+}
+.revo-hud.is-newhud .revo-chat__input input::placeholder { color: #7f9cc9; }
+.revo-hud.is-newhud .revo-chat__input > button {
+  background: #e8f1ff;
+  border-color: #9cc2ff;
+  color: #1d4ed8;
+}
+
+/* ---- Minimapa em bússola ---- */
+.revo-hud.is-newhud .revo-minimap {
+  align-self: flex-end;
+  width: 132px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 3px solid #d4af37 !important;
+  background: #f6f3ea !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4), inset 0 0 0 2px rgba(47,158,68,.5) !important;
+  opacity: .92 !important;
+  filter: none !important;
+  overflow: visible;
+}
+.revo-hud.is-newhud .revo-minimap.is-passive:hover { opacity: 1 !important; }
+.revo-hud.is-newhud .revo-minimap.is-focused { box-shadow: 0 0 0 2px #ffe9a8, 0 6px 18px rgba(0,0,0,.45) !important; }
+.revo-hud.is-newhud .revo-minimap .revo-panel__header { display: none; }
+.revo-hud.is-newhud .revo-minimap > footer { display: none; }
+.revo-hud.is-newhud .revo-minimap__body { display: block; padding: 0; gap: 0; }
+.revo-hud.is-newhud .revo-minimap__tools { display: none; }
+.revo-hud.is-newhud .revo-minimap__preview {
+  width: 126px;
+  height: 126px;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.revo-hud.is-newhud .revo-minimap__preview > img { object-fit: cover; }
+.revo-hud.is-newhud .revo-minimap__preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 18px rgba(0,0,0,.35);
+  pointer-events: none;
+}
+.revo-hud.is-newhud .revo-minimap::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(212,175,55,.9) 0 1.1deg, transparent 1.1deg 15deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  pointer-events: none;
+}
+.revo-hud.is-newhud .revo-minimap::after {
+  content: "N";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 900;
+  color: #b8860b;
+  letter-spacing: .5px;
+  text-shadow: 0 1px 0 #fff;
+  pointer-events: none;
+}
+
+/* ---- Bolinha de quest + faixa ---- */
+.revo-hud.is-newhud .revo-questorb {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.revo-hud.is-newhud .revo-questorb__ball {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f6f3ea;
+  border: 2px solid #cbd8cb;
+  box-shadow: 0 3px 10px rgba(0,0,0,.34);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.revo-hud.is-newhud .revo-questorb__ball > img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: grayscale(.55) opacity(.75);
+  transition: filter .18s ease;
+}
+.revo-hud.is-newhud .revo-questorb__ball:hover { transform: scale(1.06); }
+.revo-hud.is-newhud .revo-questorb.is-live .revo-questorb__ball { border-color: #d4af37; box-shadow: 0 0 12px rgba(212,175,55,.55), 0 3px 10px rgba(0,0,0,.34); }
+.revo-hud.is-newhud .revo-questorb.is-live .revo-questorb__ball > img { filter: none; }
+.revo-hud.is-newhud .revo-questorb.is-ready .revo-questorb__ball { animation: revo-qb-pulse 1.7s ease-in-out infinite; }
+.revo-hud.is-newhud .revo-questorb__dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #ef4157;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 8px rgba(239,65,87,.6);
+}
+.revo-hud.is-newhud .revo-questorb.is-ready .revo-questorb__dot { background: #d4af37; color: #3b2a00; box-shadow: 0 0 9px rgba(212,175,55,.8); }
+.revo-hud.is-newhud .revo-questorb__banner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 186px;
+  padding: 6px 10px;
+  border-radius: 13px;
+  background: #fbfaf5;
+  border: 1.5px solid #9fd3a8;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  text-align: left;
+  animation: revo-qb-in .32s ease-out;
+}
+.revo-hud.is-newhud .revo-questorb.is-ready .revo-questorb__banner { border-color: #e5c766; }
+.revo-hud.is-newhud .revo-questorb__spark { font-size: 15px; line-height: 1; }
+.revo-hud.is-newhud .revo-questorb__text { display: flex; flex-direction: column; min-width: 0; }
+.revo-hud.is-newhud .revo-questorb__text strong {
+  color: #1d4ed8;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.revo-hud.is-newhud .revo-questorb__text > span { color: #52796f; font-size: 9px; font-weight: 700; }
+.revo-hud.is-newhud .revo-questorb__bar {
+  display: block;
+  height: 4px;
+  margin-top: 3px;
+  border-radius: 3px;
+  background: #dfeadd;
+  overflow: hidden;
+}
+.revo-hud.is-newhud .revo-questorb__bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #7fdb92, #2f9e44);
+  transition: width .3s ease;
+}
+@keyframes revo-qb-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(212,175,55,.5), 0 3px 10px rgba(0,0,0,.34); transform: scale(1); }
+  50% { box-shadow: 0 0 18px rgba(212,175,55,.85), 0 3px 10px rgba(0,0,0,.34); transform: scale(1.05); }
+}
+@keyframes revo-qb-in {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- Botões do canto: alinhados e com respiro igual ---- */
+.revo-hud.is-newhud .revo-systems { gap: 7px; }
+.revo-hud.is-newhud .revo-right-stack { gap: 10px; }

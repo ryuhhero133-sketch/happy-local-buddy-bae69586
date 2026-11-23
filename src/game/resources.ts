@@ -204,15 +204,9 @@ export function teleportEnergyCostFor(mapId: string): number {
   return TELEPORT_ENERGY_COST;
 }
 
-/** Velocidade de movimento por faixa de energia (0 NÃO trava — fica a 10%). */
-export function energySpeedMult(energy: number): number {
-  const e = Math.max(0, Math.min(100, energy));
-  if (e >= 51) return 1.0;
-  if (e >= 31) return 0.9;
-  if (e >= 16) return 0.75;
-  if (e >= 6) return 0.5;
-  if (e >= 1) return 0.25;
-  return 0.1;
+/** Energia não altera mais a velocidade: o treinador anda sempre no ritmo normal. */
+export function energySpeedMult(_energy: number): number {
+  return 1.0;
 }
 
 export type EnergyBand = "normal" | "atencao" | "baixa" | "critica" | "exausto";
@@ -284,8 +278,8 @@ export function processMealCycles(
     const fed = state.lastFedAt ?? 0;
     const attended = fed > prev && fed <= slot;
     if (!attended) {
+      // Só a fome cai: energia não é mais consumida por refeição perdida.
       hunger = Math.max(0, hunger - MISSED_CYCLE_HUNGER);
-      energy = Math.max(0, energy - MISSED_CYCLE_ENERGY);
       missed.push({ at: slot, label: mealLabel(slot, tz) });
     }
   }

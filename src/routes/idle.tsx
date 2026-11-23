@@ -234,7 +234,7 @@ import type { PetInstance, Species, Rarity } from "@/game/systems";
 import { SPECIES_BASE, makePet, calcMaxHp, RARITY_NAME, GoldCoin, CrystalGem, isStarving, decayHungerForPet, rarityRank, tierHitChance } from "@/game/systems";
 import {
   detectTimezone, trustedNow, processMealCycles,
-  TRAINER_ENERGY_MAX, TRAINER_ENERGY_DRAIN_PER_SEC, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS, LAB_MAP_ENERGY_COST,
+  TRAINER_ENERGY_MAX, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS, LAB_MAP_ENERGY_COST,
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
   processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
@@ -7432,26 +7432,8 @@ const confirmName = () => {
   const [tentaAtk, setTentaAtk] = useState<{ id: string; x: number; y: number; at: number } | null>(null);
   const tentaAtkRef = useRef<typeof tentaAtk>(null);
   tentaAtkRef.current = tentaAtk;
-  // Energia do treinador: drena 100% em ~5h andando (20/hora). Energia 0 NÃO trava —
-  // só deixa o movimento a 10% (ver energySpeedMult). Teleporte custa 5.
-  const exhaustNoticeRef = useRef(0);
-  useEffect(() => {
-    const iv = setInterval(() => {
-      if (!autoRef.current && !walkTargetRef.current) return;
-      setTrainerEnergy((e) => {
-        const ne = Math.max(0, e - TRAINER_ENERGY_DRAIN_PER_SEC);
-        if (ne <= 0) {
-          const now = Date.now();
-          if (now - exhaustNoticeRef.current > 60000) {
-            exhaustNoticeRef.current = now;
-            queueMicrotask(() => pushChat("⚡ Você está exausto. Alimente-se para recuperar energia.", "info"));
-          }
-        }
-        return ne;
-      });
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [moving]);
+  // Energia do treinador: NÃO drena mais ao andar e não deixa o treinador lento.
+  // O recurso fica reservado para mecânicas futuras.
   // ===== Sistema de Recursos (30s): ciclos 05/12/18 + regen de arremessos + cuidado Pokémon =====
   // Ciclos calculados no timezone local real; funcionam offline (recupera os realmente
   // perdidos via lastMealCycle absoluto — nunca debita 2x, nunca duplica em troca de país).
