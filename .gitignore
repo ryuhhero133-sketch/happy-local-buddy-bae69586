@@ -45,3 +45,8 @@ src/mapa-arv (16).json
 
 # Mapas-fonte locais (o build usa os .webp)
 src/ambiente/map/*.png
+
+# Mapas/sprites-fonte locais (o build usa os .webp)
+src/ambiente/map/BOBO/*.png
+src/ambiente/map/bb/*.png
+src/ambiente/map/bb/*.gif

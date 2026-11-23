@@ -7,7 +7,7 @@ export const WORLD_MAP_FREE_DESTINATION_IDS = ["mapinha6", "mapinha10", "mapinha
 // Visíveis e acessíveis SOMENTE para a conta dona. A falha é fechada: sem
 // identity (ou com outra conta) eles não aparecem no atlas nem podem ser
 // entrados por nenhum caminho.
-export const TEST_MAP_IDS = ["emerald", "emerald_01", "rota1"] as const;
+export const TEST_MAP_IDS = ["emerald", "emerald_01", "rota1", "bobo_uuid", "bobo_g11ds", "bobo_mmmm", "bobo_rota1", "bobo_rota2", "bobo_rota3", "bobo_rota_gelo", "bobo_t2_viridiana", "bobo_t2", "bobo_templo", "bobo_transicao_gelo", "bobo_transicao", "bobo_viridian"] as const;
 export const isTestMap = (id: string) => (TEST_MAP_IDS as readonly string[]).includes(id);
 export const TEST_MAP_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 export const canSeeTestMaps = (identityId?: string | null) => identityId === TEST_MAP_OWNER_ID;

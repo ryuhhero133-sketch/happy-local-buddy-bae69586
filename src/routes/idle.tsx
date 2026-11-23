@@ -548,6 +548,26 @@ import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
 import rota1MapUrl from "@/ambiente/map/Rota1.webp";
 import matoVerdeFramesUrl from "@/ambiente/map/MATO VERDE.webp";
+import boboUuidUrl from "@/ambiente/map/BOBO/bobo_uuid.webp";
+import boboG11dsUrl from "@/ambiente/map/BOBO/bobo_g11ds.webp";
+import boboMmmmUrl from "@/ambiente/map/BOBO/bobo_mmmm.webp";
+import boboRota1Url from "@/ambiente/map/BOBO/bobo_rota1.webp";
+import boboRota2Url from "@/ambiente/map/BOBO/bobo_rota2.webp";
+import boboRota3Url from "@/ambiente/map/BOBO/bobo_rota3.webp";
+import boboRotaGeloUrl from "@/ambiente/map/BOBO/bobo_rota_gelo.webp";
+import boboViridianaUrl from "@/ambiente/map/BOBO/bobo_t2_viridiana.webp";
+import boboT2Url from "@/ambiente/map/BOBO/bobo_t2.webp";
+import boboTemploUrl from "@/ambiente/map/BOBO/bobo_templo.webp";
+import boboTransGeloUrl from "@/ambiente/map/BOBO/bobo_transicao_gelo.webp";
+import boboTransicaoUrl from "@/ambiente/map/BOBO/bobo_transicao.webp";
+import boboViridianUrl from "@/ambiente/map/BOBO/bobo_viridian.webp";
+import matoAzulUrl from "@/ambiente/map/bb/mato_azul.webp";
+import matoRosaUrl from "@/ambiente/map/bb/mato_rosa.webp";
+import matoRoxoUrl from "@/ambiente/map/bb/mato_roxo.webp";
+import bauVerdeUrl from "@/ambiente/map/bb/bau_verde.webp";
+import bauEpicUrl from "@/ambiente/map/bb/bau_epic.webp";
+import nevezinhaUrl from "@/ambiente/map/bb/nevezinha.webp";
+import dialogoBoxUrl from "@/ambiente/map/bb/dialogo_box.webp";
 import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap, TEST_MAP_IDS } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
@@ -1204,6 +1224,19 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   emerald: { name: "Emerald", diff: "Teste", bg: emeraldMapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   emerald_01: { name: "Emerald 01", diff: "Teste", bg: emerald01MapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   rota1: { name: "Rota 1", diff: "Teste", bg: rota1MapUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_uuid: { name: "BOBO · Mapa 1", diff: "Teste", bg: boboUuidUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_g11ds: { name: "BOBO · G11DS", diff: "Teste", bg: boboG11dsUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_mmmm: { name: "BOBO · Mmmm", diff: "Teste", bg: boboMmmmUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_rota1: { name: "BOBO · Rota 1", diff: "Teste", bg: boboRota1Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_rota2: { name: "BOBO · Rota 2", diff: "Teste", bg: boboRota2Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_rota3: { name: "BOBO · Rota 3", diff: "Teste", bg: boboRota3Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_rota_gelo: { name: "BOBO · Rota Gelo", diff: "Teste", bg: boboRotaGeloUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_t2_viridiana: { name: "BOBO · T2 Viridiana", diff: "Teste", bg: boboViridianaUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_t2: { name: "BOBO · T2", diff: "Teste", bg: boboT2Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_templo: { name: "BOBO · Templo", diff: "Teste", bg: boboTemploUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_transicao_gelo: { name: "BOBO · Transição Gelo", diff: "Teste", bg: boboTransGeloUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_transicao: { name: "BOBO · Transição", diff: "Teste", bg: boboTransicaoUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
+  bobo_viridian: { name: "BOBO · Viridian", diff: "Teste", bg: boboViridianUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // Mapas do UPDATE (aba MAPAS do Professor): sem energia, sem objetos.
   // Venenot (Lv120-150) e Monte Floreto (Lv130-140) têm spawn próprio de venenosos + raids.
   iceblow: { name: "Iceblow", diff: "Especial", bg: PROF_MAP_BY_ID.iceblow.bg, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Gelo", stars: 2 },
@@ -1908,6 +1941,11 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
   { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
   { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 40, h: 40, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "mato_azul", name: "Mato azul (GBA)", src: matoAzulUrl, w: 40, h: 40, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "mato_rosa", name: "Mato rosa (GBA)", src: matoRosaUrl, w: 40, h: 40, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "mato_roxo", name: "Mato roxo (GBA)", src: matoRoxoUrl, w: 40, h: 40, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "bau_verde", name: "Baú verde", src: bauVerdeUrl, w: 56, h: 56, blocks: false, collideR: 0 },
+  { id: "bau_epic", name: "Baú épico", src: bauEpicUrl, w: 56, h: 56, blocks: false, collideR: 0 },
   { id: "editor_snow_tree", name: "Pinheiro nevado", src: editorSnowTreeUrl, w: 157, h: 207, blocks: false, collideR: 0 },
   { id: "editor_grass", name: "Capim", src: editorGrassUrl, w: 140, h: 140, blocks: false, collideR: 0 },
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
@@ -3836,6 +3874,16 @@ const confirmName = () => {
   const [mapEditorSelectedIds, setMapEditorSelectedIds] = useState<number[]>([]);
   const [mapEditorClipboard, setMapEditorClipboard] = useState<EditorObstacle[]>([]);
   const [mapEditorBrushSize, setMapEditorBrushSize] = useState(1);
+  const [snowmanFollow, setSnowmanFollow] = useState(() => {
+    try { return localStorage.getItem("rubym.snowman.follow") === "1"; } catch { return false; }
+  });
+  const [snowmanDialog, setSnowmanDialog] = useState(false);
+  const toggleSnowmanFollow = () => setSnowmanFollow((v) => {
+    const next = !v;
+    try { localStorage.setItem("rubym.snowman.follow", next ? "1" : "0"); } catch { /* ignore */ }
+    return next;
+  });
+
   const mapEditorPasteStepRef = useRef(0);
   const grassTouchRef = useRef<Map<number, number>>(new Map());
   const [mapEditorSelectedSpawnId, setMapEditorSelectedSpawnId] = useState<number | null>(null);
@@ -6285,6 +6333,19 @@ const confirmName = () => {
     emerald: emeraldMapUrl,
     emerald_01: emerald01MapUrl,
     rota1: rota1MapUrl,
+    bobo_uuid: boboUuidUrl,
+    bobo_g11ds: boboG11dsUrl,
+    bobo_mmmm: boboMmmmUrl,
+    bobo_rota1: boboRota1Url,
+    bobo_rota2: boboRota2Url,
+    bobo_rota3: boboRota3Url,
+    bobo_rota_gelo: boboRotaGeloUrl,
+    bobo_t2_viridiana: boboViridianaUrl,
+    bobo_t2: boboT2Url,
+    bobo_templo: boboTemploUrl,
+    bobo_transicao_gelo: boboTransGeloUrl,
+    bobo_transicao: boboTransicaoUrl,
+    bobo_viridian: boboViridianUrl,
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
@@ -6460,6 +6521,10 @@ const confirmName = () => {
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
   const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","rota1","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
+    if (isTestMap(mapId)) {
+      // Mapas de teste: mapa inteiro liberado (sem conteúdo, só cenário).
+      return { minX: w * 0.02, maxX: w * 0.98, minY: h * 0.02, maxY: h * 0.98 };
+    }
     if (FREE_WALK_MAPS.includes(mapId)) {
       // Revoland + novos mapas grátis: andar livre — sem colisão
       return { minX: w * 0.05, maxX: w * 0.95, minY: h * 0.05, maxY: h * 0.95 };
@@ -21178,6 +21243,26 @@ A sucata afundou com o casco.
               document.body
             )}
             {/* Render de orbs de energia removido — só mapOrbs abaixo */}
+            {/* Nevezinha: boneco pequeno que segue o treinador (clique = diálogo) */}
+            {snowmanFollow && (
+              <div
+                onClick={(event) => { event.stopPropagation(); setSnowmanDialog(true); }}
+                title="Nevezinha — clique para conversar"
+                style={{
+                  position: "absolute",
+                  left: followerState.x - 46,
+                  top: followerState.y + 6,
+                  width: 44, height: 44,
+                  transform: "translate(-50%, -100%)",
+                  zIndex: Math.round(followerState.y + 8),
+                  cursor: "pointer",
+                  pointerEvents: "auto",
+                }}
+              >
+                <img src={nevezinhaUrl} alt="Nevezinha" draggable={false}
+                  style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.45))" }} />
+              </div>
+            )}
             {/* ===== LANDS do jogador (Land Revo) ===== */}
             {renderLands()}
             {/* ===== Árvores cortáveis (teste) ===== */}
@@ -23890,6 +23975,12 @@ A sucata afundou com o casco.
                     {n}×{n}
                   </button>)}
                 </div>
+                <button type="button" onClick={toggleSnowmanFollow}
+                  style={{ width: "100%", marginTop: 6, padding: "7px 8px", borderRadius: 7, cursor: "pointer", fontWeight: 800,
+                    border: "1px solid " + (snowmanFollow ? "#9ecbff" : "#49395b"),
+                    background: snowmanFollow ? "#24405c" : "#20152e", color: "#fff" }}>
+                  {snowmanFollow ? "❄ Nevezinha: seguindo você (clique p/ parar)" : "❄ Nevezinha: seguir você"}
+                </button>
                 {(mapEditorAsset || selectedMapEditorObject) && (() => {
                   const editing = mapEditorAsset ? null : selectedMapEditorObject;
                   const mode = editing ? editing.harvestable ? "harvest" : editing.blocks ? "solid" : "none" : mapEditorObjectMode;
@@ -25228,6 +25319,18 @@ A sucata afundou com o casco.
                   <div style={{ display: "flex", gap: 8 }}>
                     <button type="button" onClick={() => closeMapPassword(false)} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: "1px solid #4a3a5e", background: "transparent", color: "#b8a8cc", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Cancelar</button>
                     <button type="button" onClick={submitMapPassword} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: "none", background: "#f5cf6b", color: "#231609", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>Entrar</button>
+                  </div>
+                </div>
+              </div>
+            )}
+{snowmanDialog && (
+              <div
+                onClick={() => setSnowmanDialog(false)}
+                style={{ position: "fixed", inset: 0, zIndex: 96000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 12px 22px", background: "rgba(2,4,10,0.35)" }}
+              >
+                <div style={{ width: "min(720px, 96vw)", aspectRatio: "1410 / 245", position: "relative", backgroundImage: "url(" + dialogoBoxUrl + ")", backgroundSize: "100% 100%", backgroundRepeat: "no-repeat", imageRendering: "pixelated", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.55))" }}>
+                  <div style={{ position: "absolute", left: "3.2%", right: "9%", top: "22%", bottom: "20%", color: "#e7eeff", fontFamily: "'Press Start 2P','Trebuchet MS',monospace", fontSize: 11, lineHeight: 1.6, overflow: "hidden" }}>
+                    <b style={{ color: "#9ecbff" }}>Nevezinha:</b> Oi, Nissan! Eu sou o Nevezinha. Vou te seguir por aí — clique em mim quando quiser conversar!
                   </div>
                 </div>
               </div>
