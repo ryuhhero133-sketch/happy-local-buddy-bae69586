@@ -3768,6 +3768,7 @@ const confirmName = () => {
   const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
   const [mapEditorSelectedIds, setMapEditorSelectedIds] = useState<number[]>([]);
   const [mapEditorClipboard, setMapEditorClipboard] = useState<EditorObstacle[]>([]);
+  const [mapEditorBrushSize, setMapEditorBrushSize] = useState(1);
   const mapEditorPasteStepRef = useRef(0);
   const grassTouchRef = useRef<Map<number, number>>(new Map());
   const [mapEditorSelectedSpawnId, setMapEditorSelectedSpawnId] = useState<number | null>(null);
@@ -17496,8 +17497,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     [getCoveringObstacle(trainerPos.x, trainerPos.y), getCoveringObstacle(followerX, followerY)]
       .filter((id): id is number => id !== null)
   );
-  // Mato estilo GBA: 2 = pisado (dentro), 1 = balançado ao sair, 0 = normal.
-  // Só o tile realmente pisado anima; os vizinhos ficam parados.
+  // Mato estilo GBA: 2 = pisado pelo TREINADOR (cobre as pernas), 1 = balanço
+  // (Pokémon passando ou saída recente), 0 = normal. Só o tile pisado sobe.
   const grassFrameFor = (o: Obstacle): number => {
     if (!o.stepGrass) return 0;
     const halfW = o.w * 0.42;
@@ -17506,9 +17507,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const isOn = (x: number, y: number) =>
       Math.abs(x - o.x) <= halfW && y >= top && y <= bottom;
     const nowTs = Date.now();
-    let on = isOn(trainerPos.x, trainerPos.y) || isOn(followerState.x, followerState.y);
-    if (!on) for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y)) { on = true; break; }
-    if (on) { grassTouchRef.current.set(o.id, nowTs); return 2; }
+    if (isOn(trainerPos.x, trainerPos.y)) { grassTouchRef.current.set(o.id, nowTs); return 2; }
+    let otherOn = isOn(followerState.x, followerState.y);
+    if (!otherOn) for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y)) { otherOn = true; break; }
+    if (otherOn) { grassTouchRef.current.set(o.id, nowTs); return 1; }
     const last = grassTouchRef.current.get(o.id) ?? 0;
     return nowTs - last < 320 ? 1 : 0;
   };
@@ -18880,12 +18882,26 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               } else {
                 const asset = MAP_EDITOR_ASSETS.find((item) => item.id === mapEditorAsset);
                 if (!asset) return;
-                setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []),
-                  { id, x: wx, y: wy, name: asset.name, src: asset.src, w: asset.w, h: asset.h,
-                    baseW: asset.w, baseH: asset.h, blocks: mapEditorObjectMode !== "none",
-                    collideR: Math.max(asset.collideR, Math.round(asset.w * 0.22)),
-                    assetId: asset.id, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
-                    harvestable: mapEditorObjectMode === "harvest", harvestSpecies: mapEditorHarvestSpecies }] }));
+                const brush = Math.max(1, Math.min(6, mapEditorBrushSize));
+                const gap = asset.stepGrass ? Math.round(asset.w * 0.62) : asset.w;
+                const startX = wx - ((brush - 1) * gap) / 2;
+                const startY = wy - ((brush - 1) * gap) / 2;
+                const created: EditorObstacle[] = [];
+                for (let row = 0; row < brush; row++) {
+                  for (let col = 0; col < brush; col++) {
+                    created.push({
+                      id: id + row * brush + col,
+                      x: Math.round(startX + col * gap),
+                      y: Math.round(startY + row * gap),
+                      name: asset.name, src: asset.src, w: asset.w, h: asset.h,
+                      baseW: asset.w, baseH: asset.h, blocks: mapEditorObjectMode !== "none",
+                      collideR: Math.max(asset.collideR, Math.round(asset.w * 0.22)),
+                      assetId: asset.id, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
+                      harvestable: mapEditorObjectMode === "harvest", harvestSpecies: mapEditorHarvestSpecies,
+                    });
+                  }
+                }
+                setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), ...created] }));
                 setMapEditorSelectedId(null);
               }
               playClick(); e.stopPropagation(); return;
@@ -23770,6 +23786,15 @@ A sucata afundou com o casco.
                     style={{ padding: 3, border: `2px solid ${mapEditorAsset === asset.id ? "#ffe08a" : "#49395b"}`,
                       borderRadius: 6, background: "#20152e", color: "#fff", fontSize: 9, cursor: "pointer" }}>
                     <img src={asset.src} alt="" style={{ display: "block", margin: "auto", width: 45, height: 44, objectFit: "contain", imageRendering: "pixelated" }} />{asset.name}
+                  </button>)}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
+                  <span style={{ color: "#cbb9dc", fontSize: 10 }}>Bloco:</span>
+                  {[1, 2, 3, 4].map((n) => <button type="button" key={n} onClick={() => setMapEditorBrushSize(n)}
+                    style={{ padding: "3px 7px", borderRadius: 6, cursor: "pointer", fontSize: 11,
+                      border: "1px solid " + (mapEditorBrushSize === n ? "#ffe08a" : "#49395b"),
+                      background: mapEditorBrushSize === n ? "#5b3573" : "#20152e", color: "#fff" }}>
+                    {n}×{n}
                   </button>)}
                 </div>
                 {(mapEditorAsset || selectedMapEditorObject) && (() => {
