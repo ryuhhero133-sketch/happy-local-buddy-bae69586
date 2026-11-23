@@ -1647,7 +1647,14 @@ function CreateCharacterScreen({
         );
         upErr = minimal?.error ?? null;
       }
-      if (upErr) throw upErr;
+      if (upErr) {
+        const code = String((upErr as { code?: string }).code ?? "");
+        const msg = String((upErr as { message?: string }).message ?? "");
+        if (code === "23505" || /nick_em_uso|duplicate key/i.test(msg)) {
+          throw new Error("Este nick já está em uso. Escolha outro.");
+        }
+        throw upErr;
+      }
       // A partir daqui, o estado em mem�ria/local pertence a este uid.
       claimSnapshotOwner(userId);
       // Carteira realmente nova (servidor vazio): semeia time + publica o
