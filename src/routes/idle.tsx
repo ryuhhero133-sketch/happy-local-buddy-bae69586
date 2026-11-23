@@ -3766,6 +3766,7 @@ const confirmName = () => {
   const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon">("sprites");
   const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
   const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
+  const [mapEditorSelectedIds, setMapEditorSelectedIds] = useState<number[]>([]);
   const [mapEditorSelectedSpawnId, setMapEditorSelectedSpawnId] = useState<number | null>(null);
   const [mapEditorMove, setMapEditorMove] = useState(false);
   const editorDragRef = useRef<{ kind: "object" | "pokemon"; id: number; pointerId: number; clientX: number; clientY: number; x: number; y: number } | null>(null);
@@ -3806,7 +3807,7 @@ const confirmName = () => {
   useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* storage indisponível */ } }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
-  useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
+  useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -6579,6 +6580,11 @@ const confirmName = () => {
   };
   const updateEditorObject = (id: number, changes: Partial<EditorObstacle>) => {
     setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === id ? { ...item, ...changes } : item) }));
+  };
+  // Seleção múltipla no editor: Shift/Ctrl+clique adiciona; clique normal troca.
+  const selectEditorObject = (id: number, additive: boolean) => {
+    setMapEditorSelectedId(id);
+    setMapEditorSelectedIds((prev) => (additive ? (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]) : [id]));
   };
   const removeEditorSpawn = (id: number) => {
     setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
@@ -21428,6 +21434,7 @@ A sucata afundou com o casco.
               const objectW = editorStump ? Math.round(o.w * 0.55) : o.w;
               const objectH = editorStump ? Math.round(o.h * 0.45) : o.h;
               const isGroundDecoration = [editorGrassUrl, editorBushUrl, matoFramesUrl, gramaFramesUrl, floresFramesUrl, folhasFramesUrl].includes(o.src);
+              const isEditorSelected = mapEditorOpen && (o.id === mapEditorSelectedId || mapEditorSelectedIds.includes(o.id));
               // Mato GBA: 3 frames (normal / balançado / pisado) conforme quem passa.
               if (o.stepGrass && !editorStump && !editorChopping) {
                 const cols = o.stepGrass;
@@ -21440,21 +21447,21 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: 1,
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
-                  // Ordem de profundidade: o mato cobre as pernas de quem pisa,
-                  // mas fica atrás de quem está abaixo dele na tela (como no GBA).
-                  zIndex: Math.round(o.y) + 1,
+                  // Só cobre quem está DENTRO dele. Os matos vizinhos ficam no chão,
+                  // senão parece que passamos por baixo deles.
+                  zIndex: frame === 2 ? Math.round(o.y) + 200 : 2,
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
                   backgroundRepeat: "no-repeat",
                   imageRendering: "pixelated",
                   transition: "background-position 90ms steps(1, end)",
-                  outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #ffe08a" : undefined,
+                  outline: isEditorSelected ? "2px solid #ffe08a" : undefined,
                   cursor: mapEditorOpen && editorObject ? (mapEditorAsset ? "crosshair" : "grab") : undefined,
                   touchAction: "none",
                 };
                 return <div key={"obs-" + o.id} data-editor-entity={editorObject ? "object" : undefined} style={style}
-                  onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); setMapEditorSelectedId(o.id); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
+                  onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); selectEditorObject(o.id, event.shiftKey || event.ctrlKey || event.metaKey); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
                   onContextMenu={(event) => { if (mapEditorOpen && editorObject) { event.preventDefault(); event.stopPropagation(); removeEditorObject(o.id); } }}
                   onPointerDown={(event) => { if (editorObject) startEditorDrag(event, "object", o.id, o.x, o.y); }}
                   onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag} />;
@@ -21481,8 +21488,8 @@ A sucata afundou com o casco.
                   animationDelay: `${delay}s`,
                   ...({ "--sa-plant-end": `${-o.w * cols}px` } as React.CSSProperties),
                 };
-                return <div key={`obs-${o.id}`} data-editor-entity={editorObject ? "object" : undefined} style={{ ...style, outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #ffe08a" : undefined, cursor: mapEditorOpen && editorObject ? mapEditorAsset ? "crosshair" : "grab" : undefined, touchAction: "none" }}
-                  onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); setMapEditorSelectedId(o.id); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
+                return <div key={`obs-${o.id}`} data-editor-entity={editorObject ? "object" : undefined} style={{ ...style, outline: isEditorSelected ? "2px solid #ffe08a" : undefined, cursor: mapEditorOpen && editorObject ? mapEditorAsset ? "crosshair" : "grab" : undefined, touchAction: "none" }}
+                  onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); selectEditorObject(o.id, event.shiftKey || event.ctrlKey || event.metaKey); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
                   onContextMenu={(event) => { if (mapEditorOpen && editorObject) { event.preventDefault(); event.stopPropagation(); removeEditorObject(o.id); } }}
                   onPointerDown={(event) => { if (editorObject) startEditorDrag(event, "object", o.id, o.x, o.y); }}
                   onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag} />;
@@ -21499,10 +21506,10 @@ A sucata afundou com o casco.
                   pointerEvents: (mapEditorOpen && editorObject) || editorObject?.harvestable ? "auto" : "none",
                   transition: "opacity 120ms linear",
                   zIndex: isGroundDecoration ? 2 : Math.round(o.y),
-                  outline: mapEditorOpen && mapEditorSelectedId === o.id ? "2px solid #ffe08a" : undefined,
+                  outline: isEditorSelected ? "2px solid #ffe08a" : undefined,
                   filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                   cursor: mapEditorOpen && editorObject ? mapEditorAsset ? "crosshair" : "grab" : undefined, touchAction: "none",
-                }} onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); setMapEditorSelectedId(o.id); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
+                }} onClick={(event) => { if (mapEditorOpen && editorObject && !mapEditorAsset && !mapEditorMove && mapEditorTab === "sprites") { event.stopPropagation(); selectEditorObject(o.id, event.shiftKey || event.ctrlKey || event.metaKey); } else if (!mapEditorOpen && editorObject?.harvestable) { event.stopPropagation(); chopEditorObject(editorObject); } }}
                   onContextMenu={(event) => { if (mapEditorOpen && editorObject) { event.preventDefault(); event.stopPropagation(); removeEditorObject(o.id); } }}
                   onPointerDown={(event) => { if (editorObject) startEditorDrag(event, "object", o.id, o.x, o.y); }}
                   onPointerMove={dragEditorEntity} onPointerUp={endEditorDrag} onPointerCancel={endEditorDrag} />
@@ -23777,19 +23784,26 @@ A sucata afundou com o casco.
                     </label>}
                   </div>;
                 })()}
-                {selectedMapEditorObject && (() => {
-                  const baseW = selectedMapEditorObject.baseW ?? selectedMapEditorObject.w;
-                  const baseH = selectedMapEditorObject.baseH ?? selectedMapEditorObject.h;
-                  const scale = Math.round(selectedMapEditorObject.w / Math.max(1, baseW) * 100);
+                {(selectedMapEditorObject || mapEditorSelectedIds.length > 0) && (() => {
+                  const primary = selectedMapEditorObject;
+                  const ids = mapEditorSelectedIds.length > 0 ? mapEditorSelectedIds : (primary ? [primary.id] : []);
+                  const baseW = primary ? (primary.baseW ?? primary.w) : 1;
+                  const scale = primary ? Math.round((primary.w / Math.max(1, baseW)) * 100) : 100;
                   const resize = (percent: number) => setMapEditorObjects((prev) => ({ ...prev,
-                    [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === selectedMapEditorObject.id
-                      ? { ...item, baseW, baseH, w: Math.round(baseW * percent / 100), h: Math.round(baseH * percent / 100) } : item) }));
+                    [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => {
+                      if (!ids.includes(item.id)) return item;
+                      const bw = item.baseW ?? item.w;
+                      const bh = item.baseH ?? item.h;
+                      return { ...item, baseW: bw, baseH: bh, w: Math.max(8, Math.round(bw * percent / 100)), h: Math.max(8, Math.round(bh * percent / 100)) };
+                    }) }));
                   return <div style={{ marginTop: 10, padding: 8, background: "#160f2a", borderRadius: 8 }}>
-                    <strong>{selectedMapEditorObject.name} · {scale}%</strong>
+                    <strong>{primary ? primary.name : "Selecionados"} · {scale}%{ids.length > 1 ? " · " + ids.length + " objetos" : ""}</strong>
                     <input aria-label="Tamanho do objeto" type="range" min="25" max="300" value={scale} onChange={(e) => resize(Number(e.target.value))} style={{ width: "100%" }} />
-                    <div style={{ display: "flex", gap: 6 }}>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
                       <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(true); }}>Mover no mapa</button>
-                      <button type="button" onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== selectedMapEditorObject.id) })); setMapEditorSelectedId(null); setMapEditorMove(false); }}>Remover</button>
+                      <button type="button" onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => !ids.includes(item.id)) })); setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorMove(false); }}>Remover</button>
+                      {primary && <button type="button" onClick={() => setMapEditorSelectedIds(editorObstacles.filter((item) => (item.assetId ?? item.src) === (primary.assetId ?? primary.src)).map((item) => item.id))}>Selecionar todos iguais</button>}
+                      {ids.length > 0 && <button type="button" onClick={() => { setMapEditorSelectedIds([]); setMapEditorSelectedId(null); }}>Limpar</button>}
                     </div>
                   </div>;
                 })()}
