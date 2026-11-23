@@ -108,20 +108,19 @@ function ResourceBar({ hud }: { hud: GameHudProps }) {
 }
 
 function QuestOrb({ hud }: { hud: GameHudProps }) {
+  // "Pronta" = dá para resgatar agora. Só nesse caso a faixa aparece.
   const pending = hud.quests.filter((quest) => !quest.claimed);
   const ready = pending.find((quest) => quest.progress >= quest.target && (!quest.vipOnly || hud.vip));
-  const shown = ready ?? pending[0];
-  const progress = shown ? Math.max(0, Math.min(100, shown.progress / Math.max(1, shown.target) * 100)) : 0;
-  return <div className={`revo-questorb ${shown ? "is-live" : ""} ${ready ? "is-ready" : ""}`}>
-    {shown && <button type="button" className="revo-questorb__banner" onClick={hud.onQuests} aria-label={`Missão ${shown.title}`}>
-      <span className="revo-questorb__spark" aria-hidden="true">{ready ? "✨" : shown.icon}</span>
+  return <div className={`revo-questorb ${pending.length > 0 ? "is-live" : ""} ${ready ? "is-ready" : ""}`}>
+    {ready && <button type="button" className="revo-questorb__banner" onClick={() => hud.onClaimQuest(ready.id)} aria-label={`Resgatar missão ${ready.title}`}>
+      <span className="revo-questorb__spark" aria-hidden="true">🎁</span>
       <span className="revo-questorb__text">
-        <strong>{ready ? "Missão pronta!" : shown.title}</strong>
-        <span>{ready ? "toque para resgatar" : `${Math.min(shown.progress, shown.target)}/${shown.target}`}</span>
-        <i className="revo-questorb__bar"><i style={{ width: `${progress}%` }} /></i>
+        <strong>Missão pronta!</strong>
+        <span>toque para resgatar</span>
+        <i className="revo-questorb__bar"><i style={{ width: "100%" }} /></i>
       </span>
     </button>}
-    <button type="button" className={`revo-questorb__ball ${ready ? "is-ready" : ""}`} onClick={hud.onQuests} title={shown ? `Missões: ${shown.title}` : "Missões"} aria-label={shown ? `Missões — ${shown.title}` : "Missões"}>
+    <button type="button" className={`revo-questorb__ball ${ready ? "is-ready" : ""}`} onClick={hud.onQuests} title="Missões — ver quanto falta" aria-label={ready ? `Missões — ${ready.title} pronta para resgatar` : "Missões — ver quanto falta"}>
       <img src={hud.icons.ball} alt="" />
       {pending.length > 0 && <span className="revo-questorb__dot">{ready ? "!" : pending.length}</span>}
     </button>
