@@ -16,6 +16,8 @@ export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias"
 type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
+  /** HUD V2 (beta) — liberada só para contas de teste. */
+  newHud?: boolean;
   trainerHp?: number;
   ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number; pepitas?: number;
   pvpTargeted?: boolean;
@@ -64,7 +66,19 @@ function PlayerHud({ hud }: { hud: GameHudProps }) {
   const hp = Math.max(0, Math.min(hud.maxHp, Math.round(hud.hp)));
   const pct = Math.round((hp / Math.max(1, hud.maxHp)) * 100);
   const energy = Math.max(0, Math.min(100, Math.round(hud.energy)));
-  return <button type="button" className="revo-player revo-panel revo-player--ring" onClick={hud.onProfile} title="Perfil do treinador · HP do Pokémon líder" aria-label={`Perfil de ${hud.name}, nível ${hud.level}. HP do líder: ${hp}/${hud.maxHp}`}>
+  const label = `Perfil de ${hud.name}, nível ${hud.level}. HP do líder: ${hp}/${hud.maxHp}`;
+  if (!hud.newHud) {
+    return <button type="button" className="revo-player revo-panel" onClick={hud.onProfile} title="Perfil do treinador · HP do Pokémon líder" aria-label={label}>
+      <span className="revo-player__avatar"><img src={hud.avatar} alt="" /><span><Shield /></span></span>
+      <span className="revo-player__info">
+        <span className="revo-player__name"><strong>{hud.name}</strong><b>Lv. {hud.level}</b></span>
+        <span className="revo-player__stat"><span>HP</span><span className="revo-meter revo-meter--hp"><span style={{ width: `${hp / Math.max(1, hud.maxHp) * 100}%` }} /></span><b>{hp}/{hud.maxHp}</b></span>
+        <span className="revo-player__stat"><span>EN</span><span className="revo-meter revo-meter--energy"><span style={{ width: `${Math.max(0, Math.min(100, hud.energy))}%` }} /></span><b>{Math.round(hud.energy)}/100</b></span>
+        {hud.trainerHp != null && <span className="revo-player__stat" title="Vida do treinador no Safari — fica vulnerável com o Pokémon desmaiado"><span>TR</span><span className="revo-meter revo-meter--hp"><span style={{ width: `${Math.max(0, Math.min(100, hud.trainerHp))}%` }} /></span><b>{hud.trainerHp}/100</b></span>}
+      </span>
+    </button>;
+  }
+  return <button type="button" className="revo-player revo-panel revo-player--ring" onClick={hud.onProfile} title="Perfil do treinador · HP do Pokémon líder" aria-label={label}>
     <span className="revo-player__ring" style={{ ["--pct" as string]: pct } as CSSProperties}>
       <span className="revo-player__ring-inner">
         <img src={hud.avatar} alt="" />
@@ -139,7 +153,7 @@ export function GameHud(hud: GameHudProps) {
   const inPanel = hud.activeTab !== "batalha";
   const scale = getHudScale(hud.mapBounds, hud.viewportWidth);
   return <div className="revo-hud-frame" style={{ left: hud.mapBounds.left, top: hud.mapBounds.top, width: hud.mapBounds.width, height: hud.mapBounds.height }}>
-    <div className={`revo-hud ${inPanel ? "has-panel" : ""} ${hud.target ? "has-target" : ""}`} style={{ "--hud-scale": scale } as CSSProperties} onKeyDown={(event) => {
+    <div className={`revo-hud ${inPanel ? "has-panel" : ""} ${hud.target ? "has-target" : ""} ${hud.newHud ? "is-newhud" : ""}`} style={{ "--hud-scale": scale } as CSSProperties} onKeyDown={(event) => {
     if ((event.key === " " || event.key === "Enter") && (event.target as HTMLElement).closest("button")) event.stopPropagation();
   }}>
     {!menuOpen && <>
@@ -159,7 +173,7 @@ export function GameHud(hud: GameHudProps) {
     </section>}
     {!inPanel && <>
       {hud.target && <TargetHud target={hud.target} />}
-      <TeamHud members={hud.team} selectedUid={hud.selectedPetUid} onSelect={hud.onSelectPet} onManage={() => hud.onTab("pokemon")} />
+      <TeamHud newHud={!!hud.newHud} members={hud.team} selectedUid={hud.selectedPetUid} onSelect={hud.onSelectPet} onManage={() => hud.onTab("pokemon")} />
       <div className="revo-right-stack">
         <MinimapHud hud={hud} />
         {hud.guideAccountId && <TrainerGuide accountId={hud.guideAccountId} />}

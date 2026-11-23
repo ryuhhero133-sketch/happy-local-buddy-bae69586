@@ -524,10 +524,10 @@
 
 
 /* =====================================================================
-   HUD NOVA — branco + verde + dourado
-   Treinador: só o círculo com o anel de HP vermelho ao redor da foto.
+   HUD V2 (beta) — branco + verde + dourado
+   Só vale quando o root tem .is-newhud (contas de teste liberadas).
    ===================================================================== */
-.revo-player--ring {
+.revo-hud.is-newhud .revo-player--ring {
   width: auto !important;
   min-width: 214px;
   height: auto !important;
@@ -540,7 +540,7 @@
   border-radius: 16px !important;
   box-shadow: 0 8px 22px rgba(0,0,0,.38), inset 0 0 0 2px rgba(212,175,55,.55) !important;
 }
-.revo-player--ring .revo-player__ring {
+.revo-hud.is-newhud .revo-player--ring .revo-player__ring {
   position: relative;
   flex: 0 0 auto;
   width: 66px;
@@ -551,7 +551,7 @@
   background: conic-gradient(#ef2d45 calc(var(--pct, 100) * 1%), rgba(47,158,68,.18) 0);
   box-shadow: 0 0 0 2px #d4af37 inset;
 }
-.revo-player--ring .revo-player__ring-inner {
+.revo-hud.is-newhud .revo-player--ring .revo-player__ring-inner {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -561,119 +561,75 @@
   background: radial-gradient(circle at 50% 35%, #e8f5e9, #cfe8d2);
   border: 1px solid rgba(47,158,68,.45);
 }
-.revo-player--ring .revo-player__ring-inner img {
+.revo-hud.is-newhud .revo-player--ring .revo-player__ring-inner img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center top;
 }
-.revo-player--ring .revo-player__info { gap: 2px; }
-.revo-player--ring .revo-player__name { margin-bottom: 0; }
-.revo-player--ring .revo-player__name strong { color: #14532d; font-size: 16px; }
-.revo-player--ring .revo-player__name > b { color: #b8860b; font-size: 12px; }
-.revo-player--ring .revo-player__hp { display: flex; align-items: baseline; gap: 2px; color: #1b4332; font-weight: 700; font-size: 11px; }
-.revo-player--ring .revo-player__hp b { color: #c1121f; font-size: 15px; }
-.revo-player--ring .revo-player__hp span { color: #52796f; }
-.revo-player--ring .revo-player__meta { font-size: 10px; color: #2f6f4e; font-weight: 700; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__info { gap: 2px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__name { margin-bottom: 0; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__name strong { color: #14532d; font-size: 16px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__name > b { color: #b8860b; font-size: 12px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__hp { display: flex; align-items: baseline; gap: 2px; color: #1b4332; font-weight: 700; font-size: 11px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__hp b { color: #c1121f; font-size: 15px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__hp span { color: #52796f; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__meta { font-size: 10px; color: #2f6f4e; font-weight: 700; }
 
-/* Time compacto no mesmo estilo */
-.revo-team__card.revo-panel {
+/* Time — cards brancos com contorno verde/dourado (modo normal) */
+.revo-hud.is-newhud .revo-team__card.revo-panel {
   background: linear-gradient(180deg, #ffffff 0%, #f1f8f1 100%) !important;
   border: 1.5px solid #2f9e44 !important;
   border-radius: 12px !important;
   box-shadow: 0 4px 12px rgba(0,0,0,.3), inset 0 0 0 2px rgba(212,175,55,.35) !important;
 }
-.revo-team__card.revo-panel .revo-team__name strong { color: #14532d; }
-.revo-team__card.revo-panel .revo-team__name span { color: #b8860b; }
-.revo-team__card.revo-panel .revo-team__tier { color: #52796f; }
-.revo-team__card.revo-panel .revo-team__stat > span:first-child { color: #b8860b; }
-.revo-team__card.revo-panel .revo-team__stat > b { color: #1b4332; }
-.revo-team__card.revo-panel.is-selected { border-color: #d4af37 !important; box-shadow: 0 0 0 2px #d4af55 inset, 0 6px 18px rgba(0,0,0,.35) !important; }
+.revo-hud.is-newhud .revo-team__card.revo-panel .revo-team__name strong { color: #14532d; }
+.revo-hud.is-newhud .revo-team__card.revo-panel .revo-team__name span { color: #b8860b; }
+.revo-hud.is-newhud .revo-team__card.revo-panel .revo-team__tier { color: #52796f; }
+.revo-hud.is-newhud .revo-team__card.revo-panel .revo-team__stat > span:first-child { color: #b8860b; }
+.revo-hud.is-newhud .revo-team__card.revo-panel .revo-team__stat > b { color: #1b4332; }
+.revo-hud.is-newhud .revo-team__card.revo-panel.is-selected { border-color: #d4af37 !important; box-shadow: 0 0 0 2px #d4af55 inset, 0 6px 18px rgba(0,0,0,.35) !important; }
 
-
-/* ===== Time compacto: só o círculo + nível ===== */
-.revo-team.is-compact { width: 80px; }
-.revo-team.is-compact .revo-team__card {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  min-height: 84px;
-  padding: 6px 2px 14px;
-}
-.revo-team.is-compact .revo-team__card::before { display: none; }
-.revo-team.is-compact .revo-team__compact-hp { display: none; }
-.revo-team.is-compact .revo-team__portrait {
-  width: 54px;
-  height: 54px;
-  border: 2px solid var(--pet-tier);
-  box-shadow: 0 0 0 2px var(--pet-tier), 0 0 12px var(--pet-tier);
-}
-.revo-team.is-compact .revo-team__portrait::after {
-  content: "";
-  position: absolute;
-  inset: -7px;
-  border-radius: 50%;
-  background: conic-gradient(#ef2d45 calc(var(--hp, 100) * 1%), rgba(255,255,255,.16) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
-  pointer-events: none;
-}
-.revo-team.is-compact .revo-team__portrait > img { width: 46px; height: 46px; }
-
-/* Ajuste final: card compacto com FUNDO na cor da raridade + HP em anel */
-.revo-team.is-compact .revo-team__card {
-  background: #0a1523 !important;
-  border: 1.5px solid var(--pet-tier) !important;
-  box-shadow: 0 0 12px var(--pet-tier), inset 0 0 14px rgba(0,0,0,.5) !important;
-  border-radius: 14px !important;
-  overflow: hidden;
-  min-height: 84px;
-  padding: 7px 3px 13px;
-}
-.revo-team.is-compact .revo-team__card::before {
-  display: block !important;
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--pet-tier);
-  opacity: .22;
-  pointer-events: none;
-}
-.revo-team.is-compact .revo-team__compact-hp { display: none !important; }
-.revo-team.is-compact .revo-team__portrait {
-  border: 2px solid rgba(255,255,255,.35) !important;
-  box-shadow: none !important;
-}
-
-/* ===== Card compacto BRANCO BRILHANTE + moldura neon + Pokébola atrás ===== */
-.revo-team.is-compact .revo-team__card {
+/* Time compacto: só o círculo, branco brilhante + moldura neon + Pokébola atrás */
+.revo-hud.is-newhud .revo-team.is-compact { width: 80px; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__card {
   background: linear-gradient(180deg, #ffffff 0%, #eaf5ff 100%) !important;
-  border: 2px solid var(--pet-tier) !important;
-  box-shadow: 0 0 14px var(--pet-tier), inset 0 0 10px rgba(255,255,255,.75) !important;
+  border: 2px solid var(--pet-tier, #b1c3d4) !important;
+  box-shadow: 0 0 14px var(--pet-tier, #b1c3d4), inset 0 0 10px rgba(255,255,255,.75) !important;
   border-radius: 14px !important;
   overflow: visible !important;
   min-height: 84px;
   padding: 7px 3px 13px;
 }
-.revo-team.is-compact .revo-team__card::before { display: none !important; }
-.revo-team.is-compact .revo-team__compact-hp { display: none !important; }
-.revo-team.is-compact .revo-team__portrait {
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__card::before { display: none !important; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__compact-hp { display: none !important; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait {
   width: 54px;
   height: 54px;
-  border: 2px solid var(--pet-tier) !important;
+  border: 2px solid var(--pet-tier, #b1c3d4) !important;
   background: linear-gradient(180deg, #c0394f 0 44%, #0b1a2c 44% 54%, #dfeaf5 54% 100%) !important;
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.65), 0 0 10px var(--pet-tier) !important;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.65), 0 0 10px var(--pet-tier, #b1c3d4) !important;
 }
-.revo-team.is-compact .revo-team__portrait > img { width: 42px; height: 42px; }
-.revo-team.is-compact .revo-team__ball-center {
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  background: conic-gradient(#ef2d45 calc(var(--hp, 100) * 1%), rgba(255,255,255,.55) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  pointer-events: none;
+}
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait > img { width: 42px; height: 42px; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__ball-center {
   display: block;
   background: #f2f7ff;
   border-color: #17324a;
   opacity: .95;
 }
-.revo-team.is-compact .revo-team__level {
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__level {
   background: #ffffff;
   color: #12391f;
-  border: 1.5px solid var(--pet-tier);
-  box-shadow: 0 0 8px var(--pet-tier);
+  border: 1.5px solid var(--pet-tier, #b1c3d4);
+  box-shadow: 0 0 8px var(--pet-tier, #b1c3d4);
 }

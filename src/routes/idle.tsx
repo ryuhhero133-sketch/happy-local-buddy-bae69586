@@ -18571,6 +18571,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         </div>
       )}
       <GameHud
+        newHud={identity?.id === MAP_EDITOR_OWNER_ID}
         guideAccountId={identity?.id && starterChosen ? identity.id : undefined}
         onJoystickMove={onJoystickMove}
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}
