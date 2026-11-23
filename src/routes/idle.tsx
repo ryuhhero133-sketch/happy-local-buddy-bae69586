@@ -8631,6 +8631,76 @@ const confirmName = () => {
       return;
     }
 
+    // 💎 VIPUNICO2026 / 👑 VIPGOLD30D — VIP (20%) ou VIP GOLD (40%) por 30 dias
+    // + caixa (20 Pokébolas, 10 Orbs de XP, 10 Ultra Balls, 5 Energéticos).
+    // USO ÚNICO: trava no servidor (promo_code_uses) quando disponível e, sempre,
+    // trava GLOBAL do navegador — outra conta no mesmo PC é recusada.
+    if (raw === "VIPUNICO2026" || raw === "VIPGOLD30D") {
+      const isGold = raw === "VIPGOLD30D";
+      const uid = identity?.id ?? null;
+      const ownerKey = "rubym.vipCode." + raw + ".owner";
+      const grantVipBundle = () => {
+        const base = idleRef.current;
+        const nowT = Date.now();
+        const add = isGold ? 0.4 : 0.2;
+        const ms = 30 * 24 * 3600_000;
+        const curUntil = Math.max(base.buffs?.expMultUntil ?? 0, base.buffs?.goldMultUntil ?? 0);
+        const curMult = curUntil > nowT ? Math.max(base.buffs?.expMult ?? 0, base.buffs?.goldMult ?? 0) : 0;
+        const remaining = curUntil > nowT ? curUntil - nowT : 0;
+        const newUntil = nowT + remaining + ms;
+        const newMult = Math.max(curMult, add);
+        const next: IdleState = {
+          ...base,
+          buffs: {
+            ...base.buffs,
+            expMult: newMult, expMultUntil: newUntil,
+            goldMult: newMult, goldMultUntil: newUntil,
+          },
+          items: {
+            ...base.items,
+            pokeball: (base.items.pokeball ?? 0) + 20,
+            orb_xp_minor: (base.items.orb_xp_minor ?? 0) + 10,
+            ultraball: (base.items.ultraball ?? 0) + 10,
+            energetico: (base.items.energetico ?? 0) + 5,
+          },
+          redeemedCodes: { ...(base.redeemedCodes ?? {}), [raw]: true },
+        };
+        setIdle(next);
+        persistCodeReward(next);
+        try {
+          localStorage.setItem(codeKey, "1");
+          if (uid) localStorage.setItem(ownerKey, uid);
+        } catch { /* ignore */ }
+        const vipName = isGold ? "VIP GOLD 40%" : "VIP 20%";
+        setCodeMsg({ kind: "ok", text: "💎 " + vipName + " por 30 dias + caixa: 20 Pokébolas, 10 Orbs de XP, 10 Ultra Balls e 5 Energéticos." });
+        setCodeInput("");
+        pushChat("💎 Código " + raw + ": " + vipName + " 30 dias + caixa de itens (uso único).", "cap");
+      };
+      // Trava global do navegador (vale mesmo sem servidor).
+      try {
+        const owner = localStorage.getItem(ownerKey);
+        if (owner && owner !== uid) {
+          setCodeMsg({ kind: "err", text: "Este código já foi utilizado por outra conta." });
+          return;
+        }
+      } catch { /* ignore */ }
+      setCodeMsg({ kind: "ok", text: "… validando o código no servidor." });
+      void claimPromoCodeOnce(raw, uid, identity?.name ?? null).then((res) => {
+        if (res.ok) { grantVipBundle(); return; }
+        if (res.reason === "already_used") {
+          setCodeMsg({ kind: "err", text: "Este código já foi utilizado por outra conta." });
+          return;
+        }
+        if (res.reason === "server_lock_missing" || res.reason === "not_logged") {
+          pushChat("⚠️ Trava no servidor indisponível: o código fica preso a este navegador e não pode ser reutilizado em outra conta do mesmo PC.", "info");
+          grantVipBundle();
+          return;
+        }
+        setCodeMsg({ kind: "err", text: "Não foi possível validar o código agora. Nada foi entregue." });
+      });
+      return;
+    }
+
     // CASHADMIN2026 — libera Modo Admin da Lojinha Cash. Uso único global (primeira conta que resgatar).
     if (raw === "CASHADMIN2026") {
       const CLAIM_KEY = "rubym.cashShop.adminClaimed";
