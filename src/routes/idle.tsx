@@ -17656,17 +17656,29 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const feet = y + feetOffset;
     return Math.abs(x - o.x) <= halfW && feet >= artTop && feet <= artBottom + 6;
   };
-  // Só o TREINADOR faz o mato subir na frente (cobrir as pernas). Pokémon
-  // pisando animam o mato, mas NÃO o colocam sobre o jogador.
-  // Mato estilo GBA: 2 = pisado (qualquer criatura), 1 = balanço ao sair, 0 = normal.
-  const grassFrameFor = (o: Obstacle): number => {
-    if (!o.stepGrass) return 0;
+  // Estado do mato estilo GBA:
+  //  - frame 2 (pisado) quando treinador, seguidor ou selvagem estão em cima;
+  //  - o tile sobe SOMENTE quando tem alguém dentro dele (cobre quem pisou);
+  //  - os outros tiles do campo ficam no chão (z=2), então não escondem você.
+  const grassStateFor = (o: Obstacle): { frame: number; z: number } => {
+    if (!o.stepGrass) return { frame: 0, z: 2 };
     const nowTs = Date.now();
-    let on = grassFeetOn(o, trainerPos.x, trainerPos.y, 28) || grassFeetOn(o, followerState.x, followerState.y, 28);
-    if (!on) for (const e of enemies) if (e.hp > 0 && grassFeetOn(o, e.x, e.y, 24)) { on = true; break; }
-    if (on) { grassTouchRef.current.set(o.id, nowTs); return 2; }
+    let on = false;
+    let maxY = -Infinity;
+    const consider = (x: number, y: number, off: number) => {
+      if (!grassFeetOn(o, x, y, off)) return;
+      on = true;
+      if (y > maxY) maxY = y;
+    };
+    consider(trainerPos.x, trainerPos.y, 28);
+    consider(followerState.x, followerState.y, 28);
+    for (const e of enemies) if (e.hp > 0) consider(e.x, e.y, 24);
+    if (on) {
+      grassTouchRef.current.set(o.id, nowTs);
+      return { frame: 2, z: Math.round(maxY) + 1 };
+    }
     const last = grassTouchRef.current.get(o.id) ?? 0;
-    return nowTs - last < 320 ? 1 : 0;
+    return { frame: nowTs - last < 320 ? 1 : 0, z: 2 };
   };
 
   const upgradeCrystal = (element: CrystalElement) => {
@@ -21555,7 +21567,8 @@ A sucata afundou com o casco.
               // Mato GBA: 3 frames (normal / balançado / pisado) conforme quem passa.
               if (o.stepGrass && !editorStump && !editorChopping) {
                 const cols = o.stepGrass;
-                const frame = grassFrameFor(o);
+                const grass = grassStateFor(o);
+                const frame = grass.frame;
                 const posPct = cols > 1 ? Math.round((frame / (cols - 1)) * 100) : 0;
                 const style: React.CSSProperties = {
                   position: "absolute",
@@ -21564,9 +21577,8 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: 1,
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
-                  // Profundidade natural pela base: cobre quem está EM CIMA
-                  // (Pokémon e treinador) e fica atrás de quem está abaixo.
-                  zIndex: Math.round(o.y),
+                  // Só sobe quando alguém está DENTRO deste tile.
+                  zIndex: grass.z,
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
