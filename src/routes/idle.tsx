@@ -6296,9 +6296,7 @@ const confirmName = () => {
   // ---- Mundo em pixels + câmera que segue o treinador ----
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
   const MAP_DISPLAY_SCALE: Record<string, number> = {
-    bobo_uuid: 0.7, bobo_g11ds: 0.7, bobo_mmmm: 0.7, bobo_rota1: 0.7, bobo_rota2: 0.7, bobo_rota3: 0.7,
-    bobo_rota_gelo: 0.7, bobo_t2_viridiana: 0.7, bobo_t2: 0.7, bobo_templo: 0.7,
-    bobo_transicao_gelo: 0.7, bobo_transicao: 0.7, bobo_viridian: 0.7,
+    bobo_t2_viridiana: 0.7,
     mapinha10: 0.65,
     casa1: 0.65,
     casa2: 0.65,
