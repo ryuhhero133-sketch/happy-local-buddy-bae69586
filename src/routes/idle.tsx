@@ -14435,6 +14435,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       setLeaderHp((h) => Math.min(maxHp, h + heal));
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty } }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, `+${heal} HP`, "gold");
+      // Cura visível no PRÓPRIO Pokémon (animação de fada + número subindo).
+      fireSkillFx("heal", elementOf(l.species), HEAL_SHEET, followerState.x, followerState.y - 20, followerState.x, followerState.y - 20);
+      pushFxAt(followerState.x, followerState.y - 58, `+${heal}`, "heal");
       pushChat(`Você usou ${useQty}× Poção (+${heal} HP).`, "info");
     } else if (id === "pokeball" || id === "greatball" || id === "ultraball" || id === "safariball") {
       pushChat(`As Pokébolas são usadas automaticamente ao derrotar inimigos.`, "info");
