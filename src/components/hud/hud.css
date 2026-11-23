@@ -865,3 +865,65 @@
 /* ---- Botões do canto: alinhados e com respiro igual ---- */
 .revo-hud.is-newhud .revo-systems { gap: 7px; }
 .revo-hud.is-newhud .revo-right-stack { gap: 10px; }
+
+
+/* =====================================================================
+   Ajustes 2 — sem moldura na bússola, zoom visível, time compacto menor
+   ===================================================================== */
+.revo-hud.is-newhud .revo-minimap.revo-panel {
+  position: relative;
+  width: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  overflow: visible;
+}
+.revo-hud.is-newhud .revo-minimap.revo-panel::before,
+.revo-hud.is-newhud .revo-minimap.revo-panel::after { content: none !important; }
+
+/* zoom visível embaixo da bússola */
+.revo-hud.is-newhud .revo-minimap > footer {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  bottom: -19px;
+  width: 122px;
+  padding: 0;
+}
+.revo-hud.is-newhud .revo-minimap > footer > span:first-child { display: none; }
+.revo-hud.is-newhud .revo-minimap > footer > span:last-child {
+  font-size: 9px;
+  font-weight: 900;
+  color: #14532d;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(47,158,68,.55);
+  border-radius: 7px;
+  padding: 1px 7px;
+}
+
+/* time compacto menor */
+.revo-hud.is-newhud .revo-team.is-compact { width: 64px; gap: 4px; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__card {
+  min-height: 68px;
+  padding: 5px 2px 11px;
+}
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait {
+  width: 44px;
+  height: 44px;
+}
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait > img { width: 34px; height: 34px; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__portrait::after { inset: -6px; }
+.revo-hud.is-newhud .revo-team.is-compact .revo-team__level { font-size: 8px; padding: 0 3px; bottom: -7px; }
+
+/* botões um pouco menores */
+.revo-hud.is-newhud .revo-questorb__ball { width: 42px; height: 42px; }
+.revo-hud.is-newhud .revo-questorb__ball > img { width: 27px; height: 27px; }

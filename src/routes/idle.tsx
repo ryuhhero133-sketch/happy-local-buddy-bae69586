@@ -4173,7 +4173,9 @@ const confirmName = () => {
   // reaparece apenas após o intervalo configurado; os pontos são locais ao mapa.
   useEffect(() => {
     const syncSpawns = () => {
-      const spawns = isTestMap(idle.currentMap) ? [] : (mapEditorSpawns[idle.currentMap] ?? []);
+      // Os spawns do editor valem em TODOS os mapas (inclusive os privados),
+      // senão não dá para montar o mapa com os Pokémon escolhidos.
+      const spawns = mapEditorSpawns[idle.currentMap] ?? [];
       const ids = new Set(spawns.map((spawn) => spawn.id));
       const clock = Date.now();
       setEnemies((current) => {
@@ -16096,7 +16098,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   }
 
   function spawnEnemies(): Enemy[] {
-    if (isTestMap(idle.currentMap)) return idle.currentMap.startsWith("bobo_") ? spawnBoboSlimes() : [];
+    // Mapas privados: nada nasce sozinho. Só aparece o que foi colocado no editor.
+    if (isTestMap(idle.currentMap)) return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
