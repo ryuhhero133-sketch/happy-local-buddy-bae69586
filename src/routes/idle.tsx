@@ -1127,6 +1127,80 @@ const SnowCanvas = memo(function SnowCanvas() {
   }, []);
   return <canvas ref={ref} aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />;
 });
+// ─── Diálogo do Nevezinha ────────────────────────────────────────────────────
+// Texto datilografado DENTRO da moldura; clique/toque avança (ou completa a
+// frase se ainda estiver digitando). Memoizado para não reiniciar a digitação
+// com os re-renders de 60 fps do jogo.
+const NEVEZINHA_LINES = [
+  "Oi, Nissan! Eu sou o Nevezinha.",
+  "Vou te seguir por aí e te ajudar no gelo.",
+  "Clique na caixa para continuar.",
+];
+
+const NevezinhaDialog = memo(function NevezinhaDialog({ onDone }: { onDone: () => void }) {
+  const [line, setLine] = useState(0);
+  const [shown, setShown] = useState(0);
+  const full = NEVEZINHA_LINES[line] ?? "";
+  useEffect(() => {
+    setShown(0);
+    let i = 0;
+    const iv = window.setInterval(() => {
+      i += 1;
+      setShown(i);
+      if (i >= full.length) window.clearInterval(iv);
+    }, 26);
+    return () => window.clearInterval(iv);
+  }, [line, full]);
+  const typing = shown < full.length;
+  const advance = () => {
+    if (typing) { setShown(full.length); return; }
+    if (line < NEVEZINHA_LINES.length - 1) setLine((v) => v + 1);
+    else onDone();
+  };
+  return (
+    <div
+      onClick={(event) => { event.stopPropagation(); advance(); }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 96000,
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0 12px 22px", background: "rgba(2,4,10,0.35)", cursor: "pointer",
+      }}
+    >
+      <div style={{
+        width: "min(760px, 96vw, calc(82vh * 1.328))",
+        aspectRatio: "1445 / 1088", position: "relative",
+        backgroundImage: "url(" + dialogoUrl + ")",
+        backgroundSize: "100% 100%", backgroundRepeat: "no-repeat",
+        imageRendering: "pixelated",
+        filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.55))",
+      }}>
+        <div style={{
+          position: "absolute", left: "5%", right: "14%", top: "75%", bottom: "11%",
+          display: "flex", alignItems: "center",
+          color: "#eaf2ff",
+          fontFamily: "'Segoe UI', 'Trebuchet MS', system-ui, sans-serif",
+          fontSize: "clamp(11px, 1.7vmin + 6px, 17px)",
+          lineHeight: 1.45,
+          textShadow: "0 1px 2px rgba(0,0,0,0.65)",
+          overflow: "hidden",
+        }}>
+          <span>
+            {full.slice(0, shown)}
+            {typing && <span style={{ opacity: 0.75 }}>▌</span>}
+          </span>
+        </div>
+        {!typing && (
+          <div aria-hidden="true" style={{
+            position: "absolute", right: "16%", bottom: "12%",
+            color: "#ffd94d", fontSize: 13, lineHeight: 1,
+            animation: "pulse 1.1s ease-in-out infinite",
+          }}>▼</div>
+        )}
+      </div>
+    </div>
+  );
+}, () => true);
+
 
 type SavedTrainerPosition = {
   map: IdleMapId;
@@ -25450,18 +25524,7 @@ A sucata afundou com o casco.
                 </div>
               </div>
             )}
-{snowmanDialog && (
-              <div
-                onClick={() => setSnowmanDialog(false)}
-                style={{ position: "fixed", inset: 0, zIndex: 96000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 12px 22px", background: "rgba(2,4,10,0.35)" }}
-              >
-                <div style={{ width: "min(760px, 96vw, calc(82vh * 1.328))", aspectRatio: "1445 / 1088", position: "relative", backgroundImage: "url(" + dialogoUrl + ")", backgroundSize: "100% 100%", backgroundRepeat: "no-repeat", imageRendering: "pixelated", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.55))" }}>
-                  <div style={{ position: "absolute", left: "3.5%", right: "9%", top: "74%", bottom: "9%", color: "#e7eeff", fontFamily: "'Press Start 2P','Trebuchet MS',monospace", fontSize: 11, lineHeight: 1.6, overflow: "hidden" }}>
-                    <b style={{ color: "#9ecbff" }}>Nevezinha:</b> Oi, Nissan! Eu sou o Nevezinha. Vou te seguir por aí — clique em mim quando quiser conversar!
-                  </div>
-                </div>
-              </div>
-            )}
+{snowmanDialog && <NevezinhaDialog onDone={() => setSnowmanDialog(false)} />}
 {mapTeleportOpen && (() => {
               const ev = eventualMapWindow();
                const base = [...(canSeeTestMaps(identity?.id) ? TEST_MAP_IDS : []), "mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
