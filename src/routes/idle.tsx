@@ -12502,6 +12502,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           }
         }
 
+        // PISO DE DANO: 2,5% do HP máximo do líder (a barra desce de verdade).
+        if (!enemyMiss && leader) eDmg = Math.max(eDmg, Math.floor(calcIdleMaxHp(leader) * 0.025));
         // Contra-ataque desviado: nenhum dano neste intercâmbio.
         if (enemyMiss) eDmg = 0;
 
@@ -13505,7 +13507,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const eliteMult = eElite ? 2.5 : 1;
     const honeyDef = honeyBonusNow();
     const lv = tm[0]?.level ?? eLevel;
-    return Math.max(1, Math.floor((2 + (eBase as { atk: number }).atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(eLevel, lv) * Math.max(0.1, 1 - (st.buffs?.def ?? 0) - honeyDef) * mult));
+    const raw = Math.max(1, Math.floor((2 + (eBase as { atk: number }).atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(eLevel, lv) * Math.max(0.1, 1 - (st.buffs?.def ?? 0) - honeyDef) * mult));
+    // PISO DE DANO: 2,5% do HP máximo do líder (skills de inimigo também).
+    const leaderPet = tm[0];
+    const leaderMax = leaderPet ? calcIdleMaxHp(leaderPet) : 0;
+    return leaderMax > 0 ? Math.max(raw, Math.floor(leaderMax * 0.025)) : raw;
   };
   // Aplica status de skill no líder (reusa os refs existentes).
   const applySkillStatus = (status: string, dur: number, targetX: number, targetY: number, spName: string, tickPct?: number, tickMs?: number) => {

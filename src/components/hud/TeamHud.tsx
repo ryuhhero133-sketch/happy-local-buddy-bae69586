@@ -45,7 +45,7 @@ export function TeamHud({ members, selectedUid, onSelect, onManage }: {
   onSelect: (uid: string) => void;
   onManage: () => void;
 }) {
-  const [compact, setCompact] = useState(false);
+  const [compact, setCompact] = useState(true);
   return <section className={`revo-team ${compact ? "is-compact" : ""}`} aria-label="Equipe Pokémon">
     <header className="revo-team__header revo-panel">
       <button type="button" onClick={onManage} title="Gerenciar equipe" aria-label={`Gerenciar equipe, ${members.length} de 6 Pokémon`}>
