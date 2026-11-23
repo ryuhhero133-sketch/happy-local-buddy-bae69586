@@ -3767,6 +3767,9 @@ const confirmName = () => {
   const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
   const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
   const [mapEditorSelectedIds, setMapEditorSelectedIds] = useState<number[]>([]);
+  const [mapEditorClipboard, setMapEditorClipboard] = useState<EditorObstacle[]>([]);
+  const mapEditorPasteStepRef = useRef(0);
+  const grassTouchRef = useRef<Map<number, number>>(new Map());
   const [mapEditorSelectedSpawnId, setMapEditorSelectedSpawnId] = useState<number | null>(null);
   const [mapEditorMove, setMapEditorMove] = useState(false);
   const editorDragRef = useRef<{ kind: "object" | "pokemon"; id: number; pointerId: number; clientX: number; clientY: number; x: number; y: number } | null>(null);
@@ -6585,6 +6588,24 @@ const confirmName = () => {
   const selectEditorObject = (id: number, additive: boolean) => {
     setMapEditorSelectedId(id);
     setMapEditorSelectedIds((prev) => (additive ? (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]) : [id]));
+  };
+  // Copiar/colar em grupo (mantém tamanho, tipo e animação de cada objeto).
+  const copyEditorSelection = () => {
+    const items = editorObstacles.filter((item) => mapEditorSelectedIds.includes(item.id));
+    if (items.length === 0) return;
+    setMapEditorClipboard(items.map((item) => ({ ...item })));
+    mapEditorPasteStepRef.current = 0;
+    pushChat("📋 " + items.length + " objeto(s) copiado(s). Use Colar.", "info");
+  };
+  const pasteEditorClipboard = () => {
+    if (mapEditorClipboard.length === 0) return;
+    mapEditorPasteStepRef.current += 1;
+    const off = 40 * mapEditorPasteStepRef.current;
+    const stamp = Date.now() * 1000;
+    const copies = mapEditorClipboard.map((item, index) => ({ ...item, id: stamp + index, x: item.x + off, y: item.y + off }));
+    setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), ...copies] }));
+    setMapEditorSelectedIds(copies.map((item) => item.id));
+    setMapEditorSelectedId(copies[0]?.id ?? null);
   };
   const removeEditorSpawn = (id: number) => {
     setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
@@ -17475,22 +17496,21 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     [getCoveringObstacle(trainerPos.x, trainerPos.y), getCoveringObstacle(followerX, followerY)]
       .filter((id): id is number => id !== null)
   );
-  // Mato estilo GBA: 0 = normal, 1 = balançado (alguém perto), 2 = pisado.
+  // Mato estilo GBA: 2 = pisado (dentro), 1 = balançado ao sair, 0 = normal.
+  // Só o tile realmente pisado anima; os vizinhos ficam parados.
   const grassFrameFor = (o: Obstacle): number => {
     if (!o.stepGrass) return 0;
-    const halfW = o.w * 0.45;
-    const top = o.y - o.h + 8;
-    const bottom = o.y + 8;
-    const innerTop = top + o.h * 0.25;
+    const halfW = o.w * 0.42;
+    const top = o.y - o.h * 0.85;
+    const bottom = o.y - o.h * 0.12;
     const isOn = (x: number, y: number) =>
-      Math.abs(x - o.x) <= halfW && y >= innerTop && y <= bottom;
-    const isNear = (x: number, y: number) =>
-      Math.abs(x - o.x) <= halfW * 1.7 && y >= top - o.h * 0.35 && y <= bottom + o.h * 0.1;
-    if (isOn(trainerPos.x, trainerPos.y) || isOn(followerState.x, followerState.y)) return 2;
-    for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y)) return 2;
-    if (isNear(trainerPos.x, trainerPos.y) || isNear(followerState.x, followerState.y)) return 1;
-    for (const e of enemies) if (e.hp > 0 && isNear(e.x, e.y)) return 1;
-    return 0;
+      Math.abs(x - o.x) <= halfW && y >= top && y <= bottom;
+    const nowTs = Date.now();
+    let on = isOn(trainerPos.x, trainerPos.y) || isOn(followerState.x, followerState.y);
+    if (!on) for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y)) { on = true; break; }
+    if (on) { grassTouchRef.current.set(o.id, nowTs); return 2; }
+    const last = grassTouchRef.current.get(o.id) ?? 0;
+    return nowTs - last < 320 ? 1 : 0;
   };
 
   const upgradeCrystal = (element: CrystalElement) => {
@@ -21449,7 +21469,7 @@ A sucata afundou com o casco.
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
                   // Só cobre quem está DENTRO dele. Os matos vizinhos ficam no chão,
                   // senão parece que passamos por baixo deles.
-                  zIndex: frame === 2 ? Math.round(o.y) + 200 : 2,
+                  zIndex: frame === 2 ? Math.round(o.y) + 2 : 2,
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
@@ -23784,7 +23804,7 @@ A sucata afundou com o casco.
                     </label>}
                   </div>;
                 })()}
-                {(selectedMapEditorObject || mapEditorSelectedIds.length > 0) && (() => {
+                {(selectedMapEditorObject || mapEditorSelectedIds.length > 0 || mapEditorClipboard.length > 0) && (() => {
                   const primary = selectedMapEditorObject;
                   const ids = mapEditorSelectedIds.length > 0 ? mapEditorSelectedIds : (primary ? [primary.id] : []);
                   const baseW = primary ? (primary.baseW ?? primary.w) : 1;
@@ -23797,11 +23817,15 @@ A sucata afundou com o casco.
                       return { ...item, baseW: bw, baseH: bh, w: Math.max(8, Math.round(bw * percent / 100)), h: Math.max(8, Math.round(bh * percent / 100)) };
                     }) }));
                   return <div style={{ marginTop: 10, padding: 8, background: "#160f2a", borderRadius: 8 }}>
-                    <strong>{primary ? primary.name : "Selecionados"} · {scale}%{ids.length > 1 ? " · " + ids.length + " objetos" : ""}</strong>
-                    <input aria-label="Tamanho do objeto" type="range" min="25" max="300" value={scale} onChange={(e) => resize(Number(e.target.value))} style={{ width: "100%" }} />
+                    {ids.length > 0 && <>
+                      <strong>{primary ? primary.name : "Selecionados"} · {scale}%{ids.length > 1 ? " · " + ids.length + " objetos" : ""}</strong>
+                      <input aria-label="Tamanho do objeto" type="range" min="25" max="300" value={scale} onChange={(e) => resize(Number(e.target.value))} style={{ width: "100%" }} />
+                    </>}
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
-                      <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(true); }}>Mover no mapa</button>
-                      <button type="button" onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => !ids.includes(item.id)) })); setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorMove(false); }}>Remover</button>
+                      {ids.length > 0 && <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(true); }}>Mover no mapa</button>}
+                      {ids.length > 0 && <button type="button" onClick={() => { setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => !ids.includes(item.id)) })); setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorMove(false); }}>Remover</button>}
+                      {ids.length > 0 && <button type="button" onClick={() => { copyEditorSelection(); }}>Copiar</button>}
+                      {mapEditorClipboard.length > 0 && <button type="button" onClick={() => { pasteEditorClipboard(); }}>Colar ({mapEditorClipboard.length})</button>}
                       {primary && <button type="button" onClick={() => setMapEditorSelectedIds(editorObstacles.filter((item) => (item.assetId ?? item.src) === (primary.assetId ?? primary.src)).map((item) => item.id))}>Selecionar todos iguais</button>}
                       {ids.length > 0 && <button type="button" onClick={() => { setMapEditorSelectedIds([]); setMapEditorSelectedId(null); }}>Limpar</button>}
                     </div>
