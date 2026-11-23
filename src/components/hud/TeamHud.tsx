@@ -63,7 +63,7 @@ export function TeamHud({ members, selectedUid, onSelect, onManage }: {
           type="button"
           key={member.uid}
           className={`revo-team__card revo-panel ${selectedUid === member.uid ? "is-selected" : ""} ${member.fainted ? "is-fainted" : ""}`}
-          style={{ "--pet-tier": tier.color } as CSSProperties}
+          style={{ "--pet-tier": tier.color, "--hp": percent(hp, member.maxHp) } as CSSProperties}
           data-tier={member.rarity}
           aria-label={`Ver ${member.name}, nível ${member.level}, ${tier.label}. HP ${Math.round(hp)}/${member.maxHp}, XP ${member.xp}/${member.maxXp}, fome ${Math.round(member.hunger)}%.`}
           aria-pressed={selectedUid === member.uid}

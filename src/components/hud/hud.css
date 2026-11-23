@@ -589,3 +589,58 @@
 .revo-team__card.revo-panel .revo-team__stat > span:first-child { color: #b8860b; }
 .revo-team__card.revo-panel .revo-team__stat > b { color: #1b4332; }
 .revo-team__card.revo-panel.is-selected { border-color: #d4af37 !important; box-shadow: 0 0 0 2px #d4af55 inset, 0 6px 18px rgba(0,0,0,.35) !important; }
+
+
+/* ===== Time compacto: só o círculo + nível ===== */
+.revo-team.is-compact { width: 80px; }
+.revo-team.is-compact .revo-team__card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  min-height: 84px;
+  padding: 6px 2px 14px;
+}
+.revo-team.is-compact .revo-team__card::before { display: none; }
+.revo-team.is-compact .revo-team__compact-hp { display: none; }
+.revo-team.is-compact .revo-team__portrait {
+  width: 54px;
+  height: 54px;
+  border: 2px solid var(--pet-tier);
+  box-shadow: 0 0 0 2px var(--pet-tier), 0 0 12px var(--pet-tier);
+}
+.revo-team.is-compact .revo-team__portrait::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  background: conic-gradient(#ef2d45 calc(var(--hp, 100) * 1%), rgba(255,255,255,.16) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  pointer-events: none;
+}
+.revo-team.is-compact .revo-team__portrait > img { width: 46px; height: 46px; }
+
+/* Ajuste final: card compacto com FUNDO na cor da raridade + HP em anel */
+.revo-team.is-compact .revo-team__card {
+  background: #0a1523 !important;
+  border: 1.5px solid var(--pet-tier) !important;
+  box-shadow: 0 0 12px var(--pet-tier), inset 0 0 14px rgba(0,0,0,.5) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  min-height: 84px;
+  padding: 7px 3px 13px;
+}
+.revo-team.is-compact .revo-team__card::before {
+  display: block !important;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pet-tier);
+  opacity: .22;
+  pointer-events: none;
+}
+.revo-team.is-compact .revo-team__compact-hp { display: none !important; }
+.revo-team.is-compact .revo-team__portrait {
+  border: 2px solid rgba(255,255,255,.35) !important;
+  box-shadow: none !important;
+}
