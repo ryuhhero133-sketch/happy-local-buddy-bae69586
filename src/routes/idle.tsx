@@ -547,7 +547,7 @@ const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
 import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
 import rota1MapUrl from "@/ambiente/map/Rota1.webp";
-import matoVerdeFramesUrl from "@/ambiente/map/MATO VERDE 160.webp";
+import matoVerdeFramesUrl from "@/ambiente/map/MATO VERDE.webp";
 import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap, TEST_MAP_IDS } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
@@ -1907,7 +1907,7 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
   { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
   { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
-  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 64, h: 64, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 40, h: 40, blocks: false, collideR: 0, stepGrass: 3 },
   { id: "editor_snow_tree", name: "Pinheiro nevado", src: editorSnowTreeUrl, w: 157, h: 207, blocks: false, collideR: 0 },
   { id: "editor_grass", name: "Capim", src: editorGrassUrl, w: 140, h: 140, blocks: false, collideR: 0 },
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
@@ -1921,12 +1921,12 @@ function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[
       const asset = MAP_EDITOR_ASSETS.find((item) => item.id === saved.assetId || item.src === saved.src);
       if (!asset) return saved;
       const hasSize = typeof saved.baseW === "number" && typeof saved.baseH === "number";
-      // Mato verde antigo (96 ou 40) volta ao tamanho padrão de 64.
-      const legacyGrass = asset.id === "mato_verde" && (saved.baseW === 96 || saved.baseW === 40) && saved.baseH === saved.baseW;
+      // Mato verde antigo era 96/64 e pesava; migra para 40x40.
+      const legacyGrass = asset.id === "mato_verde" && (saved.baseW === 96 || saved.baseW === 64) && saved.baseH === saved.baseW;
       return { ...saved, src: asset.src, assetId: asset.id, name: asset.name,
-        w: legacyGrass ? 64 : hasSize ? saved.w : asset.w, h: legacyGrass ? 64 : hasSize ? saved.h : asset.h,
-        baseW: legacyGrass ? 64 : hasSize ? saved.baseW : asset.w,
-        baseH: legacyGrass ? 64 : hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
+        w: legacyGrass ? 40 : hasSize ? saved.w : asset.w, h: legacyGrass ? 40 : hasSize ? saved.h : asset.h,
+        baseW: legacyGrass ? 40 : hasSize ? saved.baseW : asset.w,
+        baseH: legacyGrass ? 40 : hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
         collideR: saved.collideR ?? asset.collideR, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
         harvestable: saved.harvestable ?? asset.harvestable, harvestSpecies: saved.harvestSpecies ?? "pinsir" };
     }) : [],
@@ -21563,9 +21563,9 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: 1,
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
-                  // Profundidade fixa pela base (não muda ao pisar) — evita
-                  // reordenar as camadas a cada passo. Quem está em cima é coberto.
-                  zIndex: Math.round(o.y),
+                  // Só cobre quem está DENTRO dele. Os matos vizinhos ficam no chão,
+                  // senão parece que passamos por baixo deles.
+                  zIndex: frame === 2 ? Math.round(o.y) + 2 : 2,
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
