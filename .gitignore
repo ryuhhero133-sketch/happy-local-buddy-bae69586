@@ -50,3 +50,5 @@ src/ambiente/map/*.png
 src/ambiente/map/BOBO/*.png
 src/ambiente/map/bb/*.png
 src/ambiente/map/bb/*.gif
+
+src/ambiente/map/pets/*.png
