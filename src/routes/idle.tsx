@@ -5852,8 +5852,10 @@ const confirmName = () => {
 
   // Partículas pré-geradas
   const rainDrops = useMemo(() => {
+    const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
+    const count = lite ? 48 : 90;
     const arr: { left: number; delay: number; dur: number; len: number; op: number; w: number }[] = [];
-    for (let i = 0; i < 140; i++) {
+    for (let i = 0; i < count; i++) {
       const near = Math.random() < 0.35;
       arr.push({
         left: Math.random() * 110 - 5,
@@ -5867,8 +5869,10 @@ const confirmName = () => {
     return arr;
   }, []);
   const snowFlakes = useMemo(() => {
+    const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
+    const count = lite ? 26 : 56;
     const arr: { left: number; delay: number; dur: number; size: number; drift: number; op: number }[] = [];
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < count; i++) {
       arr.push({
         left: Math.random() * 100,
         delay: Math.random() * 6,
@@ -5879,6 +5883,52 @@ const confirmName = () => {
       });
     }
     return arr;
+  }, []);
+  // Elementos das partículas memoizados: o jogo re-renderiza a 60fps e,
+  // sem isso, os 70 flocos / 140 gotas eram recriados a cada frame.
+  const rainDropEls = useMemo(() => rainDrops.map((d, i) => (
+    <span key={i} className="wx-drop" style={{
+      left: d.left + "%",
+      width: d.w,
+      height: d.len,
+      opacity: d.op,
+      animationDelay: "-" + d.delay + "s",
+      animationDuration: d.dur + "s",
+    }} />
+  )), [rainDrops]);
+  const snowFlakeEls = useMemo(() => snowFlakes.map((s, i) => (
+    <span key={i} className="wx-flake" style={{
+      left: s.left + "%",
+      width: s.size,
+      height: s.size,
+      opacity: s.op,
+      animationDelay: "-" + s.delay + "s",
+      animationDuration: s.dur + "s",
+      ["--drift" as string]: s.drift + "px",
+    } as React.CSSProperties} />
+  )), [snowFlakes]);
+  // Neve preta do mapa ancestral: memoizada e sem sombra desfocada.
+  const blackSnowEls = useMemo(() => {
+    const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
+    const count = lite ? 22 : 40;
+    return Array.from({ length: count }, (_, i) => {
+      const r1 = ((i * 9301 + 49297) % 233280) / 233280;
+      const r2 = ((i * 7919) % 1000) / 1000;
+      const r3 = ((i * 6271) % 1000) / 1000;
+      const size = 3 + r3 * 5;
+      return (
+        <span key={"bsnow-" + i} style={{
+          position: "absolute", left: (r1 * 100) + "%", top: -12,
+          width: size, height: size, borderRadius: "50%",
+          background: "radial-gradient(circle at 35% 35%, #2a2a3a 0%, #0a0a12 70%)",
+          border: "1px solid rgba(150,80,255,0.5)",
+          opacity: 0.85,
+          animation: "blackSnowFall " + (7 + r2 * 6) + "s linear infinite",
+          animationDelay: "-" + (r2 * 10) + "s",
+          ["--drift" as string]: ((r3 - 0.5) * 120) + "px",
+        } as React.CSSProperties} />
+      );
+    });
   }, []);
 
 
@@ -20763,33 +20813,14 @@ A sucata afundou com o casco.
                 <div>
                   <div className="wx-rain-tint" />
                   <div className="wx-mist" />
-                  {rainDrops.map((d, i) => (
-                    <span key={i} className="wx-drop" style={{
-                      left: `${d.left}%`,
-                      width: d.w,
-                      height: d.len,
-                      opacity: d.op,
-                      animationDelay: `-${d.delay}s`,
-                      animationDuration: `${d.dur}s`,
-                    }} />
-                  ))}
+                  {rainDropEls}
                   <div className="wx-flash" />
                 </div>
               )}
               {effWeather === "snow" && (
                 <div>
                   <div className="wx-snow-tint" />
-                  {snowFlakes.map((s, i) => (
-                    <span key={i} className="wx-flake" style={{
-                      left: `${s.left}%`,
-                      width: s.size,
-                      height: s.size,
-                      opacity: s.op,
-                      animationDelay: `-${s.delay}s`,
-                      animationDuration: `${s.dur}s`,
-                      ["--drift" as string]: `${s.drift}px`,
-                    } as React.CSSProperties} />
-                  ))}
+                  {snowFlakeEls}
                 </div>
               )}
               <div style={{
@@ -20820,25 +20851,7 @@ A sucata afundou com o casco.
                     filter: "blur(22px)", transform: "rotate(4deg)",
                     animation: "auroraDrift 12s ease-in-out infinite alternate-reverse",
                   }} />
-                  {Array.from({ length: 42 }, (_, i) => {
-                    const r1 = ((i * 9301 + 49297) % 233280) / 233280;
-                    const r2 = ((i * 7919) % 1000) / 1000;
-                    const r3 = ((i * 6271) % 1000) / 1000;
-                    const size = 3 + r3 * 5;
-                    return (
-                      <span key={`bsnow-${i}`} style={{
-                        position: "absolute", left: `${r1 * 100}%`, top: "-12px",
-                        width: size, height: size, borderRadius: "50%",
-                        background: "radial-gradient(circle at 35% 35%, #2a2a3a 0%, #0a0a12 70%)",
-                        border: "1px solid rgba(150,80,255,0.5)",
-                        boxShadow: "0 0 6px rgba(120,80,255,0.6)",
-                        opacity: 0.85,
-                        animation: `blackSnowFall ${7 + r2 * 6}s linear infinite`,
-                        animationDelay: `-${r2 * 10}s`,
-                        ["--drift" as string]: `${(r3 - 0.5) * 120}px`,
-                      } as React.CSSProperties} />
-                    );
-                  })}
+                  {blackSnowEls}
                   <style>{`
                     @keyframes blackSnowFall { 0% { transform: translate3d(0, -5vh, 0); } 100% { transform: translate3d(var(--drift, 40px), 110vh, 0); } }
                     @keyframes auroraDrift { 0% { transform: rotate(-6deg) translateX(-3%); opacity: 0.75; } 100% { transform: rotate(-2deg) translateX(3%); opacity: 1; } }
@@ -27541,7 +27554,6 @@ onClick={(e) => {
             rgba(220,235,255,0) 0%,
             rgba(220,235,255,0.35) 40%,
             rgba(240,248,255,0.9) 100%);
-          box-shadow: 0 0 3px rgba(200,225,255,0.5);
           transform: rotate(14deg);
           transform-origin: top center;
           border-radius: 2px;
@@ -27575,9 +27587,6 @@ onClick={(e) => {
           top: -10px;
           display: block;
           background: #ffffff;
-          box-shadow:
-            0 0 2px rgba(255,255,255,0.9),
-            0 0 4px rgba(200,220,255,0.6);
           border-radius: 0; /* pixel look */
           image-rendering: pixelated;
           animation-name: wx-flake-fall;
