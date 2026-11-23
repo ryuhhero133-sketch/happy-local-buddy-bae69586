@@ -12557,8 +12557,24 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         });
 
 
+        // SPLASH INTELIGENTE: a skill do líder também atinge até 2 inimigos
+        // próximos do alvo (35% do dano). Quem estiver longe NÃO é atingido
+        // (respeita o campo/alcance real da skill).
+        const splashTargets = dmg > 0 && !playerMiss
+          ? prev
+              .filter((e) => e.id !== target.id && e.hp > 0 && !e.disguise && Math.hypot(e.x - target.x, e.y - target.y) <= 120)
+              .slice(0, 2)
+          : [];
+        const splashIds = new Set(splashTargets.map((e) => e.id));
+        const splashDmg = Math.max(1, Math.floor(dmg * 0.35));
+        if (splashTargets.length > 0) {
+          for (const s of splashTargets) pushFxAt(s.x, s.y - 30, "-" + splashDmg, "myDmg");
+        }
         const next = prev.map((e) => {
-          if (e.id !== target.id) return e;
+          if (e.id !== target.id) {
+            if (splashIds.has(e.id)) return { ...e, hp: e.hp - splashDmg };
+            return e;
+          }
           const wasCamou = !!(e.disguise && !e.revealed);
           if (wasCamou) {
             pushChat(`🎭 A camuflagem falhou! Era um ${e.sp === "ditto_shiny" ? "DITTO ✨ SHINY" : "DITTO"}!`, "info");
