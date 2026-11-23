@@ -6371,6 +6371,10 @@ const confirmName = () => {
 
   // ---- Mundo em pixels + câmera que segue o treinador ----
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
+  // Tamanho da área de jogo medida no viewport (usada também para o auto-enquadre dos mapas).
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
+  const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   const MAP_DISPLAY_SCALE: Record<string, number> = {
     bobo_t2_viridiana: 0.85,
     mapinha10: 0.65,
@@ -6379,7 +6383,20 @@ const confirmName = () => {
     laboratorio: 0.65,
     casinha: 0.65,
   };
-  const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
+  // Mapas com máscara de colisão precisam de escala fixa (a máscara é desenhada
+  // em pixels de mundo). Nos demais, o mundo cresce o suficiente para cobrir a
+  // tela inteira — acaba com as faixas pretas nas laterais.
+  const MASKED_MAP_IDS = new Set([
+    "arv", "casinha", "mapinha6", "esfera_ancestral", "casa1", "casa2", "land_revo",
+    "mapinha10", "areia_de_anubis", "torre_verdejante", "torre_ancestral",
+    "laboratorio", "mapa_orange", "elementure", "iceblow", "monte_floreto",
+    "rayow", "sakura_city", "venenot", "hallow", "caverna_brok",
+  ]);
+  const dimsDoMapa = customDims && customDims.mapId === idle.currentMap ? customDims : null;
+  const fitScale = dimsDoMapa && !MASKED_MAP_IDS.has(idle.currentMap)
+    ? Math.max(1, viewSize.w / Math.max(1, dimsDoMapa.w), viewSize.h / Math.max(1, dimsDoMapa.h))
+    : 1;
+  const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? fitScale;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
     arv: arvUrl,
@@ -6452,7 +6469,7 @@ const confirmName = () => {
     bobo_transicao: boboTransicaoUrl,
     bobo_viridian: boboViridianUrl,
   };
-  const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
+  // (customDims declarado acima, junto do viewSize)
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
   const [hallowFx, setHallowFx] = useState<{ agua: string; luz: string } | null>(null);
   const [arvWaterMask, setArvWaterMask] = useState<string | null>(null);
@@ -6787,8 +6804,7 @@ const confirmName = () => {
   const ENGAGE_RANGE = 420; // px
   // Treinador para a essa distância do inimigo: ele NÃO entra no combate (fica atrás).
   const TRAINER_COMBAT_HALT = 220; // px
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const [viewSize, setViewSize] = useState({ w: 800, h: 680 });
+  // (viewportRef e viewSize declarados acima, junto do MAP_DISPLAY_SCALE)
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
