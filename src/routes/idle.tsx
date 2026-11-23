@@ -29,7 +29,7 @@ if (typeof window !== "undefined") {
 
 import npcScientistFAsset from "@/assets/npc-scientist-f.png.asset.json";
 import rayquazaShinyBg from "@/assets/rayquaza_shiny_bg.png.asset.json";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Home } from "lucide-react";
@@ -1041,6 +1041,68 @@ const treeChopUrl = assetUrlFromJson(treeChopAsset);
 const treeStumpUrl = assetUrlFromJson(treeStumpAsset);
 
 type IdleMapId = string;
+// Neve em CANVAS: um único elemento desenhado por frame. Sem dezenas de divs,
+// sem camadas CSS e sem sombras — custo praticamente zero, inclusive no celular.
+const SnowCanvas = memo(function SnowCanvas() {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let raf = 0;
+    let w = 0, h = 0, dpr = 1;
+    type Flake = { x: number; y: number; s: number; v: number; d: number; o: number };
+    const flakes: Flake[] = [];
+    const resize = () => {
+      const parent = canvas.parentElement;
+      w = parent?.clientWidth || window.innerWidth;
+      h = parent?.clientHeight || window.innerHeight;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.max(1, Math.round(w * dpr));
+      canvas.height = Math.max(1, Math.round(h * dpr));
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    const lite = window.matchMedia("(pointer: coarse)").matches || w < 900;
+    const count = lite ? 40 : 90;
+    for (let i = 0; i < count; i++) {
+      flakes.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        s: 1 + Math.random() * 2,
+        v: 16 + Math.random() * 26,
+        d: (Math.random() - 0.5) * 12,
+        o: 0.45 + Math.random() * 0.55,
+      });
+    }
+    let last = performance.now();
+    const loop = (t: number) => {
+      const dt = Math.min(50, t - last) / 1000;
+      last = t;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#ffffff";
+      for (const f of flakes) {
+        f.y += f.v * dt;
+        f.x += f.d * dt;
+        if (f.y > h + 4) { f.y = -4; f.x = Math.random() * w; }
+        if (f.x < -4) f.x = w + 4;
+        else if (f.x > w + 4) f.x = -4;
+        ctx.globalAlpha = f.o;
+        ctx.fillRect(f.x, f.y, f.s, f.s);
+      }
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    window.addEventListener("resize", resize);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
+  }, []);
+  return <canvas ref={ref} aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />;
+});
+
 type SavedTrainerPosition = {
   map: IdleMapId;
   x: number;
@@ -1843,7 +1905,7 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
   { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
   { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
-  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 64, h: 64, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 40, h: 40, blocks: false, collideR: 0, stepGrass: 3 },
   { id: "editor_snow_tree", name: "Pinheiro nevado", src: editorSnowTreeUrl, w: 157, h: 207, blocks: false, collideR: 0 },
   { id: "editor_grass", name: "Capim", src: editorGrassUrl, w: 140, h: 140, blocks: false, collideR: 0 },
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
@@ -1857,12 +1919,12 @@ function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[
       const asset = MAP_EDITOR_ASSETS.find((item) => item.id === saved.assetId || item.src === saved.src);
       if (!asset) return saved;
       const hasSize = typeof saved.baseW === "number" && typeof saved.baseH === "number";
-      // Mato verde antigo era 96x96 e cobria a cabeça; migra para 64x64.
-      const legacyGrass = asset.id === "mato_verde" && saved.baseW === 96 && saved.baseH === 96;
+      // Mato verde antigo era 96/64 e pesava; migra para 40x40.
+      const legacyGrass = asset.id === "mato_verde" && (saved.baseW === 96 || saved.baseW === 64) && saved.baseH === saved.baseW;
       return { ...saved, src: asset.src, assetId: asset.id, name: asset.name,
-        w: legacyGrass ? 64 : hasSize ? saved.w : asset.w, h: legacyGrass ? 64 : hasSize ? saved.h : asset.h,
-        baseW: legacyGrass ? 64 : hasSize ? saved.baseW : asset.w,
-        baseH: legacyGrass ? 64 : hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
+        w: legacyGrass ? 40 : hasSize ? saved.w : asset.w, h: legacyGrass ? 40 : hasSize ? saved.h : asset.h,
+        baseW: legacyGrass ? 40 : hasSize ? saved.baseW : asset.w,
+        baseH: legacyGrass ? 40 : hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
         collideR: saved.collideR ?? asset.collideR, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
         harvestable: saved.harvestable ?? asset.harvestable, harvestSpecies: saved.harvestSpecies ?? "pinsir" };
     }) : [],
@@ -5868,22 +5930,6 @@ const confirmName = () => {
     }
     return arr;
   }, []);
-  const snowFlakes = useMemo(() => {
-    const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
-    const count = lite ? 26 : 56;
-    const arr: { left: number; delay: number; dur: number; size: number; drift: number; op: number }[] = [];
-    for (let i = 0; i < count; i++) {
-      arr.push({
-        left: Math.random() * 100,
-        delay: Math.random() * 6,
-        dur: 5 + Math.random() * 6,
-        size: 2 + Math.round(Math.random() * 3),
-        drift: (Math.random() * 40 - 20),
-        op: 0.55 + Math.random() * 0.45,
-      });
-    }
-    return arr;
-  }, []);
   // Elementos das partículas memoizados: o jogo re-renderiza a 60fps e,
   // sem isso, os 70 flocos / 140 gotas eram recriados a cada frame.
   const rainDropEls = useMemo(() => rainDrops.map((d, i) => (
@@ -5896,17 +5942,6 @@ const confirmName = () => {
       animationDuration: d.dur + "s",
     }} />
   )), [rainDrops]);
-  const snowFlakeEls = useMemo(() => snowFlakes.map((s, i) => (
-    <span key={i} className="wx-flake" style={{
-      left: s.left + "%",
-      width: s.size,
-      height: s.size,
-      opacity: s.op,
-      animationDelay: "-" + s.delay + "s",
-      animationDuration: s.dur + "s",
-      ["--drift" as string]: s.drift + "px",
-    } as React.CSSProperties} />
-  )), [snowFlakes]);
   // Neve preta do mapa ancestral: memoizada e sem sombra desfocada.
   const blackSnowEls = useMemo(() => {
     const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
@@ -12564,21 +12599,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 florestBonePlusAtRef.current = 400 + Math.floor(Math.random() * 301);
                 florestBonePlusDueRef.current = true;
               }
-            }
-            const orbChance = killCountRef.current % 60 === 0 ? 1.0 : killCountRef.current % 15 === 0 ? 0.7 : 0;
-            if (orbChance > 0 && Math.random() < orbChance) {
-              const isEpic = killCountRef.current % 60 === 0;
-              setMapOrbs((prev) => {
-                if (prev.length >= 6) return prev; // máx 6 orbs no mapa
-                return [...prev, {
-                  id: mapOrbIdRef.current++,
-                  x: killedNow.x + (Math.random() - 0.5) * 40,
-                  y: killedNow.y + (Math.random() - 0.5) * 40,
-                  kind: isEpic ? "epic" : "common",
-                  spawnAt: Date.now(),
-                  duration: isEpic ? 2 * 60 * 60 * 1000 : 2 * 60 * 1000,
-                }];
-              });
             }
           });
           // Se o inimigo que paralisou morreu, libera o efeito.
@@ -20820,7 +20840,7 @@ A sucata afundou com o casco.
               {effWeather === "snow" && (
                 <div>
                   <div className="wx-snow-tint" />
-                  {snowFlakeEls}
+                  <SnowCanvas />
                 </div>
               )}
               <div style={{
@@ -21149,43 +21169,7 @@ A sucata afundou com o casco.
             {renderChopTrees()}
             {/* ===== Drops de recurso no chão ===== */}
             {renderGroundDrops()}
-            {mapOrbs.map((o) => {
-              const elapsed = Date.now() - o.spawnAt;
-              const pct = Math.min(100, (elapsed / o.duration) * 100);
-              const remaining = o.duration - elapsed;
-              const mins = Math.floor(remaining / 60000);
-              const hrs = Math.floor(mins / 60);
-              const timeLabel = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m ${Math.floor((remaining % 60000) / 1000)}s`;
-              const isEpic = o.kind === "epic";
-              const orbColor = isEpic ? "#c084fc" : "#4ade80";
-              const orbGlow = isEpic ? "rgba(192,132,252,0.6)" : "rgba(74,222,128,0.5)";
-              return (
-                <div key={`maporb-${o.id}`} style={{
-                  position: "absolute",
-                  left: o.x, top: o.y, transform: "translate(-50%, -50%)",
-                  width: isEpic ? 28 : 22, height: isEpic ? 28 : 22, borderRadius: "50%",
-                  background: `radial-gradient(circle at 30% 30%, ${isEpic ? "#e9d5ff" : "#bbf7d0"}, ${orbColor})`,
-                  border: `2px solid ${isEpic ? "#a855f7" : "#22c55e"}`,
-                  boxShadow: `0 0 ${isEpic ? 16 : 10}px ${orbGlow}, 0 0 ${isEpic ? 30 : 18}px ${orbGlow}`,
-                  animation: `orbPulse ${isEpic ? 2.0 : 1.3}s ease-in-out infinite`,
-                  zIndex: Math.round(o.y) + 1, cursor: "pointer",
-                }} title={`${isEpic ? "Orb Épico" : "Orb Comum"} — estoura em ${timeLabel}`}>
-                  <span style={{ position: "absolute", inset: isEpic ? 5 : 3, borderRadius: "50%", background: "radial-gradient(circle at 30% 20%, #fff, transparent 60%)", opacity: 0.8 }} />
-                  {/* Barra de progresso */}
-                  <svg style={{ position: "absolute", inset: -4, width: isEpic ? 36 : 30, height: isEpic ? 36 : 30 }} viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" />
-                    <circle cx="18" cy="18" r="16" fill="none" stroke={orbColor} strokeWidth="2.5"
-                      strokeDasharray={`${pct} ${100 - pct}`} strokeLinecap="round"
-                      transform="rotate(-90 18 18)" style={{ transition: "stroke-dasharray 1s linear" }} />
-                  </svg>
-                  <span style={{
-                    position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)",
-                    fontSize: 8, color: orbColor, fontWeight: 700, whiteSpace: "nowrap",
-                    textShadow: "1px 1px 2px #000",
-                  }}>{timeLabel}</span>
-                </div>
-              );
-            })}
+            {/* Orbs de mapa removidos a pedido */}
             {/* Flash de luz quando orb estoura */}
             {orbFlashes.map((f) => {
               const isEpic = f.kind === "epic";
