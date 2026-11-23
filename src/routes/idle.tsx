@@ -25455,7 +25455,7 @@ A sucata afundou com o casco.
                 onClick={() => setSnowmanDialog(false)}
                 style={{ position: "fixed", inset: 0, zIndex: 96000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 12px 22px", background: "rgba(2,4,10,0.35)" }}
               >
-                <div style={{ width: "min(760px, 96vw)", maxHeight: "82vh", aspectRatio: "1445 / 1088", position: "relative", backgroundImage: "url(" + dialogoUrl + ")", backgroundSize: "100% 100%", backgroundRepeat: "no-repeat", imageRendering: "pixelated", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.55))" }}>
+                <div style={{ width: "min(760px, 96vw, calc(82vh * 1.328))", aspectRatio: "1445 / 1088", position: "relative", backgroundImage: "url(" + dialogoUrl + ")", backgroundSize: "100% 100%", backgroundRepeat: "no-repeat", imageRendering: "pixelated", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.55))" }}>
                   <div style={{ position: "absolute", left: "3.5%", right: "9%", top: "74%", bottom: "9%", color: "#e7eeff", fontFamily: "'Press Start 2P','Trebuchet MS',monospace", fontSize: 11, lineHeight: 1.6, overflow: "hidden" }}>
                     <b style={{ color: "#9ecbff" }}>Nevezinha:</b> Oi, Nissan! Eu sou o Nevezinha. Vou te seguir por aí — clique em mim quando quiser conversar!
                   </div>
