@@ -1843,7 +1843,7 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "grama", name: "Grama", src: gramaFramesUrl, w: 86, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.18 } },
   { id: "flores", name: "Flores", src: floresFramesUrl, w: 88, h: 88, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.02 } },
   { id: "folhas", name: "Folhas", src: folhasFramesUrl, w: 90, h: 96, blocks: false, collideR: 0, bgAnim: { cols: 4, rows: 1, frames: 4, ms: 1.26 } },
-  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 96, h: 96, blocks: false, collideR: 0, stepGrass: 3 },
+  { id: "mato_verde", name: "Mato verde (GBA)", src: matoVerdeFramesUrl, w: 64, h: 64, blocks: false, collideR: 0, stepGrass: 3 },
   { id: "editor_snow_tree", name: "Pinheiro nevado", src: editorSnowTreeUrl, w: 157, h: 207, blocks: false, collideR: 0 },
   { id: "editor_grass", name: "Capim", src: editorGrassUrl, w: 140, h: 140, blocks: false, collideR: 0 },
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
@@ -1857,9 +1857,12 @@ function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[
       const asset = MAP_EDITOR_ASSETS.find((item) => item.id === saved.assetId || item.src === saved.src);
       if (!asset) return saved;
       const hasSize = typeof saved.baseW === "number" && typeof saved.baseH === "number";
+      // Mato verde antigo era 96x96 e cobria a cabeça; migra para 64x64.
+      const legacyGrass = asset.id === "mato_verde" && saved.baseW === 96 && saved.baseH === 96;
       return { ...saved, src: asset.src, assetId: asset.id, name: asset.name,
-        w: hasSize ? saved.w : asset.w, h: hasSize ? saved.h : asset.h, baseW: hasSize ? saved.baseW : asset.w,
-        baseH: hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
+        w: legacyGrass ? 64 : hasSize ? saved.w : asset.w, h: legacyGrass ? 64 : hasSize ? saved.h : asset.h,
+        baseW: legacyGrass ? 64 : hasSize ? saved.baseW : asset.w,
+        baseH: legacyGrass ? 64 : hasSize ? saved.baseH : asset.h, blocks: saved.blocks ?? asset.blocks,
         collideR: saved.collideR ?? asset.collideR, bgAnim: asset.bgAnim, stepGrass: asset.stepGrass,
         harvestable: saved.harvestable ?? asset.harvestable, harvestSpecies: saved.harvestSpecies ?? "pinsir" };
     }) : [],
@@ -17497,20 +17500,22 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     [getCoveringObstacle(trainerPos.x, trainerPos.y), getCoveringObstacle(followerX, followerY)]
       .filter((id): id is number => id !== null)
   );
-  // Mato estilo GBA: 2 = pisado pelo TREINADOR (cobre as pernas), 1 = balanço
-  // (Pokémon passando ou saída recente), 0 = normal. Só o tile pisado sobe.
+  // Mato estilo GBA: 2 = pisado (treinador, seguidor ou selvagem), 1 = balanço
+  // ao sair, 0 = normal. A detecção usa os PÉS e a área real do desenho, então
+  // cobre só as pernas — nunca a cabeça de quem passa por baixo.
   const grassFrameFor = (o: Obstacle): number => {
     if (!o.stepGrass) return 0;
-    const halfW = o.w * 0.42;
-    const top = o.y - o.h * 0.85;
-    const bottom = o.y - o.h * 0.12;
-    const isOn = (x: number, y: number) =>
-      Math.abs(x - o.x) <= halfW && y >= top && y <= bottom;
+    const halfW = o.w * 0.44;
+    const artTop = o.y - o.h * 0.74 + 8;
+    const artBottom = o.y - o.h * 0.20 + 8;
+    const isOn = (x: number, y: number, feetOffset: number) => {
+      const feet = y + feetOffset;
+      return Math.abs(x - o.x) <= halfW && feet >= artTop && feet <= artBottom + 6;
+    };
     const nowTs = Date.now();
-    if (isOn(trainerPos.x, trainerPos.y)) { grassTouchRef.current.set(o.id, nowTs); return 2; }
-    let otherOn = isOn(followerState.x, followerState.y);
-    if (!otherOn) for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y)) { otherOn = true; break; }
-    if (otherOn) { grassTouchRef.current.set(o.id, nowTs); return 1; }
+    let on = isOn(trainerPos.x, trainerPos.y, 28) || isOn(followerState.x, followerState.y, 28);
+    if (!on) for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y, 24)) { on = true; break; }
+    if (on) { grassTouchRef.current.set(o.id, nowTs); return 2; }
     const last = grassTouchRef.current.get(o.id) ?? 0;
     return nowTs - last < 320 ? 1 : 0;
   };
