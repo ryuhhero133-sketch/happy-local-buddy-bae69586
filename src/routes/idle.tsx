@@ -17648,21 +17648,23 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     [getCoveringObstacle(trainerPos.x, trainerPos.y), getCoveringObstacle(followerX, followerY)]
       .filter((id): id is number => id !== null)
   );
-  // Mato estilo GBA: 2 = pisado (treinador, seguidor ou selvagem), 1 = balanço
-  // ao sair, 0 = normal. A detecção usa os PÉS e a área real do desenho, então
-  // cobre só as pernas — nunca a cabeça de quem passa por baixo.
-  const grassFrameFor = (o: Obstacle): number => {
-    if (!o.stepGrass) return 0;
+  // Pés dentro da área real do desenho (não conta quem passa por baixo).
+  const grassFeetOn = (o: Obstacle, x: number, y: number, feetOffset: number) => {
     const halfW = o.w * 0.44;
     const artTop = o.y - o.h * 0.74 + 8;
     const artBottom = o.y - o.h * 0.20 + 8;
-    const isOn = (x: number, y: number, feetOffset: number) => {
-      const feet = y + feetOffset;
-      return Math.abs(x - o.x) <= halfW && feet >= artTop && feet <= artBottom + 6;
-    };
+    const feet = y + feetOffset;
+    return Math.abs(x - o.x) <= halfW && feet >= artTop && feet <= artBottom + 6;
+  };
+  // Só o TREINADOR faz o mato subir na frente (cobrir as pernas). Pokémon
+  // pisando animam o mato, mas NÃO o colocam sobre o jogador.
+  const isTrainerOnGrass = (o: Obstacle) => grassFeetOn(o, trainerPos.x, trainerPos.y, 28);
+  // Mato estilo GBA: 2 = pisado (qualquer criatura), 1 = balanço ao sair, 0 = normal.
+  const grassFrameFor = (o: Obstacle): number => {
+    if (!o.stepGrass) return 0;
     const nowTs = Date.now();
-    let on = isOn(trainerPos.x, trainerPos.y, 28) || isOn(followerState.x, followerState.y, 28);
-    if (!on) for (const e of enemies) if (e.hp > 0 && isOn(e.x, e.y, 24)) { on = true; break; }
+    let on = grassFeetOn(o, trainerPos.x, trainerPos.y, 28) || grassFeetOn(o, followerState.x, followerState.y, 28);
+    if (!on) for (const e of enemies) if (e.hp > 0 && grassFeetOn(o, e.x, e.y, 24)) { on = true; break; }
     if (on) { grassTouchRef.current.set(o.id, nowTs); return 2; }
     const last = grassTouchRef.current.get(o.id) ?? 0;
     return nowTs - last < 320 ? 1 : 0;
@@ -21563,9 +21565,8 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: 1,
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
-                  // Só cobre quem está DENTRO dele. Os matos vizinhos ficam no chão,
-                  // senão parece que passamos por baixo deles.
-                  zIndex: frame === 2 ? Math.round(o.y) + 2 : 2,
+                  // Sobe na frente APENAS quando o treinador está em cima.
+                  zIndex: isTrainerOnGrass(o) ? Math.round(o.y) + 2 : 2,
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
