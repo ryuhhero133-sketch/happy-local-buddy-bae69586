@@ -17658,7 +17658,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   };
   // Só o TREINADOR faz o mato subir na frente (cobrir as pernas). Pokémon
   // pisando animam o mato, mas NÃO o colocam sobre o jogador.
-  const isTrainerOnGrass = (o: Obstacle) => grassFeetOn(o, trainerPos.x, trainerPos.y, 28);
   // Mato estilo GBA: 2 = pisado (qualquer criatura), 1 = balanço ao sair, 0 = normal.
   const grassFrameFor = (o: Obstacle): number => {
     if (!o.stepGrass) return 0;
@@ -21565,8 +21564,9 @@ A sucata afundou com o casco.
                   width: o.w, height: o.h,
                   opacity: 1,
                   pointerEvents: (mapEditorOpen && editorObject) ? "auto" : "none",
-                  // Sobe na frente APENAS quando o treinador está em cima.
-                  zIndex: isTrainerOnGrass(o) ? Math.round(o.y) + 2 : 2,
+                  // Profundidade natural pela base: cobre quem está EM CIMA
+                  // (Pokémon e treinador) e fica atrás de quem está abaixo.
+                  zIndex: Math.round(o.y),
                   backgroundImage: "url(" + o.src + ")",
                   backgroundSize: (cols * 100) + "% 100%",
                   backgroundPosition: posPct + "% 0%",
