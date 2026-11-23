@@ -3889,6 +3889,23 @@ const confirmName = () => {
     try { localStorage.setItem("rubym.vipTitle.on", next ? "1" : "0"); } catch { /* ignore */ }
     return next;
   });
+  const [vipTitleSize, setVipTitleSize] = useState(() => {
+    try { return Math.max(12, Math.min(48, Number(localStorage.getItem("rubym.vipTitle.size")) || 18)); } catch { return 18; }
+  });
+  const changeVipTitleSize = (size: number) => {
+    const s = Math.max(12, Math.min(48, Math.round(size)));
+    setVipTitleSize(s);
+    try { localStorage.setItem("rubym.vipTitle.size", String(s)); } catch { /* ignore */ }
+  };
+  const [slimePetFollow, setSlimePetFollow] = useState(() => {
+    try { return localStorage.getItem("rubym.slimePet.follow") === "1"; } catch { return false; }
+  });
+  const toggleSlimePet = () => setSlimePetFollow((v) => {
+    const next = !v;
+    try { localStorage.setItem("rubym.slimePet.follow", next ? "1" : "0"); } catch { /* ignore */ }
+    return next;
+  });
+
   const toggleSnowmanFollow = () => setSnowmanFollow((v) => {
     const next = !v;
     try { localStorage.setItem("rubym.snowman.follow", next ? "1" : "0"); } catch { /* ignore */ }
@@ -4082,7 +4099,7 @@ const confirmName = () => {
   // reaparece apenas após o intervalo configurado; os pontos são locais ao mapa.
   useEffect(() => {
     const syncSpawns = () => {
-      const spawns = mapEditorSpawns[idle.currentMap] ?? [];
+      const spawns = isTestMap(idle.currentMap) ? [] : (mapEditorSpawns[idle.currentMap] ?? []);
       const ids = new Set(spawns.map((spawn) => spawn.id));
       const clock = Date.now();
       setEnemies((current) => {
@@ -15009,7 +15026,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
-    if (isTestMap(idle.currentMap) && !idle.currentMap.startsWith("bobo_")) return null;
+    if (isTestMap(idle.currentMap)) return null;
     // Esfera Ancestral (Mapa Banido): sem pokémons selvagens.
     if (idle.currentMap === "esfera_ancestral") {
       return null;
@@ -15955,9 +15972,52 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
+  // Slime: mob comum EXCLUSIVO dos mapas BOBO. Não usa o spawner normal
+  // (que escolhe espécies de Pokémon) — só este cria inimigos nesses mapas.
+  function spawnBoboSlimes(): Enemy[] {
+    const nowTs = Date.now();
+    if (nowTs - lastSpawnAtRef.current < 1500) return [];
+    lastSpawnAtRef.current = nowTs;
+    const w = customDims?.w ?? 1200;
+    const h = customDims?.h ?? 1200;
+    const base = Math.max(1, (team[0]?.level ?? 10) + 1);
+    const arr: Enemy[] = [];
+    for (let i = 0; i < 4; i++) {
+      let x = 0;
+      let y = 0;
+      for (let tries = 0; tries < 24; tries++) {
+        x = w * (0.2 + Math.random() * 0.6);
+        y = h * (0.2 + Math.random() * 0.6);
+        if (Math.hypot(x - trainerPos.x, y - trainerPos.y) >= 140) break;
+      }
+      const level = base + (i % 2);
+      const hp = 60 + level * 12;
+      arr.push({
+        id: enemyIdRef.current++,
+        sp: "rattata_f" as Species,
+        hp,
+        maxHp: hp,
+        x,
+        y,
+        face: Math.random() < 0.5 ? "left" : "right",
+        level,
+        rarity: "common" as Rarity,
+        aggressive: true,
+        behavior: "aggressive",
+        aggroR: 260,
+        detectionRadius: 260,
+        maxChaseDistance: 900,
+        spawnX: x,
+        spawnY: y,
+        wanderRadius: 140,
+        slimeSheet: true,
+      });
+    }
+    return arr;
+  }
+
   function spawnEnemies(): Enemy[] {
-    const isBoboMap = idle.currentMap.startsWith("bobo_");
-    if (isTestMap(idle.currentMap) && !isBoboMap) return [];
+    if (isTestMap(idle.currentMap)) return idle.currentMap.startsWith("bobo_") ? spawnBoboSlimes() : [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
@@ -15971,7 +16031,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : Math.min((idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume") ? 4 + Math.floor(Math.random() * 3) : idle.currentMap === "sa" ? 6 + Math.floor(Math.random() * 2) : 16 + Math.floor(Math.random() * 5)), waveCap0); // Grass Oddish: 28-33, mansos: 3, Ice/Bone/Plume: 4-6, SA: 6-7 (teto da onda), outros: 16-20
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
-    while (arr.length < (isBoboMap ? 4 : initial)) {
+    while (arr.length < initial) {
       const e = spawnOneEnemy(placed);
       if (!e) break;
       arr.push(e);
@@ -15987,19 +16047,6 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         pushEvent("★", `${label} À VISTA!`, `${r.sp.replace(/_/g, " ").toUpperCase()} apareceu no mapa`, color);
 
       }
-    }
-    if (isBoboMap) {
-      // Slime: mob comum dos mapas BOBO (persegue e ataca).
-      return arr.map((enemy) => ({
-        ...enemy,
-        slimeSheet: true,
-        aggressive: true,
-        behavior: "aggressive" as const,
-        aggroR: 260,
-        detectionRadius: 260,
-        maxChaseDistance: 900,
-        rarity: "common" as Rarity,
-      }));
     }
     return arr;
   }
@@ -21291,6 +21338,26 @@ A sucata afundou com o casco.
                   style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.45))" }} />
               </div>
             )}
+            {slimePetFollow && (
+              <div
+                title="Slime"
+                style={{
+                  position: "absolute",
+                  left: followerState.x + 46,
+                  top: followerState.y + 8,
+                  width: 40, height: 40,
+                  transform: "translate(-50%, -100%)",
+                  zIndex: Math.round(followerState.y + 8),
+                  pointerEvents: "none",
+                  backgroundImage: "url(" + slimeSheetUrl + ")",
+                  backgroundSize: "400% 300%",
+                  backgroundPosition: "0% 0%",
+                  animation: "slimeWalk 0.72s steps(4, end) infinite",
+                  imageRendering: "pixelated",
+                  filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.45))",
+                }}
+              />
+            )}
             {/* ===== LANDS do jogador (Land Revo) ===== */}
             {renderLands()}
             {/* ===== Árvores cortáveis (teste) ===== */}
@@ -23001,18 +23068,24 @@ A sucata afundou com o casco.
                 <div style={{
                   position: "absolute", left: "50%", top: -20,
                   transform: "translateX(-50%)",
-                  fontSize: 10, fontWeight: 800,
-                  color: "#fff",
-                  textShadow: "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000",
-                  whiteSpace: "nowrap",
-                  fontFamily: "monospace",
-                  background: isVip() ? "rgba(140,60,0,0.7)" : "rgba(20,50,110,0.7)",
-                  padding: "1px 6px", borderRadius: 5,
-                  border: `1px solid ${isVip() ? "#ffb347" : "#6bd4ff"}`,
+                  display: "flex", alignItems: "center", gap: 5,
                   pointerEvents: "none",
                 }}>
-                  {vipTitleOn && <img src={vipMemberUrl} alt="" style={{ height: 14, verticalAlign: "middle", marginRight: 4, imageRendering: "pixelated" }} />}
-                  {isVip() ? "✦ " : ""}{identity.name}
+                  {vipTitleOn && (
+                    <img src={vipMemberUrl} alt="" style={{ height: vipTitleSize, width: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }} />
+                  )}
+                  <div style={{
+                    fontSize: 10, fontWeight: 800,
+                    color: "#fff",
+                    textShadow: "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000",
+                    whiteSpace: "nowrap",
+                    fontFamily: "monospace",
+                    background: isVip() ? "rgba(140,60,0,0.7)" : "rgba(20,50,110,0.7)",
+                    padding: "1px 6px", borderRadius: 5,
+                    border: `1px solid ${isVip() ? "#ffb347" : "#6bd4ff"}`,
+                  }}>
+                    {isVip() ? "✦ " : ""}{identity.name}
+                  </div>
                 </div>
               )}
               <div style={{
@@ -24024,6 +24097,18 @@ A sucata afundou com o casco.
                     border: "1px solid " + (vipTitleOn ? "#ffd94d" : "#49395b"),
                     background: vipTitleOn ? "#4a3a17" : "#20152e", color: "#fff" }}>
                   {vipTitleOn ? "👑 Título VIP: ligado (clique p/ desligar)" : "👑 Título VIP ao lado do nome"}
+                </button>
+                {vipTitleOn && (
+                  <label style={{ display: "block", marginTop: 6, fontSize: 10, color: "#cbb9dc" }}>
+                    Tamanho do selo: {vipTitleSize}px
+                    <input type="range" min="12" max="48" value={vipTitleSize} onChange={(e) => changeVipTitleSize(Number(e.target.value))} style={{ width: "100%" }} />
+                  </label>
+                )}
+                <button type="button" onClick={toggleSlimePet}
+                  style={{ width: "100%", marginTop: 6, padding: "7px 8px", borderRadius: 7, cursor: "pointer", fontWeight: 800,
+                    border: "1px solid " + (slimePetFollow ? "#38bdf8" : "#49395b"),
+                    background: slimePetFollow ? "#12384d" : "#20152e", color: "#fff" }}>
+                  {slimePetFollow ? "🔵 Slime: seguindo você (clique p/ parar)" : "🔵 Slime: seguir você"}
                 </button>
                 {(mapEditorAsset || selectedMapEditorObject) && (() => {
                   const editing = mapEditorAsset ? null : selectedMapEditorObject;
