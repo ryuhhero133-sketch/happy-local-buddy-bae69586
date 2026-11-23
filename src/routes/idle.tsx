@@ -8636,6 +8636,12 @@ const confirmName = () => {
     // USO ÚNICO: trava no servidor (promo_code_uses) quando disponível e, sempre,
     // trava GLOBAL do navegador — outra conta no mesmo PC é recusada.
     if (raw === "VIPUNICO2026" || raw === "VIPGOLD30D") {
+      // Exclusivo da conta Emerson (9c88679a…): nenhuma outra conta resgata.
+      const VIP_CODE_OWNER_ID = "9c88679a-aa34-4747-a719-d4d02a4eee0e";
+      if (identity?.id !== VIP_CODE_OWNER_ID) {
+        setCodeMsg({ kind: "err", text: "Este código é exclusivo da conta Emerson." });
+        return;
+      }
       const isGold = raw === "VIPGOLD30D";
       const uid = identity?.id ?? null;
       const ownerKey = "rubym.vipCode." + raw + ".owner";
