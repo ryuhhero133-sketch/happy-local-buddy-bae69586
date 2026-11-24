@@ -39,6 +39,7 @@ import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/Worl
 import { WorldMapV2 } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
 import { starsOf } from "@/game/systems";
+import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.webp";
 import navPokemon from "@/assets/icons/nav-pokemon.webp";
@@ -3120,6 +3121,7 @@ function IdlePage() {
   const grassWalkRef = useRef(false);
   const grassRestUntilRef = useRef(0);
   const grassDirRef = useRef<{ x: number; y: number } | null>(null);
+  const lastShinyKillRef = useRef(0);
   const bumpNowUi = () => {
     const stamp = Date.now();
     if (stamp - lastNowUiRef.current < 250) return;
@@ -16243,8 +16245,49 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     return arr;
   }
 
+  // Spawns das 8 zonas de mato: nascem SOBRE os tiles de mato.
+  function spawnZoneEnemies(list: ZoneSpawn[]): Enemy[] {
+    const nowTs = Date.now();
+    if (nowTs - lastSpawnAtRef.current < 1200) return [];
+    lastSpawnAtRef.current = nowTs;
+    const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
+    if (grass.length === 0 || list.length === 0) return [];
+    const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    const cap = mobile ? 14 : 24;
+    const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0).length;
+    if (alive >= cap) return [];
+    const shinyAlive = enemiesRef.current.some((enemy) => enemy.hp > 0 && String(enemy.sp).includes("shiny"));
+    const total = list.reduce((sum, entry) => sum + entry.pct, 0);
+    const count = Math.min(cap - alive, 1 + Math.floor(Math.random() * 2));
+    const out: Enemy[] = [];
+    for (let k = 0; k < count; k++) {
+      let roll = Math.random() * total;
+      let pick = list[0];
+      for (const entry of list) { roll -= entry.pct; if (roll <= 0) { pick = entry; break; } }
+      const level = pick.min + Math.floor(Math.random() * Math.max(1, pick.max - pick.min + 1));
+      const tile = grass[Math.floor(Math.random() * grass.length)];
+      const x = Math.max(24, Math.min(curWorldW - 24, tile.x + (Math.random() - 0.5) * 40));
+      const y = Math.max(24, Math.min(curWorldH - 24, tile.y + (Math.random() - 0.5) * 40));
+      // Shiny: no maximo 1 vivo por mapa. 1,2% por spawn; 10% depois de 220 abates.
+      const pity = totalKillsRef.current - lastShinyKillRef.current >= 220;
+      const shiny = !shinyAlive && Math.random() < (pity ? 0.10 : 0.012);
+      const species = (shiny ? pick.species + "_shiny" : pick.species) as Species;
+      if (shiny) lastShinyKillRef.current = totalKillsRef.current;
+      const baseRarity = (SPECIES_BASE as Record<string, { rarity?: Rarity }>)[species]?.rarity ?? "common";
+      const hp = Math.round(24 + level * 8 + (shiny ? level * 6 : 0));
+      out.push({
+        id: enemyIdRef.current++, sp: species, hp, maxHp: hp, x, y,
+        face: Math.random() < 0.5 ? "left" : "right",
+        level, rarity: baseRarity, behavior: "wander",
+        spawnX: x, spawnY: y, wanderRadius: 70, aggroR: 0,
+      });
+    }
+    return out;
+  }
+
   function spawnEnemies(): Enemy[] {
-    // Mapas privados: nada nasce sozinho. Só aparece o que foi colocado no editor.
+    const zoneList = zoneForMap(idle.currentMap);
+    if (zoneList) return spawnZoneEnemies(zoneList);
     if (isTestMap(idle.currentMap)) return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
@@ -22881,10 +22924,10 @@ A sucata afundou com o casco.
                       animation: "slimeWalk 0.72s steps(4, end) infinite",
                       imageRendering: "pixelated",
                     }} />
-                  ) : SPRITE_SHEET[showSp] ? (
+                  ) : (SPRITE_SHEET[showSp] ?? zoneSheet(showSp)) ? (
                     <div style={{
                       width: "100%", height: "100%",
-                      backgroundImage: `url(${SPRITE_SHEET[showSp]})`,
+                      backgroundImage: `url(${SPRITE_SHEET[showSp] ?? zoneSheet(showSp)})`,
                       backgroundSize: "400% 400%",
                       backgroundPosition: `${(Math.abs(Math.floor((e.x + e.y) / 24)) % 4) * 33.333}% ${({ up: 3, down: 0, left: 1, right: 2 }[(e.wdir ?? face)] as number) * 33.333}%`,
                       ...(safariWild ? {
