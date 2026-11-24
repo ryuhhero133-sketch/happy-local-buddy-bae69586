@@ -3140,6 +3140,7 @@ function IdlePage() {
   const grassCornerRef = useRef(0);
   const autoHuntPosRef = useRef<{ x: number; y: number; startedAt: number } | null>(null);
   const wasWalkingRef = useRef(false);
+  const huntPatchRef = useRef<{ cx: number; cy: number } | null>(null);
   const lastShinyKillRef = useRef(0);
   // Cooldown da poção (cura ao longo de ~6s).
   const potionCooldownRef = useRef(0);
@@ -11189,8 +11190,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }, 300);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorTeleports, mapEditorOpen]);
-// AUTOMÁTICO: o treinador usa o movimento do jogo (com colisão) para ir ao
-  // canteiro de mato mais próximo e percorrer os cantos + centro em quadrado.
+// AUTOMÁTICO: ancora no canteiro mais próximo quando o Auto liga e só anda ali.
   useEffect(() => {
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen) return;
@@ -11204,10 +11204,25 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (Date.now() < grassRestUntilRef.current) return;
       if (grassPatches.length === 0) return;
       const p = trainerPosRef.current;
+      // Âncora fixa: o canteiro escolhido quando o Auto ligou (nunca troca sozinho).
+      let ancora = huntPatchRef.current;
+      if (!ancora) {
+        let best: { cx: number; cy: number } | null = null;
+        let bestD = Number.POSITIVE_INFINITY;
+        for (const cand of grassPatches) {
+          const d = Math.hypot(cand.cx - p.x, cand.cy - p.y);
+          if (d < bestD) { bestD = d; best = { cx: cand.cx, cy: cand.cy }; }
+        }
+        // Só ancora se o mato estiver perto (nada de atravessar o mapa).
+        if (!best || bestD > 420) return;
+        ancora = best;
+        huntPatchRef.current = best;
+      }
+      // Acha o canteiro da âncora (mesmo depois de recalcular os clusters).
       let patch = grassPatches[0];
       let patchDist = Number.POSITIVE_INFINITY;
       for (const cand of grassPatches) {
-        const d = Math.hypot(cand.cx - p.x, cand.cy - p.y);
+        const d = Math.hypot(cand.cx - ancora.cx, cand.cy - ancora.cy);
         if (d < patchDist) { patchDist = d; patch = cand; }
       }
       const nearestTo = (tx: number, ty: number) => {
@@ -11219,8 +11234,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         }
         return best;
       };
+      const distAtePatch = Math.hypot(patch.cx - p.x, patch.cy - p.y);
       let destino: { x: number; y: number };
-      if (patchDist > 140) {
+      if (distAtePatch > 120) {
+        // Ainda fora: vai ao tile do canteiro mais próximo (e volta se se afastar).
         destino = nearestTo(p.x, p.y);
       } else {
         const waypoints = [
@@ -11239,6 +11256,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }, 700);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorOpen, grassPatches]);
+  // Sempre que o Auto ligar, esquece a âncora antiga (escolhe o mato mais perto).
+  useEffect(() => { huntPatchRef.current = null; }, [auto, idle.currentMap]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
     const lv = idle.trainerLevel ?? 1;
