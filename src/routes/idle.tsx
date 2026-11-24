@@ -7216,6 +7216,7 @@ const confirmName = () => {
   const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
+  const [oldAtlasOpen, setOldAtlasOpen] = useState(false);
   // Mapas de teste protegidos por senha (pedida ao clicar em Teleportar).
   const [mapPasswordPrompt, setMapPasswordPrompt] = useState<{ id: string; name: string; value: string; error: boolean } | null>(null);
   const mapPasswordResolveRef = useRef<((ok: boolean) => void) | null>(null);
@@ -25738,13 +25739,14 @@ A sucata afundou com o casco.
 {mapTeleportOpen && canUseMapEditor && (
           <WorldMapV2
             onClose={() => setMapTeleportOpen(false)}
+            onOldMap={() => { setMapTeleportOpen(false); setOldAtlasOpen(true); }}
             onTravel={() => {
               setMapTeleportOpen(false);
               pushChat("🗺️ Mapa Mundi novo em construção — o botão de viajar entra na próxima etapa.", "info");
             }}
           />
         )}
-{mapTeleportOpen && !canUseMapEditor && (() => {
+{(oldAtlasOpen || (mapTeleportOpen && !canUseMapEditor)) && (() => {
               const ev = eventualMapWindow();
                const base = [...(canSeeTestMaps(identity?.id) ? TEST_MAP_IDS : []), "mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
@@ -25756,7 +25758,7 @@ A sucata afundou com o casco.
                   currentMap={idle.currentMap}
                   trainerEnergy={trainerEnergy}
                   destinations={destinations}
-                  onClose={() => setMapTeleportOpen(false)}
+                  onClose={() => { setMapTeleportOpen(false); setOldAtlasOpen(false); }}
                   energyCostFor={teleportEnergyCostFor}
                   onTeleport={async (destination) => {
                     // Mapas de teste: senha antes de qualquer outra verificação.

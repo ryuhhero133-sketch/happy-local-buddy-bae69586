@@ -26,7 +26,7 @@ const BADGES = ["🪨", "💧", "⚡", "🌱", "❤️", "🕷️", "🔥", "�
 const REWARDS = ["🔴", "💎", "🪙", "🥚", "📕"];
 const TABS = ["Campanha", "Ginásios", "Temporada", "Recompensas"] as const;
 
-export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTravel: () => void }) {
+export function WorldMapV2({ onClose, onTravel, onOldMap }: { onClose: () => void; onTravel: () => void; onOldMap?: () => void }) {
   const [selectedId, setSelectedId] = useState("kanto");
   const [tab, setTab] = useState<(typeof TABS)[number]>("Campanha");
   const [notice, setNotice] = useState<string | null>(null);
@@ -119,6 +119,7 @@ export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTrave
           </> : <p className="wm2-soon">{tab} — em breve.</p>}
 
           <button type="button" className="wm2-go" onClick={onTravel}>⚔ Ir para o Mapa</button>
+          {onOldMap && <button type="button" className="wm2-old" onClick={onOldMap}>🗺 Todos os mapas (atlas antigo)</button>}
         </aside>}
       </div>
 

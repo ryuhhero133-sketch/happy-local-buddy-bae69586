@@ -310,6 +310,19 @@
 }
 .wm2-openpanel:hover { filter: brightness(1.12); }
 
+.wm2-old {
+  margin-top: 6px;
+  padding: 7px;
+  border-radius: 10px;
+  border: 1.5px solid #7fb0ff;
+  background: rgba(20, 38, 78, .9);
+  color: #cfe0ff;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+}
+.wm2-old:hover { filter: brightness(1.15); }
+
 /* ---------- rodapé ---------- */
 .wm2-foot {
   display: flex;
