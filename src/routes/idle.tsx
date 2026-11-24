@@ -3108,6 +3108,8 @@ function IdlePage() {
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [selectedMapInfo, setSelectedMapInfo] = useState<IdleMapId | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // Celular: animacoes caras (blur/giro) ficam desligadas.
+  const mobilePerf = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
   // Atualiza o relogio da UI no maximo 4x por segundo: cada setNow re-renderiza
   // mapa, inimigos, matos e HUD. Em celular isso era o maior custo.
   const lastNowUiRef = useRef(0);
@@ -6142,8 +6144,9 @@ const confirmName = () => {
   )), [rainDrops]);
   // Neve preta do mapa ancestral: memoizada e sem sombra desfocada.
   const blackSnowEls = useMemo(() => {
-    const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
-    const count = lite ? 22 : 40;
+    // Neve preta removida (efeito pesado).
+    const count = 0;
+    const lite = true;
     return Array.from({ length: count }, (_, i) => {
       const r1 = ((i * 9301 + 49297) % 233280) / 233280;
       const r2 = ((i * 7919) % 1000) / 1000;
@@ -22755,9 +22758,9 @@ A sucata afundou com o casco.
                         filter: "blur(10px)",
                         opacity: 0.88,
                         transform: `scale(${1.15 + auraStrength / 70})`,
-                        animation: "auraPulse 1.5s ease-in-out infinite",
+                        animation: mobilePerf ? "none" : "auraPulse 1.5s ease-in-out infinite",
                       }} />
-                      <div style={{
+                      {!mobilePerf && <div style={{
                         position: "absolute", left: "50%", top: "50%", width: auraStrength + 22, height: auraStrength + 22,
                         transform: "translate(-50%, -50%)",
                         animation: "auraRotate 2.8s linear infinite",
@@ -22774,7 +22777,7 @@ A sucata afundou com o casco.
                             boxShadow: `0 0 5px ${auraColor}`,
                           }} />
                         ))}
-                      </div>
+                      </div>}
                     </div>
                   )}
                   {e.sp === "lugia" && (
