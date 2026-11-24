@@ -11087,7 +11087,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
       if (keysRef.current.size > 0) return; // jogador no teclado
       const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0);
-      if (alive.length === 0) combatMoveRef.current = null;
+      if (alive.length > 0) {
+        // Pokemon ja achou briga: o TREINADOR PARA de andar.
+        if (walkTargetRef.current?.label === "caçando") {
+          walkTargetRef.current = null;
+          setWalkingTo(null);
+        }
+        grassWalkRef.current = false;
+        return;
+      }
+      combatMoveRef.current = null;
       if (grassWalkRef.current && !walkTargetRef.current) {
         grassWalkRef.current = false;
         grassRestUntilRef.current = Date.now() + 180 + Math.random() * 320;
@@ -13120,7 +13129,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 droppedAt: nowG,
                 map: idle.currentMap,
               }));
-              return [...prev.slice(-24), ...fresh];
+              return [...prev.slice(-10), ...fresh];
             });
           }
           // 📖 Saga: progresso de abates do objetivo ativo
@@ -16351,7 +16360,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         id: enemyIdRef.current++, sp: species, hp, maxHp: hp, x, y,
         face: Math.random() < 0.5 ? "left" : "right",
         level, rarity: baseRarity, behavior: "wander",
-        spawnX: x, spawnY: y, wanderRadius: 70, aggroR: 0,
+        spawnX: x, spawnY: y, wanderRadius: 36, aggroR: 0,
       });
     }
     return out;

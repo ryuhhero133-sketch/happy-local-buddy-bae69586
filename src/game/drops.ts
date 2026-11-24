@@ -136,7 +136,8 @@ export function rollDropsFor(sp: Species, mapId: string): RolledDrop[] {
     if (r.maps && !r.maps.includes(mapId)) continue;
     if (r.species && !r.species.includes(base) && !r.species.includes(String(sp))) continue;
     if (r.elements && !r.elements.some((e) => els.includes(e))) continue;
-    if (Math.random() >= r.chance) continue;
+    // Escassez global: 65% menos drops no chão (pedido do dono).
+    if (Math.random() >= r.chance * 0.35) continue;
     if (r.id === "cogumelo") {
       const pick = COG_MATS[Math.floor(Math.random() * COG_MATS.length)];
       const cogImgs: Record<string, string> = {
