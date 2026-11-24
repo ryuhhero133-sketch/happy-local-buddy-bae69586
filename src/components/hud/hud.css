@@ -942,23 +942,19 @@
   }
 }
 
-/* Barra de poções (fica dentro do botão, sem deslocar nada) */
-.revo-potion { position: relative; }
-.revo-potion__bar {
+/* Barra de poções: filete curto na base do círculo (sem criar segunda bolinha) */
+.revo-potion__fill {
   position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 3px;
+  left: 50%;
+  top: 71px;
+  transform: translateX(-50%);
   height: 4px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, .18);
-  overflow: hidden;
-  pointer-events: none;
-}
-.revo-potion__bar > i {
-  display: block;
-  height: 100%;
+  max-width: 42px;
   border-radius: 3px;
   background: linear-gradient(90deg, #7ef27a, #f2c14e);
+  box-shadow: 0 0 6px rgba(126, 242, 122, .55);
+  pointer-events: none;
+  z-index: 3;
   transition: width .3s ease;
 }
+.revo-potion:not(.is-active) .revo-potion__fill { background: #8b93a3; box-shadow: none; }
