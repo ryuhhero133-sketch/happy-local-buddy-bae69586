@@ -12488,7 +12488,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // (dano rotineiro não vai para o chat — apenas floating text)
 
         // Contra-ataque do inimigo: dano no meu pokémon (reduzido pelo buff de def)
-        const eBase = SPECIES_BASE[target.sp];
+        const eBase = SPECIES_BASE[target.sp] ?? { atk: 30 };
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
         let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
