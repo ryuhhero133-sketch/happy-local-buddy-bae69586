@@ -4052,6 +4052,17 @@ const confirmName = () => {
   // Painel do editor arrastavel
   const [mapEditorPos, setMapEditorPos] = useState<{ x: number; y: number } | null>(null);
   const mapEditorDragRef = useRef<{ dx: number; dy: number } | null>(null);
+  const [tpPreviewDims, setTpPreviewDims] = useState<Record<string, { w: number; h: number }>>({});
+  // Carrega o tamanho real do mapa de destino para converter clique -> coordenada.
+  useEffect(() => {
+    const mapId = mapEditorSelectedTeleportId == null
+      ? null
+      : ((mapEditorTeleports[idle.currentMap] ?? []).find((tp) => tp.id === mapEditorSelectedTeleportId)?.toMap ?? null);
+    if (!mapId || tpPreviewDims[mapId] || !IDLE_MAPS[mapId]) return;
+    const img = new Image();
+    img.onload = () => setTpPreviewDims((prev) => ({ ...prev, [mapId]: { w: img.naturalWidth, h: img.naturalHeight } }));
+    img.src = IDLE_MAPS[mapId].bg;
+  }, [mapEditorSelectedTeleportId, mapEditorTeleports, idle.currentMap, tpPreviewDims]);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -24253,6 +24264,11 @@ A sucata afundou com o casco.
                 <strong style={{ color: "#ffe08a" }}>⌂ EDITOR DE MAPA · {IDLE_MAPS[idle.currentMap]?.name}</strong>
                 <button type="button" onClick={() => setMapEditorOpen(false)} aria-label="Fechar editor">✕</button>
               </div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 6, fontFamily: "monospace", fontSize: 10 }}>
+                <span style={{ background: "#000", color: "#fff", padding: "2px 7px", borderRadius: 5, border: "1px solid #4b3a68" }}>X {Math.round(trainerPos.x)}</span>
+                <span style={{ background: "#000", color: "#fff", padding: "2px 7px", borderRadius: 5, border: "1px solid #4b3a68" }}>Y {Math.round(trainerPos.y)}</span>
+                <span style={{ color: "#9b8bb4", alignSelf: "center" }}>sua posição</span>
+              </div>
               <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
                 {(["sprites", "pokemon", "teleport"] as const).map((mode) => <button type="button" key={mode}
                   onClick={() => { setMapEditorTab(mode); setMapEditorAsset(null); setMapEditorMove(false); }}
@@ -24292,6 +24308,34 @@ A sucata afundou com o casco.
                         {Object.keys(IDLE_MAPS).map((mapKey) => <option key={mapKey} value={mapKey}>{IDLE_MAPS[mapKey as IdleMapId].name}</option>)}
                       </select>
                     </label>
+                    <div style={{ marginBottom: 6 }}>
+                      <div style={{ fontSize: 10, color: "#b8a8cb", marginBottom: 3 }}>Clique no mapa abaixo para marcar onde ele nasce:</div>
+                      <button type="button"
+                        onClick={(event) => {
+                          const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+                          const dims = tpPreviewDims[tp.toMap];
+                          if (!dims) return;
+                          const px = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+                          const py = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+                          update({ toX: Math.round(px * dims.w), toY: Math.round(py * dims.h) });
+                        }}
+                        style={{ position: "relative", display: "block", width: "100%", height: 148, padding: 0,
+                          border: "1px solid #6b5b92", borderRadius: 8, overflow: "hidden", cursor: "crosshair", background: "#0b1020" }}>
+                        <img src={IDLE_MAPS[tp.toMap]?.bg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated", opacity: .92 }} />
+                        {tpPreviewDims[tp.toMap] && (
+                          <span style={{ position: "absolute",
+                            left: `${Math.max(0, Math.min(100, (tp.toX / tpPreviewDims[tp.toMap].w) * 100))}%`,
+                            top: `${Math.max(0, Math.min(100, (tp.toY / tpPreviewDims[tp.toMap].h) * 100))}%`,
+                            width: 12, height: 12, transform: "translate(-50%, -50%)", borderRadius: "50%",
+                            background: "#ffe08a", border: "2px solid #000", boxShadow: "0 0 8px #ffe08a" }} />
+                        )}
+                      </button>
+                      <button type="button" onClick={() => update({ toMap: idle.currentMap, toX: Math.round(trainerPos.x), toY: Math.round(trainerPos.y) })}
+                        style={{ width: "100%", marginTop: 4, padding: 4, fontSize: 10, borderRadius: 6, cursor: "pointer",
+                          background: "#22412a", border: "1px solid #b9d881", color: "#fff" }}>
+                        📍 Usar meu local atual ({Math.round(trainerPos.x)}, {Math.round(trainerPos.y)})
+                      </button>
+                    </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                       <label>Nascer X<input type="number" value={tp.toX} onChange={(event) => update({ toX: Math.round(Number(event.target.value) || 0) })} style={{ width: "100%" }} /></label>
                       <label>Nascer Y<input type="number" value={tp.toY} onChange={(event) => update({ toY: Math.round(Number(event.target.value) || 0) })} style={{ width: "100%" }} /></label>

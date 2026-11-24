@@ -899,15 +899,20 @@
   width: 122px;
   padding: 0;
 }
-.revo-hud.is-newhud .revo-minimap > footer > span:first-child { display: none; }
-.revo-hud.is-newhud .revo-minimap > footer > span:last-child {
-  font-size: 9px;
-  font-weight: 900;
-  color: #14532d;
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(47,158,68,.55);
-  border-radius: 7px;
-  padding: 1px 7px;
+.revo-hud.is-newhud .revo-minimap > footer {
+  gap: 3px;
+  bottom: -20px;
+  width: 126px;
+}
+.revo-hud.is-newhud .revo-minimap > footer > span {
+  font-size: 8px;
+  font-weight: 800;
+  color: #fff;
+  background: #000;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 6px;
+  padding: 1px 5px;
+  white-space: nowrap;
 }
 
 /* time compacto menor */
