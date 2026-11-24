@@ -295,6 +295,22 @@
 .wm2-go:hover { filter: brightness(1.08); }
 .wm2-go:active { transform: translateY(2px); box-shadow: 0 3px 0 #0b5c1c; }
 
+.wm2-openpanel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 2px solid #f2cf72;
+  background: linear-gradient(180deg, #2c4f9c, #17305f);
+  color: #ffe9a8;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .5);
+}
+.wm2-openpanel:hover { filter: brightness(1.12); }
+
 /* ---------- rodapé ---------- */
 .wm2-foot {
   display: flex;

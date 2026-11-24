@@ -30,6 +30,7 @@ export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTrave
   const [selectedId, setSelectedId] = useState("kanto");
   const [tab, setTab] = useState<(typeof TABS)[number]>("Campanha");
   const [notice, setNotice] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(true);
   const selected = REGIONS.find((region) => region.id === selectedId) ?? REGIONS[0];
 
   const pick = (region: Region) => {
@@ -39,6 +40,7 @@ export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTrave
       return;
     }
     setSelectedId(region.id);
+    setPanelOpen(true);
   };
 
   return <div className="wm2-backdrop" onClick={onClose}>
@@ -69,11 +71,12 @@ export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTrave
 
         {notice && <div className="wm2-toast">{notice}</div>}
 
-        <aside className="wm2-panel">
+        {!panelOpen && <button type="button" className="wm2-openpanel" onClick={() => setPanelOpen(true)}>☰ Regiões</button>}
+        {panelOpen && <aside className="wm2-panel">
           <header className="wm2-panel__head">
             <span className="wm2-panel__ball" />
             <strong>Região de {selected.name}</strong>
-            <button type="button" className="wm2-panel__x" onClick={() => setSelectedId("kanto")} aria-label="Fechar detalhes">✕</button>
+            <button type="button" className="wm2-panel__x" onClick={() => setPanelOpen(false)} aria-label="Fechar detalhes">✕</button>
           </header>
           <p className="wm2-panel__tag">A Jornada das Insígnias</p>
 
@@ -115,7 +118,7 @@ export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTrave
           </> : <p className="wm2-soon">{tab} — em breve.</p>}
 
           <button type="button" className="wm2-go" onClick={onTravel}>⚔ Ir para o Mapa</button>
-        </aside>
+        </aside>}
       </div>
 
       <footer className="wm2-foot">
