@@ -932,3 +932,12 @@
 /* botões um pouco menores */
 .revo-hud.is-newhud .revo-questorb__ball { width: 42px; height: 42px; }
 .revo-hud.is-newhud .revo-questorb__ball > img { width: 27px; height: 27px; }
+
+/* Celular: blur nos paineis custa caro sobre o mapa animado. */
+@media (max-width: 1024px), (pointer: coarse) {
+  .revo-hud .revo-panel,
+  .revo-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

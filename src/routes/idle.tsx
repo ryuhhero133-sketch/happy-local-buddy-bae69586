@@ -3108,6 +3108,15 @@ function IdlePage() {
   const [idle, setIdle] = useState<IdleState>(() => loadIdle());
   const [selectedMapInfo, setSelectedMapInfo] = useState<IdleMapId | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // Atualiza o relogio da UI no maximo 4x por segundo: cada setNow re-renderiza
+  // mapa, inimigos, matos e HUD. Em celular isso era o maior custo.
+  const lastNowUiRef = useRef(0);
+  const bumpNowUi = () => {
+    const stamp = Date.now();
+    if (stamp - lastNowUiRef.current < 250) return;
+    lastNowUiRef.current = stamp;
+    setNow(stamp);
+  };
   const WORLD_W = idle.currentMap === "arena" ? 3840 : 1920;
   const WORLD_H = idle.currentMap === "arena" ? 3840 : 1920;
   // Removido zoom global � mantido 100% nativo (primeiro print) para não criar barra preta embaixo
@@ -12290,7 +12299,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         combatMoveRef.current = null;
         return;
       }
-      setNow(Date.now());
+      bumpNowUi();
 
       const leader = team[0];
       if (!leader) return;
@@ -16189,7 +16198,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const isGrassOddish = idle.currentMap === "arena";
     // Wave: o lote inicial respeita o teto da onda (onda 1 começa tranquila).
     const waveCap0 = waveTargetFor(idle.currentMap, waveOf(totalKillsRef.current ?? 0, idle.currentMap));
-    const initial = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : Math.min((idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume") ? 4 + Math.floor(Math.random() * 3) : idle.currentMap === "sa" ? 6 + Math.floor(Math.random() * 2) : 16 + Math.floor(Math.random() * 5)), waveCap0); // Grass Oddish: 28-33, mansos: 3, Ice/Bone/Plume: 4-6, SA: 6-7 (teto da onda), outros: 16-20
+    const initialRaw = isGrassOddish ? 28 + Math.floor(Math.random() * 6) : Math.min((idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume") ? 4 + Math.floor(Math.random() * 3) : idle.currentMap === "sa" ? 6 + Math.floor(Math.random() * 2) : 16 + Math.floor(Math.random() * 5)), waveCap0); // Grass Oddish: 28-33, mansos: 3, Ice/Bone/Plume: 4-6, SA: 6-7 (teto da onda), outros: 16-20
+    // Celular: menos inimigos ao mesmo tempo (o mapa nao engasga).
+    const mobileLite = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    const initial = mobileLite ? Math.min(initialRaw, 14) : initialRaw;
     const placed: { x: number; y: number }[] = [];
     const arr: Enemy[] = [];
     while (arr.length < initial) {
