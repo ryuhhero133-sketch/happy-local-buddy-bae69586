@@ -11046,7 +11046,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       // acabou de chegar: descansa um pouco antes de escolher outro ponto
       if (grassWalkRef.current && !walkTargetRef.current) {
         grassWalkRef.current = false;
-        grassRestUntilRef.current = Date.now() + 1400 + Math.random() * 2400;
+        grassRestUntilRef.current = Date.now() + 220 + Math.random() * 480;
         return;
       }
       if (walkTargetRef.current) return;
@@ -11066,8 +11066,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (!best || bestD > 700) return;
         home = best;
         grassHomeRef.current = { id: best.id, since: Date.now() };
-      } else if (Date.now() - grassHomeRef.current.since > 120_000) {
-        const outras = grass.filter((g) => g.id !== home!.id && Math.hypot(g.x - p.x, g.y - p.y) <= 600);
+      } else if (Date.now() - grassHomeRef.current.since > 25_000) {
+        const outras = grass.filter((g) => g.id !== home!.id && Math.hypot(g.x - p.x, g.y - p.y) <= 720);
         if (outras.length > 0) {
           const pick = outras[Math.floor(Math.random() * outras.length)];
           grassHomeRef.current = { id: pick.id, since: Date.now() };
@@ -11076,17 +11076,17 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           grassHomeRef.current = { id: home.id, since: Date.now() };
         }
       }
-      // ponto de caminhada: 45 a 95 px do treinador, dentro do mato (sem micro-pulos)
+      // ponto de caminhada: 60 a 130 px do treinador, dentro do mato
       let x = p.x;
       let y = p.y;
       for (let tent = 0; tent < 8; tent++) {
         const ang = Math.random() * Math.PI * 2;
-        const rad = 45 + Math.random() * 50;
+        const rad = 60 + Math.random() * 70;
         const cx = Math.max(24, Math.min(curWorldW - 24, home.x + Math.cos(ang) * rad));
         const cy = Math.max(24, Math.min(curWorldH - 24, home.y + Math.sin(ang) * rad));
-        if (Math.hypot(cx - p.x, cy - p.y) >= 42) { x = cx; y = cy; break; }
+        if (Math.hypot(cx - p.x, cy - p.y) >= 55) { x = cx; y = cy; break; }
       }
-      if (Math.hypot(x - p.x, y - p.y) < 42) return;
+      if (Math.hypot(x - p.x, y - p.y) < 55) return;
       grassWalkRef.current = true;
       walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
       setWalkingTo("caçando");
