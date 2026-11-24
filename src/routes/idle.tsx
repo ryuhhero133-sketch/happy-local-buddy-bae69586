@@ -11095,13 +11095,20 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (keysRef.current.size > 0) return; // jogador no teclado
       const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0);
       if (alive.length > 0) {
-        // Pokemon ja achou briga: o TREINADOR PARA de andar.
-        if (walkTargetRef.current?.label === "caçando") {
-          walkTargetRef.current = null;
-          setWalkingTo(null);
+        // Com briga rolando o treinador para — MENOS se estiver fora do mato:
+        // aí ele caminha até o mato (o Pokémon segue e continua batendo).
+        const pAgora = trainerPosRef.current;
+        const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
+          (object) => object.stepGrass && Math.hypot(object.x - pAgora.x, object.y - pAgora.y) <= 70,
+        );
+        if (noMato) {
+          if (walkTargetRef.current?.label === "caçando") {
+            walkTargetRef.current = null;
+            setWalkingTo(null);
+          }
+          grassWalkRef.current = false;
+          return;
         }
-        grassWalkRef.current = false;
-        return;
       }
       combatMoveRef.current = null;
       if (grassWalkRef.current && !walkTargetRef.current) {
@@ -11154,7 +11161,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const d = Math.hypot(g.x - p.x, g.y - p.y);
         return (dx < 26 || dy < 26) && d >= 70 && d <= 190;
       });
-      const pool = alinhados.length > 0 ? alinhados : pertoTiles.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 60);
+      const pool = alinhados.length > 0
+        ? alinhados
+        : pertoTiles.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 30).length > 0
+          ? pertoTiles.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 30)
+          : patch.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 24);
       if (pool.length === 0) return;
       const destino = pool[Math.floor(Math.random() * pool.length)];
       const x = destino.x;
@@ -12563,7 +12574,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const redDef = ehTanque
           ? Math.max(0.1, 1 - idle.buffs.def - honeyDef)
           : Math.max(0.55, 1 - (idle.buffs.def + honeyDef) * 0.5);
-        let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * redDef));
+        let eDmg = Math.max(1, Math.floor((4 + eBase.atk * 0.06 + target.level * 0.9 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * redDef));
         // TIER GAP (defesa) — inimigo de tier/nível bem abaixo do seu líder também
         // erra: mesma chance de acerto espelhada, com piso de 55% para o defensor.
         const enemyMiss = Math.random() > tierHitChance(rarityRank(target.rarity), target.level, rarityRank(leader.rarity), leader.level);
@@ -16371,12 +16382,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       const species = (shiny ? pick.species + "_shiny" : pick.species) as Species;
       if (shiny) lastShinyKillRef.current = totalKillsRef.current;
       const baseRarity = (SPECIES_BASE as Record<string, { rarity?: Rarity }>)[species]?.rarity ?? "common";
-      const hp = Math.round(24 + level * 8 + (shiny ? level * 6 : 0));
+      const hp = Math.round(40 + level * 24 + (shiny ? level * 10 : 0));
       out.push({
         id: enemyIdRef.current++, sp: species, hp, maxHp: hp, x, y,
         face: Math.random() < 0.5 ? "left" : "right",
         level, rarity: baseRarity, behavior: "wander",
-        spawnX: x, spawnY: y, wanderRadius: 36, aggroR: 0,
+        spawnX: x, spawnY: y, wanderRadius: 72, aggroR: 0,
       });
     }
     return out;
