@@ -4138,6 +4138,8 @@ const confirmName = () => {
         setMapEditorTeleports((prev) => ({ ...prev, ...(cloud.teleports as Record<string, EditorTeleport[]>) }));
       }
       mapEditorCloudReadyRef.current = true;
+      // Dispara um salvamento imediato (sobe a edição local para a conta).
+      setMapEditorTeleports((prev) => ({ ...prev }));
       if (cloud) pushChat("☁️ Edição de mapas carregada da sua conta.", "info");
     }).catch(() => { mapEditorCloudReadyRef.current = true; });
     return () => { cancelled = true; };
