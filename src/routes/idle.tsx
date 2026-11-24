@@ -3113,6 +3113,8 @@ function IdlePage() {
   // Atualiza o relogio da UI no maximo 4x por segundo: cada setNow re-renderiza
   // mapa, inimigos, matos e HUD. Em celular isso era o maior custo.
   const lastNowUiRef = useRef(0);
+  // Moita lar da caçada automática (não sai andando longe).
+  const grassHomeRef = useRef<{ id: number; since: number } | null>(null);
   const bumpNowUi = () => {
     const stamp = Date.now();
     if (stamp - lastNowUiRef.current < 250) return;
@@ -11036,18 +11038,43 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => {
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
-      if (walkTargetRef.current) return;
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) return;
+      if (walkTargetRef.current || combatMoveRef.current) return;
+      if (keysRef.current.size > 0) return; // jogador andando no teclado: nao atrapalha
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { grassHomeRef.current = null; return; }
       const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
       if (grass.length === 0) return;
-      const spot = grass[Math.floor(Math.random() * grass.length)];
       const p = trainerPosRef.current;
-      const x = Math.max(24, Math.min(curWorldW - 24, spot.x + (Math.random() - 0.5) * 46));
-      const y = Math.max(24, Math.min(curWorldH - 24, spot.y + (Math.random() - 0.5) * 46));
-      if (Math.hypot(x - p.x, y - p.y) < 18) return;
-      walkTargetRef.current = { x, y, label: "caçando na grama", resumeAuto: true, startedAt: Date.now() };
-      setWalkingTo("caçando na grama");
-    }, 1800);
+      let home = grassHomeRef.current ? grass.find((g) => g.id === grassHomeRef.current!.id) : null;
+      const perto = home ? Math.hypot(home.x - p.x, home.y - p.y) <= 360 : false;
+      if (!home || !perto) {
+        // escolhe SEMPRE a moita mais proxima (nunca sai andando longe)
+        let best = null as typeof grass[number] | null;
+        let bestD = Number.POSITIVE_INFINITY;
+        for (const g of grass) {
+          const d = Math.hypot(g.x - p.x, g.y - p.y);
+          if (d < bestD) { bestD = d; best = g; }
+        }
+        if (!best || bestD > 700) return;
+        home = best;
+        grassHomeRef.current = { id: best.id, since: Date.now() };
+      } else if (Date.now() - grassHomeRef.current.since > 120_000) {
+        // 2 min sem nada: tenta outra moita PRÓXIMA; se nao houver, fica nesta
+        const outras = grass.filter((g) => g.id !== home!.id && Math.hypot(g.x - p.x, g.y - p.y) <= 600);
+        if (outras.length > 0) {
+          const pick = outras[Math.floor(Math.random() * outras.length)];
+          grassHomeRef.current = { id: pick.id, since: Date.now() };
+          home = pick;
+        } else {
+          grassHomeRef.current = { id: home.id, since: Date.now() };
+        }
+      }
+      // anda so dentro da moita (raio curto) para nao sumir do mato
+      const x = Math.max(24, Math.min(curWorldW - 24, home.x + (Math.random() - 0.5) * 70));
+      const y = Math.max(24, Math.min(curWorldH - 24, home.y + (Math.random() - 0.5) * 70));
+      if (Math.hypot(x - p.x, y - p.y) < 24) return;
+      walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
+      setWalkingTo("caçando");
+    }, 2200);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorObjects, mapEditorOpen, curWorldW, curWorldH]);
   const enterWorldPortal = (p: WorldPortalDef) => {
