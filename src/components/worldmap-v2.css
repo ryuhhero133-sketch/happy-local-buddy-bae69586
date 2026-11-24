@@ -351,6 +351,25 @@
   background: linear-gradient(180deg, #24386b, #14224a);
 }
 
+.wm2-route {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 2px solid #ffd94d;
+  background: linear-gradient(180deg, #2b6b3a, #144a24);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .55), 0 0 12px rgba(255, 217, 77, .45);
+  text-shadow: 0 1px 0 #06210f;
+}
+.wm2-route:hover { filter: brightness(1.12); }
+
 /* ---------- aviso ---------- */
 .wm2-toast {
   position: absolute;

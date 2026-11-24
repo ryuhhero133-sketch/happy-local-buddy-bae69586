@@ -547,7 +547,7 @@ const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
 // Mapas de teste (Emerald) — sem Pokémon/baús/obstáculos; entrada com senha.
 import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
-import rota1MapUrl from "@/ambiente/map/Rota1.webp";
+import rota1MapUrl from "@/ambiente/map/Rota1.jpg";
 import matoVerdeFramesUrl from "@/ambiente/map/MATO VERDE.webp";
 import boboUuidUrl from "@/ambiente/map/BOBO/bobo_uuid.webp";
 import boboG11dsUrl from "@/ambiente/map/BOBO/bobo_g11ds.webp";
@@ -25740,6 +25740,19 @@ A sucata afundou com o casco.
           <WorldMapV2
             onClose={() => setMapTeleportOpen(false)}
             onOldMap={() => { setMapTeleportOpen(false); setOldAtlasOpen(true); }}
+            onTravelTo={(mapId) => {
+              const target = mapId as IdleMapId;
+              if (!IDLE_MAPS[target]) return;
+              houseArrivalRef.current = null;
+              walkTargetRef.current = null;
+              setWalkingTo(null);
+              setAttackTargetId(null);
+              setEnemies([]);
+              clearBattleScene();
+              setIdle((s) => ({ ...s, currentMap: target }));
+              setMapTeleportOpen(false);
+              pushChat(`🌀 ${IDLE_MAPS[target].name}`, "cap");
+            }}
             onTravel={() => {
               setMapTeleportOpen(false);
               pushChat("🗺️ Mapa Mundi novo em construção — o botão de viajar entra na próxima etapa.", "info");

@@ -26,7 +26,13 @@ const BADGES = ["🪨", "💧", "⚡", "🌱", "❤️", "🕷️", "🔥", "�
 const REWARDS = ["🔴", "💎", "🪙", "🥚", "📕"];
 const TABS = ["Campanha", "Ginásios", "Temporada", "Recompensas"] as const;
 
-export function WorldMapV2({ onClose, onTravel, onOldMap }: { onClose: () => void; onTravel: () => void; onOldMap?: () => void }) {
+export function WorldMapV2({ onClose, onTravel, onOldMap, onTravelTo }: {
+  onClose: () => void;
+  onTravel: () => void;
+  onOldMap?: () => void;
+  /** Viaja direto para um mapa (usado pelos pontos de rota). */
+  onTravelTo?: (mapId: string) => void;
+}) {
   const [selectedId, setSelectedId] = useState("kanto");
   const [tab, setTab] = useState<(typeof TABS)[number]>("Campanha");
   const [notice, setNotice] = useState<string | null>(null);
@@ -70,6 +76,11 @@ export function WorldMapV2({ onClose, onTravel, onOldMap }: { onClose: () => voi
           </button>
         ))}
 
+        {onTravelTo && (
+          <button type="button" className="wm2-route" style={{ left: "30%", top: "82%" }} onClick={() => onTravelTo("rota1")}>
+            <span>🚩</span> Rota 1
+          </button>
+        )}
         {notice && <div className="wm2-toast">{notice}</div>}
 
         {!panelOpen && <button type="button" className="wm2-openpanel" onClick={() => setPanelOpen(true)}>☰ Regiões</button>}
@@ -118,7 +129,7 @@ export function WorldMapV2({ onClose, onTravel, onOldMap }: { onClose: () => voi
             </div>
           </> : <p className="wm2-soon">{tab} — em breve.</p>}
 
-          <button type="button" className="wm2-go" onClick={onTravel}>⚔ Ir para o Mapa</button>
+          <button type="button" className="wm2-go" onClick={() => (onTravelTo ? onTravelTo("rota1") : onTravel())}>⚔ Ir para o Mapa</button>
           {onOldMap && <button type="button" className="wm2-old" onClick={onOldMap}>🗺 Todos os mapas (atlas antigo)</button>}
         </aside>}
       </div>
