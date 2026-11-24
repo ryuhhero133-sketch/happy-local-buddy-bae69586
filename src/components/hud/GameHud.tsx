@@ -48,7 +48,7 @@ export type GameHudProps = {
   mountLabel?: string;
   onToggleMount?: () => void;
   onZoom: (direction: 1 | -1) => void;
-  team: HudTeamMember[]; selectedPetUid: string | null; onSelectPet: (uid: string) => void;
+  team: HudTeamMember[]; selectedPetUid: string | null; onSelectPet: (uid: string) => void; onOpenPetCard?: (uid: string) => void;
   onJoystickMove: (x: number, y: number) => void;
   mapBounds: HudMapBounds; viewportWidth: number; target: HudTarget | null;
   guideAccountId?: string;
@@ -192,7 +192,7 @@ export function GameHud(hud: GameHudProps) {
     </section>}
     {!inPanel && <>
       {hud.target && <TargetHud target={hud.target} />}
-      <TeamHud newHud={!!hud.newHud} members={hud.team} selectedUid={hud.selectedPetUid} onSelect={hud.onSelectPet} onManage={() => hud.onTab("pokemon")} />
+      <TeamHud newHud={!!hud.newHud} members={hud.team} selectedUid={hud.selectedPetUid} onSelect={hud.onSelectPet} onOpenCard={hud.onOpenPetCard} onManage={() => hud.onTab("pokemon")} />
       <div className="revo-right-stack">
         <MinimapHud hud={hud} />
         {!hud.newHud && hud.guideAccountId && <TrainerGuide accountId={hud.guideAccountId} />}

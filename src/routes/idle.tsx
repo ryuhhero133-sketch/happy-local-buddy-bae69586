@@ -37,6 +37,7 @@ import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import { WorldMapV2 } from "@/components/WorldMapV2";
+import { PetCard } from "@/components/PetCard";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.webp";
 import navPokemon from "@/assets/icons/nav-pokemon.webp";
@@ -3962,6 +3963,7 @@ const confirmName = () => {
 
   // ===== Detalhes de Pokémon (modal ao clicar no card) + Casa Azul picker =====
   const [petDetailUid, setPetDetailUid] = useState<string | null>(null);
+  const [petCardUid, setPetCardUid] = useState<string | null>(null);
   const [azulPickerOpen, setAzulPickerOpen] = useState(false);
   const [azulPreselectUid, setAzulPreselectUid] = useState<string | null>(null);
   const [colecaoDetailUid, setColecaoDetailUid] = useState<string | null>(null);
@@ -18765,6 +18767,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           hunger: Math.max(0, Math.min(100, (pet as CaredPet).fome ?? 100)), fainted: !!pet.faintedAt,
         }))}
         selectedPetUid={petDetailUid} onSelectPet={(uid) => { playClick(); setPetDetailUid(uid); }}
+        onOpenPetCard={(uid) => { playClick(); setPetCardUid(uid); }}
         icons={{ pokemon: navPokemon, mochila: bagIconImg, colecao: hudColecaoPng, pokedex: navColecao, melhorias: navMelhorias, sinergia: synergyDockIcon, market: navMarket, wallet: navWallet, ball: ballPokeImg, crystal: crystalGreenImg, ruby: crystalRedImg, potion: potionIconUrl }}
         forgeNotification={Object.values(forgeNotifications).some(Boolean)}
         onTab={(next) => { playClick(); setTab((current) => current === next ? "batalha" : next); }}
@@ -29716,6 +29719,28 @@ onClick={(e) => {
         );
       })()}
 
+      {petCardUid && (() => {
+        const pet = team.find((item) => item.uid === petCardUid);
+        if (!pet) return null;
+        const idx = team.findIndex((item) => item.uid === pet.uid);
+        return <PetCard
+          name={pet.species.replace(/_/g, " ")}
+          species={pet.species}
+          level={pet.level}
+          rarity={pet.rarity}
+          image={GIF[pet.species]}
+          hp={idx === 0 ? leaderHp : (pet.hp ?? calcIdleMaxHp(pet))}
+          maxHp={calcIdleMaxHp(pet)}
+          isLeader={idx === 0}
+          onClose={() => setPetCardUid(null)}
+          onMakeLeader={idx > 0 ? () => {
+            const next = [pet, ...team.filter((item) => item.uid !== pet.uid)];
+            setTeam(next);
+            setLeaderHp(calcIdleMaxHp(next[0]));
+            setPetCardUid(null);
+          } : undefined}
+        />;
+      })()}
       {statsCardPet && (
         <PokemonStatsCard
           pet={ancestralPetForDisplay(statsCardPet, collectionForDisplay)}

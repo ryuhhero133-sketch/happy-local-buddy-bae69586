@@ -39,11 +39,13 @@ function TeamMeter({ label, value, max, kind }: {
   </span>;
 }
 
-export function TeamHud({ members, selectedUid, onSelect, onManage, newHud }: {
+export function TeamHud({ members, selectedUid, onSelect, onManage, newHud, onOpenCard }: {
   members: HudTeamMember[];
   selectedUid: string | null;
   onSelect: (uid: string) => void;
   onManage: () => void;
+  /** Clique no retrato abre o card completo do Pokémon. */
+  onOpenCard?: (uid: string) => void;
   /** HUD V2 (beta): começa no modo compacto (só o círculo). */
   newHud?: boolean;
 }) {
@@ -70,7 +72,11 @@ export function TeamHud({ members, selectedUid, onSelect, onManage, newHud }: {
           aria-label={`Ver ${member.name}, nível ${member.level}, ${tier.label}. HP ${Math.round(hp)}/${member.maxHp}, XP ${member.xp}/${member.maxXp}, fome ${Math.round(member.hunger)}%.`}
           aria-pressed={selectedUid === member.uid}
           title={`${member.name} · ${tier.label} · Lv. ${member.level}\nHP ${Math.round(hp)}/${member.maxHp} · XP ${member.xp}/${member.maxXp} · Fome ${Math.round(member.hunger)}%\nClique para ver detalhes e cuidados`}
-          onClick={() => onSelect(member.uid)}
+          onClick={(event) => {
+            const target = event.target as HTMLElement;
+            if (onOpenCard && target.closest(".revo-team__portrait")) { onOpenCard(member.uid); return; }
+            onSelect(member.uid);
+          }}
         >
           <span className="revo-team__portrait">
             <span className="revo-team__ball-center" />

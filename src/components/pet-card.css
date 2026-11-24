@@ -1,0 +1,193 @@
+/* Card completo do Pokémon — estilo pergaminho dourado (mobile + PC) */
+.pc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgba(6, 12, 24, .72);
+  backdrop-filter: blur(3px);
+}
+.pc-card {
+  position: relative;
+  width: min(400px, 100%);
+  max-height: min(92vh, 700px);
+  overflow-y: auto;
+  border-radius: 22px;
+  border: 3px solid #f2c14e;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #fffdf6 0%, #fbf4e3 55%, #f6e9cf 100%);
+  box-shadow: 0 0 0 2px #fff8e1 inset, 0 18px 40px rgba(0, 0, 0, .45);
+  padding: 12px 14px 14px;
+  color: #5b3a13;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  scrollbar-width: thin;
+}
+
+.pc-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 2px solid #f2c14e;
+  background: linear-gradient(180deg, #fffdf6, #f7e9cd);
+  color: #8a5a1a;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 2;
+}
+.pc-close:hover { filter: brightness(1.05); }
+
+.pc-top { display: flex; gap: 10px; align-items: flex-start; padding-right: 34px; }
+.pc-portrait {
+  position: relative;
+  flex: 0 0 118px;
+  height: 118px;
+  border-radius: 16px;
+  border: 2px solid #f2c14e;
+  background: radial-gradient(circle at 50% 40%, #ffffff 0%, #f3e7cd 70%, #ebd9b6 100%);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 3px #fffdf6;
+}
+.pc-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .25));
+}
+
+.pc-head { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.pc-name { display: flex; align-items: center; gap: 6px; }
+.pc-name strong {
+  font-size: 20px;
+  line-height: 1.1;
+  color: #4a2f0e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-ball {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid #2b2b2b;
+  background: linear-gradient(180deg, #e64b4b 0 46%, #f7f7f7 46% 100%);
+  flex: 0 0 auto;
+}
+.pc-types { display: flex; flex-wrap: wrap; gap: 5px; }
+.pc-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  color: #1f2937;
+  text-transform: capitalize;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+.pc-power { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.pc-power span { font-size: 10px; font-weight: 800; color: #a9825a; text-transform: uppercase; letter-spacing: .5px; }
+.pc-power b { font-size: 22px; color: #4d8b2e; text-shadow: 0 1px 0 #fff; }
+.pc-hpbar { height: 7px; border-radius: 5px; background: #e7d7b8; overflow: hidden; border: 1px solid #d8c39c; }
+.pc-hpbar i { display: block; height: 100%; background: linear-gradient(90deg, #f27a7a, #d84a4a); transition: width .3s; }
+
+.pc-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.pc-lv {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #f6e6c8;
+  border: 1.5px solid #e2c894;
+  font-size: 12px;
+  font-weight: 900;
+  color: #7a551f;
+}
+.pc-stars { color: #f2b01e; font-size: 15px; letter-spacing: 2px; text-shadow: 0 1px 0 #fff; }
+.pc-rarity { margin-left: auto; font-size: 10px; font-weight: 800; color: #a9825a; text-transform: uppercase; }
+
+.pc-section {
+  border: 1.5px solid #e6d3ac;
+  border-radius: 14px;
+  padding: 8px 10px 10px;
+  background: rgba(255, 253, 246, .75);
+  margin-bottom: 8px;
+}
+.pc-section__title {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fdf3dd, #f3e2bf);
+  border: 1px solid #e2c894;
+  font-size: 11px;
+  font-weight: 900;
+  color: #7a551f;
+}
+
+.pc-stats { display: flex; flex-direction: column; gap: 5px; }
+.pc-stat { display: grid; grid-template-columns: 48px 1fr 38px; align-items: center; gap: 6px; }
+.pc-stat__label { font-size: 11px; font-weight: 900; color: #6b4a1c; }
+.pc-stat__bar { height: 9px; border-radius: 6px; background: #e9dbc0; overflow: hidden; border: 1px solid #dcc9a4; }
+.pc-stat__bar i { display: block; height: 100%; border-radius: 6px; }
+.pc-stat b { font-size: 11px; text-align: right; color: #4a2f0e; }
+
+.pc-abilities { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.pc-ability {
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1.5px solid #d9c9a8;
+  background: #fffdf6;
+  font-size: 11px;
+  font-weight: 800;
+  color: #6b4a1c;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-ability--empty { color: #a89a83; font-weight: 700; }
+
+.pc-leader {
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px;
+  border-radius: 12px;
+  border: 2px solid #d9b45a;
+  background: linear-gradient(180deg, #ffe9a8, #f2c14e);
+  color: #5b3a13;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pc-leader:hover { filter: brightness(1.05); }
+.pc-leader-note { margin: 6px 0 0; text-align: center; font-size: 11px; font-weight: 800; color: #a9825a; }
+
+/* ---------- mobile ---------- */
+@media (max-width: 420px) {
+  .pc-card { padding: 10px 10px 12px; border-radius: 18px; }
+  .pc-portrait { flex: 0 0 96px; height: 96px; }
+  .pc-name strong { font-size: 17px; }
+  .pc-power b { font-size: 19px; }
+  .pc-stat { grid-template-columns: 42px 1fr 34px; }
+  .pc-abilities { grid-template-columns: 1fr; }
+}
+@media (max-height: 560px) {
+  .pc-card { width: min(470px, 100%); display: grid; grid-template-columns: 130px 1fr; gap: 8px 12px; align-items: start; }
+  .pc-portrait { flex: none; width: 118px; height: 118px; grid-row: span 2; }
+  .pc-top { display: contents; }
+  .pc-head { padding-right: 30px; }
+  .pc-level, .pc-section, .pc-leader, .pc-leader-note { grid-column: 2; }
+  .pc-section { margin-bottom: 0; }
+  .pc-leader { margin-top: 0; }
+}
