@@ -11041,8 +11041,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
       if (keysRef.current.size > 0) return; // jogador no teclado
-      if (combatMoveRef.current) return;
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { grassHomeRef.current = null; grassWalkRef.current = false; return; }
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { grassHomeRef.current = null; grassWalkRef.current = false; combatMoveRef.current = null; return; }
+      // Sem inimigos: quem caca e o TREINADOR (o Pokemon so segue).
+      combatMoveRef.current = null;
       // acabou de chegar: descansa um pouco antes de escolher outro ponto
       if (grassWalkRef.current && !walkTargetRef.current) {
         grassWalkRef.current = false;
