@@ -6857,7 +6857,7 @@ const confirmName = () => {
         // Despawna quem ficou longe (economiza DOM/CPU em celular).
         const alive = prev
           .filter((enemy) => enemy.hp > 0)
-          .filter((enemy) => Math.hypot(enemy.x - pos.x, enemy.y - pos.y) <= 900);
+          .filter((enemy) => Math.hypot(enemy.x - pos.x, enemy.y - pos.y) <= 700);
         if (alive.length >= cap) return alive.length === prev.length ? prev : alive;
         const fresh = spawnEnemies();
         if (fresh.length === 0) return prev;
@@ -11124,7 +11124,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const d = Math.hypot(g.x - p.x, g.y - p.y);
           if (d < bestD) { bestD = d; best = g; }
         }
-        if (!best || bestD > 260) return; // nada de mato perto: fica parado
+        if (!best || bestD > 1200) return;
+        home = best;
+        grassHomeRef.current = { id: best.id, since: Date.now() };
+        // Se esta longe do mato, o treinador VAI ate ele (depois passeia no canteiro).
+        if (bestD > 240) {
+          walkTargetRef.current = { x: best.x, y: best.y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
+          setWalkingTo("caçando");
+          grassWalkRef.current = true;
+          return;
+        }
         home = best;
         grassHomeRef.current = { id: best.id, since: Date.now() };
       }
@@ -16331,9 +16340,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (nowTs - lastSpawnAtRef.current < 1200) return [];
     lastSpawnAtRef.current = nowTs;
     const trainer = trainerPosRef.current;
-    // Só usa mato PERTO do jogador: evita encher o mapa de inimigos fora da tela.
+    // Spawn APENAS no canteiro em volta do treinador (280px): nada espalhado pelo mapa.
     const grass = (mapEditorObjects[idle.currentMap] ?? [])
-      .filter((object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 620);
+      .filter((object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 280);
     if (grass.length === 0 || list.length === 0) return [];
     const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
     // Cap adaptativo: dentro do mato libera mais; fora deixa só 1.
