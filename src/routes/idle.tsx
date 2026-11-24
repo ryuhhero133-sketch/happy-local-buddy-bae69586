@@ -18979,7 +18979,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         </div>
       )}
       <GameHud
-        newHud
+        newHud={identity?.id === MAP_EDITOR_OWNER_ID}
         guideAccountId={identity?.id && starterChosen ? identity.id : undefined}
         onJoystickMove={onJoystickMove}
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}
@@ -26110,7 +26110,7 @@ A sucata afundou com o casco.
               </div>
             )}
 {snowmanDialog && <NevezinhaDialog onDone={() => setSnowmanDialog(false)} />}
-{mapTeleportOpen && (
+{mapTeleportOpen && canUseMapEditor && (
           <WorldMapV2
             onClose={() => setMapTeleportOpen(false)}
             onOldMap={() => { setMapTeleportOpen(false); setOldAtlasOpen(true); }}
@@ -26133,7 +26133,7 @@ A sucata afundou com o casco.
             }}
           />
         )}
-{oldAtlasOpen && (() => {
+{(oldAtlasOpen || (mapTeleportOpen && !canUseMapEditor)) && (() => {
               const ev = eventualMapWindow();
                const base = [...(canSeeTestMaps(identity?.id) ? TEST_MAP_IDS : []), "mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
