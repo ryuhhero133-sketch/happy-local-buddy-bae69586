@@ -40,6 +40,19 @@ import { WorldMapV2 } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
+import emeraldColisaoUrl from "@/ambiente/map/colisao/emerald.jpg";
+import rota1ColisaoUrl from "@/ambiente/map/colisao/rota1.jpg";
+import boboRota1ColisaoUrl from "@/ambiente/map/colisao/bobo_rota1.jpg";
+import boboRota2ColisaoUrl from "@/ambiente/map/colisao/bobo_rota2.jpg";
+import boboRota3ColisaoUrl from "@/ambiente/map/colisao/bobo_rota3.jpg";
+import boboRotaGeloColisaoUrl from "@/ambiente/map/colisao/bobo_rota_gelo.jpg";
+import boboT2ColisaoUrl from "@/ambiente/map/colisao/bobo_t2.jpg";
+import boboTemploColisaoUrl from "@/ambiente/map/colisao/bobo_templo.jpg";
+import boboTransicaoColisaoUrl from "@/ambiente/map/colisao/bobo_transicao.jpg";
+import boboTransicaoGeloColisaoUrl from "@/ambiente/map/colisao/bobo_transicao_gelo.jpg";
+import boboViridianColisaoUrl from "@/ambiente/map/colisao/bobo_viridian.jpg";
+import boboG11dsColisaoUrl from "@/ambiente/map/colisao/bobo_g11ds.jpg";
+import boboMmmmColisaoUrl from "@/ambiente/map/colisao/bobo_mmmm.jpg";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.webp";
 import navPokemon from "@/assets/icons/nav-pokemon.webp";
@@ -6809,6 +6822,20 @@ const confirmName = () => {
       if (idle.currentMap === "venenot") ensureCollision("venenot", PROF_MAP_BY_ID.venenot.mask!, cw, chh);
       if (idle.currentMap === "hallow") ensureCollision("hallow", PROF_MAP_BY_ID.hallow.mask!, cw, chh);
       if (idle.currentMap === "caverna_brok") ensureCollision("caverna_brok", PROF_MAP_BY_ID.caverna_brok.mask!, cw, chh);
+      // Máscaras rosa dos mapas novos (colisão exata).
+      if (idle.currentMap === "emerald") ensureCollision("emerald", emeraldColisaoUrl, cw, chh);
+      if (idle.currentMap === "rota1") ensureCollision("rota1", rota1ColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_rota1") ensureCollision("bobo_rota1", boboRota1ColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_rota2") ensureCollision("bobo_rota2", boboRota2ColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_rota3") ensureCollision("bobo_rota3", boboRota3ColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_rota_gelo") ensureCollision("bobo_rota_gelo", boboRotaGeloColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_t2") ensureCollision("bobo_t2", boboT2ColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_templo") ensureCollision("bobo_templo", boboTemploColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_transicao") ensureCollision("bobo_transicao", boboTransicaoColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_transicao_gelo") ensureCollision("bobo_transicao_gelo", boboTransicaoGeloColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_viridian") ensureCollision("bobo_viridian", boboViridianColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_g11ds") ensureCollision("bobo_g11ds", boboG11dsColisaoUrl, cw, chh);
+      if (idle.currentMap === "bobo_mmmm") ensureCollision("bobo_mmmm", boboMmmmColisaoUrl, cw, chh);
     };
     return () => { cancelled = true; };
   }, [idle.currentMap]);
@@ -6920,7 +6947,7 @@ const confirmName = () => {
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
   const ATTACK_RANGE = 90; // px
   // Raio de engajamento do POKÉMON: além disso ele não persegue o inimigo.
-  const ENGAGE_RANGE = 420; // px
+  const ENGAGE_RANGE = 260; // px (so engaja quem esta perto do mato)
   // Treinador para a essa distância do inimigo: ele NÃO entra no combate (fica atrás).
   const TRAINER_COMBAT_HALT = 220; // px
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -12765,7 +12792,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           const leaderNow = team[0];
           if (leaderNow && idle.autoHeal.enabled && nh > 0) {
             const maxHp = calcIdleMaxHp(leaderNow);
-            if (nh / maxHp <= idle.autoHeal.threshold && (idle.items.potion ?? 0) > 0) {
+            if (nh / maxHp <= idle.autoHeal.threshold && (idle.items.potion ?? 0) > 0 && Date.now() >= potionCooldownRef.current) {
+              potionCooldownRef.current = Date.now() + 3000;
               const heal = Math.floor(maxHp * POTION_HEAL_PCT);
               nh = Math.min(maxHp, nh + heal);
               setIdle((s) => ({ ...s, items: { ...s.items, potion: (s.items.potion ?? 0) - 1 } }));
@@ -14685,7 +14713,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       const heal = Math.floor(maxHp * 0.5) * useQty;
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty } }));
       // Cura ao longo de ~6s (10 tiques): poção de verdade, não instantânea.
-      potionCooldownRef.current = Date.now() + 6200;
+      potionCooldownRef.current = Date.now() + 3000;
       let restante = heal;
       const passo = Math.max(1, Math.ceil(heal / 10));
       const gotejamento = window.setInterval(() => {
@@ -16386,7 +16414,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     if (alive >= cap) return [];
     const shinyAlive = enemiesRef.current.some((enemy) => enemy.hp > 0 && String(enemy.sp).includes("shiny"));
     const total = list.reduce((sum, entry) => sum + entry.pct, 0);
-    const count = Math.min(cap - alive, 1);
+    // 70% das vezes vem em trio (para o ataque em area valer), respeitando o teto.
+    const querTrio = Math.random() < 0.7 && cap - alive >= 3;
+    const count = Math.min(cap - alive, querTrio ? 3 : 1);
     const out: Enemy[] = [];
     for (let k = 0; k < count; k++) {
       let roll = Math.random() * total;
@@ -18905,7 +18935,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         region={map.name} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
         enemies={enemies.filter((enemy) => enemy.hp > 0)} now={now} zoom={zoom}
         auto={auto && (idle.autoBattle?.enabled ?? true)} autoCapture={idle.autoBattle?.useBall ?? true}
-        autoHealEnabled={(idle.autoHeal ?? { enabled: true }).enabled} autoHealThreshold={(idle.autoHeal ?? { threshold: 0.5 }).threshold}
+        autoHealEnabled={(idle.autoHeal ?? { enabled: true }).enabled} autoHealThreshold={(idle.autoHeal ?? { threshold: 0.5 }).threshold} potionCount={idle.items?.potion ?? 0}
         onAutoHeal={() => {
           const enabled = !!(idle.autoHeal?.enabled);
           setIdle((s) => ({ ...s, autoHeal: { enabled: !enabled, threshold: (s.autoHeal?.threshold ?? 0.5) } }));

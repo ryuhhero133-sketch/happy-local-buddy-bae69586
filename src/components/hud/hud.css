@@ -941,3 +941,24 @@
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* Contador de poções no botão do canto */
+.revo-potion__count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #ef4157;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  font-style: normal;
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 8px rgba(239,65,87,.7);
+}
+.revo-potion { position: relative; }

@@ -32,7 +32,7 @@ export type GameHudProps = {
   forgeNotification: boolean; onTab: (tab: HudTab) => void; onProfile: () => void;
   onMap: () => void; onEvents: () => void; onBigMap: () => void; onSettings: () => void; onCombatSettings: () => void; onRank: () => void;
   onQuests: () => void; onClaimQuest: (id: string) => void; onAuto: () => void;
-  onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number;
+  onAutoHeal: () => void; autoHealEnabled: boolean; autoHealThreshold: number; potionCount?: number;
   /** Ação contextual de Epic Plant — aparece ao tocar a zona vermelha no ARV. */
   epicPlantPrompt?: boolean;
   epicPlantCasting?: boolean;
@@ -221,7 +221,7 @@ export function GameHud(hud: GameHudProps) {
           <span><img src={hud.icons.ball} alt="" /></span><strong>Auto</strong>
         </button>
         <button type="button" className={`revo-potion ${hud.autoHealEnabled ? "is-active" : ""}`} onClick={hud.onAutoHeal} aria-pressed={hud.autoHealEnabled} title={hud.autoHealEnabled ? "Desligar poção automática" : "Ligar poção automática (cura o Pokémon líder)"}>
-          <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong>
+          <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong><em className="revo-potion__count">{hud.potionCount ?? 0}</em>
         </button>
         <div className="revo-actions__secondary">
           {hud.mapEditorEnabled && <IconButton label="Editor de mapa: objetos e Pokémon" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>}

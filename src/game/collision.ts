@@ -72,7 +72,15 @@ function pixelZone(r: number, g: number, b: number): 0 | 1 | 2 {
 
 // Cada regra recebe RGB e devolve true se aquele pixel for caminhável.
 // Mantemos as regras LARGAS — depois um passe de dilatação cobre o resto.
+const PINK_MASK_MAPS = new Set([
+  "emerald", "rota1", "bobo_rota1", "bobo_rota2", "bobo_rota3", "bobo_rota_gelo",
+  "bobo_t2", "bobo_templo", "bobo_transicao", "bobo_transicao_gelo", "bobo_viridian",
+  "bobo_g11ds", "bobo_mmmm",
+]);
+
 function pixelWalk(mapId: CollisionMapId, r: number, g: number, b: number, x = 0, y = 0): boolean {
+  // Mapas novos: rosa = parede; qualquer outra cor = chão livre.
+  if (PINK_MASK_MAPS.has(mapId)) return !(r > 165 && b > 135 && g < 145);
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const l = (max + min) / 510;
