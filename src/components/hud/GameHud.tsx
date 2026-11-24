@@ -221,7 +221,8 @@ export function GameHud(hud: GameHudProps) {
           <span><img src={hud.icons.ball} alt="" /></span><strong>Auto</strong>
         </button>
         <button type="button" className={`revo-potion ${hud.autoHealEnabled ? "is-active" : ""}`} onClick={hud.onAutoHeal} aria-pressed={hud.autoHealEnabled} title={hud.autoHealEnabled ? "Desligar poção automática" : "Ligar poção automática (cura o Pokémon líder)"}>
-          <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong><em className="revo-potion__count">{hud.potionCount ?? 0}</em>
+          <span><img src={hud.icons.potion} alt="" /></span><strong>Potion</strong>
+          <span className="revo-potion__bar" aria-hidden="true"><i style={{ width: `${Math.min(100, ((hud.potionCount ?? 0) / 20) * 100)}%` }} /></span>
         </button>
         <div className="revo-actions__secondary">
           {hud.mapEditorEnabled && <IconButton label="Editor de mapa: objetos e Pokémon" active={hud.mapEditorActive} onClick={hud.onMapEditor}><Home /></IconButton>}

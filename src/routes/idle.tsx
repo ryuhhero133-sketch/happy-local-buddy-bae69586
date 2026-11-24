@@ -10159,7 +10159,8 @@ const confirmName = () => {
     const last = trail[trail.length - 1];
     if (last && Math.hypot(last.x - trainerPos.x, last.y - trainerPos.y) > 220) {
     // FASE 4: à frente só com AUTO; senão atrás (original).
-    const front = autoRef.current;
+    // Sempre atrás: o TREINADOR entra no mato primeiro; o Pokémon segue.
+    const front = false;
     const wd = walkDirRef.current;
     const dirOffset = wd === "left" ? { x: front ? -88 : 88, y: 28 }
       : wd === "right" ? { x: front ? 88 : -88, y: 28 }
