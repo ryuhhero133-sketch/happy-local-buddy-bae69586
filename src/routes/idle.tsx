@@ -7275,6 +7275,18 @@ const confirmName = () => {
       return !isWalkable("esfera_ancestral", x, y);
     }
     // Mapas com máscara branco/preto: o grid manda (igual Revoland).
+    // Mapas com máscara rosa (colisão exata desenhada pelo dono).
+    if (
+      idle.currentMap === "emerald" || idle.currentMap === "rota1" ||
+      idle.currentMap === "bobo_rota1" || idle.currentMap === "bobo_rota2" ||
+      idle.currentMap === "bobo_rota3" || idle.currentMap === "bobo_rota_gelo" ||
+      idle.currentMap === "bobo_t2" || idle.currentMap === "bobo_templo" ||
+      idle.currentMap === "bobo_transicao" || idle.currentMap === "bobo_transicao_gelo" ||
+      idle.currentMap === "bobo_viridian" || idle.currentMap === "bobo_g11ds" ||
+      idle.currentMap === "bobo_mmmm"
+    ) {
+      return !isWalkable(idle.currentMap, x, y);
+    }
     if (idle.currentMap === "casinha" || idle.currentMap === "casa1" || idle.currentMap === "casa2" || idle.currentMap === "land_revo" || idle.currentMap === "mapinha10" || idle.currentMap === "areia_de_anubis" || idle.currentMap === "torre_verdejante" || idle.currentMap === "torre_ancestral" || idle.currentMap === "elementure" || idle.currentMap === "laboratorio" || idle.currentMap === "iceblow" || idle.currentMap === "monte_floreto" || idle.currentMap === "rayow" || idle.currentMap === "sakura_city" || idle.currentMap === "venenot" || idle.currentMap === "hallow" || idle.currentMap === "caverna_brok") {
       return !isWalkable(idle.currentMap, x, y);
     }
