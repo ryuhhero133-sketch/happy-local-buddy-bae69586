@@ -4,8 +4,8 @@ import { getDex, TYPE_COLOR, TYPE_ICON } from "@/game/movesets";
 import "./pet-card.css";
 
 const RARITY_MULT: Record<string, number> = {
-  common: 1, uncommon: 1.05, rare: 1.12, epic: 1.2,
-  legendary: 1.35, mythic: 1.5, mythic_shiny: 1.65,
+  common: 1, uncommon: 1.06, rare: 1.14, epic: 1.24,
+  legendary: 1.36, mythic: 1.5, mythic_shiny: 1.7,
 };
 const RARITY_LABEL: Record<string, string> = {
   common: "Comum", uncommon: "Incomum", rare: "Raro", epic: "Épico",
@@ -25,6 +25,7 @@ export type PetCardProps = {
   stars?: number;
   rebirths?: number;
   traits?: PetTrait[];
+  ancestral?: boolean;
   isLeader?: boolean;
   onClose: () => void;
   onMakeLeader?: () => void;
@@ -33,12 +34,12 @@ export type PetCardProps = {
 
 export function PetCard({
   name, species, level, rarity, image, hp, maxHp,
-  stars = 0, rebirths = 0, traits = [], isLeader, onClose, onMakeLeader, onRebirth,
+  stars = 0, rebirths = 0, traits = [], ancestral = false, isLeader, onClose, onMakeLeader, onRebirth,
 }: PetCardProps) {
   const [page, setPage] = useState<1 | 2>(1);
   const base = (SPECIES_BASE as Record<string, { hp: number; atk: number; def: number; spa: number; spd: number; spe: number }>)[species]
     ?? { hp: 50, atk: 50, def: 50, spa: 50, spd: 50, spe: 50 };
-  const mult = RARITY_MULT[rarity] ?? 1;
+  const mult = (RARITY_MULT[rarity] ?? 1) * (ancestral ? 1.3 : 1);
   const starMul = 1 + stars * 0.07;
   const scale = (1 + Math.max(0, level - 1) * 0.05) * mult * starMul;
   const stats = [
@@ -67,7 +68,9 @@ export function PetCard({
             {image ? <img src={image} alt={name} draggable={false} /> : <span>?</span>}
           </div>
           <div className="pc-head">
-            <div className="pc-name"><span className="pc-ball" /><strong>{name}</strong></div>
+            <div className="pc-name"><span className="pc-ball" /><strong>{name}</strong>
+              {ancestral && <span className="pc-ancestral">ANCESTRAL</span>}
+            </div>
             <div className="pc-types">
               {types.map((type) => (
                 <span key={type} className="pc-type" style={{ background: TYPE_COLOR[type] ?? "#9ca3af" }}>

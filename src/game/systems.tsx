@@ -590,13 +590,19 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
 
 const RARITY_WEIGHT: Record<Rarity, number> = {
   common: 1,
-  uncommon: 1.1,
-  rare: 1.25,
-  epic: 1.45,
-  legendary: 1.6,
-  mythic: 1.75,
-  mythic_shiny: 2.1
+  uncommon: 1.06,
+  rare: 1.14,
+  epic: 1.24,
+  legendary: 1.36,
+  mythic: 1.5,
+  mythic_shiny: 1.7
 };
+
+/** Ancestral (ovo especial) é sempre o topo: +30% em cima da raridade. */
+const ANCESTRAL_MULT = 1.3;
+function ancestralMult(pet: { event?: string }) {
+  return pet.event === "ancestral" ? ANCESTRAL_MULT : 1;
+}
 
 // ===== BALANCEAMENTO DE TIERS (acerto/erro) =====
 // Ordem de força dos tiers usada pela regra de chance de acerto (PvE e PvP).
@@ -640,7 +646,7 @@ export function calcMaxHp(pet: PetInstance) {
   const lb = pet.loyaltyBonus;
   const allMul = 1 + (lb?.allPct ?? 0);
   const hpMul = 1 + (lb?.statPcts?.hp ?? 0);
-  const baseHp = Math.floor(((2 * b.hp * pet.level) / 50 + pet.level + 10) * rw * boost * allMul * hpMul * starPower(pet));
+  const baseHp = Math.floor(((2 * b.hp * pet.level) / 50 + pet.level + 10) * rw * boost * allMul * hpMul * starPower(pet) * ancestralMult(pet));
   const ascBonus = pet.ascensionStats?.hp || 0;
   return baseHp + ascBonus;
 }
@@ -651,7 +657,7 @@ export function calcStat(pet: PetInstance, key: "atk"|"def"|"spa"|"spd"|"spe") {
   const lb = pet.loyaltyBonus;
   const allMul = 1 + (lb?.allPct ?? 0);
   const statMul = 1 + (lb?.statPcts?.[key] ?? 0);
-  const baseStat = Math.floor(((2 * b * pet.level) / 50 + 5) * rw * boost * allMul * statMul * starPower(pet));
+  const baseStat = Math.floor(((2 * b * pet.level) / 50 + 5) * rw * boost * allMul * statMul * starPower(pet) * ancestralMult(pet));
   const ascBonus = pet.ascensionStats?.[key] || 0;
   return baseStat + ascBonus;
 }

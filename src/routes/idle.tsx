@@ -29733,6 +29733,7 @@ onClick={(e) => {
           hp={idx === 0 ? leaderHp : (pet.hp ?? calcIdleMaxHp(pet))}
           maxHp={calcIdleMaxHp(pet)}
           stars={starsOf(pet)}
+          ancestral={pet.event === "ancestral"}
           rebirths={pet.rebirths ?? 0}
           traits={(pet.traits ?? []).map((id) => {
             const trait = TRAITS[id as keyof typeof TRAITS];
@@ -29767,6 +29768,7 @@ onClick={(e) => {
           hp={shown.hp ?? calcIdleMaxHp(shown)}
           maxHp={calcIdleMaxHp(shown)}
           stars={starsOf(shown)}
+          ancestral={shown.event === "ancestral"}
           rebirths={shown.rebirths ?? 0}
           traits={(shown.traits ?? []).map((id) => { const t = TRAITS[id]; return { name: t?.name ?? id, icon: t?.icon, desc: t?.desc }; })}
           onClose={() => setStatsCardPet(null)}
