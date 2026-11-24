@@ -6853,7 +6853,7 @@ const confirmName = () => {
         const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
           (object) => object.stepGrass && Math.hypot(object.x - pos.x, object.y - pos.y) <= 26,
         );
-        const cap = noMato ? (mobile ? 5 : 8) : 1;
+        const cap = noMato ? (mobile ? 4 : 6) : 1;
         // Despawna quem ficou longe (economiza DOM/CPU em celular).
         const alive = prev
           .filter((enemy) => enemy.hp > 0)
@@ -6872,9 +6872,16 @@ const confirmName = () => {
         if (url) { const img = new Image(); img.src = url; }
       }
     }
-    const first = window.setTimeout(topUp, 600);
-    const timer = window.setInterval(topUp, 1200);
-    return () => { window.clearTimeout(first); window.clearInterval(timer); };
+    // Ritmo variável: às vezes nasce rápido, às vezes demora (até ~35s).
+    let timer = 0;
+    const schedule = () => {
+      const demora = Math.random() < 0.2
+        ? 20000 + Math.random() * 15000
+        : 2500 + Math.random() * 15500;
+      timer = window.setTimeout(() => { topUp(); schedule(); }, demora);
+    };
+    const first = window.setTimeout(() => { topUp(); schedule(); }, 800);
+    return () => { window.clearTimeout(first); window.clearTimeout(timer); };
   }, [idle.currentMap]);
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
@@ -16333,7 +16340,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
       (object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 26,
     );
-    const cap = noMato ? (mobile ? 5 : 8) : 1;
+    const cap = noMato ? (mobile ? 4 : 6) : 1;
     const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0).length;
     if (alive >= cap) return [];
     const shinyAlive = enemiesRef.current.some((enemy) => enemy.hp > 0 && String(enemy.sp).includes("shiny"));
@@ -22850,7 +22857,8 @@ A sucata afundou com o casco.
               const dead = e.hp <= 0;
               const isTargeted = !dead && attackTargetId === e.id;
               const face = e.face ?? "left";
-              const sx = SPRITE_SHEET[showSp] ? 1 : (face === "left" ? 1 : -1);
+                            const sheetSprite = !!SPRITE_SHEET[showSp] || !!zoneSheet(showSp);
+              const sx = sheetSprite ? 1 : (face === "left" ? 1 : -1);
               const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2 : (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
               const size = Math.round((safariWild ? (e.sp === "aerodactyl" ? 88 : 72) : 46 * scale * (e.giant ? 2 : 1)) * (e.editorSizePercent ?? 100) / 100);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
