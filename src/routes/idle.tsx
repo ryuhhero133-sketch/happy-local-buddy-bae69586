@@ -11075,24 +11075,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         minX = Math.min(minX, g.x); maxX = Math.max(maxX, g.x);
         minY = Math.min(minY, g.y); maxY = Math.max(maxY, g.y);
       }
-      // Anda em LINHA RETA (quadradinhos), dentro do canteiro e perto da ancora.
-      const DIRS = [{ x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }];
-      let dir = grassDirRef.current ?? DIRS[Math.floor(Math.random() * DIRS.length)];
-      const step = 46;
-      let x = 0, y = 0;
-      for (let tent = 0; tent < 4; tent++) {
-        x = Math.max(minX - 20, Math.min(maxX + 20, p.x + dir.x * step));
-        y = Math.max(minY - 20, Math.min(maxY + 20, p.y + dir.y * step));
-        const distHome = Math.hypot(x - home.x, y - home.y);
-        if (distHome > 150 || Math.hypot(x - p.x, y - p.y) < 24) {
-          // virou pro limite: gira 90 graus e tenta de novo
-          dir = dir.x !== 0 ? { x: 0, y: Math.random() < 0.5 ? -1 : 1 } : { x: Math.random() < 0.5 ? -1 : 1, y: 0 };
-          continue;
-        }
-        break;
-      }
-      grassDirRef.current = dir;
-      if (Math.hypot(x - p.x, y - p.y) < 24) return;
+      // Anda em linha reta SOBRE os tiles de mato: escolhe um tile real do canteiro
+      // (mesma linha ou coluna) em vez de um ponto qualquer dentro do retangulo.
+      const limite = 160;
+      const pertoTiles = patch.filter((g) => g.id !== home!.id && Math.hypot(g.x - home!.x, g.y - home!.y) <= limite);
+      const alinhados = pertoTiles.filter((g) => {
+        const dx = Math.abs(g.x - p.x);
+        const dy = Math.abs(g.y - p.y);
+        const d = Math.hypot(g.x - p.x, g.y - p.y);
+        return (dx < 26 || dy < 26) && d >= 70 && d <= 190;
+      });
+      const pool = alinhados.length > 0 ? alinhados : pertoTiles.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 60);
+      if (pool.length === 0) return;
+      const destino = pool[Math.floor(Math.random() * pool.length)];
+      const x = destino.x;
+      const y = destino.y;
+      if (Math.hypot(x - p.x, y - p.y) < 40) return;
       grassWalkRef.current = true;
       walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
       setWalkingTo("caçando");
