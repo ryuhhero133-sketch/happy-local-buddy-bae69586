@@ -38,6 +38,7 @@ import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import { WorldMapV2 } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
+import { loadMapEditorCloud, saveMapEditorCloud } from "@/lib/mapEditorCloud";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
 import emeraldColisaoUrl from "@/ambiente/map/colisao/emerald.jpg";
@@ -4119,6 +4120,41 @@ const confirmName = () => {
   });
   const [mapEditorSelectedTeleportId, setMapEditorSelectedTeleportId] = useState<number | null>(null);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_TELEPORTS_KEY, JSON.stringify(mapEditorTeleports)); } catch { /* ignore */ } }, [mapEditorTeleports]);
+  // Sincroniza a edição de mapas com a CONTA (vale em qualquer navegador).
+  const mapEditorCloudReadyRef = useRef(false);
+  const mapEditorCloudTimerRef = useRef(0);
+  useEffect(() => {
+    if (!identity?.id || mapEditorCloudReadyRef.current) return;
+    let cancelled = false;
+    void loadMapEditorCloud(identity.id).then((cloud) => {
+      if (cancelled) return;
+      if (cloud?.objects) {
+        setMapEditorObjects((prev) => ({ ...prev, ...normalizeMapEditorObjects(cloud.objects) }));
+      }
+      if (cloud?.spawns) {
+        setMapEditorSpawns((prev) => ({ ...prev, ...(cloud.spawns as Record<string, EditorPokemonSpawn[]>) }));
+      }
+      if (cloud?.teleports) {
+        setMapEditorTeleports((prev) => ({ ...prev, ...(cloud.teleports as Record<string, EditorTeleport[]>) }));
+      }
+      mapEditorCloudReadyRef.current = true;
+      if (cloud) pushChat("☁️ Edição de mapas carregada da sua conta.", "info");
+    }).catch(() => { mapEditorCloudReadyRef.current = true; });
+    return () => { cancelled = true; };
+  }, [identity?.id]);
+
+  useEffect(() => {
+    if (!identity?.id || !mapEditorCloudReadyRef.current) return;
+    window.clearTimeout(mapEditorCloudTimerRef.current);
+    mapEditorCloudTimerRef.current = window.setTimeout(() => {
+      void saveMapEditorCloud(identity.id, {
+        objects: mapEditorObjects,
+        spawns: mapEditorSpawns,
+        teleports: mapEditorTeleports,
+      });
+    }, 2000);
+  }, [mapEditorObjects, mapEditorSpawns, mapEditorTeleports, identity?.id]);
+
   // Painel do editor arrastavel
   const [mapEditorPos, setMapEditorPos] = useState<{ x: number; y: number } | null>(null);
   const mapEditorDragRef = useRef<{ dx: number; dy: number } | null>(null);
