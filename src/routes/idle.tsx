@@ -2847,16 +2847,19 @@ function highLevelEnemyHpMult(enemyLevel: number, leaderLevel: number) {
 }
 
 function highLevelEnemyDamageMult(enemyLevel: number, leaderLevel: number) {
-  if (enemyLevel < 200) return 1;
+  // A partir do 30: cada nivel acima do lider soma +6% de dano (ate +90%).
+  const gap = Math.max(0, enemyLevel - leaderLevel);
+  const gapMul = enemyLevel >= 30 ? 1 + Math.min(0.9, gap * 0.06) : 1;
+  if (enemyLevel < 200) return gapMul;
   // Curva de dano progressiva 200→500 (mais agressiva a partir de 300)
   let mult = 1.55;
   if (enemyLevel >= 200) mult += Math.min(0.65, (enemyLevel - 200) / 100 * 0.65);
   if (enemyLevel >= 300) mult += Math.min(1.4, (enemyLevel - 300) / 100 * 0.7);
   if (enemyLevel >= 400) mult += Math.min(0.9, (enemyLevel - 400) / 100 * 0.9);
   if (enemyLevel >= 250) {
-    const gap = Math.max(0, enemyLevel - leaderLevel);
     mult *= 1.2 + Math.min(2.2, gap * 0.055);
   }
+  mult *= gapMul;
   return mult;
 }
 
@@ -3122,6 +3125,8 @@ function IdlePage() {
   const grassRestUntilRef = useRef(0);
   const grassDirRef = useRef<{ x: number; y: number } | null>(null);
   const lastShinyKillRef = useRef(0);
+  // Cooldown da poção (cura ao longo de ~6s).
+  const potionCooldownRef = useRef(0);
   const bumpNowUi = () => {
     const stamp = Date.now();
     if (stamp - lastNowUiRef.current < 250) return;
@@ -12529,7 +12534,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         const eBase = SPECIES_BASE[target.sp] ?? { atk: 30 };
         const eliteMult = target.elite ? 2.5 : 1;
         const honeyDef = honeyBonusNow();
-        let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * Math.max(0.1, 1 - idle.buffs.def - honeyDef)));
+        const ehTanque = leader.rarity === "mythic" || leader.rarity === "mythic_shiny" || (leader as { event?: string }).event === "ancestral";
+        const redDef = ehTanque
+          ? Math.max(0.1, 1 - idle.buffs.def - honeyDef)
+          : Math.max(0.55, 1 - (idle.buffs.def + honeyDef) * 0.5);
+        let eDmg = Math.max(1, Math.floor((2 + eBase.atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(target.level, leader.level) * redDef));
         // TIER GAP (defesa) — inimigo de tier/nível bem abaixo do seu líder também
         // erra: mesma chance de acerto espelhada, com piso de 55% para o defensor.
         const enemyMiss = Math.random() > tierHitChance(rarityRank(target.rarity), target.level, rarityRank(leader.rarity), leader.level);
@@ -13677,7 +13686,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const eliteMult = eElite ? 2.5 : 1;
     const honeyDef = honeyBonusNow();
     const lv = tm[0]?.level ?? eLevel;
-    const raw = Math.max(1, Math.floor((2 + (eBase as { atk: number }).atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(eLevel, lv) * Math.max(0.1, 1 - (st.buffs?.def ?? 0) - honeyDef) * mult));
+    const lider = tm[0] as { rarity?: string; event?: string } | undefined;
+    const tanque = lider?.rarity === "mythic" || lider?.rarity === "mythic_shiny" || lider?.event === "ancestral";
+    const red = tanque
+      ? Math.max(0.1, 1 - (st.buffs?.def ?? 0) - honeyDef)
+      : Math.max(0.55, 1 - ((st.buffs?.def ?? 0) + honeyDef) * 0.5);
+    const raw = Math.max(1, Math.floor((2 + (eBase as { atk: number }).atk * 0.045 + Math.random() * 3) * eliteMult * highLevelEnemyDamageMult(eLevel, lv) * red * mult));
     // PISO DE DANO: 2,5% do HP máximo do líder (skills de inimigo também).
     const leaderPet = tm[0];
     const leaderMax = leaderPet ? calcIdleMaxHp(leaderPet) : 0;
@@ -14607,14 +14621,26 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const maxHp = calcIdleMaxHp(l);
     if (id === "potion") {
       if (leaderHp <= 0) { pushChat(`Poção não revive. Reviva por 50 ouro.`, "info"); return; }
+      if (Date.now() < potionCooldownRef.current) {
+        pushChat(`🧪 A poção anterior ainda está fazendo efeito (${Math.ceil((potionCooldownRef.current - Date.now()) / 1000)}s).`, "info");
+        return;
+      }
       const heal = Math.floor(maxHp * 0.5) * useQty;
-      setLeaderHp((h) => Math.min(maxHp, h + heal));
       setIdle((s) => ({ ...s, items: { ...s.items, [id]: have - useQty } }));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${heal} HP`, "gold");
+      // Cura ao longo de ~6s (10 tiques): poção de verdade, não instantânea.
+      potionCooldownRef.current = Date.now() + 6200;
+      let restante = heal;
+      const passo = Math.max(1, Math.ceil(heal / 10));
+      const gotejamento = window.setInterval(() => {
+        restante -= passo;
+        setLeaderHp((h) => Math.min(maxHp, h + passo));
+        if (restante <= 0) window.clearInterval(gotejamento);
+      }, 600);
+      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${heal} HP em 6s`, "gold");
       // Cura visível no PRÓPRIO Pokémon (animação de fada + número subindo).
       fireSkillFx("heal", elementOf(l.species), HEAL_SHEET, followerState.x, followerState.y - 20, followerState.x, followerState.y - 20);
       pushFxAt(followerState.x, followerState.y - 58, `+${heal}`, "heal");
-      pushChat(`Você usou ${useQty}× Poção (+${heal} HP).`, "info");
+      pushChat(`Você usou ${useQty}× Poção (+${heal} HP em 6s).`, "info");
     } else if (id === "pokeball" || id === "greatball" || id === "ultraball" || id === "safariball") {
       pushChat(`As Pokébolas são usadas automaticamente ao derrotar inimigos.`, "info");
     } else if (id === "berry") {
@@ -16315,7 +16341,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       const y = Math.max(24, Math.min(curWorldH - 24, tile.y + (Math.random() - 0.5) * 40));
       // Shiny: no maximo 1 vivo por mapa. 1,2% por spawn; 10% depois de 220 abates.
       const pity = totalKillsRef.current - lastShinyKillRef.current >= 220;
-      const shiny = !shinyAlive && Math.random() < (pity ? 0.10 : 0.012);
+      const shiny = !shinyAlive && Math.random() < (pity ? 0.10 : 0.012)
+        && !!zoneSheet(pick.species + "_shiny");
       const species = (shiny ? pick.species + "_shiny" : pick.species) as Species;
       if (shiny) lastShinyKillRef.current = totalKillsRef.current;
       const baseRarity = (SPECIES_BASE as Record<string, { rarity?: Rarity }>)[species]?.rarity ?? "common";
