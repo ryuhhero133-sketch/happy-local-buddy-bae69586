@@ -4,7 +4,6 @@ export type ZoneSpawn = { species: string; min: number; max: number; pct: number
 /** 8 mapas de mato, do mais fraco ao mais forte. */
 export const GRASS_ZONE_BY_MAP: Record<string, number> = {
   rota1: 1,
-  bobo_rota1: 2,
   bobo_rota2: 3,
   bobo_uuid: 4,
   bobo_transicao: 5,

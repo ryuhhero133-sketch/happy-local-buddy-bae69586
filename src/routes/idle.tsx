@@ -6842,10 +6842,14 @@ const confirmName = () => {
     if (!zoneForMap(idle.currentMap)) return;
     const topUp = () => {
       setEnemies((prev) => {
-        const alive = prev.filter((enemy) => enemy.hp > 0);
         const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-        const cap = mobile ? 14 : 24;
-        if (alive.length >= cap) return prev;
+        const cap = mobile ? 8 : 14;
+        const pos = trainerPosRef.current;
+        // Despawna quem ficou longe (economiza DOM/CPU em celular).
+        const alive = prev
+          .filter((enemy) => enemy.hp > 0)
+          .filter((enemy) => Math.hypot(enemy.x - pos.x, enemy.y - pos.y) <= 1600);
+        if (alive.length >= cap) return alive.length === prev.length ? prev : alive;
         const fresh = spawnEnemies();
         if (fresh.length === 0) return prev;
         return [...alive, ...fresh];
@@ -12434,7 +12438,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         // REGRA DO RANGE REAL: a skill do líder define o alcance (com margem de
         // segurança); sem skill com dano, vale o ataque básico (ATTACK_RANGE).
         const pSkill = playerSkillFor(leader.species);
-        const pRange = pSkill ? pSkill.range * SKILL_RANGE_MARGIN : ATTACK_RANGE;
+        // Alcance real: só Voador/Fantasma atacam de longe. Os outros precisam chegar perto.
+        const leaderTypes = (getDex(leader.species as never) as { types?: string[] }).types ?? [];
+        const rangedType = leaderTypes.some((type) => /voador|flying|fantasma|ghost/i.test(String(type)));
+        const pRangeRaw = pSkill ? pSkill.range * SKILL_RANGE_MARGIN : ATTACK_RANGE;
+        const pRange = rangedType ? pRangeRaw : Math.min(pRangeRaw, 120);
         // Engajamento: só persegue o inimigo que estiver num raio razoável do pokémon.
         // Alvo travado manualmente (TAB/painel) persegue até 1.6× — escolha do jogador.
         const engageLimit = manualTargetRef.current != null ? ENGAGE_RANGE * 1.6 : ENGAGE_RANGE;
@@ -16276,15 +16284,18 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1200) return [];
     lastSpawnAtRef.current = nowTs;
-    const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
+    const trainer = trainerPosRef.current;
+    // Só usa mato PERTO do jogador: evita encher o mapa de inimigos fora da tela.
+    const grass = (mapEditorObjects[idle.currentMap] ?? [])
+      .filter((object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 620);
     if (grass.length === 0 || list.length === 0) return [];
     const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-    const cap = mobile ? 14 : 24;
+    const cap = mobile ? 8 : 14;
     const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0).length;
     if (alive >= cap) return [];
     const shinyAlive = enemiesRef.current.some((enemy) => enemy.hp > 0 && String(enemy.sp).includes("shiny"));
     const total = list.reduce((sum, entry) => sum + entry.pct, 0);
-    const count = Math.min(cap - alive, 1 + Math.floor(Math.random() * 2));
+    const count = Math.min(cap - alive, 1);
     const out: Enemy[] = [];
     for (let k = 0; k < count; k++) {
       let roll = Math.random() * total;
