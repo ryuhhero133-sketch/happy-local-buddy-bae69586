@@ -10860,6 +10860,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   const centerOffY = Math.max(0, (viewSize.h - curWorldH * zoom) / 2);
   const renderTrainerX = Math.round(trainerPos.x * zoom) / zoom;
   const renderTrainerY = Math.round(trainerPos.y * zoom) / zoom;
+  // Culling: entidades fora da tela (com margem) nao entram no DOM.
+  const VIEW_CULL = 320;
+  const inView = (x: number, y: number) =>
+    x >= renderCamX - VIEW_CULL && x <= renderCamX + viewW + VIEW_CULL &&
+    y >= renderCamY - VIEW_CULL && y <= renderCamY + viewH + VIEW_CULL;
   const renderFollowerX = Math.round(followerState.x * zoom) / zoom;
   const renderFollowerY = Math.round(followerState.y * zoom) / zoom;
 
@@ -16226,7 +16231,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   function pushFxAt(x: number, y: number, text: string, kind: FxKind) {
     const id = fxIdRef.current++;
-    setFx((prev) => [...prev, { id, x, y, text, kind }]);
+    setFx((prev) => [...prev, { id, x, y, text, kind }].slice(-18));
     const ttl = kind === "crit" ? 1900 : kind === "myDmg" || kind === "enemyDmg" ? 1500 : 1200;
     setTimeout(() => setFx((prev) => prev.filter((f) => f.id !== id)), ttl);
   }
@@ -21178,7 +21183,7 @@ A sucata afundou com o casco.
               {effWeather === "snow" && (
                 <div>
                   <div className="wx-snow-tint" />
-                  <SnowCanvas />
+                  {/* neve removida: efeito pesado e fora do jogo */}
                 </div>
               )}
               <div style={{
@@ -21936,7 +21941,7 @@ A sucata afundou com o casco.
                 {spawn.raid && <span style={{ color: "#ffac78" }}>⚔ RAID<br /></span>}{spawn.species.replace(/_/g, " ")}<br />Lv.{spawn.level}
               </button>
             ))}
-            {obstacles.map((o) => {
+            {obstacles.filter((o) => inView(o.x, o.y)).map((o) => {
               const editorObject = editorObstacles.find((object) => object.id === o.id);
               const editorStump = !!editorObject?.harvestable && !!editorObject.choppedAt && now - editorObject.choppedAt < 30 * 60_000;
               const editorChopping = !!editorObject?.harvestable && !!editorObject.choppingUntil && now < editorObject.choppingUntil;
@@ -22657,7 +22662,7 @@ A sucata afundou com o casco.
 
 
             {/* Inimigos espalhados pelo mapa */}
-            {enemies.map((e) => {
+            {enemies.filter((e) => inView(e.x, e.y)).map((e) => {
               const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
               const src = MAP_SPRITE[idle.currentMap]?.[showSp] ?? GIF[showSp];
               if (!src) return null;
@@ -22990,7 +22995,7 @@ A sucata afundou com o casco.
             })}
 
             {/* Baús espalhados */}
-            {chests.map((c) => (
+            {chests.filter((c) => inView(c.x, c.y)).map((c) => (
               <div key={`chest-${c.id}`} style={{
                 position: "absolute", left: c.x, top: c.y,
                 width: 56, height: 56,
