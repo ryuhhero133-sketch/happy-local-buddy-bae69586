@@ -41,6 +41,7 @@ import { PetCard } from "@/components/PetCard";
 import { loadMapEditorCloud, saveMapEditorCloud } from "@/lib/mapEditorCloud";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
+import { buildGrassPatches, createGrassHuntState, GRASS_ARRIVAL_RADIUS, GRASS_SPOT_RADIUS, grassHuntEnemies, grassTileCenter, isInGrassPatch, isOnGrassTile, nearestGrassPatch, tickGrassHunt } from "@/game/grassHunt";
 import emeraldColisaoUrl from "@/ambiente/map/colisao/emerald.jpg";
 import rota1ColisaoUrl from "@/ambiente/map/colisao/rota1.jpg";
 import boboRota1ColisaoUrl from "@/ambiente/map/colisao/bobo_rota1.jpg";
@@ -3133,15 +3134,8 @@ function IdlePage() {
   // Atualiza o relogio da UI no maximo 4x por segundo: cada setNow re-renderiza
   // mapa, inimigos, matos e HUD. Em celular isso era o maior custo.
   const lastNowUiRef = useRef(0);
-  // Moita lar da caçada automática (não sai andando longe).
-  const grassHomeRef = useRef<{ id: number; since: number } | null>(null);
-  const grassWalkRef = useRef(false);
-  const grassRestUntilRef = useRef(0);
-  const grassDirRef = useRef<{ x: number; y: number } | null>(null);
-  const grassCornerRef = useRef(0);
-  const autoHuntPosRef = useRef<{ x: number; y: number; startedAt: number } | null>(null);
-  const wasWalkingRef = useRef(false);
-  const huntPatchRef = useRef<{ cx: number; cy: number } | null>(null);
+  // Um único controlador: entrar no mato -> patrulhar o spot -> batalhar -> retomar.
+  const grassHuntRef = useRef(createGrassHuntState());
   const lastShinyKillRef = useRef(0);
   // Cooldown da poção (cura ao longo de ~6s).
   const potionCooldownRef = useRef(0);
@@ -4079,32 +4073,11 @@ const confirmName = () => {
   const mapEditorObjectsRef = useRef(mapEditorObjects);
   useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* storage indisponível */ } }, [mapEditorObjects]);
-  // Mapeia os canteiros de mato do mapa atual (cluster + 4 cantos reais + centro).
-  const grassPatches = useMemo(() => {
-    const tiles = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
-    const used = new Set<number>();
-    const patches: { tiles: typeof tiles; minX: number; maxX: number; minY: number; maxY: number; cx: number; cy: number }[] = [];
-    for (const tile of tiles) {
-      if (used.has(tile.id)) continue;
-      const stack = [tile];
-      used.add(tile.id);
-      const group = [];
-      while (stack.length > 0) {
-        const current = stack.pop()!;
-        group.push(current);
-        for (const other of tiles) {
-          if (used.has(other.id)) continue;
-          if (Math.hypot(other.x - current.x, other.y - current.y) <= 46) { used.add(other.id); stack.push(other); }
-        }
-      }
-      const xs = group.map((g) => g.x);
-      const ys = group.map((g) => g.y);
-      const minX = Math.min(...xs), maxX = Math.max(...xs);
-      const minY = Math.min(...ys), maxY = Math.max(...ys);
-      patches.push({ tiles: group as typeof tiles, minX, maxX, minY, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 });
-    }
-    return patches;
-  }, [mapEditorObjects, idle.currentMap]);
+  const grassPatches = useMemo(() =>
+    buildGrassPatches(mapEditorObjects[idle.currentMap] ?? []), [mapEditorObjects, idle.currentMap]);
+  const grassPatchesRef = useRef(grassPatches);
+  grassPatchesRef.current = grassPatches;
+  const grassHuntMap = idle.currentMap !== "arv" && (grassPatches.length > 0 || !!zoneForMap(idle.currentMap));
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
   useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
   // ---- Teleportes criados no editor (por mapa) ----
@@ -4296,9 +4269,11 @@ const confirmName = () => {
 
 
 
-  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; editorSpawnId?: number; editorSizePercent?: number; editorRaid?: boolean; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number; slimeSheet?: boolean };
+  type Enemy = { sp: Species; hp: number; maxHp: number; id: number; x: number; y: number; face: "left" | "right"; editorSpawnId?: number; editorSizePercent?: number; editorRaid?: boolean; aggressive?: boolean; aggroR?: number; elite?: boolean; level: number; rarity: Rarity; eventLegendary?: boolean; rider?: boolean; giant?: boolean; guardian?: boolean; apex?: boolean; disguise?: Species; revealed?: boolean; menace?: boolean; mtcBoss?: boolean; wx?: number; wy?: number; healCd?: number; wdir?: Dir; spawnX?: number; spawnY?: number; wanderRadius?: number; detectionRadius?: number; maxChaseDistance?: number; aiState?: string; behavior?: "passive" | "wander" | "aggressive" | "elite"; nextSkillAt?: number; castingUntil?: number; recoverUntil?: number; engageUntil?: number; nextEngageAt?: number; slimeSheet?: boolean; grassPatchId?: number };
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const enemiesRef = useRef<Enemy[]>([]);
+  const spawnZoneEnemiesRef = useRef(spawnZoneEnemies);
+  spawnZoneEnemiesRef.current = spawnZoneEnemies;
   useEffect(() => { enemiesRef.current = enemies; }, [enemies]);
   // Kills totais (ref fresca p/ waves dentro de intervals com closure antiga).
   const totalKillsRef = useRef(0);
@@ -6963,25 +6938,24 @@ const confirmName = () => {
     }, 250);
     return () => window.clearInterval(iv);
   }, [idle.currentMap, customDims]);
-  // Zonas de mato: mantem o mapa povoado (o tick de combate so spawna com 0 vivos).
+  // Zonas de mato: encontros locais; o tick de combate não fura o intervalo.
   useEffect(() => {
     if (!zoneForMap(idle.currentMap)) return;
-    const topUp = () => {
+    const topUp = (announce = false) => {
       setEnemies((prev) => {
         const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
         const pos = trainerPosRef.current;
         // Cap adaptativo: no mato pode juntar alguns; fora do mato fica so 1.
-        const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
-          (object) => object.stepGrass && Math.hypot(object.x - pos.x, object.y - pos.y) <= 26,
-        );
+        const noMato = grassPatchesRef.current.some((patch) => isInGrassPatch(patch, pos));
         const cap = noMato ? (mobile ? 4 : 6) : 1;
         // Despawna quem ficou longe (economiza DOM/CPU em celular).
         const alive = prev
           .filter((enemy) => enemy.hp > 0)
           .filter((enemy) => Math.hypot(enemy.x - pos.x, enemy.y - pos.y) <= 700);
         if (alive.length >= cap) return alive.length === prev.length ? prev : alive;
-        const fresh = spawnEnemies();
-        if (fresh.length === 0) return prev;
+        const fresh = spawnZoneEnemiesRef.current(zoneForMap(idleRef.current.currentMap) ?? []);
+        if (fresh.length === 0) return alive.length === prev.length ? prev : alive;
+        if (announce) queueMicrotask(() => pushChat("🌿 O mato se mexe...", "info"));
         return [...alive, ...fresh];
       });
     };
@@ -6993,22 +6967,21 @@ const confirmName = () => {
         if (url) { const img = new Image(); img.src = url; }
       }
     }
-    // Ritmo variável: às vezes nasce rápido, às vezes demora (até ~35s).
-    let timer = 0;
+    // O combate não respawna a cada 900ms: patrulha entre encontros.
+    // Abate agenda 8–20s; sem abate, 35–65s. Checagem leve sem capturar matos antigos.
+    let nextSpawnAt = Date.now() + 800;
     let killsBase = totalKillsRef.current;
-    const schedule = () => {
-      const matou = totalKillsRef.current > killsBase;
-      killsBase = totalKillsRef.current;
-      const demora = matou
-        ? 8000 + Math.random() * 12000
-        : 35000 + Math.random() * 30000;
-      timer = window.setTimeout(() => {
-        pushChat("🌿 O mato se mexe...", "info");
-        topUp();
-        schedule();
-      }, demora);    };
-    const first = window.setTimeout(() => { topUp(); schedule(); }, 800);
-    return () => { window.clearTimeout(first); window.clearTimeout(timer); };
+    const timer = window.setInterval(() => {
+      const stamp = Date.now();
+      if (totalKillsRef.current > killsBase) {
+        killsBase = totalKillsRef.current;
+        nextSpawnAt = stamp + 8000 + Math.random() * 12000;
+      }
+      if (stamp < nextSpawnAt) return;
+      topUp(true);
+      nextSpawnAt = stamp + 35000 + Math.random() * 30000;
+    }, 1000);
+    return () => window.clearInterval(timer);
   }, [idle.currentMap]);
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
@@ -7418,7 +7391,7 @@ const confirmName = () => {
   const movingRef = useRef(moving);
   movingRef.current = moving;
   // Alvo de deslocamento automático (clicar em "Ir ao Lar", "Ir ao Lab", "Ir Floresta")
-  const walkTargetRef = useRef<{ x: number; y: number; label: string; onArrive?: () => void; resumeAuto?: boolean; startedAt?: number; _lastMove?: number } | null>(null);
+  const walkTargetRef = useRef<{ x: number; y: number; label: string; kind?: "grass"; arrivalRadius?: number; onArrive?: () => void; resumeAuto?: boolean; startedAt?: number; _lastMove?: number } | null>(null);
   const [walkingTo, setWalkingTo] = useState<string | null>(null);
   const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
@@ -10219,9 +10192,7 @@ const confirmName = () => {
     }
   }, [trainerPos]);
 
-  // Loop de animação do follower (Pokémon líder).
-  // FASE 4 (AUTO ON): fica ì FRENTE do treinador (TREINADOR �  POK�0MON �  INIMIGO).
-  // AUTO OFF (movimento normal): segue atrás pela trilha, como sempre foi.
+  // Líder segue a trilha ATRÁS, inclusive no Auto. Só avança para combater.
   useEffect(() => {
     let raf = 0;
     const mobile = window.matchMedia("(pointer: coarse) and (max-height: 650px)").matches;
@@ -10231,13 +10202,7 @@ const confirmName = () => {
     const loop = () => {
       {
         let tx: number, ty: number;
-        if (autoRef.current) {
-          const wd = walkDirRef.current;
-          const fx = wd === "left" ? -1 : wd === "right" ? 1 : 0;
-          const fy = wd === "up" ? -1 : wd === "down" ? 1 : 0;
-          tx = trainerPosRef.current.x + fx * FOLLOW_DIST;
-          ty = trainerPosRef.current.y + fy * FOLLOW_DIST;
-        } else {
+        {
           const trail = trailRef.current;
           if (trail.length === 0) {
             raf = requestAnimationFrame(loop);
@@ -11228,75 +11193,22 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }, 300);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorTeleports, mapEditorOpen]);
-// AUTOMÁTICO: ancora no canteiro mais próximo quando o Auto liga e só anda ali.
+  // Só Auto OFF/ON ou troca de mapa escolhe um novo spot.
+  // A patrulha usa o MESMO loop/walkTarget do movimento, sem duas IAs disputando.
   useEffect(() => {
-    const iv = setInterval(() => {
-      if (!autoRef.current || mapEditorOpen) return;
-      const andandoAgora = !!walkTargetRef.current;
-      if (wasWalkingRef.current && !andandoAgora) {
-        wasWalkingRef.current = false;
-        grassRestUntilRef.current = Date.now() + 250 + Math.random() * 450;
-      }
-      if (andandoAgora) { wasWalkingRef.current = true; return; }
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) return; // briga: para
-      if (Date.now() < grassRestUntilRef.current) return;
-      if (grassPatches.length === 0) return;
-      const p = trainerPosRef.current;
-      // Âncora fixa: o canteiro escolhido quando o Auto ligou (nunca troca sozinho).
-      let ancora = huntPatchRef.current;
-      if (!ancora) {
-        let best: { cx: number; cy: number } | null = null;
-        let bestD = Number.POSITIVE_INFINITY;
-        for (const cand of grassPatches) {
-          const d = Math.hypot(cand.cx - p.x, cand.cy - p.y);
-          if (d < bestD) { bestD = d; best = { cx: cand.cx, cy: cand.cy }; }
-        }
-        // Só ancora se o mato estiver perto (nada de atravessar o mapa).
-        if (!best || bestD > 420) return;
-        ancora = best;
-        huntPatchRef.current = best;
-      }
-      // Acha o canteiro da âncora (mesmo depois de recalcular os clusters).
-      let patch = grassPatches[0];
-      let patchDist = Number.POSITIVE_INFINITY;
-      for (const cand of grassPatches) {
-        const d = Math.hypot(cand.cx - ancora.cx, cand.cy - ancora.cy);
-        if (d < patchDist) { patchDist = d; patch = cand; }
-      }
-      const nearestTo = (tx: number, ty: number) => {
-        let best = patch.tiles[0];
-        let bestD = Number.POSITIVE_INFINITY;
-        for (const tile of patch.tiles) {
-          const d = Math.hypot(tile.x - tx, tile.y - ty);
-          if (d < bestD) { bestD = d; best = tile; }
-        }
-        return best;
-      };
-      const distAtePatch = Math.hypot(patch.cx - p.x, patch.cy - p.y);
-      let destino: { x: number; y: number };
-      if (distAtePatch > 120) {
-        // Ainda fora: vai ao tile do canteiro mais próximo (e volta se se afastar).
-        destino = nearestTo(p.x, p.y);
-      } else {
-const waypoints = [
-          nearestTo(patch.cx, patch.cy),
-          nearestTo(patch.minX, patch.minY),
-          nearestTo(patch.maxX, patch.minY),
-          nearestTo(patch.maxX, patch.maxY),
-          nearestTo(patch.minX, patch.maxY),
-          nearestTo(patch.cx, patch.cy),
-          ];
-        destino = waypoints[grassCornerRef.current % waypoints.length];
-        grassCornerRef.current = (grassCornerRef.current + 1) % waypoints.length;
-      }
-      walkTargetRef.current = { x: destino.x, y: destino.y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
-      setWalkingTo("caçando");
-      wasWalkingRef.current = true;
-    }, 700);
-    return () => clearInterval(iv);
-  }, [idle.currentMap, mapEditorOpen, grassPatches]);
-  // Sempre que o Auto ligar, esquece a âncora antiga (escolhe o mato mais perto).
-  useEffect(() => { huntPatchRef.current = null; }, [auto, idle.currentMap]);
+    grassHuntRef.current = createGrassHuntState();
+    wanderRef.current = null;
+    currentTargetRef.current = null;
+    if (walkTargetRef.current?.kind === "grass") {
+      walkTargetRef.current = null;
+      setWalkingTo(null);
+    }
+    if (auto) {
+      manualTargetRef.current = null;
+      combatMoveRef.current = null;
+      setAttackTargetId(null);
+    }
+  }, [auto, idle.currentMap]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
     const lv = idle.trainerLevel ?? 1;
@@ -11336,7 +11248,11 @@ const waypoints = [
 
 
   useEffect(() => {
+    const movementTickMs = grassHuntMap ? 33 : 60;
     const iv = setInterval(() => {
+      const moving = movingRef.current;
+      const team = teamRef.current;
+      const leaderHp = leaderHpRef.current;
       if (!starterChosenRef.current) return;
       if (arvDeathBusyRef.current) { if (moving) setMoving(false); return; }
       if (restingRef.current) { if (moving) setMoving(false); return; }
@@ -11358,9 +11274,9 @@ const waypoints = [
         // treinador. Fator 0.62 iguala o WASD ao clique: o clique usava o
         // passo do chão e ficava lento, o WASD andava mais rápido.
         const boatTierNow = isWaterMap(idleRef.current.currentMap) ? idleRef.current.ship?.tier : undefined;
-        const speed = boatTierNow
+        const speed = (boatTierNow
           ? 7 * 0.62 * BOAT_BY_TIER[boatTierNow].speed * (1 + honeyBonusNow())
-          : 7 * (1 + honeyBonusNow() + mountBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+          : 7 * (1 + honeyBonusNow() + mountBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100)) * movementTickMs / 60;
         const stepX = (dx / mag) * speed * Math.min(1, mag);
         const stepY = (dy / mag) * speed * Math.min(1, mag);
         const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -11389,6 +11305,46 @@ const waypoints = [
       }
 
 
+      // Mato: entra no centro REAL antes de combater; depois patrulha só o spot.
+      // Inimigos de outro canteiro, baús e o wander antigo não comandam o treinador.
+      if (autoRef.current && grassHuntMap && (!walkTargetRef.current || walkTargetRef.current.kind === "grass")) {
+        if (mapEditorOpen || mapLoadingRef.current || pvpTargetUserIdRef.current != null
+          || !(autoBattleRef.current?.enabled ?? true) || !team.length || leaderHp <= 0) {
+          if (walkTargetRef.current?.kind === "grass") {
+            walkTargetRef.current = null;
+            setWalkingTo(null);
+          }
+          if (moving) setMoving(false);
+        } else {
+          const canWalk = (point: { x: number; y: number }) =>
+            point.x >= 20 && point.y >= 20 && point.x <= curWorldW - 20 && point.y <= curWorldH - 20
+            && !collidesWithAny(point.x, point.y)
+            && !(mapEditorTeleports[idle.currentMap] ?? []).some((tp) => Math.hypot(point.x - tp.x, point.y - tp.y) <= (tp.r || 34) + 8);
+          const action = tickGrassHunt(grassHuntRef.current, {
+            patches: grassPatchesRef.current, position: trainerPosRef.current,
+            enemies: enemiesRef.current, canWalk, now: Date.now(),
+          });
+          if (action.kind === "walk") {
+            const previous = walkTargetRef.current;
+            if (!previous || previous.x !== action.point.x || previous.y !== action.point.y) {
+              walkTargetRef.current = { ...action.point, kind: "grass", arrivalRadius: GRASS_ARRIVAL_RADIUS,
+                label: "caçando", startedAt: Date.now() };
+              if (!previous) setWalkingTo("caçando");
+            }
+            // Pokémon fica atrás enquanto o treinador entra/anda; não puxa alvo antigo.
+            if (attackTargetIdRef.current != null) { attackTargetIdRef.current = null; setAttackTargetId(null); }
+            combatMoveRef.current = null;
+          } else {
+            if (walkTargetRef.current?.kind === "grass") { walkTargetRef.current = null; setWalkingTo(null); }
+            if (action.kind === "wait") {
+              if (attackTargetIdRef.current != null) { attackTargetIdRef.current = null; setAttackTargetId(null); }
+              combatMoveRef.current = null;
+            }
+            if (moving) setMoving(false);
+          }
+        }
+      }
+
       // ---- Deslocamento em direção a um destino escolhido (Lar / Lab / outro mapa) ----
       const wt = walkTargetRef.current;
       if (wt) {
@@ -11406,7 +11362,7 @@ const waypoints = [
           const dx = wt.x - tp.x;
           const dy = wt.y - tp.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 40) {
+          if (dist <= (wt.arrivalRadius ?? 40)) {
             const resume = wt.resumeAuto;
             walkTargetRef.current = null;
             setWalkingTo(null);
@@ -11417,7 +11373,8 @@ const waypoints = [
             return tp;
           }
           if (!moving) setMoving(true);
-          const speed = 7 * (1 + honeyBonusNow() + mountBonusNow()) * energySpeedMult(trainerEnergyRef.current ?? 100);
+          const speed = Math.min(dist, 7 * (1 + honeyBonusNow() + mountBonusNow())
+            * energySpeedMult(trainerEnergyRef.current ?? 100) * movementTickMs / 60);
           const stepX = (dx / dist) * speed;
           const stepY = (dy / dist) * speed;
           const nd: Dir = Math.abs(dx) > Math.abs(dy)
@@ -11474,6 +11431,9 @@ const waypoints = [
       // Auto-batalha desligada = treinador parado (sem vagar sozinho atrás de alvos)
       if (!(autoBattleRef.current?.enabled ?? true)) { if (moving) setMoving(false); return; }
 
+      // Nunca deixa o wander/caça antigo roubar a patrulha do mato, nem sem alvos.
+      if (grassHuntMap) { if (moving) setMoving(false); return; }
+
       // Líder acima do cap: pode atacar normalmente, mas XP/ouro serão nerfados no cálculo abaixo.
 
 
@@ -11492,7 +11452,7 @@ const waypoints = [
         const lockedPortals = WORLD_PORTALS.filter((p) => p.from === idle.currentMap && (p.reqLevel ?? 0) > trLv);
         const nearLockedPortal = (x: number, y: number) =>
           lockedPortals.some((p) => Math.hypot(x - p.x, y - p.y) < 200);
-        const aliveAll = enemies.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
+        const aliveAll = enemiesRef.current.filter((e) => e.hp > 0 && !blacklistRef.current.has(e.id) && !nearLockedPortal(e.x, e.y));
         // Líder pode atacar qualquer Pokémon do mapa — ganhos serão nerfados se muito acima.
         const alive = aliveAll;
         const enemyPool = alive.length > 0 ? alive : [];
@@ -11711,9 +11671,9 @@ const waypoints = [
         if (checkArvRedStep(nx, ny)) return tp;
         return { x: nx, y: ny };
       });
-    }, 60);
+    }, movementTickMs);
     return () => clearInterval(iv);
-  }, [enemies, moving, obstacles, chests, idle.currentMap, arvEpicPlants]);
+  }, [obstacles, chests, idle.currentMap, arvEpicPlants, grassHuntMap, mapEditorOpen, mapEditorTeleports, curWorldW, curWorldH]);
 
   // ---- IA dos inimigos: movimentação autônoma (SEMPRE roda, independente do auto) ----
   useEffect(() => {
@@ -12567,9 +12527,20 @@ const waypoints = [
       if (Date.now() < paralyzedUntilRef.current) return;
       setEnemies((prev) => {
 
-        if (prev.length === 0) { combatMoveRef.current = null; return spawnEnemies(); }
-        const alive = prev.filter((e) => e.hp > 0);
-        if (alive.length === 0) { combatMoveRef.current = null; return spawnEnemies(); }
+        if (prev.length === 0) { combatMoveRef.current = null; return zoneForMap(idle.currentMap) ? prev : spawnEnemies(); }
+        const allAlive = prev.filter((e) => e.hp > 0);
+        if (allAlive.length === 0) { combatMoveRef.current = null; return zoneForMap(idle.currentMap) ? prev : spawnEnemies(); }
+        // O mesmo alvo comanda a pausa do treinador e o ataque do líder.
+        // Não combate da borda antes de entrar, nem usa o follower como nova âncora.
+        const alive = autoRef.current && grassHuntMap
+          ? grassHuntEnemies(grassHuntRef.current, grassPatchesRef.current, allAlive, trainerPosRef.current)
+            .filter((enemy) => enemy.id === grassHuntRef.current.targetId)
+          : allAlive;
+        if (alive.length === 0) {
+          setAttackTargetId((id) => id == null ? id : null);
+          combatMoveRef.current = null;
+          return prev;
+        }
         // Alvo do pokémon: TRAVA STICKY — uma vez engajado, só troca quando o
         // alvo morrer/fugir ou sair do alcance. Sem isso o dano ficava dividido
         // entre vários inimigos próximos (ex.: 4 Vaporeons) e ninguém morria.
@@ -12611,7 +12582,10 @@ const waypoints = [
         // Engajamento: só persegue o inimigo que estiver num raio razoável do pokémon.
         // Alvo travado manualmente (TAB/painel) persegue até 1.6× — escolha do jogador.
         const engageLimit = manualTargetRef.current != null ? ENGAGE_RANGE * 1.6 : ENGAGE_RANGE;
-        if (fDist > engageLimit) {
+        const engageDistance = autoRef.current && grassHuntMap
+          ? Math.hypot(target.x - trainerPosRef.current.x, target.y - trainerPosRef.current.y)
+          : fDist;
+        if (engageDistance > engageLimit) {
           // Alvo fora de alcance: limpa target para não ficar preso mostrando HUD
           setAttackTargetId((cur) => (cur !== null ? null : cur));
           combatMoveRef.current = null;
@@ -13833,7 +13807,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       });
     }, 900);
     return () => clearInterval(iv);
-  }, [team, trainerPos, leaderHp]);
+  }, [team, trainerPos, leaderHp, grassHuntMap]);
 
   // Dano de skill inimiga: MESMA fórmula do contra-ataque (sem fórmula paralela).
   const enemySkillDamage = (eSp: Species, eLevel: number, eElite: boolean, mult: number): number => {
@@ -16473,14 +16447,22 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     lastSpawnAtRef.current = nowTs;
     const trainer = trainerPosRef.current;
     // Spawn APENAS no canteiro em volta do treinador (280px): nada espalhado pelo mapa.
-    const grass = (mapEditorObjects[idle.currentMap] ?? [])
-      .filter((object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 280);
+    const patches = grassPatchesRef.current;
+    const anchored = autoRef.current
+      ? patches.find((patch) => patch.id === grassHuntRef.current.patchId)
+      : null;
+    const patch = anchored ?? nearestGrassPatch(patches, trainer, 280);
+    if (!patch) return [];
+    const spot = anchored ? grassHuntRef.current.center : null;
+    const grass = patch.tiles.filter((tile) => {
+      const point = grassTileCenter(tile);
+      return Math.hypot(point.x - trainer.x, point.y - trainer.y) <= 280
+        && (!spot || Math.hypot(point.x - spot.x, point.y - spot.y) <= GRASS_SPOT_RADIUS);
+    });
     if (grass.length === 0 || list.length === 0) return [];
     const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
     // Cap adaptativo: dentro do mato libera mais; fora deixa só 1.
-    const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
-      (object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 26,
-    );
+    const noMato = isInGrassPatch(patch, trainer);
     const cap = noMato ? (mobile ? 4 : 6) : 1;
     const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0).length;
     if (alive >= cap) return [];
@@ -16495,9 +16477,17 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       let pick = list[0];
       for (const entry of list) { roll -= entry.pct; if (roll <= 0) { pick = entry; break; } }
       const level = pick.min + Math.floor(Math.random() * Math.max(1, pick.max - pick.min + 1));
-      const tile = grass[Math.floor(Math.random() * grass.length)];
-      const x = Math.max(24, Math.min(curWorldW - 24, tile.x + (Math.random() - 0.5) * 40));
-      const y = Math.max(24, Math.min(curWorldH - 24, tile.y + (Math.random() - 0.5) * 40));
+      let point: { x: number; y: number } | null = null;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const tile = grass[Math.floor(Math.random() * grass.length)];
+        const center = grassTileCenter(tile, 24);
+        const candidate = { x: center.x + (Math.random() - 0.5) * tile.w * 0.55,
+          y: center.y + (Math.random() - 0.5) * tile.h * 0.24 };
+        if (candidate.x < 24 || candidate.y < 24 || candidate.x > curWorldW - 24 || candidate.y > curWorldH - 24) continue;
+        if (isOnGrassTile(tile, candidate, 24) && !collidesWithAny(candidate.x, candidate.y)) { point = candidate; break; }
+      }
+      if (!point) continue;
+      const { x, y } = point;
       // Shiny: no maximo 1 vivo por mapa. 1,2% por spawn; 10% depois de 220 abates.
       const pity = totalKillsRef.current - lastShinyKillRef.current >= 220;
       const shiny = !shinyAlive && Math.random() < (pity ? 0.10 : 0.012)
@@ -16510,7 +16500,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         id: enemyIdRef.current++, sp: species, hp, maxHp: hp, x, y,
         face: Math.random() < 0.5 ? "left" : "right",
         level, rarity: baseRarity, behavior: "wander",
-        spawnX: x, spawnY: y, wanderRadius: 72, aggroR: 0,
+        spawnX: x, spawnY: y, grassPatchId: patch.id, wanderRadius: 72, aggroR: 0,
       });
     }
     return out;
@@ -18295,11 +18285,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   );
   // Pés dentro da área real do desenho (não conta quem passa por baixo).
   const grassFeetOn = (o: Obstacle, x: number, y: number, feetOffset: number) => {
-    const halfW = o.w * 0.44;
-    const artTop = o.y - o.h * 0.74 + 8;
-    const artBottom = o.y - o.h * 0.20 + 8;
-    const feet = y + feetOffset;
-    return Math.abs(x - o.x) <= halfW && feet >= artTop && feet <= artBottom + 6;
+    return isOnGrassTile(o, { x, y }, feetOffset);
   };
   // Estado do mato estilo GBA:
   //  - frame 2 (pisado) quando treinador, seguidor ou selvagem estão em cima;
