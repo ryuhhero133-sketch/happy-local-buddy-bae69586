@@ -6896,6 +6896,32 @@ const confirmName = () => {
       return () => clearTimeout(t);
     }
   }, [idle.currentMap]);
+  // Colisão rosa: registra assim que as dimensões do mapa chegam e avisa no chat.
+  useEffect(() => {
+    const mapaAtual = idle.currentMap;
+    const urlMascara: Record<string, string> = {
+      emerald: emeraldColisaoUrl, rota1: rota1ColisaoUrl, bobo_rota1: boboRota1ColisaoUrl,
+      bobo_rota2: boboRota2ColisaoUrl, bobo_rota3: boboRota3ColisaoUrl,
+      bobo_rota_gelo: boboRotaGeloColisaoUrl, bobo_t2: boboT2ColisaoUrl,
+      bobo_templo: boboTemploColisaoUrl, bobo_transicao: boboTransicaoColisaoUrl,
+      bobo_transicao_gelo: boboTransicaoGeloColisaoUrl, bobo_viridian: boboViridianColisaoUrl,
+      bobo_g11ds: boboG11dsColisaoUrl, bobo_mmmm: boboMmmmColisaoUrl,
+    };
+    const src = urlMascara[mapaAtual];
+    if (!src || !customDims || customDims.mapId !== mapaAtual) return;
+    ensureCollision(mapaAtual, src, customDims.w, customDims.h);
+    let tentativas = 0;
+    const iv = window.setInterval(() => {
+      if (collisionReady(mapaAtual)) {
+        window.clearInterval(iv);
+        pushChat("Colisao do mapa carregada.", "info");
+        return;
+      }
+      tentativas += 1;
+      if (tentativas > 40) window.clearInterval(iv);
+    }, 250);
+    return () => window.clearInterval(iv);
+  }, [idle.currentMap, customDims]);
   // Zonas de mato: mantem o mapa povoado (o tick de combate so spawna com 0 vivos).
   useEffect(() => {
     if (!zoneForMap(idle.currentMap)) return;

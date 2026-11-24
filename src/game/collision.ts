@@ -385,7 +385,8 @@ async function buildGrid(mapId: CollisionMapId, src: string, w: number, h: numbe
             // Pallet usa 4 amostras: segura contorno de árvore, mas não prende na grama.
             // Cave1: precisa de quase todos pixels escuros pra bloquear — escadas de
             // madeira têm rungs pretos misturados com chão amarelo e devem ser caminháveis.
-            const neededHits = mapId === "palletRoute" ? 4 : mapId === "cave1" ? 3 : hasFootprintCollision(mapId) ? 5 : 2;
+            // Máscara rosa: exige TODOS os 4 cantos livres — parede fina não vaza.
+            const neededHits = PINK_MASK_MAPS.has(mapId) ? 4 : mapId === "palletRoute" ? 4 : mapId === "cave1" ? 3 : hasFootprintCollision(mapId) ? 5 : 2;
             walk[cy * cols + cx] = hits >= neededHits
               && (mapId !== "arv" || (redHits < 2 && pinkHits < 3 && orangeHits < 3)) ? 1 : 0;
             if (mapId === "arv" && redHits >= 1) zone[cy * cols + cx] = 3;
