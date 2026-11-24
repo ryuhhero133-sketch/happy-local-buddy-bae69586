@@ -11041,10 +11041,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
       if (keysRef.current.size > 0) return; // jogador no teclado
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { grassHomeRef.current = null; grassWalkRef.current = false; combatMoveRef.current = null; return; }
-      // Sem inimigos: quem caca e o TREINADOR (o Pokemon so segue).
-      combatMoveRef.current = null;
-      // acabou de chegar: descansa um pouco antes de escolher outro ponto
+      const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0);
+      const alvo = alive.length > 0 ? alive[0] : null;
+      // Sem alvo: solta qualquer perseguicao pendente. Com alvo: o Pokemon ataca,
+      // o treinador continua andando no mato perto da luta (sem puxar um ao outro).
+      if (!alvo) combatMoveRef.current = null;
       if (grassWalkRef.current && !walkTargetRef.current) {
         grassWalkRef.current = false;
         grassRestUntilRef.current = Date.now() + 220 + Math.random() * 480;
@@ -11056,7 +11057,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (grass.length === 0) return;
       const p = trainerPosRef.current;
       let home = grassHomeRef.current ? grass.find((g) => g.id === grassHomeRef.current!.id) : null;
-      const perto = home ? Math.hypot(home.x - p.x, home.y - p.y) <= 360 : false;
+      if (alvo) {
+        // Com inimigo: prefere a moita mais perto da luta (max 620px do treinador).
+        let best = null as typeof grass[number] | null;
+        let bestD = Number.POSITIVE_INFINITY;
+        for (const g of grass) {
+          if (Math.hypot(g.x - p.x, g.y - p.y) > 620) continue;
+          const d = Math.hypot(g.x - alvo.x, g.y - alvo.y);
+          if (d < bestD) { bestD = d; best = g; }
+        }
+        if (best) {
+          if (!home || Math.hypot(home.x - alvo.x, home.y - alvo.y) > bestD + 120) {
+            home = best;
+            grassHomeRef.current = { id: best.id, since: Date.now() };
+          }
+        }
+      }
+      const perto = home ? Math.hypot(home.x - p.x, home.y - p.y) <= 380 : false;
       if (!home || !perto) {
         let best = null as typeof grass[number] | null;
         let bestD = Number.POSITIVE_INFINITY;
@@ -11067,7 +11084,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (!best || bestD > 700) return;
         home = best;
         grassHomeRef.current = { id: best.id, since: Date.now() };
-      } else if (Date.now() - grassHomeRef.current.since > 25_000) {
+      } else if (!alvo && Date.now() - grassHomeRef.current.since > 25_000) {
         const outras = grass.filter((g) => g.id !== home!.id && Math.hypot(g.x - p.x, g.y - p.y) <= 720);
         if (outras.length > 0) {
           const pick = outras[Math.floor(Math.random() * outras.length)];
@@ -11077,7 +11094,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           grassHomeRef.current = { id: home.id, since: Date.now() };
         }
       }
-      // ponto de caminhada: 60 a 130 px do treinador, dentro do mato
+      // passo curto dentro do mato: ate 130px, evitando micro-pulos
       let x = p.x;
       let y = p.y;
       for (let tent = 0; tent < 8; tent++) {
