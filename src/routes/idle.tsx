@@ -6851,6 +6851,14 @@ const confirmName = () => {
         return [...alive, ...fresh];
       });
     };
+    // Pre-carrega as sheets da zona: sem isso o Pokemon nasce "invisivel" ate a imagem carregar.
+    const preload = zoneForMap(idle.currentMap) ?? [];
+    for (const entry of preload) {
+      for (const suffix of ["", "_shiny"]) {
+        const url = zoneSheet(entry.species + suffix);
+        if (url) { const img = new Image(); img.src = url; }
+      }
+    }
     const first = window.setTimeout(topUp, 600);
     const timer = window.setInterval(topUp, 2500);
     return () => { window.clearTimeout(first); window.clearInterval(timer); };
