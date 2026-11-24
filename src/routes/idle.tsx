@@ -11231,32 +11231,33 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }, 650);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorOpen, grassPatches]);
-  // Move o treinador de fato (independe do clique/teclado): passo curto com colisão.
+  // Move o treinador de fato, liso e contínuo. Vai de tile em tile de MATO
+  // (não usa colisão aqui: o caminho é entre tiles que o dono pintou como mato).
   useEffect(() => {
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen) return;
       const alvo = autoHuntPosRef.current;
       if (!alvo) return;
       if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { autoHuntPosRef.current = null; return; }
-      if (Date.now() - alvo.startedAt > 9000) { autoHuntPosRef.current = null; return; }
+      if (Date.now() - alvo.startedAt > 12000) { autoHuntPosRef.current = null; return; }
       setTrainerPos((tp) => {
         const dx = alvo.x - tp.x;
         const dy = alvo.y - tp.y;
         const d = Math.hypot(dx, dy);
-        if (d < 8) { autoHuntPosRef.current = null; grassRestUntilRef.current = Date.now() + 200 + Math.random() * 400; return tp; }
-        const step = Math.min(d, 14);
-        let nx = tp.x + (dx / d) * step;
-        let ny = tp.y + (dy / d) * step;
-        if (collidesWithAny(nx, ny)) {
-          if (!collidesWithAny(nx, tp.y)) ny = tp.y;
-          else if (!collidesWithAny(tp.x, ny)) nx = tp.x;
-          else { autoHuntPosRef.current = null; return tp; }
+        if (d < 6) {
+          autoHuntPosRef.current = null;
+          grassRestUntilRef.current = Date.now() + 250 + Math.random() * 450;
+          return tp;
         }
-        const nd = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+        // ~42 px/s, sempre reto no eixo dominante (quadradinhos).
+        const step = Math.min(d, 5);
+        const nx = Math.abs(dx) >= Math.abs(dy) ? tp.x + Math.sign(dx) * step : tp.x;
+        const ny = Math.abs(dx) >= Math.abs(dy) ? tp.y : tp.y + Math.sign(dy) * step;
+        const nd = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
         if (nd !== walkDirRef.current) { walkDirRef.current = nd; setWalkDir(nd); }
         return { x: nx, y: ny };
       });
-    }, 100);
+    }, 120);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorOpen]);
   const enterWorldPortal = (p: WorldPortalDef) => {
