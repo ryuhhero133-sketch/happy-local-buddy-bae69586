@@ -1,0 +1,367 @@
+/* ===== Mapa Mundial V2 (beta, só na conta liberada) ===== */
+.wm2-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: radial-gradient(circle at 50% 35%, rgba(12, 34, 78, .72), rgba(3, 8, 20, .94));
+  backdrop-filter: blur(4px);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.wm2 {
+  position: relative;
+  width: min(1180px, 100%);
+  height: min(760px, 94vh);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 3px solid #f2cf72;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0b1a36;
+  box-shadow: 0 0 0 2px #1b2f5e inset, 0 22px 60px rgba(0, 0, 0, .75);
+  color: #fff;
+}
+
+/* ---------- topo ---------- */
+.wm2-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #1b3f86, #102a5c);
+  border-bottom: 2px solid #f2cf72;
+}
+.wm2-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  text-shadow: 0 2px 0 #0a1730;
+}
+.wm2-logo b { color: #ffd94d; font-size: 17px; }
+.wm2-logo span { color: #7ef27a; font-size: 15px; }
+.wm2-logo em { color: #ffb347; font-size: 11px; font-style: normal; letter-spacing: 3px; }
+.wm2-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 900;
+  font-size: clamp(15px, 2vw, 21px);
+  color: #ffe9a8;
+  text-shadow: 0 2px 0 #0a1730;
+}
+.wm2-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 2px solid #f2cf72;
+  background: linear-gradient(180deg, #d8484f, #8e1620);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.wm2-close:hover { filter: brightness(1.12); }
+
+/* ---------- palco ---------- */
+.wm2-stage { position: relative; overflow: hidden; background: #071427; }
+.wm2-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
+  user-select: none;
+  pointer-events: none;
+}
+.wm2-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, transparent 55%, rgba(4, 12, 26, .55));
+}
+
+/* ---------- pinos de região ---------- */
+.wm2-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .6));
+}
+.wm2-pin__badge {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border-radius: 50%;
+  border: 3px solid #ffd94d;
+  background: radial-gradient(circle at 50% 30%, #2a4b8e, #11224a);
+  box-shadow: 0 0 14px rgba(255, 217, 77, .55);
+}
+.wm2-pin__name {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  text-shadow: 0 2px 0 #06101f, 0 0 6px #000;
+}
+.wm2-pin__sub {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffe9a8;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: rgba(8, 18, 36, .82);
+  border: 1px solid rgba(255, 217, 77, .45);
+  white-space: nowrap;
+}
+.wm2-pin.is-locked .wm2-pin__badge {
+  border-color: #8fa4c4;
+  background: radial-gradient(circle at 50% 30%, #33415c, #131c2e);
+  box-shadow: 0 0 10px rgba(120, 150, 190, .35);
+  font-size: 18px;
+}
+.wm2-pin.is-locked .wm2-pin__sub { color: #c9d7ea; border-color: rgba(160, 180, 210, .4); }
+.wm2-pin.is-active .wm2-pin__badge {
+  border-color: #7ef27a;
+  box-shadow: 0 0 22px rgba(126, 242, 122, .8), 0 0 0 4px rgba(126, 242, 122, .22);
+  animation: wm2-bob 1.8s ease-in-out infinite;
+}
+.wm2-pin:hover .wm2-pin__badge { filter: brightness(1.15); }
+
+@keyframes wm2-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ---------- painel lateral ---------- */
+.wm2-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  width: min(415px, 46%);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 2px solid #f2cf72;
+  background: linear-gradient(180deg, rgba(22, 38, 82, .96), rgba(9, 18, 40, .97));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .6);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.wm2-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2c4f9c, #17305f);
+  border: 1px solid rgba(255, 217, 77, .55);
+}
+.wm2-panel__head strong { flex: 1; font-size: 15px; color: #fff; text-shadow: 0 2px 0 #0a1730; }
+.wm2-panel__ball {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #0c1424;
+  background: linear-gradient(180deg, #e64b4b 0 46%, #f3f7ff 46% 100%);
+}
+.wm2-panel__x {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid #f2cf72;
+  background: #8e1620;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.wm2-panel__tag { margin: 0; text-align: center; font-size: 10px; color: #ffe9a8; font-weight: 800; letter-spacing: .6px; }
+
+.wm2-hero {
+  height: 104px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 217, 77, .5);
+  background: #0a1730;
+}
+.wm2-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.wm2-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.wm2-tabs button {
+  padding: 5px 2px;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 8px;
+  border: 1px solid #3f5c96;
+  background: #16254a;
+  color: #cfe0ff;
+  cursor: pointer;
+}
+.wm2-tabs button.is-on {
+  color: #3b2a00;
+  border-color: #ffd94d;
+  background: linear-gradient(180deg, #ffe9a8, #f2c14e);
+}
+
+.wm2-card {
+  display: flex;
+  gap: 8px;
+  padding: 7px;
+  border-radius: 10px;
+  background: rgba(10, 20, 42, .72);
+  border: 1px solid #3a5590;
+}
+.wm2-card__thumb {
+  flex: 0 0 84px;
+  height: 66px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 217, 77, .45);
+}
+.wm2-card__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wm2-card__info h4 { margin: 0 0 2px; font-size: 12px; color: #ffe9a8; }
+.wm2-card__info p { margin: 0 0 4px; font-size: 9.5px; line-height: 1.35; color: #cfe0ff; }
+.wm2-card__req { font-size: 9px; color: #7ef27a; font-weight: 800; }
+
+.wm2-block {
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(10, 20, 42, .72);
+  border: 1px solid #3a5590;
+}
+.wm2-block__head { display: flex; justify-content: space-between; font-size: 9.5px; color: #cfe0ff; }
+.wm2-block__head b { color: #ffe9a8; }
+.wm2-badges { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 5px; }
+.wm2-badge {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #33477a;
+  background: #0d1830;
+  color: #5b6f96;
+}
+.wm2-badge.is-on {
+  border-color: #ffd94d;
+  background: linear-gradient(180deg, #ffe9a8, #f0b429);
+  color: #3b2a00;
+  box-shadow: 0 0 10px rgba(255, 217, 77, .6);
+}
+.wm2-rewards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 5px; }
+.wm2-rewards span {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  border-radius: 7px;
+  border: 1px solid #f2cf72;
+  background: linear-gradient(180deg, #24386b, #14224a);
+}
+.wm2-soon { margin: 0; padding: 14px 6px; text-align: center; font-size: 11px; color: #9fb4d8; }
+
+.wm2-go {
+  margin-top: auto;
+  padding: 9px;
+  border-radius: 12px;
+  border: 2px solid #b6f36f;
+  background: linear-gradient(180deg, #54c94f, #1f8a2e);
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  text-shadow: 0 2px 0 #0d4a16;
+  box-shadow: 0 6px 0 #0b5c1c, 0 0 18px rgba(84, 201, 79, .55);
+}
+.wm2-go:hover { filter: brightness(1.08); }
+.wm2-go:active { transform: translateY(2px); box-shadow: 0 3px 0 #0b5c1c; }
+
+/* ---------- rodapé ---------- */
+.wm2-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #142a58, #0a1834);
+  border-top: 2px solid #f2cf72;
+}
+.wm2-season { display: flex; align-items: center; gap: 9px; }
+.wm2-season__icon { font-size: 24px; filter: drop-shadow(0 0 8px rgba(255, 217, 77, .7)); }
+.wm2-season strong { display: block; font-size: 12px; color: #ffe9a8; }
+.wm2-season em { display: block; font-size: 10px; color: #9fc4ff; font-style: normal; }
+.wm2-season small { font-size: 9px; color: #c9d7ea; }
+.wm2-season__rewards { margin-left: auto; display: grid; gap: 3px; }
+.wm2-season__rewards strong { font-size: 9px; color: #cfe0ff; }
+.wm2-season__rewards div { display: flex; gap: 4px; }
+.wm2-season__rewards span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  border-radius: 7px;
+  border: 1px solid #f2cf72;
+  background: linear-gradient(180deg, #24386b, #14224a);
+}
+
+/* ---------- aviso ---------- */
+.wm2-toast {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  padding: 7px 16px;
+  border-radius: 10px;
+  background: rgba(8, 16, 34, .94);
+  border: 1.5px solid #ffd94d;
+  color: #ffe9a8;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .5);
+  animation: wm2-pop .25s ease-out;
+}
+@keyframes wm2-pop {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 760px) {
+  .wm2 { height: min(700px, 95vh); }
+  .wm2-head { padding: 6px 9px; gap: 8px; }
+  .wm2-logo em { display: none; }
+  .wm2-pin__badge { width: 38px; height: 38px; font-size: 18px; }
+  .wm2-pin__name { font-size: 11px; }
+  .wm2-pin__sub { font-size: 8px; }
+  .wm2-panel {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: 58%;
+    border-radius: 14px;
+  }
+  .wm2-hero { height: 74px; }
+  .wm2-foot { flex-wrap: wrap; gap: 8px; }
+  .wm2-season__rewards { margin-left: 0; }
+}

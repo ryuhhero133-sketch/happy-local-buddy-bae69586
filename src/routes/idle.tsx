@@ -36,6 +36,7 @@ import { FlaskConical, Sparkles, Home } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
+import { WorldMapV2 } from "@/components/WorldMapV2";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.webp";
 import navPokemon from "@/assets/icons/nav-pokemon.webp";
@@ -25734,7 +25735,16 @@ A sucata afundou com o casco.
               </div>
             )}
 {snowmanDialog && <NevezinhaDialog onDone={() => setSnowmanDialog(false)} />}
-{mapTeleportOpen && (() => {
+{mapTeleportOpen && canUseMapEditor && (
+          <WorldMapV2
+            onClose={() => setMapTeleportOpen(false)}
+            onTravel={() => {
+              setMapTeleportOpen(false);
+              pushChat("🗺️ Mapa Mundi novo em construção — o botão de viajar entra na próxima etapa.", "info");
+            }}
+          />
+        )}
+{mapTeleportOpen && !canUseMapEditor && (() => {
               const ev = eventualMapWindow();
                const base = [...(canSeeTestMaps(identity?.id) ? TEST_MAP_IDS : []), "mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
               const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
