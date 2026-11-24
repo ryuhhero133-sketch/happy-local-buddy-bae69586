@@ -3117,6 +3117,7 @@ function IdlePage() {
   const grassHomeRef = useRef<{ id: number; since: number } | null>(null);
   const grassWalkRef = useRef(false);
   const grassRestUntilRef = useRef(0);
+  const grassDirRef = useRef<{ x: number; y: number } | null>(null);
   const bumpNowUi = () => {
     const stamp = Date.now();
     if (stamp - lastNowUiRef.current < 250) return;
@@ -11042,13 +11043,10 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
       if (keysRef.current.size > 0) return; // jogador no teclado
       const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0);
-      const alvo = alive.length > 0 ? alive[0] : null;
-      // Sem alvo: solta qualquer perseguicao pendente. Com alvo: o Pokemon ataca,
-      // o treinador continua andando no mato perto da luta (sem puxar um ao outro).
-      if (!alvo) combatMoveRef.current = null;
+      if (alive.length === 0) combatMoveRef.current = null;
       if (grassWalkRef.current && !walkTargetRef.current) {
         grassWalkRef.current = false;
-        grassRestUntilRef.current = Date.now() + 220 + Math.random() * 480;
+        grassRestUntilRef.current = Date.now() + 180 + Math.random() * 320;
         return;
       }
       if (walkTargetRef.current) return;
@@ -11056,59 +11054,49 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
       if (grass.length === 0) return;
       const p = trainerPosRef.current;
+      // Ancora: SEMPRE a moita mais perto do treinador. Nunca busca longe.
       let home = grassHomeRef.current ? grass.find((g) => g.id === grassHomeRef.current!.id) : null;
-      if (alvo) {
-        // Com inimigo: prefere a moita mais perto da luta (max 620px do treinador).
-        let best = null as typeof grass[number] | null;
-        let bestD = Number.POSITIVE_INFINITY;
-        for (const g of grass) {
-          if (Math.hypot(g.x - p.x, g.y - p.y) > 620) continue;
-          const d = Math.hypot(g.x - alvo.x, g.y - alvo.y);
-          if (d < bestD) { bestD = d; best = g; }
-        }
-        if (best) {
-          if (!home || Math.hypot(home.x - alvo.x, home.y - alvo.y) > bestD + 120) {
-            home = best;
-            grassHomeRef.current = { id: best.id, since: Date.now() };
-          }
-        }
-      }
-      const perto = home ? Math.hypot(home.x - p.x, home.y - p.y) <= 380 : false;
-      if (!home || !perto) {
+      if (home && Math.hypot(home.x - p.x, home.y - p.y) > 200) home = null;
+      if (!home) {
         let best = null as typeof grass[number] | null;
         let bestD = Number.POSITIVE_INFINITY;
         for (const g of grass) {
           const d = Math.hypot(g.x - p.x, g.y - p.y);
           if (d < bestD) { bestD = d; best = g; }
         }
-        if (!best || bestD > 700) return;
+        if (!best || bestD > 260) return; // nada de mato perto: fica parado
         home = best;
         grassHomeRef.current = { id: best.id, since: Date.now() };
-      } else if (!alvo && Date.now() - grassHomeRef.current.since > 25_000) {
-        const outras = grass.filter((g) => g.id !== home!.id && Math.hypot(g.x - p.x, g.y - p.y) <= 720);
-        if (outras.length > 0) {
-          const pick = outras[Math.floor(Math.random() * outras.length)];
-          grassHomeRef.current = { id: pick.id, since: Date.now() };
-          home = pick;
-        } else {
-          grassHomeRef.current = { id: home.id, since: Date.now() };
+      }
+      // Limites do canteiro (cluster de mato em volta da ancora).
+      const patch = grass.filter((g) => Math.hypot(g.x - home!.x, g.y - home!.y) <= 130);
+      let minX = home.x, maxX = home.x, minY = home.y, maxY = home.y;
+      for (const g of patch) {
+        minX = Math.min(minX, g.x); maxX = Math.max(maxX, g.x);
+        minY = Math.min(minY, g.y); maxY = Math.max(maxY, g.y);
+      }
+      // Anda em LINHA RETA (quadradinhos), dentro do canteiro e perto da ancora.
+      const DIRS = [{ x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }];
+      let dir = grassDirRef.current ?? DIRS[Math.floor(Math.random() * DIRS.length)];
+      const step = 46;
+      let x = 0, y = 0;
+      for (let tent = 0; tent < 4; tent++) {
+        x = Math.max(minX - 20, Math.min(maxX + 20, p.x + dir.x * step));
+        y = Math.max(minY - 20, Math.min(maxY + 20, p.y + dir.y * step));
+        const distHome = Math.hypot(x - home.x, y - home.y);
+        if (distHome > 150 || Math.hypot(x - p.x, y - p.y) < 24) {
+          // virou pro limite: gira 90 graus e tenta de novo
+          dir = dir.x !== 0 ? { x: 0, y: Math.random() < 0.5 ? -1 : 1 } : { x: Math.random() < 0.5 ? -1 : 1, y: 0 };
+          continue;
         }
+        break;
       }
-      // passo curto dentro do mato: ate 130px, evitando micro-pulos
-      let x = p.x;
-      let y = p.y;
-      for (let tent = 0; tent < 8; tent++) {
-        const ang = Math.random() * Math.PI * 2;
-        const rad = 60 + Math.random() * 70;
-        const cx = Math.max(24, Math.min(curWorldW - 24, home.x + Math.cos(ang) * rad));
-        const cy = Math.max(24, Math.min(curWorldH - 24, home.y + Math.sin(ang) * rad));
-        if (Math.hypot(cx - p.x, cy - p.y) >= 55) { x = cx; y = cy; break; }
-      }
-      if (Math.hypot(x - p.x, y - p.y) < 55) return;
+      grassDirRef.current = dir;
+      if (Math.hypot(x - p.x, y - p.y) < 24) return;
       grassWalkRef.current = true;
       walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
       setWalkingTo("caçando");
-    }, 700);
+    }, 650);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorObjects, mapEditorOpen, curWorldW, curWorldH]);
   const enterWorldPortal = (p: WorldPortalDef) => {
