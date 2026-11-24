@@ -947,6 +947,9 @@ const MAP_EDITOR_KEY = "rubym.map-editor.v1";
 // O mapa ARV v3 tem spawns novos (inclusive níveis altos); não reutiliza a
 // cópia v2 que o navegador salvou antes da publicação deste mapa.
 const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v3";
+const MAP_EDITOR_TELEPORTS_KEY = "rubym.map-editor-teleports.v1";
+/** Teleporte colocado no editor: pisa na bolinha -> vai para (toMap, toX, toY). */
+type EditorTeleport = { id: number; x: number; y: number; toMap: IdleMapId; toX: number; toY: number; r: number };
 const MAP_EDITOR_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 const ARV_CASINHA_EXIT_SPAWN = { x: 2800, y: 4550 };
 const ARV_CASINHA_EXIT_PROTECTION_MS = 3_500;
@@ -2028,6 +2031,9 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
   { id: "editor_tree_variant", name: "Árvore verde 2", src: editorTreeVariantUrl, w: 173, h: 211, blocks: false, collideR: 0 },
   { id: "editor_bush", name: "Moita", src: editorBushUrl, w: 183, h: 134, blocks: false, collideR: 0 },
+  { id: "npc_oak", name: "NPC Professor", src: npcOakSprite, w: 62, h: 84, blocks: false, collideR: 0 },
+  { id: "npc_bruxa", name: "NPC Bruxa", src: npcAbyssWitch, w: 62, h: 84, blocks: false, collideR: 0 },
+  { id: "npc_nevezinha", name: "NPC Nevezinha", src: nevezinhaUrl, w: 62, h: 84, blocks: false, collideR: 0 },
 ];
 function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[]> {
   if (!raw || typeof raw !== "object") return {};
@@ -3945,7 +3951,7 @@ const confirmName = () => {
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [mapEditorOpen, setMapEditorOpen] = useState(false);
-  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon">("sprites");
+  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon" | "teleport">("sprites");
   const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
   const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
   const [mapEditorSelectedIds, setMapEditorSelectedIds] = useState<number[]>([]);
@@ -3964,7 +3970,7 @@ const confirmName = () => {
     return next;
   });
   const [vipTitleSize, setVipTitleSize] = useState(() => {
-    try { return Math.max(12, Math.min(48, Number(localStorage.getItem("rubym.vipTitle.size")) || 18)); } catch { return 18; }
+    try { return Math.max(12, Math.min(48, Number(localStorage.getItem("rubym.vipTitle.size")) || 34)); } catch { return 34; }
   });
   const changeVipTitleSize = (size: number) => {
     const s = Math.max(12, Math.min(48, Math.round(size)));
@@ -4029,6 +4035,22 @@ const confirmName = () => {
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* storage indisponível */ } }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
   useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
+  // ---- Teleportes criados no editor (por mapa) ----
+  const [mapEditorTeleports, setMapEditorTeleports] = useState<Record<string, EditorTeleport[]>>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_EDITOR_TELEPORTS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Record<string, EditorTeleport[]>;
+        if (parsed && typeof parsed === "object") return parsed;
+      }
+    } catch { /* storage indisponivel */ }
+    return {};
+  });
+  const [mapEditorSelectedTeleportId, setMapEditorSelectedTeleportId] = useState<number | null>(null);
+  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_TELEPORTS_KEY, JSON.stringify(mapEditorTeleports)); } catch { /* ignore */ } }, [mapEditorTeleports]);
+  // Painel do editor arrastavel
+  const [mapEditorPos, setMapEditorPos] = useState<{ x: number; y: number } | null>(null);
+  const mapEditorDragRef = useRef<{ dx: number; dy: number } | null>(null);
   const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
@@ -10959,6 +10981,49 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       trainerHomeRef.current = { x: hw / 2, y: hh / 2 };
     }
   }, [idle.currentMap, customDims]);
+  // Teleporte do editor: leva para o mapa e coordenada escolhidos (sem custo).
+  const useEditorTeleport = (toMap: IdleMapId, toX: number, toY: number) => {
+    if (!IDLE_MAPS[toMap]) return;
+    houseArrivalRef.current = { map: toMap, x: Math.round(toX), y: Math.round(toY) };
+    trainerPositionRestoredRef.current = true;
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    setAttackTargetId(null);
+    setEnemies([]);
+    clearBattleScene();
+    setIdle((s) => ({ ...s, currentMap: toMap }));
+    pushChat(`🌀 Teleporte → ${IDLE_MAPS[toMap].name}`, "cap");
+  };
+  // Pisou no TP?
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (mapEditorOpen || mapLoadingRef.current) return;
+      const pads = mapEditorTeleports[idle.currentMap] ?? [];
+      if (pads.length === 0) return;
+      const p = trainerPosRef.current;
+      const pad = pads.find((tp) => Math.hypot(p.x - tp.x, p.y - tp.y) <= (tp.r || 34));
+      if (pad) useEditorTeleport(pad.toMap, pad.toX, pad.toY);
+    }, 300);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, mapEditorTeleports, mapEditorOpen]);
+  // AUTOMÁTICO: sem inimigos no mapa, o treinador caça andando por cima do mato GBA.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
+      if (walkTargetRef.current) return;
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) return;
+      const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
+      if (grass.length === 0) return;
+      const spot = grass[Math.floor(Math.random() * grass.length)];
+      const p = trainerPosRef.current;
+      const x = Math.max(24, Math.min(curWorldW - 24, spot.x + (Math.random() - 0.5) * 46));
+      const y = Math.max(24, Math.min(curWorldH - 24, spot.y + (Math.random() - 0.5) * 46));
+      if (Math.hypot(x - p.x, y - p.y) < 18) return;
+      walkTargetRef.current = { x, y, label: "caçando na grama", resumeAuto: true, startedAt: Date.now() };
+      setWalkingTo("caçando na grama");
+    }, 1800);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, mapEditorObjects, mapEditorOpen, curWorldW, curWorldH]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
     const lv = idle.trainerLevel ?? 1;
@@ -19266,6 +19331,15 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                 setMapEditorMove(false); e.stopPropagation(); return;
               }
               const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+              if (mapEditorTab === "teleport") {
+                const tp: EditorTeleport = {
+                  id, x: wx, y: wy, toMap: idle.currentMap,
+                  toX: Math.round(curWorldW / 2), toY: Math.round(curWorldH / 2), r: 34,
+                };
+                setMapEditorTeleports((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), tp] }));
+                setMapEditorSelectedTeleportId(id);
+                playClick(); e.stopPropagation(); return;
+              }
               if (mapEditorTab === "pokemon") {
                 if (!mapEditorAsset) return;
                 setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []),
@@ -21808,6 +21882,19 @@ A sucata afundou com o casco.
             )}
 
             {/* Obstáculos (árvores, pedras, plantas animadas) — z-index pela BASE (y) para o treinador passar por trás */}
+            {(mapEditorTeleports[idle.currentMap] ?? []).map((tp) => (
+              <div key={`tp-${tp.id}`}
+                onClick={(event) => { if (!mapEditorOpen) return; event.stopPropagation(); setMapEditorSelectedTeleportId(tp.id); setMapEditorTab("teleport"); }}
+                title={`TP → ${IDLE_MAPS[tp.toMap]?.name ?? tp.toMap} (${tp.toX}, ${tp.toY})`}
+                style={{ position: "absolute", left: tp.x - tp.r, top: tp.y - tp.r, width: tp.r * 2, height: tp.r * 2,
+                  borderRadius: "50%", border: `2px solid ${mapEditorSelectedTeleportId === tp.id ? "#ffe08a" : "#7ef0ff"}`,
+                  background: "radial-gradient(circle, rgba(126,240,255,.45), rgba(126,240,255,.06) 72%)",
+                  boxShadow: "0 0 12px rgba(126,240,255,.75)", zIndex: Math.round(tp.y) + 8,
+                  pointerEvents: mapEditorOpen ? "auto" : "none", display: "grid", placeItems: "center",
+                  color: "#032d33", fontWeight: 900, fontSize: 10 }}>
+                TP
+              </div>
+            ))}
             {mapEditorOpen && mapEditorTab === "pokemon" && (mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => (
               <button key={`editor-spawn-${spawn.id}`} type="button" data-editor-entity="spawn"
                 onClick={(event) => { if (mapEditorAsset || mapEditorMove) return; event.stopPropagation(); setMapEditorSelectedSpawnId(spawn.id); }}
@@ -23159,7 +23246,7 @@ A sucata afundou com o casco.
                   display: "flex", alignItems: "center", gap: 5,
                   pointerEvents: "none",
                 }}>
-                  {vipTitleOn && (
+                  {(vipTitleOn || isVip()) && (
                     <img src={vipMemberUrl} alt="" style={{ height: vipTitleSize, width: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }} />
                   )}
                   <div style={{
@@ -24136,27 +24223,88 @@ A sucata afundou com o casco.
 
           {mapEditorOpen && (
             <div data-editor-ui="panel" onClick={(event) => event.stopPropagation()}
-              style={{ position: "fixed", top: 72, right: 12, width: "min(330px, calc(100vw - 24px))",
+              style={{ position: "fixed",
+                ...(mapEditorPos ? { left: mapEditorPos.x, top: mapEditorPos.y } : { top: 72, right: 12 }),
+                width: "min(330px, calc(100vw - 24px))",
                 maxHeight: "calc(100dvh - 160px)", overflowY: "auto", zIndex: 6000, pointerEvents: "auto",
                 background: "linear-gradient(145deg, #25103f, #10091e)", border: "2px solid #d9b46b", borderRadius: 12,
                 boxShadow: "0 12px 35px #000b", color: "#f7e9ce", padding: 12, fontSize: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div
+                onPointerDown={(event) => {
+                  if ((event.target as HTMLElement).closest("button")) return;
+                  const panel = (event.currentTarget as HTMLElement).parentElement;
+                  if (!panel) return;
+                  const box = panel.getBoundingClientRect();
+                  mapEditorDragRef.current = { dx: event.clientX - box.left, dy: event.clientY - box.top };
+                  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+                }}
+                onPointerMove={(event) => {
+                  const drag = mapEditorDragRef.current;
+                  if (!drag) return;
+                  setMapEditorPos({
+                    x: Math.max(4, Math.min(window.innerWidth - 120, event.clientX - drag.dx)),
+                    y: Math.max(4, Math.min(window.innerHeight - 48, event.clientY - drag.dy)),
+                  });
+                }}
+                onPointerUp={() => { mapEditorDragRef.current = null; }}
+                onPointerCancel={() => { mapEditorDragRef.current = null; }}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, cursor: "move", touchAction: "none" }}>
                 <strong style={{ color: "#ffe08a" }}>⌂ EDITOR DE MAPA · {IDLE_MAPS[idle.currentMap]?.name}</strong>
                 <button type="button" onClick={() => setMapEditorOpen(false)} aria-label="Fechar editor">✕</button>
               </div>
               <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                {(["sprites", "pokemon"] as const).map((mode) => <button type="button" key={mode}
+                {(["sprites", "pokemon", "teleport"] as const).map((mode) => <button type="button" key={mode}
                   onClick={() => { setMapEditorTab(mode); setMapEditorAsset(null); setMapEditorMove(false); }}
                   style={{ flex: 1, padding: 6, borderRadius: 7, color: "#fff", cursor: "pointer",
                     border: `1px solid ${mapEditorTab === mode ? "#ffe08a" : "#61477f"}`,
                     background: mapEditorTab === mode ? "#5b3573" : "#261a3b" }}>
-                  {mode === "sprites" ? "🌳 OBJETOS" : "⚡ POKÉMON"}
+                  {mode === "sprites" ? "🌳 OBJ" : mode === "pokemon" ? "⚡ MON" : "🌀 TP"}
                 </button>)}
               </div>
               <div style={{ color: "#d8c8e8", fontSize: 11, marginBottom: 8 }}>
                 {mapEditorMove ? "Clique no mapa para mover o selecionado." : mapEditorAsset ? "Clique no mapa para adicionar, mesmo perto de outros itens. Botão direito remove." : "Arraste para mover. Botão direito remove. Para adicionar, escolha um item."}
               </div>
-              {mapEditorTab === "sprites" ? <>
+              {mapEditorTab === "teleport" ? <>
+                <div style={{ color: "#d8c8e8", fontSize: 11, marginBottom: 8 }}>
+                  Clique no mapa para criar um teleporte. Clique num TP da lista para escolher o destino.
+                </div>
+                <div style={{ maxHeight: 130, overflowY: "auto", marginBottom: 8 }}>
+                  {(mapEditorTeleports[idle.currentMap] ?? []).map((tp) => (
+                    <button type="button" key={tp.id} onClick={() => setMapEditorSelectedTeleportId(tp.id)}
+                      style={{ display: "block", width: "100%", textAlign: "left", padding: 5, marginBottom: 3, fontSize: 10,
+                        background: mapEditorSelectedTeleportId === tp.id ? "#3a2c56" : "#221733",
+                        border: `1px solid ${mapEditorSelectedTeleportId === tp.id ? "#ffe08a" : "#594779"}`,
+                        color: "#e2d2ec", borderRadius: 6, cursor: "pointer" }}>
+                      🌀 {tp.x},{tp.y} → {IDLE_MAPS[tp.toMap]?.name ?? tp.toMap} ({tp.toX},{tp.toY})
+                    </button>
+                  ))}
+                  {(mapEditorTeleports[idle.currentMap] ?? []).length === 0 && <small style={{ color: "#b8a8cb" }}>Nenhum TP neste mapa ainda.</small>}
+                </div>
+                {(() => {
+                  const tp = (mapEditorTeleports[idle.currentMap] ?? []).find((item) => item.id === mapEditorSelectedTeleportId);
+                  if (!tp) return null;
+                  const update = (changes: Partial<EditorTeleport>) => setMapEditorTeleports((prev) => ({ ...prev,
+                    [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === tp.id ? { ...item, ...changes } : item) }));
+                  return <div style={{ padding: 8, background: "#160f2a", border: "1px solid #4b3a68", borderRadius: 8 }}>
+                    <label style={{ display: "block", marginBottom: 6 }}>Destino
+                      <select value={tp.toMap} onChange={(event) => update({ toMap: event.target.value as IdleMapId })} style={{ width: "100%" }}>
+                        {Object.keys(IDLE_MAPS).map((mapKey) => <option key={mapKey} value={mapKey}>{IDLE_MAPS[mapKey as IdleMapId].name}</option>)}
+                      </select>
+                    </label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                      <label>Nascer X<input type="number" value={tp.toX} onChange={(event) => update({ toX: Math.round(Number(event.target.value) || 0) })} style={{ width: "100%" }} /></label>
+                      <label>Nascer Y<input type="number" value={tp.toY} onChange={(event) => update({ toY: Math.round(Number(event.target.value) || 0) })} style={{ width: "100%" }} /></label>
+                    </div>
+                    <label style={{ display: "block", marginTop: 6 }}>Raio (px)
+                      <input type="number" min="16" max="200" value={tp.r} onChange={(event) => update({ r: Math.max(16, Math.min(200, Number(event.target.value) || 34)) })} style={{ width: "100%" }} />
+                    </label>
+                    <button type="button" onClick={() => {
+                      setMapEditorTeleports((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== tp.id) }));
+                      setMapEditorSelectedTeleportId(null);
+                    }} style={{ marginTop: 8, width: "100%", padding: 6, background: "#4a1420", border: "1px solid #ff8a9b", color: "#fff", borderRadius: 6, cursor: "pointer" }}>🗑 Remover este TP</button>
+                  </div>;
+                })()}
+              </> : mapEditorTab === "sprites" ? <>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5, maxHeight: 190, overflowY: "auto" }}>
                   <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(false); }} style={{ border: `2px solid ${mapEditorAsset == null ? "#ffe08a" : "#49395b"}`, background: "#20152e", color: "#fff", borderRadius: 6, cursor: "pointer" }}>☝ Selecionar</button>
                   {MAP_EDITOR_ASSETS.map((asset) => <button type="button" key={asset.id} title={asset.name} onClick={() => { setMapEditorAsset(asset.id); setMapEditorObjectMode(asset.harvestable ? "harvest" : asset.blocks ? "solid" : "none"); setMapEditorSelectedId(null); setMapEditorMove(false); }}
@@ -24326,7 +24474,7 @@ A sucata afundou com o casco.
                 </div>
               </>}
               <button type="button" onClick={() => {
-                const json = JSON.stringify({ version: 3, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [] }, null, 2);
+                const json = JSON.stringify({ version: 4, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [], teleports: mapEditorTeleports[idle.currentMap] ?? [] }, null, 2);
                 const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
                 const link = document.createElement("a"); link.href = url; link.download = `mapa-${idle.currentMap}.json`; link.click();
                 window.setTimeout(() => URL.revokeObjectURL(url), 1000);
