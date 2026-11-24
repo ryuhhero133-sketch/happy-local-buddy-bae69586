@@ -30,6 +30,7 @@ export function WorldMapV2({ onClose, onTravel }: { onClose: () => void; onTrave
   const [selectedId, setSelectedId] = useState("kanto");
   const [tab, setTab] = useState<(typeof TABS)[number]>("Campanha");
   const [notice, setNotice] = useState<string | null>(null);
+  // Painel lateral sempre visível (fecha só se o jogador quiser ver o mapa inteiro).
   const [panelOpen, setPanelOpen] = useState(true);
   const selected = REGIONS.find((region) => region.id === selectedId) ?? REGIONS[0];
 

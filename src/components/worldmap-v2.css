@@ -6,8 +6,7 @@
   display: grid;
   place-items: center;
   padding: 12px;
-  background: radial-gradient(circle at 50% 35%, rgba(12, 34, 78, .72), rgba(3, 8, 20, .94));
-  backdrop-filter: blur(4px);
+  background: radial-gradient(circle at 50% 35%, #0c224e, #030814 78%);
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 
@@ -369,12 +368,12 @@
   .wm2-pin__name { font-size: 11px; }
   .wm2-pin__sub { font-size: 8px; }
   .wm2-panel {
-    top: auto;
-    left: 8px;
+    top: 8px;
     right: 8px;
     bottom: 8px;
-    width: auto;
-    max-height: 58%;
+    left: auto;
+    width: min(320px, 80%);
+    max-height: none;
     border-radius: 14px;
   }
   .wm2-hero { height: 74px; }
