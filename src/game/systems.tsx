@@ -259,6 +259,7 @@ export interface PetInstance {
   rarity: Rarity;
   faintedAt?: number | null; // timestamp em ms quando desmaiou (revive após 3 min)
   statBoost?: number; // multiplicador extra de stats (ex: 1.05 = +5% a+)
+  rebirths?: number; // quantas vezes renasceu (cada rebirth vale 3 estrelas)
   locked?: boolean; // pets de evento: não podem ser vendidos/trocados/anunciados
   ascensionStats?: Record<string, number>; // Atributos passivos aleatórios da ascensão
   actionMoves?: number[]; // índices dos moves (dex.moves) em "Ações" (máx 4)
@@ -623,6 +624,15 @@ export function xpToNext(level: number) {
   return Math.floor(2 * (10 + level * level * 8));
 }
 
+/** Estrelas: 1 a cada 100/150/200 do ciclo + 3 por rebirth, teto 7. */
+export function starsOf(pet: PetInstance): number {
+  const cycle = pet.level >= 200 ? 3 : pet.level >= 150 ? 2 : pet.level >= 100 ? 1 : 0;
+  return Math.min(7, (pet.rebirths ?? 0) * 3 + cycle);
+}
+/** Cada estrela = +7% em todos os atributos (tipo IV/EV). */
+export function starPower(pet: PetInstance): number {
+  return 1 + starsOf(pet) * 0.07;
+}
 export function calcMaxHp(pet: PetInstance) {
   const b = SPECIES_BASE[pet.species];
   const rw = RARITY_WEIGHT[pet.rarity];
@@ -630,7 +640,7 @@ export function calcMaxHp(pet: PetInstance) {
   const lb = pet.loyaltyBonus;
   const allMul = 1 + (lb?.allPct ?? 0);
   const hpMul = 1 + (lb?.statPcts?.hp ?? 0);
-  const baseHp = Math.floor(((2 * b.hp * pet.level) / 50 + pet.level + 10) * rw * boost * allMul * hpMul);
+  const baseHp = Math.floor(((2 * b.hp * pet.level) / 50 + pet.level + 10) * rw * boost * allMul * hpMul * starPower(pet));
   const ascBonus = pet.ascensionStats?.hp || 0;
   return baseHp + ascBonus;
 }
@@ -641,7 +651,7 @@ export function calcStat(pet: PetInstance, key: "atk"|"def"|"spa"|"spd"|"spe") {
   const lb = pet.loyaltyBonus;
   const allMul = 1 + (lb?.allPct ?? 0);
   const statMul = 1 + (lb?.statPcts?.[key] ?? 0);
-  const baseStat = Math.floor(((2 * b * pet.level) / 50 + 5) * rw * boost * allMul * statMul);
+  const baseStat = Math.floor(((2 * b * pet.level) / 50 + 5) * rw * boost * allMul * statMul * starPower(pet));
   const ascBonus = pet.ascensionStats?.[key] || 0;
   return baseStat + ascBonus;
 }

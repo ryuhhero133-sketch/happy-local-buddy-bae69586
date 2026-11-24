@@ -38,6 +38,7 @@ import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import { WorldMapV2 } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
+import { starsOf } from "@/game/systems";
 import type { LucideIcon } from "lucide-react";
 import navInicio from "@/assets/icons/nav-inicio.webp";
 import navPokemon from "@/assets/icons/nav-pokemon.webp";
@@ -29731,6 +29732,20 @@ onClick={(e) => {
           image={GIF[pet.species]}
           hp={idx === 0 ? leaderHp : (pet.hp ?? calcIdleMaxHp(pet))}
           maxHp={calcIdleMaxHp(pet)}
+          stars={starsOf(pet)}
+          rebirths={pet.rebirths ?? 0}
+          traits={(pet.traits ?? []).map((id) => {
+            const trait = TRAITS[id as keyof typeof TRAITS];
+            return { name: trait?.name ?? id, icon: trait?.icon, desc: trait?.desc };
+          })}
+          onRebirth={pet.level >= 200 && starsOf(pet) < 7 ? () => {
+            const nextPet = { ...pet, level: 1, xp: 0, rebirths: (pet.rebirths ?? 0) + 1 };
+            nextPet.hp = calcIdleMaxHp(nextPet);
+            setTeam((prev) => prev.map((item) => item.uid === pet.uid ? nextPet : item));
+            if (idx === 0) setLeaderHp(nextPet.hp);
+            setPetCardUid(null);
+            pushChat(`✨ Rebirth! ${pet.species.replace(/_/g, " ")} voltou ao Lv.1 com ${starsOf(nextPet)} estrela(s).`, "cap");
+          } : undefined}
           isLeader={idx === 0}
           onClose={() => setPetCardUid(null)}
           onMakeLeader={idx > 0 ? () => {
@@ -29741,14 +29756,22 @@ onClick={(e) => {
           } : undefined}
         />;
       })()}
-      {statsCardPet && (
-        <PokemonStatsCard
-          pet={ancestralPetForDisplay(statsCardPet, collectionForDisplay)}
-          team={team}
-          gifSrc={GIF[statsCardPet.species]}
+      {statsCardPet && (() => {
+        const shown = ancestralPetForDisplay(statsCardPet, collection);
+        return <PetCard
+          name={shown.species.replace(/_/g, " ")}
+          species={shown.species}
+          level={shown.level}
+          rarity={shown.rarity}
+          image={gifMap[shown.species]}
+          hp={shown.hp ?? calcIdleMaxHp(shown)}
+          maxHp={calcIdleMaxHp(shown)}
+          stars={starsOf(shown)}
+          rebirths={shown.rebirths ?? 0}
+          traits={(shown.traits ?? []).map((id) => { const t = TRAITS[id]; return { name: t?.name ?? id, icon: t?.icon, desc: t?.desc }; })}
           onClose={() => setStatsCardPet(null)}
-        />
-      )}
+        />;
+      })}
 
 
 
