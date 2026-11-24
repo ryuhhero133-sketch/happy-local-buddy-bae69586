@@ -2010,6 +2010,10 @@ const EMPTY_EDITOR_OBSTACLES: EditorObstacle[] = [];
 type EditorPokemonSpawn = { id: number; x: number; y: number; species: Species; level: number; rarity: Rarity; radius: number; respawnSeconds?: number; sizePercent?: number; raid?: boolean };
 type MapEditorAsset = { id: string; name: string; src: string; w: number; h: number; blocks: boolean; collideR: number; bgAnim?: NonNullable<Obstacle["bgAnim"]>; stepGrass?: number; harvestable?: boolean };
 const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
+  // NPCs primeiro: são os mais usados para montar cena.
+  { id: "npc_oak", name: "NPC Professor", src: npcOakSprite, w: 62, h: 84, blocks: false, collideR: 0 },
+  { id: "npc_bruxa", name: "NPC Bruxa", src: npcAbyssWitch, w: 62, h: 84, blocks: false, collideR: 0 },
+  { id: "npc_nevezinha", name: "NPC Nevezinha", src: nevezinhaUrl, w: 62, h: 84, blocks: false, collideR: 0 },
   { id: "casa1", name: "Casa 1", src: casa1Url, w: 140, h: 120, blocks: true, collideR: 38 },
   { id: "casa2", name: "Casa 2", src: casa2Url, w: 140, h: 120, blocks: true, collideR: 38 },
   { id: "arvore", name: "Árvore", src: treeOakUrl, w: 110, h: 124, blocks: false, collideR: 0 },
@@ -2031,9 +2035,6 @@ const MAP_EDITOR_ASSETS: MapEditorAsset[] = [
   { id: "editor_tree", name: "Árvore verde", src: editorTreeUrl, w: 173, h: 211, blocks: false, collideR: 0 },
   { id: "editor_tree_variant", name: "Árvore verde 2", src: editorTreeVariantUrl, w: 173, h: 211, blocks: false, collideR: 0 },
   { id: "editor_bush", name: "Moita", src: editorBushUrl, w: 183, h: 134, blocks: false, collideR: 0 },
-  { id: "npc_oak", name: "NPC Professor", src: npcOakSprite, w: 62, h: 84, blocks: false, collideR: 0 },
-  { id: "npc_bruxa", name: "NPC Bruxa", src: npcAbyssWitch, w: 62, h: 84, blocks: false, collideR: 0 },
-  { id: "npc_nevezinha", name: "NPC Nevezinha", src: nevezinhaUrl, w: 62, h: 84, blocks: false, collideR: 0 },
 ];
 function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[]> {
   if (!raw || typeof raw !== "object") return {};
@@ -6395,11 +6396,6 @@ const confirmName = () => {
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
   const MAP_DISPLAY_SCALE: Record<string, number> = {
     bobo_t2_viridiana: 0.85,
-    // Emerald / Emerald 01: a arte foi desenhada numa escala maior (casas muito
-    // grandes perto do treinador). Reduz só o cenário — os sprites mantêm o
-    // tamanho, então a proporção casa x personagem fica correta.
-    emerald: 0.8,
-    emerald_01: 0.8,
     mapinha10: 0.65,
     casa1: 0.65,
     casa2: 0.65,
@@ -21887,12 +21883,17 @@ A sucata afundou com o casco.
                 onClick={(event) => { if (!mapEditorOpen) return; event.stopPropagation(); setMapEditorSelectedTeleportId(tp.id); setMapEditorTab("teleport"); }}
                 title={`TP → ${IDLE_MAPS[tp.toMap]?.name ?? tp.toMap} (${tp.toX}, ${tp.toY})`}
                 style={{ position: "absolute", left: tp.x - tp.r, top: tp.y - tp.r, width: tp.r * 2, height: tp.r * 2,
-                  borderRadius: "50%", border: `2px solid ${mapEditorSelectedTeleportId === tp.id ? "#ffe08a" : "#7ef0ff"}`,
-                  background: "radial-gradient(circle, rgba(126,240,255,.45), rgba(126,240,255,.06) 72%)",
-                  boxShadow: "0 0 12px rgba(126,240,255,.75)", zIndex: Math.round(tp.y) + 8,
-                  pointerEvents: mapEditorOpen ? "auto" : "none", display: "grid", placeItems: "center",
-                  color: "#032d33", fontWeight: 900, fontSize: 10 }}>
-                TP
+                  zIndex: Math.round(tp.y) + 8, pointerEvents: mapEditorOpen ? "auto" : "none",
+                  display: "grid", placeItems: "center", background: "transparent", border: 0, cursor: "pointer" }}>
+                <span style={{
+                  width: 46, height: 46, borderRadius: "50%", display: "grid", placeItems: "center",
+                  background: "radial-gradient(circle at 50% 32%, #ffffff 0%, #c7f5ff 34%, #63d2ff 62%, #7c5cff 100%)",
+                  border: `2px solid ${mapEditorSelectedTeleportId === tp.id ? "#ffe08a" : "rgba(255,255,255,.92)"}`,
+                  boxShadow: "0 0 16px rgba(126,240,255,.9), inset 0 0 10px rgba(255,255,255,.9)",
+                  animation: "pulse 2.4s ease-in-out infinite",
+                }}>
+                  <img src={ballPokeImg} alt="" style={{ width: 24, height: 24, imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,.45))" }} />
+                </span>
               </div>
             ))}
             {mapEditorOpen && mapEditorTab === "pokemon" && (mapEditorSpawns[idle.currentMap] ?? []).map((spawn) => (
