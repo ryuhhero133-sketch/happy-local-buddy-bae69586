@@ -21169,7 +21169,7 @@ A sucata afundou com o casco.
 
 
           {/* Clima estilo pixel-RPG */}
-          {effWeather !== "clear" && (
+          {false && (
             <div style={{
               position: "absolute", inset: 0, zIndex: 40,
               pointerEvents: "none", overflow: "hidden",
@@ -24546,7 +24546,29 @@ A sucata afundou com o casco.
                 const link = document.createElement("a"); link.href = url; link.download = `mapa-${idle.currentMap}.json`; link.click();
                 window.setTimeout(() => URL.revokeObjectURL(url), 1000);
               }} style={{ marginTop: 8, width: "100%", padding: 6, background: "#22412a", border: "1px solid #b9d881", color: "#fff", borderRadius: 6, cursor: "pointer" }}>⬇ Exportar mapa JSON</button>
-              <small style={{ display: "block", marginTop: 5, color: "#b8a8cb" }}>Salvo automaticamente neste navegador e nesta região.</small>
+<button type="button" onClick={() => {
+                const ids = new Set([
+                  ...Object.keys(mapEditorObjects),
+                  ...Object.keys(mapEditorSpawns),
+                  ...Object.keys(mapEditorTeleports),
+                ]);
+                const maps: Record<string, unknown> = {};
+                for (const id of ids) {
+                  maps[id] = {
+                    objects: mapEditorObjects[id] ?? [],
+                    spawns: mapEditorSpawns[id] ?? [],
+                    teleports: mapEditorTeleports[id] ?? [],
+                  };
+                }
+                const json = JSON.stringify({ version: 5, exportedAt: new Date().toISOString(), maps }, null, 2);
+                const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "mapas-emerald-saga.json";
+                link.click();
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }} style={{ marginTop: 6, width: "100%", padding: 6, background: "#1f2f52", border: "1px solid #8fb6ff", color: "#fff", borderRadius: 6, cursor: "pointer" }}>⬇ Exportar TODOS os mapas (JSON)</button>
+<small style={{ display: "block", marginTop: 5, color: "#b8a8cb" }}>Salvo sozinho neste navegador. O botão azul exporta tudo de uma vez.</small>
             </div>
           )}
           {/* ===== OVERLAY DE ABAS (Pokémon / Mochila / Coleção) ===== */}
