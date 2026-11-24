@@ -3138,6 +3138,7 @@ function IdlePage() {
   const grassRestUntilRef = useRef(0);
   const grassDirRef = useRef<{ x: number; y: number } | null>(null);
   const grassCornerRef = useRef(0);
+  const autoHuntPosRef = useRef<{ x: number; y: number; startedAt: number } | null>(null);
   const lastShinyKillRef = useRef(0);
   // Cooldown da poção (cura ao longo de ~6s).
   const potionCooldownRef = useRef(0);
@@ -11187,47 +11188,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }, 300);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorTeleports, mapEditorOpen]);
-  // AUTOMÁTICO: sem inimigos no mapa, o treinador caça andando por cima do mato GBA.
+// AUTOMÁTICO: o treinador caminha até o canteiro e passeia em quadrado dentro dele.
   useEffect(() => {
     const iv = setInterval(() => {
-      if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
-      if (keysRef.current.size > 0) return; // jogador no teclado
-      const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0);
-      if (alive.length > 0) {
-        // Com briga rolando o treinador para — MENOS se estiver fora do mato:
-        // aí ele caminha até o mato (o Pokémon segue e continua batendo).
-        const pAgora = trainerPosRef.current;
-        const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
-          (object) => object.stepGrass && Math.hypot(object.x - pAgora.x, object.y - pAgora.y) <= 70,
-        );
-        if (noMato) {
-          if (walkTargetRef.current?.label === "caçando") {
-            walkTargetRef.current = null;
-            setWalkingTo(null);
-          }
-          grassWalkRef.current = false;
-          return;
-        }
-      }
-      combatMoveRef.current = null;
-      if (grassWalkRef.current && !walkTargetRef.current) {
-        grassWalkRef.current = false;
-        grassRestUntilRef.current = Date.now() + 180 + Math.random() * 320;
-        return;
-      }
-      if (walkTargetRef.current) return;
+      if (!autoRef.current || mapEditorOpen) return;
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { autoHuntPosRef.current = null; return; }
+      if (autoHuntPosRef.current) return; // já está andando até um ponto
       if (Date.now() < grassRestUntilRef.current) return;
-      // Canteiros mapeados: cada um com seus 4 cantos reais + centro.
       if (grassPatches.length === 0) return;
       const p = trainerPosRef.current;
-      // Escolhe o canteiro mais próximo do treinador.
       let patch = grassPatches[0];
       let patchDist = Number.POSITIVE_INFINITY;
       for (const cand of grassPatches) {
         const d = Math.hypot(cand.cx - p.x, cand.cy - p.y);
         if (d < patchDist) { patchDist = d; patch = cand; }
       }
-      // Canto mais próximo de cada extremo (waypoints reais de mato).
       const nearestTo = (tx: number, ty: number) => {
         let best = patch.tiles[0];
         let bestD = Number.POSITIVE_INFINITY;
@@ -11237,33 +11212,53 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         }
         return best;
       };
-      const waypoints = [
-        nearestTo(patch.minX, patch.minY),
-        nearestTo(patch.maxX, patch.minY),
-        nearestTo(patch.maxX, patch.maxY),
-        nearestTo(patch.minX, patch.maxY),
-        nearestTo(patch.cx, patch.cy),
-      ];
-      // Longe do canteiro: vai direto para o canto mais próximo dele.
-      if (patchDist > 320) {
-        const alvo = nearestTo(p.x, p.y);
-        walkTargetRef.current = { x: alvo.x, y: alvo.y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
-        setWalkingTo("caçando");
-        grassWalkRef.current = true;
-        return;
+      let destino: { x: number; y: number };
+      if (patchDist > 140) {
+        // Fora do canteiro: vai direto ao tile de mato mais próximo.
+        destino = nearestTo(p.x, p.y);
+      } else {
+        const waypoints = [
+          nearestTo(patch.minX, patch.minY),
+          nearestTo(patch.maxX, patch.minY),
+          nearestTo(patch.maxX, patch.maxY),
+          nearestTo(patch.minX, patch.maxY),
+          nearestTo(patch.cx, patch.cy),
+        ];
+        destino = waypoints[grassCornerRef.current % waypoints.length];
+        grassCornerRef.current = (grassCornerRef.current + 1) % waypoints.length;
       }
-      // Dentro do canteiro: percorre os cantos em quadrado (NW -> NE -> SE -> SW -> centro).
-      const destino = waypoints[grassCornerRef.current % waypoints.length];
-      grassCornerRef.current = (grassCornerRef.current + 1) % waypoints.length;
-      const x = destino.x;
-      const y = destino.y;
-
-      grassWalkRef.current = true;
-      walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
-      setWalkingTo("caçando");
+      autoHuntPosRef.current = { x: destino.x, y: destino.y, startedAt: Date.now() };
     }, 650);
     return () => clearInterval(iv);
-  }, [idle.currentMap, mapEditorObjects, mapEditorOpen, curWorldW, curWorldH]);
+  }, [idle.currentMap, mapEditorOpen, grassPatches]);
+  // Move o treinador de fato (independe do clique/teclado): passo curto com colisão.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (!autoRef.current || mapEditorOpen) return;
+      const alvo = autoHuntPosRef.current;
+      if (!alvo) return;
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { autoHuntPosRef.current = null; return; }
+      if (Date.now() - alvo.startedAt > 9000) { autoHuntPosRef.current = null; return; }
+      setTrainerPos((tp) => {
+        const dx = alvo.x - tp.x;
+        const dy = alvo.y - tp.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 8) { autoHuntPosRef.current = null; grassRestUntilRef.current = Date.now() + 200 + Math.random() * 400; return tp; }
+        const step = Math.min(d, 14);
+        let nx = tp.x + (dx / d) * step;
+        let ny = tp.y + (dy / d) * step;
+        if (collidesWithAny(nx, ny)) {
+          if (!collidesWithAny(nx, tp.y)) ny = tp.y;
+          else if (!collidesWithAny(tp.x, ny)) nx = tp.x;
+          else { autoHuntPosRef.current = null; return tp; }
+        }
+        const nd = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+        if (nd !== walkDirRef.current) { walkDirRef.current = nd; setWalkDir(nd); }
+        return { x: nx, y: ny };
+      });
+    }, 100);
+    return () => clearInterval(iv);
+  }, [idle.currentMap, mapEditorOpen]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
     const lv = idle.trainerLevel ?? 1;
