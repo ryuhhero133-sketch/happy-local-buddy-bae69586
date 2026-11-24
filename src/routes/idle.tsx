@@ -6837,6 +6837,24 @@ const confirmName = () => {
       return () => clearTimeout(t);
     }
   }, [idle.currentMap]);
+  // Zonas de mato: mantem o mapa povoado (o tick de combate so spawna com 0 vivos).
+  useEffect(() => {
+    if (!zoneForMap(idle.currentMap)) return;
+    const topUp = () => {
+      setEnemies((prev) => {
+        const alive = prev.filter((enemy) => enemy.hp > 0);
+        const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+        const cap = mobile ? 14 : 24;
+        if (alive.length >= cap) return prev;
+        const fresh = spawnEnemies();
+        if (fresh.length === 0) return prev;
+        return [...alive, ...fresh];
+      });
+    };
+    const first = window.setTimeout(topUp, 600);
+    const timer = window.setInterval(topUp, 2500);
+    return () => { window.clearTimeout(first); window.clearInterval(timer); };
+  }, [idle.currentMap]);
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
   const curWorldH = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.h * dispScale) : WORLD_H;
   const ATTACK_RANGE = 90; // px
