@@ -24889,6 +24889,16 @@ A sucata afundou com o casco.
                 link.click();
                 window.setTimeout(() => URL.revokeObjectURL(url), 1000);
               }} style={{ marginTop: 6, width: "100%", padding: 6, background: "#1f2f52", border: "1px solid #8fb6ff", color: "#fff", borderRadius: 6, cursor: "pointer" }}>⬇ Exportar TODOS os mapas (JSON)</button>
+              <button type="button" onClick={() => {
+                if (!identity?.id) { pushChat("Entre na sua conta para salvar.", "info"); return; }
+                void saveMapEditorCloud(identity.id, {
+                  objects: mapEditorObjects,
+                  spawns: mapEditorSpawns,
+                  teleports: mapEditorTeleports,
+                })
+                  .then(() => pushChat("☁️ Mapa salvo na conta (matos, spawns e teleports).", "cap"))
+                  .catch(() => pushChat("Não consegui salvar na conta agora. Tente de novo.", "info"));
+              }} style={{ marginTop: 6, width: "100%", padding: 7, background: "linear-gradient(180deg,#2f7d46,#1d5a31)", border: "1px solid #9be6a8", color: "#fff", borderRadius: 6, cursor: "pointer", fontWeight: 800 }}>☁️ Salvar na conta (mapa atual)</button>
 <small style={{ display: "block", marginTop: 5, color: "#b8a8cb" }}>Salvo sozinho neste navegador. O botão azul exporta tudo de uma vez.</small>
             </div>
           )}
