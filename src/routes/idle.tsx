@@ -3124,6 +3124,7 @@ function IdlePage() {
   const grassWalkRef = useRef(false);
   const grassRestUntilRef = useRef(0);
   const grassDirRef = useRef<{ x: number; y: number } | null>(null);
+  const grassCornerRef = useRef(0);
   const lastShinyKillRef = useRef(0);
   // Cooldown da poção (cura ao longo de ~6s).
   const potionCooldownRef = useRef(0);
@@ -4061,6 +4062,32 @@ const confirmName = () => {
   const mapEditorObjectsRef = useRef(mapEditorObjects);
   useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_KEY, JSON.stringify(mapEditorObjects)); } catch { /* storage indisponível */ } }, [mapEditorObjects]);
+  // Mapeia os canteiros de mato do mapa atual (cluster + 4 cantos reais + centro).
+  const grassPatches = useMemo(() => {
+    const tiles = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
+    const used = new Set<number>();
+    const patches: { tiles: typeof tiles; minX: number; maxX: number; minY: number; maxY: number; cx: number; cy: number }[] = [];
+    for (const tile of tiles) {
+      if (used.has(tile.id)) continue;
+      const stack = [tile];
+      used.add(tile.id);
+      const group = [];
+      while (stack.length > 0) {
+        const current = stack.pop()!;
+        group.push(current);
+        for (const other of tiles) {
+          if (used.has(other.id)) continue;
+          if (Math.hypot(other.x - current.x, other.y - current.y) <= 46) { used.add(other.id); stack.push(other); }
+        }
+      }
+      const xs = group.map((g) => g.x);
+      const ys = group.map((g) => g.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      patches.push({ tiles: group as typeof tiles, minX, maxX, minY, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 });
+    }
+    return patches;
+  }, [mapEditorObjects, idle.currentMap]);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
   useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
   // ---- Teleportes criados no editor (por mapa) ----
@@ -6874,12 +6901,18 @@ const confirmName = () => {
     }
     // Ritmo variável: às vezes nasce rápido, às vezes demora (até ~35s).
     let timer = 0;
+    let killsBase = totalKillsRef.current;
     const schedule = () => {
-      const demora = Math.random() < 0.2
-        ? 20000 + Math.random() * 15000
-        : 2500 + Math.random() * 15500;
-      timer = window.setTimeout(() => { topUp(); schedule(); }, demora);
-    };
+      const matou = totalKillsRef.current > killsBase;
+      killsBase = totalKillsRef.current;
+      const demora = matou
+        ? 8000 + Math.random() * 12000
+        : 35000 + Math.random() * 30000;
+      timer = window.setTimeout(() => {
+        pushChat("🌿 O mato se mexe...", "info");
+        topUp();
+        schedule();
+      }, demora);    };
     const first = window.setTimeout(() => { topUp(); schedule(); }, 800);
     return () => { window.clearTimeout(first); window.clearTimeout(timer); };
   }, [idle.currentMap]);
@@ -11118,59 +11151,47 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       }
       if (walkTargetRef.current) return;
       if (Date.now() < grassRestUntilRef.current) return;
-      const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
-      if (grass.length === 0) return;
+      // Canteiros mapeados: cada um com seus 4 cantos reais + centro.
+      if (grassPatches.length === 0) return;
       const p = trainerPosRef.current;
-      // Ancora: SEMPRE a moita mais perto do treinador. Nunca busca longe.
-      let home = grassHomeRef.current ? grass.find((g) => g.id === grassHomeRef.current!.id) : null;
-      if (home && Math.hypot(home.x - p.x, home.y - p.y) > 200) home = null;
-      if (!home) {
-        let best = null as typeof grass[number] | null;
+      // Escolhe o canteiro mais próximo do treinador.
+      let patch = grassPatches[0];
+      let patchDist = Number.POSITIVE_INFINITY;
+      for (const cand of grassPatches) {
+        const d = Math.hypot(cand.cx - p.x, cand.cy - p.y);
+        if (d < patchDist) { patchDist = d; patch = cand; }
+      }
+      // Canto mais próximo de cada extremo (waypoints reais de mato).
+      const nearestTo = (tx: number, ty: number) => {
+        let best = patch.tiles[0];
         let bestD = Number.POSITIVE_INFINITY;
-        for (const g of grass) {
-          const d = Math.hypot(g.x - p.x, g.y - p.y);
-          if (d < bestD) { bestD = d; best = g; }
+        for (const tile of patch.tiles) {
+          const d = Math.hypot(tile.x - tx, tile.y - ty);
+          if (d < bestD) { bestD = d; best = tile; }
         }
-        if (!best || bestD > 1200) return;
-        home = best;
-        grassHomeRef.current = { id: best.id, since: Date.now() };
-        // Se esta longe do mato, o treinador VAI ate ele (depois passeia no canteiro).
-        if (bestD > 240) {
-          walkTargetRef.current = { x: best.x, y: best.y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
-          setWalkingTo("caçando");
-          grassWalkRef.current = true;
-          return;
-        }
-        home = best;
-        grassHomeRef.current = { id: best.id, since: Date.now() };
+        return best;
+      };
+      const waypoints = [
+        nearestTo(patch.minX, patch.minY),
+        nearestTo(patch.maxX, patch.minY),
+        nearestTo(patch.maxX, patch.maxY),
+        nearestTo(patch.minX, patch.maxY),
+        nearestTo(patch.cx, patch.cy),
+      ];
+      // Longe do canteiro: vai direto para o canto mais próximo dele.
+      if (patchDist > 320) {
+        const alvo = nearestTo(p.x, p.y);
+        walkTargetRef.current = { x: alvo.x, y: alvo.y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
+        setWalkingTo("caçando");
+        grassWalkRef.current = true;
+        return;
       }
-      // Limites do canteiro (cluster de mato em volta da ancora).
-      const patch = grass.filter((g) => Math.hypot(g.x - home!.x, g.y - home!.y) <= 130);
-      let minX = home.x, maxX = home.x, minY = home.y, maxY = home.y;
-      for (const g of patch) {
-        minX = Math.min(minX, g.x); maxX = Math.max(maxX, g.x);
-        minY = Math.min(minY, g.y); maxY = Math.max(maxY, g.y);
-      }
-      // Anda em linha reta SOBRE os tiles de mato: escolhe um tile real do canteiro
-      // (mesma linha ou coluna) em vez de um ponto qualquer dentro do retangulo.
-      const limite = 160;
-      const pertoTiles = patch.filter((g) => g.id !== home!.id && Math.hypot(g.x - home!.x, g.y - home!.y) <= limite);
-      const alinhados = pertoTiles.filter((g) => {
-        const dx = Math.abs(g.x - p.x);
-        const dy = Math.abs(g.y - p.y);
-        const d = Math.hypot(g.x - p.x, g.y - p.y);
-        return (dx < 26 || dy < 26) && d >= 70 && d <= 190;
-      });
-      const pool = alinhados.length > 0
-        ? alinhados
-        : pertoTiles.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 30).length > 0
-          ? pertoTiles.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 30)
-          : patch.filter((g) => Math.hypot(g.x - p.x, g.y - p.y) >= 24);
-      if (pool.length === 0) return;
-      const destino = pool[Math.floor(Math.random() * pool.length)];
+      // Dentro do canteiro: percorre os cantos em quadrado (NW -> NE -> SE -> SW -> centro).
+      const destino = waypoints[grassCornerRef.current % waypoints.length];
+      grassCornerRef.current = (grassCornerRef.current + 1) % waypoints.length;
       const x = destino.x;
       const y = destino.y;
-      if (Math.hypot(x - p.x, y - p.y) < 40) return;
+
       grassWalkRef.current = true;
       walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
       setWalkingTo("caçando");
@@ -22946,7 +22967,7 @@ A sucata afundou com o casco.
                     <span className="safari-wild-label">{e.rarity === "mythic" ? "MÍTICO" : "BLACK MITIC"}</span>
                   </>}
                   {/* Alvo marcado: sem anel girando — o nome muda de cor (abaixo). */}
-                  {(showAura && !e.menace) && (
+                  {false && (showAura && !e.menace) && (
                     <div style={{ position: "absolute", inset: -14, zIndex: -1, pointerEvents: "none", overflow: "visible" }}>
                       <div style={{
                         position: "absolute", inset: 0,
