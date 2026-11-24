@@ -6373,6 +6373,11 @@ const confirmName = () => {
   // Escala de exibição por mapa custom (1 = tamanho original; <1 reduz sem distorcer)
   const MAP_DISPLAY_SCALE: Record<string, number> = {
     bobo_t2_viridiana: 0.85,
+    // Emerald / Emerald 01: a arte foi desenhada numa escala maior (casas muito
+    // grandes perto do treinador). Reduz só o cenário — os sprites mantêm o
+    // tamanho, então a proporção casa x personagem fica correta.
+    emerald: 0.8,
+    emerald_01: 0.8,
     mapinha10: 0.65,
     casa1: 0.65,
     casa2: 0.65,
