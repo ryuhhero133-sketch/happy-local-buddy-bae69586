@@ -22672,6 +22672,7 @@ A sucata afundou com o casco.
               const camouflaged = !!(e.disguise && !e.revealed);
               const safariWild = isSafariEncounter(idle.currentMap, e.sp);
               const dead = e.hp <= 0;
+              const isTargeted = !dead && attackTargetId === e.id;
               const face = e.face ?? "left";
               const sx = SPRITE_SHEET[showSp] ? 1 : (face === "left" ? 1 : -1);
               const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2 : (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
@@ -22740,16 +22741,7 @@ A sucata afundou com o casco.
                     </div>
                     <span className="safari-wild-label">{e.rarity === "mythic" ? "MÍTICO" : "BLACK MITIC"}</span>
                   </>}
-                  {!dead && attackTargetId === e.id && (
-                    <div style={{ position: "absolute", inset: -10, pointerEvents: "none", zIndex: 3 }}>
-                      <div style={{
-                        position: "absolute", inset: 0, borderRadius: "50%",
-                        border: "2px dashed #ffd94d",
-                        boxShadow: "0 0 12px rgba(255,217,77,0.85), inset 0 0 10px rgba(255,217,77,0.35)",
-                        animation: "targetReticleSpin 3s linear infinite",
-                      }} />
-                    </div>
-                  )}
+                  {/* Alvo marcado: sem anel girando — o nome muda de cor (abaixo). */}
                   {(showAura && !e.menace) && (
                     <div style={{ position: "absolute", inset: -14, zIndex: -1, pointerEvents: "none", overflow: "visible" }}>
                       <div style={{
@@ -22966,15 +22958,18 @@ A sucata afundou com o casco.
                   <div style={{
                     position: "absolute", top: -14, left: "50%",
                     transform: `translateX(-50%) scaleX(${sx})`,
-                    color: isShinyE ? "#ff97e1" : e.elite ? "#ff4a4a" : "#eadfe8",
-                    fontSize: 10, fontWeight: 700, lineHeight: 1,
-                    textShadow: isShinyE
-                      ? "0 0 6px #ff97e1, 0 0 12px #ff4bd6, 1px 1px 0 #000"
-                      : "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000",
+                    color: isTargeted ? "#ffd94d" : isShinyE ? "#ff97e1" : e.elite ? "#ff4a4a" : "#eadfe8",
+                    fontSize: isTargeted ? 11 : 10, fontWeight: isTargeted ? 900 : 700, lineHeight: 1,
+                    textShadow: isTargeted
+                      ? "0 0 5px #ffb300, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000"
+                      : isShinyE
+                        ? "0 0 6px #ff97e1, 0 0 12px #ff4bd6, 1px 1px 0 #000"
+                        : "1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000",
                     whiteSpace: "nowrap", pointerEvents: "none",
                     display: "flex", alignItems: "center", gap: 3,
                     animation: isShinyE ? "pulse 1.2s ease-in-out infinite" : undefined,
                   }}>
+                    {isTargeted && <span style={{ fontSize: 9 }}>◆</span>}
                     <span style={{ fontSize: 9 }}>{crystal}</span>
                     {e.editorRaid && <span style={{ color: "#ff9f6c", fontWeight: 900 }}>⚔ RAID</span>}
                     {isShinyE && <span>{e.sp.replace(/_/g, " ").toUpperCase()} </span>}Lv.{e.level}
@@ -23775,7 +23770,7 @@ A sucata afundou com o casco.
                     pointerEvents: "none",
                     borderRadius: "50%",
                     background: `radial-gradient(circle, #ffffff 0%, ${glow} 55%, ${glow}00 75%)`,
-                    filter: `drop-shadow(0 0 8px ${glow})`,
+                    // sem drop-shadow: skill pinta mais leve
                     mixBlendMode: "screen",
                     zIndex: 7,
                   }} />
@@ -23837,7 +23832,7 @@ A sucata afundou com o casco.
                   <img src={img} alt="" draggable={false} style={{
                     width: size, height: size, objectFit: "contain",
                     imageRendering: "pixelated",
-                    filter: `drop-shadow(0 0 8px ${glow})`,
+                    // sem drop-shadow: skill pinta mais leve
                   }} />
                 );
               };
@@ -23927,7 +23922,7 @@ A sucata afundou com o casco.
                   pointerEvents: "none",
                   borderRadius: "50%",
                   background: `radial-gradient(circle, #ffffff 0%, ${glow} 45%, ${glow}00 72%)`,
-                  filter: `drop-shadow(0 0 8px ${glow})`,
+                  // sem drop-shadow: skill pinta mais leve
                   mixBlendMode: "screen",
                   zIndex: 7,
                 }} />
