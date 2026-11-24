@@ -3115,6 +3115,8 @@ function IdlePage() {
   const lastNowUiRef = useRef(0);
   // Moita lar da caçada automática (não sai andando longe).
   const grassHomeRef = useRef<{ id: number; since: number } | null>(null);
+  const grassWalkRef = useRef(false);
+  const grassRestUntilRef = useRef(0);
   const bumpNowUi = () => {
     const stamp = Date.now();
     if (stamp - lastNowUiRef.current < 250) return;
@@ -11038,16 +11040,23 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
   useEffect(() => {
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen || mapLoadingRef.current) return;
-      if (walkTargetRef.current || combatMoveRef.current) return;
-      if (keysRef.current.size > 0) return; // jogador andando no teclado: nao atrapalha
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { grassHomeRef.current = null; return; }
+      if (keysRef.current.size > 0) return; // jogador no teclado
+      if (combatMoveRef.current) return;
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { grassHomeRef.current = null; grassWalkRef.current = false; return; }
+      // acabou de chegar: descansa um pouco antes de escolher outro ponto
+      if (grassWalkRef.current && !walkTargetRef.current) {
+        grassWalkRef.current = false;
+        grassRestUntilRef.current = Date.now() + 1400 + Math.random() * 2400;
+        return;
+      }
+      if (walkTargetRef.current) return;
+      if (Date.now() < grassRestUntilRef.current) return;
       const grass = (mapEditorObjects[idle.currentMap] ?? []).filter((object) => object.stepGrass);
       if (grass.length === 0) return;
       const p = trainerPosRef.current;
       let home = grassHomeRef.current ? grass.find((g) => g.id === grassHomeRef.current!.id) : null;
       const perto = home ? Math.hypot(home.x - p.x, home.y - p.y) <= 360 : false;
       if (!home || !perto) {
-        // escolhe SEMPRE a moita mais proxima (nunca sai andando longe)
         let best = null as typeof grass[number] | null;
         let bestD = Number.POSITIVE_INFINITY;
         for (const g of grass) {
@@ -11058,7 +11067,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         home = best;
         grassHomeRef.current = { id: best.id, since: Date.now() };
       } else if (Date.now() - grassHomeRef.current.since > 120_000) {
-        // 2 min sem nada: tenta outra moita PRÓXIMA; se nao houver, fica nesta
         const outras = grass.filter((g) => g.id !== home!.id && Math.hypot(g.x - p.x, g.y - p.y) <= 600);
         if (outras.length > 0) {
           const pick = outras[Math.floor(Math.random() * outras.length)];
@@ -11068,13 +11076,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           grassHomeRef.current = { id: home.id, since: Date.now() };
         }
       }
-      // anda so dentro da moita (raio curto) para nao sumir do mato
-      const x = Math.max(24, Math.min(curWorldW - 24, home.x + (Math.random() - 0.5) * 70));
-      const y = Math.max(24, Math.min(curWorldH - 24, home.y + (Math.random() - 0.5) * 70));
-      if (Math.hypot(x - p.x, y - p.y) < 24) return;
+      // ponto de caminhada: 45 a 95 px do treinador, dentro do mato (sem micro-pulos)
+      let x = p.x;
+      let y = p.y;
+      for (let tent = 0; tent < 8; tent++) {
+        const ang = Math.random() * Math.PI * 2;
+        const rad = 45 + Math.random() * 50;
+        const cx = Math.max(24, Math.min(curWorldW - 24, home.x + Math.cos(ang) * rad));
+        const cy = Math.max(24, Math.min(curWorldH - 24, home.y + Math.sin(ang) * rad));
+        if (Math.hypot(cx - p.x, cy - p.y) >= 42) { x = cx; y = cy; break; }
+      }
+      if (Math.hypot(x - p.x, y - p.y) < 42) return;
+      grassWalkRef.current = true;
       walkTargetRef.current = { x, y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
       setWalkingTo("caçando");
-    }, 2200);
+    }, 700);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorObjects, mapEditorOpen, curWorldW, curWorldH]);
   const enterWorldPortal = (p: WorldPortalDef) => {
