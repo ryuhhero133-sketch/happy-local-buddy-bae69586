@@ -6857,7 +6857,7 @@ const confirmName = () => {
         // Despawna quem ficou longe (economiza DOM/CPU em celular).
         const alive = prev
           .filter((enemy) => enemy.hp > 0)
-          .filter((enemy) => Math.hypot(enemy.x - pos.x, enemy.y - pos.y) <= 1600);
+          .filter((enemy) => Math.hypot(enemy.x - pos.x, enemy.y - pos.y) <= 900);
         if (alive.length >= cap) return alive.length === prev.length ? prev : alive;
         const fresh = spawnEnemies();
         if (fresh.length === 0) return prev;
@@ -22834,7 +22834,8 @@ A sucata afundou com o casco.
             {enemies.filter((e) => inView(e.x, e.y)).map((e) => {
               const showSp: Species = (e.disguise && !e.revealed) ? e.disguise : e.sp;
               const src = MAP_SPRITE[idle.currentMap]?.[showSp] ?? GIF[showSp];
-              if (!src) return null;
+              // Só descarta se NAO existe nem GIF nem sheet (zona/atlas).
+              if (!src && !SPRITE_SHEET[showSp] && !zoneSheet(showSp)) return null;
               const camouflaged = !!(e.disguise && !e.revealed);
               const safariWild = isSafariEncounter(idle.currentMap, e.sp);
               const dead = e.hp <= 0;
