@@ -29,6 +29,11 @@ const loginBgAsset = { url: "/login-bg.webp" };
 const loginSplashUrl = pokeEmeraldLoginPng;
 
 export const IDENTITY_KEY = "rubym.identity.v1";
+
+/** TRAVA TOTAL: só esta conta entra; o resto vê a tela de manutenção. */
+const OWNER_UID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
+const OWNER_EMAIL = "lordryuhhhuyuyghh@gmail.com";
+export const LOCKDOWN_ONLY_OWNER = true;
 export const GUEST_KEY = "rubym.guest.v1";
 export const SESSION_TOKEN_KEY = "rubym.sessionToken.v1";
 
@@ -742,7 +747,9 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (maintenance && !isAdmin && !isBypassed) {
+  const isOwner = session?.user?.id === OWNER_UID || session?.user?.email === OWNER_EMAIL;
+  // Com a trava ligada, ninguém além do dono entra — nem com código de bypass.
+  if (LOCKDOWN_ONLY_OWNER ? !isOwner : (maintenance && !isAdmin && !isBypassed)) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-black text-red-500 font-mono text-center relative overflow-hidden">
         {/* Animated background to show it's active */}
@@ -772,7 +779,7 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
                 value={bypassCode}
                 onChange={(e) => setBypassCode(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && bypassCode === "ryuh333") {
+                  if (e.key === "Enter" && bypassCode === "ryuh333" && !LOCKDOWN_ONLY_OWNER) {
                     localStorage.setItem("rubym.maintenance_bypass", "true");
                     setIsBypassed(true);
                   }
@@ -782,6 +789,7 @@ function OnlineAuthGate({ children }: { children: ReactNode }) {
               {bypassCode === "ryuh333" && (
                 <button
                   onClick={() => {
+                    if (LOCKDOWN_ONLY_OWNER) return;
                     localStorage.setItem("rubym.maintenance_bypass", "true");
                     setIsBypassed(true);
                   }}
