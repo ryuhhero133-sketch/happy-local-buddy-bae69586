@@ -6843,8 +6843,12 @@ const confirmName = () => {
     const topUp = () => {
       setEnemies((prev) => {
         const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-        const cap = mobile ? 8 : 14;
         const pos = trainerPosRef.current;
+        // Cap adaptativo: no mato pode juntar alguns; fora do mato fica so 1.
+        const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
+          (object) => object.stepGrass && Math.hypot(object.x - pos.x, object.y - pos.y) <= 26,
+        );
+        const cap = noMato ? (mobile ? 5 : 8) : 1;
         // Despawna quem ficou longe (economiza DOM/CPU em celular).
         const alive = prev
           .filter((enemy) => enemy.hp > 0)
@@ -6864,7 +6868,7 @@ const confirmName = () => {
       }
     }
     const first = window.setTimeout(topUp, 600);
-    const timer = window.setInterval(topUp, 2500);
+    const timer = window.setInterval(topUp, 1200);
     return () => { window.clearTimeout(first); window.clearInterval(timer); };
   }, [idle.currentMap]);
   const curWorldW = customDims && customMapUrls[idle.currentMap] ? Math.round(customDims.w * dispScale) : WORLD_W;
@@ -16290,7 +16294,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       .filter((object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 620);
     if (grass.length === 0 || list.length === 0) return [];
     const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-    const cap = mobile ? 8 : 14;
+    // Cap adaptativo: dentro do mato libera mais; fora deixa só 1.
+    const noMato = (mapEditorObjects[idle.currentMap] ?? []).some(
+      (object) => object.stepGrass && Math.hypot(object.x - trainer.x, object.y - trainer.y) <= 26,
+    );
+    const cap = noMato ? (mobile ? 5 : 8) : 1;
     const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0).length;
     if (alive >= cap) return [];
     const shinyAlive = enemiesRef.current.some((enemy) => enemy.hp > 0 && String(enemy.sp).includes("shiny"));
