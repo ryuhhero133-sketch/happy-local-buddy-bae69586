@@ -3139,6 +3139,7 @@ function IdlePage() {
   const grassDirRef = useRef<{ x: number; y: number } | null>(null);
   const grassCornerRef = useRef(0);
   const autoHuntPosRef = useRef<{ x: number; y: number; startedAt: number } | null>(null);
+  const wasWalkingRef = useRef(false);
   const lastShinyKillRef = useRef(0);
   // Cooldown da poção (cura ao longo de ~6s).
   const potionCooldownRef = useRef(0);
@@ -11188,12 +11189,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     }, 300);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorTeleports, mapEditorOpen]);
-// AUTOMÁTICO: o treinador caminha até o canteiro e passeia em quadrado dentro dele.
+// AUTOMÁTICO: o treinador usa o movimento do jogo (com colisão) para ir ao
+  // canteiro de mato mais próximo e percorrer os cantos + centro em quadrado.
   useEffect(() => {
     const iv = setInterval(() => {
       if (!autoRef.current || mapEditorOpen) return;
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { autoHuntPosRef.current = null; return; }
-      if (autoHuntPosRef.current) return; // já está andando até um ponto
+      const andandoAgora = !!walkTargetRef.current;
+      if (wasWalkingRef.current && !andandoAgora) {
+        wasWalkingRef.current = false;
+        grassRestUntilRef.current = Date.now() + 250 + Math.random() * 450;
+      }
+      if (andandoAgora) { wasWalkingRef.current = true; return; }
+      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) return; // briga: para
       if (Date.now() < grassRestUntilRef.current) return;
       if (grassPatches.length === 0) return;
       const p = trainerPosRef.current;
@@ -11214,7 +11221,6 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       };
       let destino: { x: number; y: number };
       if (patchDist > 140) {
-        // Fora do canteiro: vai direto ao tile de mato mais próximo.
         destino = nearestTo(p.x, p.y);
       } else {
         const waypoints = [
@@ -11227,39 +11233,12 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         destino = waypoints[grassCornerRef.current % waypoints.length];
         grassCornerRef.current = (grassCornerRef.current + 1) % waypoints.length;
       }
-      autoHuntPosRef.current = { x: destino.x, y: destino.y, startedAt: Date.now() };
-    }, 650);
+      walkTargetRef.current = { x: destino.x, y: destino.y, label: "caçando", resumeAuto: true, startedAt: Date.now() };
+      setWalkingTo("caçando");
+      wasWalkingRef.current = true;
+    }, 700);
     return () => clearInterval(iv);
   }, [idle.currentMap, mapEditorOpen, grassPatches]);
-  // Move o treinador de fato, liso e contínuo. Vai de tile em tile de MATO
-  // (não usa colisão aqui: o caminho é entre tiles que o dono pintou como mato).
-  useEffect(() => {
-    const iv = setInterval(() => {
-      if (!autoRef.current || mapEditorOpen) return;
-      const alvo = autoHuntPosRef.current;
-      if (!alvo) return;
-      if (enemiesRef.current.some((enemy) => enemy.hp > 0)) { autoHuntPosRef.current = null; return; }
-      if (Date.now() - alvo.startedAt > 12000) { autoHuntPosRef.current = null; return; }
-      setTrainerPos((tp) => {
-        const dx = alvo.x - tp.x;
-        const dy = alvo.y - tp.y;
-        const d = Math.hypot(dx, dy);
-        if (d < 6) {
-          autoHuntPosRef.current = null;
-          grassRestUntilRef.current = Date.now() + 250 + Math.random() * 450;
-          return tp;
-        }
-        // ~42 px/s, sempre reto no eixo dominante (quadradinhos).
-        const step = Math.min(d, 5);
-        const nx = Math.abs(dx) >= Math.abs(dy) ? tp.x + Math.sign(dx) * step : tp.x;
-        const ny = Math.abs(dx) >= Math.abs(dy) ? tp.y : tp.y + Math.sign(dy) * step;
-        const nd = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
-        if (nd !== walkDirRef.current) { walkDirRef.current = nd; setWalkDir(nd); }
-        return { x: nx, y: ny };
-      });
-    }, 120);
-    return () => clearInterval(iv);
-  }, [idle.currentMap, mapEditorOpen]);
   const enterWorldPortal = (p: WorldPortalDef) => {
     if (isMapBlocked(p.to)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
     const lv = idle.trainerLevel ?? 1;
