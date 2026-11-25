@@ -961,12 +961,14 @@ function commitAdopt(uid: string, data: unknown, sv: number): unknown {
   return data;
 }
 
-/** Somente após resposta confirmada do RPC da jornada; preserva a base
- * anterior em recuperação e neutraliza todos os pushes anteriores ao reset. */
-export async function adoptJourneyCheckpoint(uid: string, snapshot: unknown, serverVersion: number) {
+/** Adoção de um checkpoint confirmado por RPC (jornada, evento etc.):
+ * preserva a base anterior em recuperação e neutraliza pushes antigos. */
+export async function adoptAuthoritativeCheckpoint(
+  uid: string, snapshot: unknown, serverVersion: number, origin = "before-authoritative",
+) {
   if ((await currentUid()) !== uid || !isValidSnapshot(snapshot)
-    || !Number.isSafeInteger(serverVersion) || serverVersion < 1) throw new Error("invalid_journey_checkpoint");
-  if (memSnapshot && isValidSnapshot(memSnapshot)) storeRecovery(uid, memSnapshot, loadVersion(uid), "before-journey");
+    || !Number.isSafeInteger(serverVersion) || serverVersion < 1) throw new Error("invalid_authoritative_checkpoint");
+  if (memSnapshot && isValidSnapshot(memSnapshot)) storeRecovery(uid, memSnapshot, loadVersion(uid), origin);
   authoritativeEpoch++;
   if (debounceTimer) clearTimeout(debounceTimer);
   if (maxDirtyTimer) clearTimeout(maxDirtyTimer);
@@ -975,7 +977,7 @@ export async function adoptJourneyCheckpoint(uid: string, snapshot: unknown, ser
   needsFlush = false;
   const pending = readJson<PendingSlot>(pendingKey(uid));
   if (pending?.snapshot) {
-    storeRecovery(uid, pending.snapshot, pending.expectedVersion, "before-journey-pending");
+    storeRecovery(uid, pending.snapshot, pending.expectedVersion, origin + "-pending");
     try { localStorage.removeItem(pendingKey(uid)); } catch { /* storage unavailable */ }
   }
   memSnapshot = null;
@@ -983,6 +985,9 @@ export async function adoptJourneyCheckpoint(uid: string, snapshot: unknown, ser
   commitAdopt(uid, snapshot, serverVersion);
   memSnapshot = snapshot;
   setStatus("ok");
+}
+export async function adoptJourneyCheckpoint(uid: string, snapshot: unknown, serverVersion: number) {
+  return adoptAuthoritativeCheckpoint(uid, snapshot, serverVersion, "before-journey");
 }
 
 /**

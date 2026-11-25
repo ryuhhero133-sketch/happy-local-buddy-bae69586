@@ -38,6 +38,7 @@ import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import { WorldMapV2 } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
+import { NevezinhaEvent } from "@/components/nevezinha/NevezinhaEvent";
 import { JourneyGate } from "@/components/journey/JourneyGate";
 import { JOURNEY_VERSION } from "@/game/journey";
 import { loadMapEditorCloud, saveMapEditorCloud } from "@/lib/mapEditorCloud";
@@ -440,6 +441,7 @@ import chestElectricImg from "@/assets/chest-electric.webp";
 import chestDarkImg from "@/assets/chest-dark.webp";
 import chestDragonImg from "@/assets/chest-dragon.webp";
 const STONE_CHEST: Record<string, string> = {
+  nevezinha_doll: nevezinhaUrl,
   stone_grass: chestGrassImg, stone_fire: chestFireImg, stone_water: chestWaterImg,
   stone_electric: chestElectricImg, stone_dark: chestDarkImg, stone_dragon: chestDragonImg,
 };
@@ -4009,6 +4011,8 @@ const confirmName = () => {
     try { return localStorage.getItem("rubym.snowman.follow") === "1"; } catch { return false; }
   });
   const [snowmanDialog, setSnowmanDialog] = useState(false);
+  const [nevezinhaOpen, setNevezinhaOpen] = useState(false);
+  useEffect(() => { setNevezinhaOpen(false); }, [idle.currentMap]);
   const [vipTitleOn, setVipTitleOn] = useState(() => {
     try { return localStorage.getItem("rubym.vipTitle.on") === "1"; } catch { return false; }
   });
@@ -4086,6 +4090,10 @@ const confirmName = () => {
   const grassPatchesRef = useRef(grassPatches);
   grassPatchesRef.current = grassPatches;
   const grassHuntMap = idle.currentMap !== "arv" && (grassPatches.length > 0 || !!zoneForMap(idle.currentMap));
+  // O dono já tem um NPC Nevezinha salvo no Emerald. Ele vira o botão do
+  // evento; nas outras contas usamos o mesmo ponto como NPC fixo.
+  const emeraldHasNevezinhaNpc = idle.currentMap === "emerald"
+    && (mapEditorObjects.emerald ?? []).some((object) => object.assetId === "npc_nevezinha");
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
   useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
   // ---- Teleportes criados no editor (por mapa) ----
@@ -22263,8 +22271,39 @@ A sucata afundou com o casco.
                 {spawn.raid && <span style={{ color: "#ffac78" }}>⚔ RAID<br /></span>}{spawn.species.replace(/_/g, " ")}<br />Lv.{spawn.level}
               </button>
             ))}
+            {idle.currentMap === "emerald" && !mapEditorOpen && !emeraldHasNevezinhaNpc && (
+              <button
+                type="button"
+                className="nevezinha-map-npc"
+                onClick={(event) => { event.stopPropagation(); playClick(); setNevezinhaOpen(true); }}
+                title="Festival da Nevezinha · 1 tiro por dia"
+                aria-label="Abrir Festival da Nevezinha — 1 tiro por dia"
+                style={{ left: 840 - 31, top: 528 - 84 + 8, width: 62, height: 84, zIndex: Math.round(528) + 40 }}
+              >
+                <img src={nevezinhaUrl} alt="" draggable={false} />
+                <span className="nevezinha-map-npc__badge">❄</span>
+                <span className="nevezinha-map-npc__label">Festival</span>
+              </button>
+            )}
             {obstacles.filter((o) => inView(o.x, o.y)).map((o) => {
               const editorObject = editorObstacles.find((object) => object.id === o.id);
+              if (idle.currentMap === "emerald" && editorObject?.assetId === "npc_nevezinha" && !mapEditorOpen) {
+                return (
+                  <button
+                    key={`neve-npc-${o.id}`}
+                    type="button"
+                    className="nevezinha-map-npc"
+                    onClick={(event) => { event.stopPropagation(); playClick(); setNevezinhaOpen(true); }}
+                    title="Festival da Nevezinha · 1 tiro por dia"
+                    aria-label="Abrir Festival da Nevezinha — 1 tiro por dia"
+                    style={{ left: o.x - o.w / 2, top: o.y - o.h + 8, width: o.w, height: o.h, zIndex: Math.round(o.y) + 40 }}
+                  >
+                    <img src={o.src} alt="" draggable={false} />
+                    <span className="nevezinha-map-npc__badge">❄</span>
+                    <span className="nevezinha-map-npc__label">Festival</span>
+                  </button>
+                );
+              }
               const editorStump = !!editorObject?.harvestable && !!editorObject.choppedAt && now - editorObject.choppedAt < 30 * 60_000;
               const editorChopping = !!editorObject?.harvestable && !!editorObject.choppingUntil && now < editorObject.choppingUntil;
               const objectImage = editorStump ? treeStumpUrl : editorChopping ? treeChopUrl : o.src;
@@ -26113,6 +26152,21 @@ A sucata afundou com o casco.
               </div>
             )}
 {snowmanDialog && <NevezinhaDialog onDone={() => setSnowmanDialog(false)} />}
+{nevezinhaOpen && (
+  <NevezinhaEvent
+    userId={identity?.id}
+    onClose={() => setNevezinhaOpen(false)}
+    onReward={(items, message) => {
+      setIdle((state) => {
+        const nextItems = { ...(state.items ?? {}) };
+        for (const [id, qty] of Object.entries(items)) nextItems[id] = (nextItems[id] ?? 0) + qty;
+        return { ...state, items: nextItems };
+      });
+      pushChat(`❄ Festival da Nevezinha: ${message}`, "cap");
+      pushFxAt(trainerPosRef.current.x, trainerPosRef.current.y - 46, "❄ Prêmio!", "capture");
+    }}
+  />
+)}
 {mapTeleportOpen && canUseMapEditor && (
           <WorldMapV2
             onClose={() => setMapTeleportOpen(false)}
@@ -31781,6 +31835,7 @@ function TabOverlay({
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
           carta_riolu: "Carta Riolu Suprema 🐺✦",
+          nevezinha_doll: "Boneco da Nevezinha ⛄",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
@@ -31830,6 +31885,7 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯 · +10% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
+          nevezinha_doll: "Boneco da Nevezinha ⛄ · lembrança rara do Festival de Inverno. Fica na mochila como coleção do evento.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
           chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
@@ -34177,6 +34233,7 @@ function WalletScreen({
     egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo �0pico", egg_mystic: "Ovo Místico",
     egg_anc_selado: "Egg Selado Ancestral", egg_anc_plus: "Egg Ancestral Plus", egg_anc_luck: "Egg Ancestral Luck",
     esfera_safira: "Esfera de Safira",
+    nevezinha_doll: "Boneco da Nevezinha ⛄",
     black_mitic_egg: "Black Mitic Egg ✦", premium_box: "Caixa Premium ✦"
   };
 
