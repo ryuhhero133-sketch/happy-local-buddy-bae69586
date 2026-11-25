@@ -6,6 +6,7 @@ import pokeballImg from "@/assets/items/icon-pokeball.webp";
 import ultraballImg from "@/assets/items/icon-ultraball.webp";
 import reviveImg from "@/assets/items/icon-revive.webp";
 import potionImg from "@/assets/items/icon-potion.webp";
+import slimeBallImg from "@/assets/items/icon-slime.webp";
 import bookAtkImg from "@/assets/icons/book-atk.webp";
 import bookExpImg from "@/assets/icons/book-exp.webp";
 import vipEpicImg from "@/ambiente/Vip Epic.png";
@@ -67,6 +68,15 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     image: potionImg,
     accent: "#61e6a3",
     tag: "CURA",
+  },
+  {
+    id: "slimeball",
+    name: "Pokébola Slime",
+    description: "A única bola que captura Slimes. Cada uma custa 100 Cristais Vermelhos.",
+    price: 100,
+    image: slimeBallImg,
+    accent: "#38bdf8",
+    tag: "ESPECIAL",
   },
   {
     id: "book_atk",
@@ -197,8 +207,10 @@ export function RedCrystalCashShopModal({
 }: Props) {
   const [pendingId, setPendingId] = useState<RedCrystalShopProductId | null>(null);
   const [notice, setNotice] = useState<RedCrystalPurchaseResult | null>(null);
+  const [confirming, setConfirming] = useState<RedCrystalShopProductId | null>(null);
 
   if (!open || typeof document === "undefined") return null;
+  const confirmProduct = confirming ? RED_CRYSTAL_SHOP_PRODUCTS.find((product) => product.id === confirming) : null;
 
   const buy = async (productId: RedCrystalShopProductId) => {
     if (pendingId) return;
@@ -384,7 +396,7 @@ export function RedCrystalCashShopModal({
                     </span>
                     <button
                       type="button"
-                      onClick={() => void buy(product.id)}
+                      onClick={() => setConfirming(product.id)}
                       disabled={disabled}
                       style={{
                         minWidth: 89,
@@ -408,6 +420,66 @@ export function RedCrystalCashShopModal({
           </div>
         </div>
       </section>
+
+      {confirmProduct && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Confirmar compra de ${confirmProduct.name}`}
+          onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirming(null); }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 60001, display: "grid", placeItems: "center",
+            padding: 16, background: "rgba(2,5,12,.78)", backdropFilter: "blur(5px)",
+          }}
+        >
+          <div
+            onMouseDown={(event) => event.stopPropagation()}
+            style={{
+              width: "min(390px, 100%)", padding: 17, borderRadius: 14,
+              border: `2px solid ${confirmProduct.accent}`,
+              background: "linear-gradient(160deg, #1a1020, #0b1220)",
+              boxShadow: "0 18px 60px #000c", color: "#fff",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+              <div style={{ width: 64, height: 64, display: "grid", placeItems: "center", borderRadius: 10, border: `1px solid ${confirmProduct.accent}80`, background: "rgba(0,0,0,.3)" }}>
+                <img src={confirmProduct.image} alt="" width={58} height={58} style={{ objectFit: "contain", imageRendering: "pixelated" }} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>CONFIRMAR COMPRA</div>
+                <strong style={{ display: "block", fontSize: 16, lineHeight: 1.2 }}>{confirmProduct.name}</strong>
+              </div>
+            </div>
+            <p style={{ margin: "12px 0 9px", color: "#becce1", fontSize: 11.5, lineHeight: 1.4 }}>
+              {confirmProduct.description}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 10px", borderRadius: 8, background: "rgba(120,18,30,.35)", border: "1px solid rgba(255,113,113,.45)" }}>
+              <span style={{ color: "#ffd8d4", fontWeight: 800, fontSize: 12 }}>Valor</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#fff", fontWeight: 950 }}>
+                <img src={crystalRedImg} alt="" width={20} height={20} />
+                {confirmProduct.price.toLocaleString("pt-BR")} Cristal(is) Vermelho(s)
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+              <button
+                type="button"
+                onClick={() => setConfirming(null)}
+                style={{ flex: 1, padding: "9px 8px", borderRadius: 8, border: "1px solid #53657e", background: "#18253a", color: "#dce8f8", fontWeight: 900, cursor: "pointer" }}
+              >Cancelar</button>
+              <button
+                type="button"
+                disabled={!!pendingId}
+                onClick={() => {
+                  const productId = confirmProduct.id;
+                  setConfirming(null);
+                  void buy(productId);
+                }}
+                style={{ flex: 1.4, padding: "9px 8px", borderRadius: 8, border: "1px solid #ffe3a0", background: "linear-gradient(180deg, #ffe3a0, #c8902f)", color: "#241604", fontWeight: 950, cursor: "pointer" }}
+              >Confirmar compra</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>,
     document.body,
   );

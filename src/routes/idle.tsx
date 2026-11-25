@@ -42,6 +42,7 @@ import { JourneyGate } from "@/components/journey/JourneyGate";
 import { JOURNEY_VERSION } from "@/game/journey";
 import { loadMapEditorCloud, loadPublishedMapEditor, readCachedPublishedMapEditor, saveMapEditorCloud } from "@/lib/mapEditorCloud";
 import { claimWelcomePotions } from "@/lib/welcomePack";
+import { grantNevezinhaTickets } from "@/lib/nevezinhaTickets";
 import { publicMapName } from "@/game/mapLabels";
 import { CAPTURE_QUESTS, applyCaptureQuest, type CaptureQuestProgress } from "@/game/captureQuests";
 import { starsOf } from "@/game/systems";
@@ -166,6 +167,7 @@ import { grantEmeraldFor } from "@/lib/emerald";
 import chestClosedImg from "@/assets/icons/chest-closed.webp";
 import chestOpenImg from "@/assets/icons/chest-open.webp";
 import ballPokeImg from "@/assets/items/icon-pokeball.webp";
+import slimeBallImg from "@/assets/items/icon-slime.webp";
 import ballGreatImg from "@/assets/items/icon-greatball.webp";
 import ballUltraImg from "@/assets/items/icon-ultraball.webp";
 import potionNewImg from "@/assets/items/icon-potion.webp";
@@ -2562,6 +2564,7 @@ const ITEM_COLORS: Record<string, string> = {
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
   pokeball: ballPokeImg, greatball: ballGreatImg, ultraball: ballUltraImg, safariball: safariBallImg,
+  slimeball: slimeBallImg, slime_pet: slimeBallImg,
   chest_amulet: chestAmuletImg,
   revive: reviveIconImg, berry: berryIconImg, key: keyIconImg,
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
@@ -2595,7 +2598,7 @@ const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = 
 ];
 
 // Loja — Pokébolas por gold, livros por cristal
-type ShopBall = { id: "pokeball" | "greatball" | "ultraball" | "safariball" | "masterball"; name: string; price: number; img: string; captureMult: number };
+type ShopBall = { id: "pokeball" | "greatball" | "ultraball" | "safariball" | "masterball" | "slimeball"; name: string; price: number; img: string; captureMult: number };
 const SHOP_BALLS: ShopBall[] = [
   { id: "pokeball",   name: "Pokébola",   price: 500,    img: ballPokeImg,  captureMult: 1 },
   { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
@@ -2608,6 +2611,7 @@ const ALL_BALLS: ShopBall[] = [
   { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
   { id: "ultraball",  name: "Ultra Ball", price: 15000,  img: ballUltraImg, captureMult: 3.5 },
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
+  { id: "slimeball", name: "Pokébola Slime", price: 100, img: slimeBallImg, captureMult: 1 },
 ];
 
 type ShopBook = { id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
@@ -3556,8 +3560,9 @@ function IdlePage() {
 
     if (mutation.item_id != null) {
       const allowedItems = new Set([
-        "pokeball", "ultraball", "book_atk", "book_exp", "book_vip", "book_vip_30",
-        "egg_epic", "egg_mystic", "revive",
+        "pokeball", "greatball", "ultraball", "masterball", "potion", "slimeball",
+        "book_atk", "book_exp", "book_vip", "book_vip_30",
+        "egg_epic", "egg_mystic", "revive", "rare_candy",
         "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
       ]);
       const itemQty = redCrystalCashAmount(mutation.item_qty);
@@ -3592,6 +3597,7 @@ function IdlePage() {
       ultraball_50: "ultraball",
       revive_pack_10: "revive",
       potion_20: "potion",
+      slimeball: "slimeball",
       book_atk: "book_atk",
       book_exp: "book_exp",
       orb_xp_minor: "orb_xp_minor",
@@ -6149,22 +6155,38 @@ const confirmName = () => {
   // Progresso das 20 missões de captura + prêmios automáticos a cada 5.
   const applyCaptureQuestProgress = (state: IdleState, species: string): IdleState => {
     const update = applyCaptureQuest(state.captureQuests, species);
-    if (!update.completedNow.length && !update.rewards.length) return state;
+    if (!update.completedNow.length && !update.rewards.length && !update.tickets) return state;
     const items = { ...state.items };
     for (const reward of update.rewards) {
       for (const [id, qty] of Object.entries(reward.items)) {
         items[id] = (items[id] ?? 0) + qty;
       }
     }
-    if (update.completedNow.length > 0) {
+    const completedCount = update.completedNow.length;
+    if (completedCount > 0) {
+      // Cada missão individual: +50 Cristais Vermelhos e +250 XP de treinador.
+      items.cr_red = (items.cr_red ?? 0) + completedCount * 50;
+    }
+    let next: IdleState = { ...state, items, captureQuests: update.progress };
+    if (completedCount > 0) {
+      const gained = completedCount * 250;
+      const applied = applyTrainerXp(next, gained);
+      next = applied.state;
       const names = update.completedNow.map((quest) => quest.title).join(" · ");
-      queueMicrotask(() => pushChat(`🏅 Missão concluída: ${names}`, "cap"));
+      queueMicrotask(() => pushChat(`🏅 Missão concluída: ${names} · +${gained} XP · +${completedCount * 50} Cristais Vermelhos`, "cap"));
+      if (applied.leveledTo != null) {
+        queueMicrotask(() => pushChat(`🎓 TREINADOR subiu para o nível ${applied.leveledTo}!`, "lv"));
+      }
     }
     if (update.rewards.length > 0) {
       const labels = update.rewards.map((reward) => reward.label).join(" · ");
       queueMicrotask(() => pushChat(`🎁 Missões 20: prêmio ${labels} recebido na mochila!`, "chest"));
     }
-    return { ...state, items, captureQuests: update.progress };
+    if (update.tickets > 0) {
+      queueMicrotask(() => pushChat(`❄ ${update.tickets} ticket(s) de tiro da Nevezinha recebido(s)!`, "cap"));
+      queueMicrotask(() => { void grantNevezinhaTickets(update.tickets); });
+    }
+    return next;
   };
   // Pacote único de 200 Poções. O servidor controla a concessão; se o save
   // ainda não existir (conta nova), tenta de novo por alguns segundos.
@@ -13326,13 +13348,21 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const useBall = abCfg?.useBall !== false;
             const pref = abCfg?.preferredBall ?? "auto";
             const isEventLegSel = !!target.eventLegendary;
+            const isSlime = !!target.slimeSheet;
             let usedBall: ShopBall | null = null;
             // 🎯 Arremessos: cada tentativa consome 1; zerado bloqueia a captura.
             const throwsAvail = s.throwsLeft ?? MAX_THROW_COUNT;
             if (throwsAvail <= 0) {
               queueMicrotask(() => pushChat("🎯 Sem arremessos! Aguarde recuperar (+1 a cada 3 min).", "info"));
             }
-            if (useBall && throwsAvail > 0) {
+            if (isSlime) {
+              // Slime só aceita a Pokébola Slime, nunca as bolas normais.
+              const slimeball = ALL_BALLS.find((ball) => ball.id === "slimeball");
+              usedBall = useBall && throwsAvail > 0 && slimeball && (newItems.slimeball ?? 0) > 0 ? slimeball : null;
+              if (!usedBall && useBall && throwsAvail > 0) {
+                queueMicrotask(() => pushChat("🔵 Slime só pode ser capturado com Pokébola Slime (Loja Cash).", "info"));
+              }
+            } else if (useBall && throwsAvail > 0) {
               if (pref !== "auto") {
                 const b = ALL_BALLS.find((x) => x.id === pref);
                 if (b && (newItems[b.id] ?? 0) > 0) usedBall = b;
@@ -13395,7 +13425,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const autoThrowCount = isExempt10(target) ? 0 : bumpEnemyThrow(target.id);
               const masteryBonus = (idle.globalStats?.mastery ?? 0) * 0.005;
             const baseChance = 0.020 + masteryBonus; // mais difícil: 2.0% base (com bola comum) + Mastery
-              if (safariTarget) {
+              if (isSlime) {
+                captured = usedBall.id === "slimeball";
+              } else if (safariTarget) {
                 if (usedBall.id === "ultraball") safariUltraThrows += 1;
                 captured = Math.random() < safariCatchChance(usedBall.id, safariUltraThrows);
                 if (captured) safariUltraThrows = 0;
@@ -13509,6 +13541,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                 const rolled = rollTraits(target.rarity);
                 const np = { ...makePet(target.sp, 1, target.rarity), traits: rolled };
                 capturedPet = np;
+                if (isSlime) {
+                  // Slime não entra na coleção de Pokémon: vira item/troféu na mochila.
+                  capturedPet = null;
+                  newItems.slime_pet = (newItems.slime_pet ?? 0) + 1;
+                  queueMicrotask(() => pushChat("🔵 Slime capturado com Pokébola Slime! +1 Slime na mochila.", "capture"));
+                }
                 // FASE 3: encontro encerrado por captura � limpa o contador 0/10.
                 clearEnemyThrows(target.id);
                 // Drop de Disco inicial do Ivysaur (25% ao capturar)
@@ -13581,7 +13619,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             const nt2 = nt.map((t) => (t.id === "t3" && !t.done && capturedInc)
               ? { ...t, progress: Math.min(t.target, t.progress + 1), done: t.progress + 1 >= t.target }
               : t);
-            const newCaught = captured && !s.caughtSpecies.includes(target.sp)
+            const newCaught = captured && !isSlime && !s.caughtSpecies.includes(target.sp)
               ? [...s.caughtSpecies, target.sp]
               : s.caughtSpecies;
             const newSeen = s.seenSpecies.includes(target.sp)
@@ -14385,6 +14423,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }
     const target = enemies.find((e) => e.id === enemyId);
     if (!target || target.hp <= 0) return;
+    const isSlime = !!target.slimeSheet;
     // Evento Gelius: apenas ditto/gengar/magmar capturáveis
     const curMap = idle.currentMap;
     if ((curMap === "arena" || curMap === "arena") && !GELIUS_CAPTURABLE.has(target.sp)) {
@@ -14402,6 +14441,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }
     if (!usedBall) {
       for (const b of [...ALL_BALLS].reverse()) {
+        if (b.id === "slimeball") continue;
         if ((idle.items[b.id] ?? 0) > 0) { usedBall = b; break; }
       }
     }
@@ -14410,9 +14450,13 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       const valid = pref === "ultraball" || pref === "safariball" ? [pref, "safariball", "ultraball"] : ["safariball", "ultraball"];
       usedBall = valid.map((id) => ALL_BALLS.find((ball) => ball.id === id)).find((ball) => ball && (idle.items[ball.id] ?? 0) > 0) ?? null;
     }
+    if (isSlime) {
+      const slimeball = ALL_BALLS.find((ball) => ball.id === "slimeball");
+      usedBall = slimeball && (idle.items.slimeball ?? 0) > 0 ? slimeball : null;
+    }
     if (!usedBall) {
-      pushFxAt(target.x, target.y - 60, safariTarget ? "Só Ultra / Safari Ball" : "sem pokébola", "enemyDmg");
-      pushChat(`Sem Pokébolas — compre na loja.`, "info");
+      pushFxAt(target.x, target.y - 60, isSlime ? "Só Pokébola Slime" : safariTarget ? "Só Ultra / Safari Ball" : "sem pokébola", "enemyDmg");
+      pushChat(isSlime ? "🔵 Slime só pode ser capturado com Pokébola Slime (Loja Cash)." : `Sem Pokébolas — compre na loja.`, "info");
       return;
     }
     // 🎯 Arremessos: zerado bloqueia a captura; cada tentativa consome 1.
@@ -14431,7 +14475,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     // chance manual: base 8%, escala até 45% conforme hp% baixa; multiplicada pelo bônus da bola
     let chance: number;
     const safariUltraThrows = (idle.safariUltraThrows ?? 0) + (safariTarget && usedBall.id === "ultraball" ? 1 : 0);
-    if (safariTarget) {
+    if (isSlime) {
+      chance = usedBall.id === "slimeball" ? 1 : 0;
+    } else if (safariTarget) {
       chance = safariCatchChance(usedBall.id, safariUltraThrows);
     } else if (target.menace) {
       // 💀 PERIGO ABISSAL — impossível capturar; ficará agressivo após o lançamento
@@ -14528,8 +14574,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         }
         return ch ? nextQ : prev;
       });
-      pushChat(`${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
-      if (rolled.length > 0) {
+      pushChat(isSlime ? "🔵 Slime capturado! +1 Slime na mochila." : `${target.sp.replace(/_/g, " ").toUpperCase()} foi para a sua Coleção.`, "info");
+      if (!isSlime && rolled.length > 0) {
         const tLabels = rolled.map((id) => { const t = TRAITS[id]; return t ? `${t.icon} ${t.name}` : id; }).join(" · ");
         pushChat(`✨ Traits: ${tLabels}`, "cap");
       }
@@ -14541,6 +14587,14 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         const captureTasks = s.tasks.map((task) => task.id === "t3" && !task.done
           ? { ...task, progress: Math.min(task.target, task.progress + 1), done: task.progress + 1 >= task.target }
           : task);
+        if (isSlime) {
+          return applyCaptureQuestProgress({
+            ...s,
+            tasks: captureTasks,
+            totals: { ...s.totals, captured: s.totals.captured + 1 },
+            items: { ...s.items, slime_pet: (s.items.slime_pet ?? 0) + 1 },
+          }, target.sp);
+        }
         if (prev.length >= MAX_COLLECTION) {
           queueMicrotask(() => pushChat(`�a� Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
           return applyCaptureQuestProgress(
@@ -16264,22 +16318,35 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   // Slime: mob comum EXCLUSIVO dos mapas BOBO. Não usa o spawner normal
   // (que escolhe espécies de Pokémon) — só este cria inimigos nesses mapas.
-  function spawnBoboSlimes(): Enemy[] {
+  function spawnBoboSlimes(count = 4): Enemy[] {
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
     const w = customDims?.w ?? 1200;
     const h = customDims?.h ?? 1200;
     const base = Math.max(1, (team[0]?.level ?? 10) + 1);
+    const trainer = trainerPosRef.current;
+    const grassTiles = grassPatchesRef.current.flatMap((patch) => patch.tiles);
+    // Em mapas com zona de mato, espera os canteiros carregarem para não
+    // colocar Slime na estrada/neve.
+    if (zoneForMap(idle.currentMap) && grassTiles.length === 0) return [];
     const arr: Enemy[] = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < Math.max(0, count); i++) {
       let x = 0;
       let y = 0;
-      for (let tries = 0; tries < 24; tries++) {
-        x = w * (0.2 + Math.random() * 0.6);
-        y = h * (0.2 + Math.random() * 0.6);
-        if (Math.hypot(x - trainerPos.x, y - trainerPos.y) >= 140) break;
+      if (grassTiles.length > 0) {
+        const tile = grassTiles[Math.floor(Math.random() * grassTiles.length)];
+        const center = grassTileCenter(tile, 24);
+        x = center.x;
+        y = center.y;
+      } else {
+        for (let tries = 0; tries < 24; tries++) {
+          x = w * (0.2 + Math.random() * 0.6);
+          y = h * (0.2 + Math.random() * 0.6);
+          if (Math.hypot(x - trainer.x, y - trainer.y) >= 140 && !collidesWithAny(x, y)) break;
+        }
       }
+      if (!grassTiles.length && collidesWithAny(x, y)) continue;
       const level = base + (i % 2);
       const hp = 60 + level * 12;
       arr.push({
@@ -16305,6 +16372,24 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }
     return arr;
   }
+
+  // Slimes aparecem nos mapas BOBO. Máximo de 4 vivos; usam a grama quando existe.
+  useEffect(() => {
+    if (!idle.currentMap.startsWith("bobo_")) return;
+    const spawn = () => {
+      setEnemies((prev) => {
+        const alive = prev.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length;
+        if (alive >= 4) return prev;
+        const fresh = spawnBoboSlimes(4 - alive);
+        if (fresh.length === 0) return prev;
+        return [...prev.filter((enemy) => enemy.hp > 0), ...fresh];
+      });
+    };
+    spawn();
+    const timer = window.setInterval(spawn, 12000);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idle.currentMap, team]);
 
   // Spawns das 8 zonas de mato: nascem SOBRE os tiles de mato.
   function spawnZoneEnemies(list: ZoneSpawn[]): Enemy[] {
@@ -31569,6 +31654,7 @@ function TabOverlay({
       {tab === "mochila" && (() => {
         const NAMES: Record<string, string> = {
           potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+          slimeball: "Pokébola Slime", slime_pet: "Slime",
           book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
           book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP EPIC ✦",
           book_vip_30: "Livro VIP CRISTAL ✦✦", book_vip_60: "Livro VIP GOLD ✦✦✦",
@@ -31592,6 +31678,7 @@ function TabOverlay({
           carta_plus: "Carta Suprema Plus ✦",
           carta_riolu: "Carta Riolu Suprema 🐺✦",
           nevezinha_doll: "Boneco da Nevezinha ⛄",
+          slimeball: "Pokébola Slime 🔵", slime_pet: "Slime 🔵",
           stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥",
           stone_water: "Stone Aquática 💧", stone_electric: "Stone Elétrica ⚡",
           stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
@@ -31642,6 +31729,8 @@ function TabOverlay({
           incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
           nevezinha_doll: "Boneco da Nevezinha ⛄ · LENDÁRIO do Festival de Inverno. Dá +5% de XP ao time e ao treinador. Use na mochila para ele seguir você.",
+          slimeball: "Pokébola Slime 🔵 · única bola capaz de capturar Slimes. Comprada na Loja Cash por Cristais Vermelhos.",
+          slime_pet: "Slime 🔵 · criatura especial capturada com Pokébola Slime. Fica na mochila como troféu do evento.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
           chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
@@ -34002,6 +34091,7 @@ function WalletScreen({
     egg_anc_selado: "Egg Selado Ancestral", egg_anc_plus: "Egg Ancestral Plus", egg_anc_luck: "Egg Ancestral Luck",
     esfera_safira: "Esfera de Safira",
     nevezinha_doll: "Boneco da Nevezinha ⛄",
+    slimeball: "Pokébola Slime 🔵", slime_pet: "Slime 🔵",
     black_mitic_egg: "Black Mitic Egg ✦", premium_box: "Caixa Premium ✦"
   };
 

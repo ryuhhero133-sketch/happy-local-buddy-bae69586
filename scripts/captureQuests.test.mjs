@@ -36,6 +36,14 @@ test("conclusão individual e prêmio a cada 5 sem duplicar", () => {
   assert.equal(duplicate.completedNow.length, 0);
   assert.equal(duplicate.rewards.length, 0);
   assert.equal(captureQuestCount(progress), 5);
+
+  let ticketProgress = { completed: [], milestones: [], ticketGroups: 0 };
+  for (let i = 0; i < 3; i++) {
+    const update = applyCaptureQuest(ticketProgress, CAPTURE_QUESTS[i].species);
+    ticketProgress = update.progress;
+    if (i === 2) assert.equal(update.tickets, 1);
+  }
+  assert.equal(ticketProgress.ticketGroups, 1);
 });
 
 test("HUD direita mostra as missões e o progresso", () => {

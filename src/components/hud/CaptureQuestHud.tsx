@@ -92,7 +92,7 @@ export function CaptureQuestHud({ quests, milestones }: {
               </article>
             ))}
           </div>
-          <footer>As missões contam somente capturas feitas no jogo. O progresso fica salvo na sua conta.</footer>
+          <footer>Cada missão: +50 Cristais Vermelhos e +250 XP · a cada 3: 1 ticket da Nevezinha. O progresso fica salvo na sua conta.</footer>
         </section>
       </div>,
       document.body,

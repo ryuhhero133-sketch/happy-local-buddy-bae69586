@@ -36,6 +36,8 @@ export const CAPTURE_QUESTS: CaptureQuestDef[] = [
 export type CaptureQuestProgress = {
   completed?: string[];
   milestones?: number[];
+  /** Grupos de 3 missões já convertidos em ticket da Nevezinha. */
+  ticketGroups?: number;
 };
 
 export type CaptureQuestMilestone = {
@@ -62,7 +64,7 @@ export function captureQuestCount(progress: CaptureQuestProgress | null | undefi
 export function applyCaptureQuest(
   progress: CaptureQuestProgress | null | undefined,
   species: string,
-): { progress: CaptureQuestProgress; completedNow: CaptureQuestDef[]; rewards: CaptureQuestMilestone[] } {
+): { progress: CaptureQuestProgress; completedNow: CaptureQuestDef[]; rewards: CaptureQuestMilestone[]; tickets: number } {
   const completed = new Set(progress?.completed ?? []);
   const completedNow: CaptureQuestDef[] = [];
   for (const quest of CAPTURE_QUESTS) {
@@ -76,12 +78,17 @@ export function applyCaptureQuest(
     (milestone) => completed.size >= milestone.at && !milestones.has(milestone.at),
   );
   for (const reward of rewards) milestones.add(reward.at);
-  const changed = completedNow.length > 0 || rewards.length > 0;
+  const groups = Math.floor(completed.size / 3);
+  const previousGroups = progress?.ticketGroups ?? 0;
+  const tickets = Math.max(0, groups - previousGroups);
+  const ticketGroups = Math.max(previousGroups, groups);
+  const changed = completedNow.length > 0 || rewards.length > 0 || tickets > 0;
   return {
     progress: changed
-      ? { completed: [...completed], milestones: [...milestones] }
+      ? { completed: [...completed], milestones: [...milestones], ticketGroups }
       : (progress ?? {}),
     completedNow,
     rewards,
+    tickets,
   };
 }

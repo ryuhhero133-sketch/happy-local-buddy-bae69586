@@ -9,6 +9,7 @@ const shop = read("../src/components/RedCrystalCashShopModal.tsx");
 const welcome = read("../src/lib/welcomePack.ts");
 const welcomeSql = read("../supabase/migrations/20261125034907_welcome_potion_pack.sql");
 const shopSql = read("../supabase/migrations/20261125034747_red_crystal_potion_pack.sql");
+const slimeSql = read("../supabase/migrations/20261125062401_red_crystal_slimeball.sql");
 
 test("HUD branca liberada para todos", () => {
   assert.ok(idle.includes("newHud\n"));
@@ -34,4 +35,29 @@ test("20 Poções por 1 Cristal Vermelho na Loja Cash", () => {
   assert.ok(idle.includes('potion_20: "potion"'));
   assert.ok(shopSql.includes("when 'potion_20' then"));
   assert.ok(shopSql.includes("v_price := 1; v_granted_item := 'potion'; v_granted_qty := 20;"));
+});
+
+test("Pokébola Slime e confirmação na Loja Cash", () => {
+  assert.ok(shop.includes('id: "slimeball"'));
+  assert.ok(shop.includes('name: "Pokébola Slime"'));
+  assert.ok(shop.includes("price: 100"));
+  assert.ok(shop.includes("icon-slime.webp"));
+  assert.ok(shop.includes("setConfirming(product.id)"));
+  assert.ok(shop.includes("Confirmar compra"));
+  assert.ok(idle.includes('slimeball: "slimeball"'));
+  assert.ok(idle.includes('"potion", "slimeball"'));
+  assert.ok(idle.includes('b.id === "slimeball"'));
+  assert.ok(slimeSql.includes("when 'slimeball' then"));
+  assert.ok(slimeSql.includes("v_price := 100; v_granted_item := 'slimeball'; v_granted_qty := 1;"));
+  assert.ok(idle.includes("spawnBoboSlimes"));
+  assert.ok(idle.includes("slimeSheet"));
+  assert.ok(idle.includes("Slime só pode ser capturado com Pokébola Slime"));
+});
+
+test("cada 3 missões gera ticket da Nevezinha", () => {
+  assert.ok(read("../src/game/captureQuests.ts").includes("ticketGroups"));
+  assert.ok(read("../src/lib/nevezinhaTickets.ts").includes("nevezinha_grant_tickets"));
+  assert.ok(idle.includes("grantNevezinhaTickets(update.tickets)"));
+  assert.ok(idle.includes("completedCount * 50"));
+  assert.ok(idle.includes("completedCount * 250"));
 });

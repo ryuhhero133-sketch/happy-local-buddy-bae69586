@@ -23,6 +23,18 @@ Novo produto na Loja Cash:
 | Produto | Preço | Entrega |
 |---|---:|---|
 | 20 Poções | 1 Cristal Vermelho | +20 Poções na mochila |
+| Pokébola Slime | 100 Cristais Vermelhos | +1 Pokébola Slime |
+
+A Loja Cash agora pede **confirmação** antes de debitar os Cristais Vermelhos.
+O item concedido precisa estar na lista `allowedItems` do checkpoint local; foi
+corrigido para Poções, Pokébola Slime e os demais itens do catálogo.
+
+## Slime
+
+- Slimes aparecem nos mapas BOBO, com limite de 4 vivos.
+- **Pokébola, Great Ball, Ultra Ball e Master Ball não capturam Slime.**
+- Só a **Pokébola Slime** captura; custa 100 Cristais Vermelhos.
+- Ao capturar, o Slime vira o item de troféu `slime_pet` na mochila.
 
 O catálogo e o preço são validados no servidor por
 `buy_red_crystal_cash_product('potion_20', versão)`. O cliente não informa

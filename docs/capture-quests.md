@@ -34,7 +34,15 @@ completa com o progresso e os pacotes a cada 5.
 
 ## Prêmios automáticos
 
-| Missões | Recompensa |
+Cada missão individual também entrega:
+
+- **50 Cristais Vermelhos**;
+- **250 XP de treinador**.
+
+A cada **3 missões** concluídas, a conta recebe **1 ticket de tiro da
+Nevezinha** (o ticket é somado no servidor e pode passar dos 3 diários).
+
+| Missões | Recompensa extra |
 |---:|---|
 | 5 | 5 Cristais Vermelhos · 50 Poções · 10 Great Balls |
 | 10 | 10 Cristais Vermelhos · 100 Poções · 10 Ultra Balls · 1 Orb Menor |
@@ -42,4 +50,4 @@ completa com o progresso e os pacotes a cada 5.
 | 20 | 30 Cristais Vermelhos · 200 Poções · 1 Master Ball · 1 Orb Supremo |
 
 Os prêmios são entregues uma única vez por conta. O helper
-`applyCaptureQuest` marca a captura, libera o pacote e evita duplicação.
+`applyCaptureQuest` marca a captura, libera os pacotes e evita duplicação.
