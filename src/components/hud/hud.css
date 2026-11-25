@@ -203,6 +203,7 @@
 .revo-chat.is-pvp-active .revo-chat__feed p { color: #ffe1e5; }
 .revo-chat__tag { color: #67e1d8; }
 .revo-chat__feed p[data-kind="capture"] { color: #e8b5e2; }
+.revo-chat__feed p[data-kind="shiny"] { color: #ffe6a1; font-weight: 800; text-shadow: 0 0 9px #f3ce8433; }
 .revo-chat__feed p[data-kind="pvp"] { color: #ff8d9d; font-weight: 800; text-shadow: 0 0 7px #d7092c88; }
 .revo-icon.revo-pvp-active { color: #ffd7dc; border-color: #ff4b61; background: linear-gradient(#a71730, #4a0715); box-shadow: 0 0 11px #ff1c3c88, inset 0 1px 0 #fff4; }
 .revo-chat__input { display: flex; flex-shrink: 0; align-items: center; gap: 7px; margin: 4px 8px 8px; }

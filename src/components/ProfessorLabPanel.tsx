@@ -1754,13 +1754,12 @@ export function ProfessorLabPanel(props: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  {PROF_MAPS.length} MAPAS PARA EXPLORAR
+                  MAPAS TEMPORARIAMENTE FECHADOS
                 </div>
                 <div style={{ color: "#8ba0b2", fontSize: 11, marginBottom: 12 }}>
-                  Expedições do laboratório — sem custo de ouro. Mapas grátis
-                  (incluindo os lisos 0000/0055/0066/0077) não gastam energia e
-                  não têm nível de treinador; os demais cobram 10 de energia por
-                  entrada após o desbloqueio.
+                  Todas as expedições do Laboratório estão bloqueadas para todos
+                  os jogadores até nova liberação. A incubadora e os serviços do
+                  Professor continuam disponíveis.
                 </div>
                 <div style={{ ...cut(10), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", padding: 12, marginBottom: 12, background: "rgba(25,92,140,0.24)", border: "1px solid #57c9f2" }}>
                   <div>
@@ -1769,9 +1768,9 @@ export function ProfessorLabPanel(props: Props) {
                       {ship?.tier ? "Barco pronto · entrada por 10⚡ de energia." : "Compre um barco na aba BARCO para navegar. A entrada custa 10⚡ de energia."}
                     </div>
                   </div>
-                  <button type="button" onClick={() => ship?.tier ? props.onTravel("azulante") : setTab("barcos")}
-                    style={{ ...cut(8), padding: "9px 12px", background: "#57c9f2", border: "1px solid #b5efff", color: "#04141a", fontFamily: MONO, fontSize: 10, fontWeight: 900, cursor: "pointer" }}>
-                    {ship?.tier ? "🌊 VIAJAR PARA AZULANTE" : "⛵ VER BARCOS"}
+                  <button type="button" disabled={isMapBlocked("azulante")} onClick={() => ship?.tier ? props.onTravel("azulante") : setTab("barcos")}
+                    style={{ ...cut(8), padding: "9px 12px", background: "#57c9f2", border: "1px solid #b5efff", color: "#04141a", fontFamily: MONO, fontSize: 10, fontWeight: 900, cursor: isMapBlocked("azulante") ? "not-allowed" : "pointer", opacity: isMapBlocked("azulante") ? 0.7 : 1 }}>
+                    {isMapBlocked("azulante") ? "🔒 EXPEDIÇÃO FECHADA" : ship?.tier ? "🌊 VIAJAR PARA AZULANTE" : "⛵ VER BARCOS"}
                   </button>
                 </div>
                 <div
@@ -2100,7 +2099,7 @@ export function ProfessorLabPanel(props: Props) {
                       <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
                         <BoatBtn label="⛽ ABASTECER (1 Óleo)" color="#ffb347" onClick={onRefuel} disabled={(oil ?? 0) <= 0 || fuel >= maxFuel} />
                         <BoatBtn label={`🔧 REPARAR (${Math.floor(maxHp * 0.25)} 🪙)`} color="#7cffb2" onClick={onRepair} disabled={hp >= maxHp} />
-                        <BoatBtn label="🌊 VIAJAR PARA AZULANTE · 10⚡" color="#57c9f2" onClick={() => props.onTravel("azulante")} />
+                        <BoatBtn label={isMapBlocked("azulante") ? "🔒 EXPEDIÇÃO FECHADA" : "🌊 VIAJAR PARA AZULANTE · 10⚡"} disabled={isMapBlocked("azulante")} color="#57c9f2" onClick={() => props.onTravel("azulante")} />
                       </div>
                     </div>
                   );

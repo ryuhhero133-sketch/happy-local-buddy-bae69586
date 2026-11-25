@@ -75,7 +75,6 @@ export function vipTierOf(goldMult: number | undefined, until: number | undefine
   const benefits = tier
     ? [
         `+${pct}% Ouro em batalhas e +${pct}% EXP (ativo até acabar o livro)`,
-        "Venda de Pokémon por Cristais no Mercado",
         "Missão diária Coleta Dourada (quest VIP)",
         "Distinção ✦ dourada no seu nome",
         ...(tier === "vip60"

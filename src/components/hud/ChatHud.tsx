@@ -18,7 +18,7 @@ export function ChatHud({ messages, pvpActive = false, pvpWindowLabel }: {
   const feed = useRef<HTMLDivElement>(null);
   const classify = (message: HudMessage) =>
     ["capture", "cap"].includes(message.kind) ? "captures" :
-      /^(💬|🌍)/u.test(message.text) ? "world" : "system";
+      message.kind === "shiny" || /^(💬|🌍)/u.test(message.text) ? "world" : "system";
   const visible = messages.filter((message) => filter === "all" || classify(message) === filter);
 
   useEffect(() => {

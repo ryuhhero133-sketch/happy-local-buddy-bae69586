@@ -262,6 +262,7 @@ export interface PetInstance {
   rebirths?: number; // quantas vezes renasceu (cada rebirth vale 3 estrelas)
   legacyStars?: number; // estrelas permanentes da conversão de lançamento
   locked?: boolean; // pets de evento: não podem ser vendidos/trocados/anunciados
+  isStarter?: boolean; // inicial da conta; protegido mesmo depois de evoluir
   ascensionStats?: Record<string, number>; // Atributos passivos aleatórios da ascensão
   actionMoves?: number[]; // índices dos moves (dex.moves) em "Ações" (máx 4)
   loyaltyBonus?: {

@@ -41,8 +41,12 @@ export const isWorldMapDestinationUnlocked = (id: string, identityId?: string | 
 };
 
 // Altere esta lista para liberar os mapas novamente; vale para todas as viagens.
-export const BLOCKED_LAB_MAPS = ["map_0000", "map_0055", "map_0066", "map_0077"] as const;
-export const isMapBlocked = (id: string) => !import.meta.env.DEV && (BLOCKED_LAB_MAPS as readonly string[]).includes(id);
+export const BLOCKED_LAB_MAPS = [
+  "iceblow", "monte_floreto", "rayow", "sakura_city", "venenot",
+  "azulante", "margrande", "navegante", "hallow", "caverna_brok",
+  "map_0000", "map_0055", "map_0066", "map_0077",
+] as const;
+export const isMapBlocked = (id: string) => (BLOCKED_LAB_MAPS as readonly string[]).includes(id);
 type TravelState = { currentMap: string; bank: { gold: number }; items: Record<string, number> };
 export function mapEntryError(state: TravelState, target: string, identityId?: string | null): string | null {
   if (isMapBlocked(target)) return "🔒 Este mapa está temporariamente bloqueado.";
