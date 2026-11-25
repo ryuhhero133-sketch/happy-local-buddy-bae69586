@@ -5,6 +5,7 @@ import crystalRedImg from "@/assets/materials/cristal-red.png";
 import pokeballImg from "@/assets/items/icon-pokeball.webp";
 import ultraballImg from "@/assets/items/icon-ultraball.webp";
 import reviveImg from "@/assets/items/icon-revive.webp";
+import potionImg from "@/assets/items/icon-potion.webp";
 import bookAtkImg from "@/assets/icons/book-atk.webp";
 import bookExpImg from "@/assets/icons/book-exp.webp";
 import vipEpicImg from "@/ambiente/Vip Epic.png";
@@ -56,6 +57,15 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     price: 10,
     image: reviveImg,
     accent: "#ff6f91",
+    tag: "CURA",
+  },
+  {
+    id: "potion_20",
+    name: "20 Poções",
+    description: "20 Poções para curar o time. Oferta especial: 1 Cristal Vermelho.",
+    price: 1,
+    image: potionImg,
+    accent: "#61e6a3",
     tag: "CURA",
   },
   {

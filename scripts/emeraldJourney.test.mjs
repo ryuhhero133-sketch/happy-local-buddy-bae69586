@@ -38,7 +38,7 @@ test("migration não faz reset em massa; liberação pública é feita na config
   assert.match(migration, /enabled boolean not null default false/);
   assert.ok(!migration.includes("set enabled=true"));
   assert.ok(!migration.includes("set enabled = true"));
-  assert.ok(idle.includes("newHud={identity?.id === MAP_EDITOR_OWNER_ID}"));
+  assert.ok(!idle.includes("newHud={identity?.id === MAP_EDITOR_OWNER_ID}"));
   assert.ok(read("../src/components/AuthGate.tsx").includes("LOCKDOWN_ONLY_OWNER = false"));
   assert.ok(read("../src/lib/maintenance.functions.ts").includes("return { enabled: false }"));
 });

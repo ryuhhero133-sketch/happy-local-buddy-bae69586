@@ -41,6 +41,7 @@ import { NevezinhaEvent } from "@/components/nevezinha/NevezinhaEvent";
 import { JourneyGate } from "@/components/journey/JourneyGate";
 import { JOURNEY_VERSION } from "@/game/journey";
 import { loadMapEditorCloud, loadPublishedMapEditor, readCachedPublishedMapEditor, saveMapEditorCloud } from "@/lib/mapEditorCloud";
+import { claimWelcomePotions } from "@/lib/welcomePack";
 import { publicMapName } from "@/game/mapLabels";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
@@ -3585,6 +3586,7 @@ function IdlePage() {
       pokeball_100: "pokeball",
       ultraball_50: "ultraball",
       revive_pack_10: "revive",
+      potion_20: "potion",
       book_atk: "book_atk",
       book_exp: "book_exp",
       orb_xp_minor: "orb_xp_minor",
@@ -6139,6 +6141,42 @@ const confirmName = () => {
       return next.slice(-40);
     });
   };
+  // Pacote único de 200 Poções. O servidor controla a concessão; se o save
+  // ainda não existir (conta nova), tenta de novo por alguns segundos.
+  useEffect(() => {
+    if (!identity?.id || isOfflineTest()) return;
+    let cancelled = false;
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const claim = async () => {
+      if (cancelled) return;
+      attempts++;
+      let result: Awaited<ReturnType<typeof claimWelcomePotions>>;
+      try {
+        result = await claimWelcomePotions(identity.id);
+      } catch {
+        return;
+      }
+      if (cancelled) return;
+      if (result.ok) {
+        const snapshot = result.snapshot as { idle?: { items?: Record<string, number> } } | undefined;
+        const potion = Number(snapshot?.idle?.items?.potion ?? NaN);
+        if (Number.isFinite(potion)) {
+          setIdle((state) => ({ ...state, items: { ...state.items, potion } }));
+        }
+        pushChat("🎁 Pacote de boas-vindas: +200 Poções na mochila!", "cap");
+        return;
+      }
+      if (result.reason === "save_not_ready" && attempts < 8) {
+        timer = setTimeout(() => { void claim(); }, 3000);
+      }
+    };
+    timer = setTimeout(() => { void claim(); }, 1400);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [identity?.id]);
   // ===== QUESTS neon — 9 bolas (kill/capture/berry/episódio + dourada VIP) =====
   const QUEST_WINDOW_MS = 3 * 60 * 60 * 1000;
   const QUEST_DEFS: { id: string; kind: "kill" | "capture" | "berry" | "episode"; title: string; target: number; reward: number; icon: string; vipOnly?: boolean }[] = [
@@ -18823,7 +18861,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         </div>
       )}
       <GameHud
-        newHud={identity?.id === MAP_EDITOR_OWNER_ID}
+        newHud
         guideAccountId={identity?.id && starterChosen ? identity.id : undefined}
         onJoystickMove={onJoystickMove}
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}

@@ -177,7 +177,7 @@ test("um tile isolado ainda tem uma patrulha interna e contínua", () => {
 
 test("integração mantém versão privada e usa só um controlador de caçada", () => {
   const idle = readFileSync(new URL("../src/routes/idle.tsx", import.meta.url), "utf8");
-  assert.ok(idle.includes("newHud={identity?.id === MAP_EDITOR_OWNER_ID}"));
+  assert.ok(idle.includes("newHud\n"));
   assert.ok(idle.includes("{mapTeleportOpen && ("));
   assert.ok(idle.includes("<WorldMapV2"));
   assert.ok(!idle.includes("enemiesRef.current.some((enemy) => enemy.hp > 0)) return; // briga"));
