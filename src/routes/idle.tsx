@@ -2030,6 +2030,9 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
   if (isTestMap(mapId)) return [];
   // arv começa sem objetos; o editor do jogo fica livre para decorá-lo.
   if (mapId === "arv") return [];
+  // Mapas montados no editor (Emerald, Rota 1 e BOBO) nunca recebem árvores ou
+  // pedras automáticas: o jogador vê exatamente o que foi publicado.
+  if (mapId === "emerald" || mapId === "emerald_01" || mapId === "rota1" || mapId.startsWith("bobo_")) return [];
   // Cidade e mapinhas 3/4/5/7/8/9/10: totalmente limpos
   if (mapId === "arena" || mapId === "arena" || mapId === "arena" || mapId === "mapinha5" || mapId === "mapinha7" || mapId === "mapinha8" || mapId === "mapinha9" || mapId === "mapinha10") return [];
   // Revoland (mapinha11): colisão invisível no lago (3 círculos ao longo da água)
@@ -6950,7 +6953,12 @@ const confirmName = () => {
     setMapEditorSelectedSpawnId((selected) => selected === id ? null : selected);
     setMapEditorMove(false);
   };
-  const obstacles = useMemo(() => [...buildObstacles(curWorldW, curWorldH, idle.currentMap), ...editorObstacles], [idle.currentMap, curWorldW, curWorldH, editorObstacles]);
+  const obstacles = useMemo(() => {
+    // Quando o mapa tem cenário do editor (matos, árvores, pedras), ele é a
+    // única fonte de objetos. Nada de árvore/pedra automática por cima.
+    const editorScenery = editorObstacles.some((object) => !!object.assetId && !object.assetId.startsWith("npc_"));
+    return [...(editorScenery ? [] : buildObstacles(curWorldW, curWorldH, idle.currentMap)), ...editorObstacles];
+  }, [idle.currentMap, curWorldW, curWorldH, editorObstacles]);
 
   // ---- Prédios do mundo (Laboratório + Lar) ----
   type Building = { key: "lab" | "lar" | "azul"; label: string; emoji: string; color: string; x: number; y: number; w: number; h: number; interactR: number };
@@ -25927,12 +25935,8 @@ A sucata afundou com o casco.
 )}
 {mapTeleportOpen && (
           <WorldMapV2
-            currentMap={idle.currentMap}
-            trainerEnergy={trainerEnergy}
-            identityId={identity?.id}
-            destinations={Object.keys(IDLE_MAPS).map((id) => ({ id, ...IDLE_MAPS[id] }))}
             onClose={() => setMapTeleportOpen(false)}
-            energyCostFor={teleportEnergyCostFor}
+            onTravel={() => setMapTeleportOpen(false)}
             onTravelTo={(mapId) => {
               const destination = IDLE_MAPS[mapId];
               if (!destination) return;

@@ -1,12 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import mundiBg from "@/ambiente/mundi/mundi-bg.jpg";
-import {
-  canSeeTestMaps,
-  isMapBlocked,
-  isTestMap,
-  isWorldMapDestinationUnlocked,
-} from "@/game/mapAccess";
-import { publicMapName } from "@/game/mapLabels";
+import kantoThumb from "@/ambiente/mundi/kanto-thumb.jpg";
 import "./worldmap-v2.css";
 
 export type WorldMapDestination = {
@@ -20,43 +14,51 @@ export type WorldMapDestination = {
   bg?: string;
 };
 
-const elementIcon = (element?: string) => {
-  const key = element?.toLowerCase() ?? "";
-  if (key.includes("água") || key.includes("agua")) return "💧";
-  if (key.includes("gelo")) return "❄️";
-  if (key.includes("terra") || key.includes("pedra")) return "🪨";
-  if (key.includes("inseto")) return "🍃";
-  if (key.includes("planta") || key.includes("grama")) return "🌿";
-  if (key.includes("fogo")) return "🔥";
-  if (key.includes("elétrico") || key.includes("eletrico")) return "⚡";
-  if (key.includes("fantasma")) return "👻";
-  return "✨";
+type Region = {
+  id: string;
+  name: string;
+  sub: string;
+  icon: string;
+  x: number;
+  y: number;
+  locked: boolean;
 };
 
-const mpNumber = (id: string) => Number(publicMapName(id).replace(/\D/g, "")) || 999;
+const REGIONS: Region[] = [
+  { id: "kanto", name: "Kanto", sub: "Temporada Atual", icon: "🌿", x: 23, y: 70, locked: false },
+  { id: "johto", name: "Johto", sub: "Em breve", icon: "⛩️", x: 19, y: 15, locked: true },
+  { id: "sinnoh", name: "Sinnoh", sub: "Temporada 03 🔒", icon: "❄️", x: 39, y: 16, locked: true },
+  { id: "hoenn", name: "Hoenn", sub: "Temporada 02 🔒", icon: "🌋", x: 61, y: 47, locked: true },
+  { id: "ancestral", name: "Ilha Ancestral", sub: "Evento Especial", icon: "💎", x: 79, y: 14, locked: true },
+  { id: "paldea", name: "Paldea", sub: "Em breve", icon: "🏜️", x: 73, y: 74, locked: true },
+];
 
-export function WorldMapV2({ destinations, currentMap, trainerEnergy, identityId, onClose, onTravelTo, energyCostFor }: {
-  destinations: WorldMapDestination[];
-  currentMap: string;
-  trainerEnergy: number;
-  identityId?: string;
+const BADGES = ["🪨", "💧", "⚡", "🌱", "❤️", "🕷️", "🔥", "🍃"];
+const REWARDS = ["🔴", "💎", "🪙", "🥚", "📕"];
+const TABS = ["Campanha", "Ginásios", "Temporada", "Recompensas"] as const;
+
+export function WorldMapV2({ onClose, onTravel, onTravelTo }: {
   onClose: () => void;
+  onTravel: () => void;
+  /** Viaja direto para um mapa (usado pelos pontos de rota). */
   onTravelTo?: (mapId: string) => void;
-  energyCostFor?: (mapId: string) => number;
 }) {
-  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState("kanto");
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Campanha");
+  const [notice, setNotice] = useState<string | null>(null);
+  // Painel lateral sempre visível (fecha só se o jogador quiser ver o mapa inteiro).
+  const [panelOpen, setPanelOpen] = useState(true);
+  const selected = REGIONS.find((region) => region.id === selectedId) ?? REGIONS[0];
 
-  const visible = useMemo(() => {
-    const needle = query.trim().toUpperCase();
-    return destinations
-      .filter((destination) => canSeeTestMaps(identityId) || !isTestMap(destination.id))
-      .filter((destination) => !needle || publicMapName(destination.id).includes(needle))
-      .sort((a, b) => mpNumber(a.id) - mpNumber(b.id));
-  }, [destinations, identityId, query]);
-
-  const unlockedCount = visible.filter((destination) =>
-    isWorldMapDestinationUnlocked(destination.id, identityId)
-    && !isMapBlocked(destination.id)).length;
+  const pick = (region: Region) => {
+    if (region.locked) {
+      setNotice(`🔒 ${region.name} — ${region.sub}`);
+      window.setTimeout(() => setNotice(null), 2200);
+      return;
+    }
+    setSelectedId(region.id);
+    setPanelOpen(true);
+  };
 
   return <div className="wm2-backdrop" onClick={onClose}>
     <div className="wm2" onClick={(event) => event.stopPropagation()}>
@@ -70,71 +72,89 @@ export function WorldMapV2({ destinations, currentMap, trainerEnergy, identityId
         <img className="wm2-bg" src={mundiBg} alt="" draggable={false} />
         <div className="wm2-vignette" />
 
-        <section className="wm2-atlas" aria-label="Destinos do mapa">
-          <div className="wm2-atlas__head">
-            <div>
-              <strong>Áreas liberadas</strong>
-              <span>{unlockedCount} de {visible.length} disponíveis</span>
-            </div>
-            <label className="wm2-search">
-              <span aria-hidden="true">🔎</span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar MP"
-                inputMode="search"
-                aria-label="Buscar área MP"
-              />
-            </label>
+        {REGIONS.map((region) => (
+          <button
+            type="button"
+            key={region.id}
+            className={`wm2-pin ${region.locked ? "is-locked" : ""} ${selectedId === region.id ? "is-active" : ""}`}
+            style={{ left: `${region.x}%`, top: `${region.y}%` }}
+            onClick={() => pick(region)}
+          >
+            <span className="wm2-pin__badge">{region.locked ? "🔒" : region.icon}</span>
+            <span className="wm2-pin__name">{region.name}</span>
+            <span className="wm2-pin__sub">{region.sub}</span>
+          </button>
+        ))}
+
+        {onTravelTo && (
+          <button type="button" className="wm2-route" style={{ left: "30%", top: "82%" }} onClick={() => onTravelTo("rota1")}>
+            <span>🚩</span> Rota 1
+          </button>
+        )}
+        {notice && <div className="wm2-toast">{notice}</div>}
+
+        {!panelOpen && <button type="button" className="wm2-openpanel" onClick={() => setPanelOpen(true)}>☰ Regiões</button>}
+        {panelOpen && <aside className="wm2-panel">
+          <header className="wm2-panel__head">
+            <span className="wm2-panel__ball" />
+            <strong>Região de {selected.name}</strong>
+            <button type="button" className="wm2-panel__x" onClick={() => setPanelOpen(false)} aria-label="Fechar detalhes">✕</button>
+          </header>
+          <p className="wm2-panel__tag">A Jornada das Insígnias</p>
+
+          <div className="wm2-hero">
+            <img src={kantoThumb} alt={`Mapa de ${selected.name}`} draggable={false} />
           </div>
 
-          <div className="wm2-list">
-            {visible.map((destination) => {
-              const unlocked = isWorldMapDestinationUnlocked(destination.id, identityId)
-                && !isMapBlocked(destination.id);
-              const current = currentMap === destination.id;
-              const cost = energyCostFor?.(destination.id) ?? 0;
-              const label = publicMapName(destination.id);
-              return <article
-                key={destination.id}
-                className={`wm2-row ${current ? "is-current" : ""} ${unlocked ? "" : "is-locked"}`}
-              >
-                <span className="wm2-row__code">{label}</span>
-                <div className="wm2-row__info">
-                  <strong>{elementIcon(destination.element)} Área {label}</strong>
-                  <small>
-                    {unlocked
-                      ? `Lv.${destination.minLevel}${destination.maxLevel ? `–${destination.maxLevel}` : "+"} · ${destination.element || "Normal"}`
-                      : "🔒 Bloqueado"}
-                  </small>
-                </div>
-                <button
-                  type="button"
-                  className="wm2-row__go"
-                  disabled={!unlocked || current || !onTravelTo}
-                  onClick={() => onTravelTo?.(destination.id)}
-                >
-                  {current ? "Atual" : !unlocked ? "🔒" : cost > 0 ? `${cost}⚡` : "Ir"}
-                </button>
-              </article>;
-            })}
-            {visible.length === 0 && <p className="wm2-empty">Nenhuma área encontrada.</p>}
-          </div>
-        </section>
+          <nav className="wm2-tabs">
+            {TABS.map((item) => (
+              <button type="button" key={item} className={tab === item ? "is-on" : ""} onClick={() => setTab(item)}>{item}</button>
+            ))}
+          </nav>
+
+          {tab === "Campanha" ? <>
+            <div className="wm2-card">
+              <div className="wm2-card__thumb"><img src={kantoThumb} alt="" draggable={false} /></div>
+              <div className="wm2-card__info">
+                <h4>Cidade de Pewter</h4>
+                <p>O primeiro desafio da Liga! Derrote Brock e conquiste a Insígnia de Pedra!</p>
+                <span className="wm2-card__req">⚔ Nível recomendado: 12 – 18</span>
+              </div>
+            </div>
+
+            <div className="wm2-block">
+              <div className="wm2-block__head"><strong>Progresso da Região</strong><b>1/8 Insígnias</b></div>
+              <div className="wm2-badges">
+                {BADGES.map((badge, index) => (
+                  <span key={index} className={`wm2-badge ${index === 0 ? "is-on" : ""}`}>{index === 0 ? badge : "•"}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="wm2-block">
+              <div className="wm2-block__head"><strong>Recompensas da Conquista</strong></div>
+              <div className="wm2-rewards">
+                {REWARDS.map((reward, index) => <span key={index}>{reward}</span>)}
+              </div>
+            </div>
+          </> : <p className="wm2-soon">{tab} — em breve.</p>}
+
+          <button type="button" className="wm2-go" onClick={() => (onTravelTo ? onTravelTo("rota1") : onTravel())}>⚔ Ir para o Mapa</button>
+        </aside>}
       </div>
 
       <footer className="wm2-foot">
         <div className="wm2-season">
-          <span className="wm2-season__icon">⚡</span>
+          <span className="wm2-season__icon">🏅</span>
           <div>
-            <strong>Energia</strong>
-            <em>{trainerEnergy}</em>
-            <small>Viagens gastam energia conforme a distância.</small>
+            <strong>Temporada 01</strong>
+            <em>Liga de Kanto</em>
+            <small>⏱ Duração: 30 dias</small>
           </div>
         </div>
         <div className="wm2-season__rewards">
-          <strong>Dica</strong>
-          <small>As áreas são identificadas por MP1, MP2, MP3… para manter a surpresa.</small>
+          <strong>Recompensas da Temporada</strong>
+          <div>{REWARDS.map((reward, index) => <span key={index}>{reward}</span>)}</div>
         </div>
       </footer>
     </div>

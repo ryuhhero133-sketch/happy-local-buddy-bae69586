@@ -2,9 +2,13 @@
 
 ## O que os jogadores veem
 
-- Nenhum título interno de mapa (Revoland, Pokemarkt, BOBO, ARV etc.).
-- O atlas mostra **MP1, MP2, MP3…** em ordem fixa (`src/game/mapLabels.ts`).
-- O HUD, as falas da saga e os avisos de teleporte usam o mesmo código MP.
+- O **Mapa Mundi continua no visual original**: continente, regiões, ginásios,
+  insígnias, temporada e recompensas. Não existe uma lista com todos os mapas.
+- O único botão removido foi **“Todos os mapas (atlas antigo)”**.
+- Os mapas criados, os teleportes e os matos são acessados **andando pelo mundo
+  e usando os TPs publicados**, não por uma lista no Mapa Mundi.
+- O HUD, as falas da saga e os avisos de teleporte usam **MP1, MP2, MP3…**
+  (`src/game/mapLabels.ts`) em vez dos títulos internos.
 - O editor do dono continua mostrando os nomes reais para facilitar a edição.
 
 ## Publicação
@@ -41,10 +45,15 @@ O mapa ARV foi removido do jogo e do atlas. As imagens pesadas
 (`src/ambiente/DDT.mp4`) não são mais importados, então não entram no build.
 Saves antigos com `currentMap: "arv"` caem automaticamente em `mapinha6`.
 
-## Mapas bloqueados no atlas
+## Mapas de evento
 
-Continuam fora do atlas por serem internos ou de evento:
 `arena`, `esfera_ancestral`, `rota_pinsir`, `deserto_alaka`,
 `areia_de_anubis`, `torre_verdejante`, `torre_ancestral`, `elementure`,
-`florest_shiny` e `cristal_cave`. Eles entram pelos caminhos próprios
-(NPC/evento).
+`florest_shiny` e `cristal_cave` continuam entrando pelos caminhos próprios
+(NPC/evento), não por uma lista no Mapa Mundi.
+
+## Objetos automáticos
+
+Rota 1, Emerald e todos os mapas `bobo_*` não recebem mais árvores ou pedras
+automáticas. Nesses mapas o jogo mostra somente os objetos publicados pelo
+editor (matos, árvores, pedras, NPCs e TPs que o dono colocou).
