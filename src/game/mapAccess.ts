@@ -1,23 +1,43 @@
-// Mapa Mundi público: somente a progressão inicial fica disponível no atlas.
-// Os demais mapas continuam existentes, mas não podem ser escolhidos por este
-// teleporte até uma liberação futura explícita.
-export const WORLD_MAP_FREE_DESTINATION_IDS = ["mapinha6", "mapinha10", "mapinha13", "valley_plume", "laboratorio", "florest_ice", "florest_bone", "ruinas", "ruinas_de_venus", "arv"] as const;
+// Mapa Mundi público: os mapas da saga e as rotas BOBO ficam disponíveis para
+// todas as contas. Mapas internos/de evento continuam bloqueados no atlas e só
+// entram pelos caminhos próprios (NPC, evento ou conta do dono).
+export const WORLD_MAP_LOCKED_IDS = [
+  "arena",
+  "esfera_ancestral",
+  "rota_pinsir",
+  "deserto_alaka",
+  "areia_de_anubis",
+  "torre_verdejante",
+  "torre_ancestral",
+  "elementure",
+  "florest_shiny",
+  "cristal_cave",
+] as const;
+
+// Mantido para compatibilidade com imports antigos; a liberação real agora é
+// feita por WORLD_MAP_LOCKED_IDS.
+export const WORLD_MAP_FREE_DESTINATION_IDS = [
+  "mapinha6", "mapinha10", "mapinha13", "valley_plume", "laboratorio",
+  "florest_ice", "florest_bone", "ruinas", "ruinas_de_venus", "emerald",
+  "rota1", "bobo_uuid", "bobo_g11ds", "bobo_mmmm", "bobo_rota1",
+  "bobo_rota2", "bobo_rota3", "bobo_rota_gelo", "bobo_t2_viridiana",
+  "bobo_t2", "bobo_templo", "bobo_transicao_gelo", "bobo_transicao",
+  "bobo_viridian",
+] as const;
 
 // ─── MAPAS DE TESTE ──────────────────────────────────────────────────────────
-// Visíveis e acessíveis SOMENTE para a conta dona. A falha é fechada: sem
-// identity (ou com outra conta) eles não aparecem no atlas nem podem ser
-// entrados por nenhum caminho.
-export const TEST_MAP_IDS = ["emerald", "emerald_01", "rota1", "bobo_uuid", "bobo_g11ds", "bobo_mmmm", "bobo_rota1", "bobo_rota2", "bobo_rota3", "bobo_rota_gelo", "bobo_t2_viridiana", "bobo_t2", "bobo_templo", "bobo_transicao_gelo", "bobo_transicao", "bobo_viridian"] as const;
+// Restam apenas cenários internos. As rotas BOBO agora são públicas.
+export const TEST_MAP_IDS = ["emerald_01"] as const;
 export const isTestMap = (id: string) => (TEST_MAP_IDS as readonly string[]).includes(id);
 export const TEST_MAP_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 export const canSeeTestMaps = (identityId?: string | null) => identityId === TEST_MAP_OWNER_ID;
 
-// TESTE LOCAL: no dev o atlas libera todos os destinos (mk1/guildas/mwt/emy).
-// Em produção vale só a lista acima — import.meta.env.DEV vira false no build.
-// Mapas de teste NUNCA entram nessa liberação: exigem a conta dona.
+// No dev o atlas libera todos os destinos; em produção valem as listas acima.
 export const isWorldMapDestinationUnlocked = (id: string, identityId?: string | null) => {
   if (isTestMap(id)) return canSeeTestMaps(identityId);
-  return import.meta.env.DEV || (WORLD_MAP_FREE_DESTINATION_IDS as readonly string[]).includes(id);
+  if (isMapBlocked(id)) return false;
+  if (import.meta.env.DEV) return true;
+  return !(WORLD_MAP_LOCKED_IDS as readonly string[]).includes(id);
 };
 
 // Altere esta lista para liberar os mapas novamente; vale para todas as viagens.

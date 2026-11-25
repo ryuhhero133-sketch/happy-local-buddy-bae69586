@@ -10,6 +10,7 @@ export const GRASS_ZONE_BY_MAP: Record<string, number> = {
   bobo_g11ds: 6,
   bobo_rota_gelo: 7,
   bobo_transicao_gelo: 8,
+  bobo_mmmm: 9,
 };
 
 export const GRASS_ZONES: Record<number, ZoneSpawn[]> = {
@@ -109,6 +110,17 @@ export const GRASS_ZONES: Record<number, ZoneSpawn[]> = {
     { species: "lapras", min: 82, max: 86, pct: 7 },
     { species: "gyarados", min: 84, max: 88, pct: 5 },
     { species: "dragonite", min: 88, max: 90, pct: 1 },
+  ],
+  // Caverna BOBO MMM: pool rochoso/noturno, níveis baixos para acompanhar a rota.
+  9: [
+    { species: "zubat", min: 4, max: 8, pct: 28 },
+    { species: "geodude", min: 4, max: 8, pct: 24 },
+    { species: "diglett", min: 5, max: 8, pct: 14 },
+    { species: "machop", min: 6, max: 10, pct: 12 },
+    { species: "sandshrew", min: 6, max: 9, pct: 9 },
+    { species: "ekans", min: 6, max: 10, pct: 7 },
+    { species: "cubone", min: 8, max: 11, pct: 4 },
+    { species: "onix", min: 10, max: 12, pct: 2 },
   ],
 };
 

@@ -35,13 +35,13 @@ import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Home } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
-import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
-import { WorldMapV2 } from "@/components/WorldMapV2";
+import { WorldMapV2, type WorldMapDestination } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
 import { NevezinhaEvent } from "@/components/nevezinha/NevezinhaEvent";
 import { JourneyGate } from "@/components/journey/JourneyGate";
 import { JOURNEY_VERSION } from "@/game/journey";
-import { loadMapEditorCloud, saveMapEditorCloud } from "@/lib/mapEditorCloud";
+import { loadMapEditorCloud, loadPublishedMapEditor, readCachedPublishedMapEditor, saveMapEditorCloud } from "@/lib/mapEditorCloud";
+import { publicMapName } from "@/game/mapLabels";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
 import { buildGrassPatches, createGrassHuntState, GRASS_ARRIVAL_RADIUS, GRASS_SPOT_RADIUS, grassHuntEnemies, grassTileCenter, isInGrassPatch, isOnGrassTile, nearestGrassPatch, tickGrassHunt } from "@/game/grassHunt";
@@ -546,7 +546,6 @@ import editorTreeVariantUrl from "@/ambiente/editsprite/c0406398-d011-45d5-a577-
 import editorBushUrl from "@/ambiente/editsprite/MY.webp";
 import laboratorioMaskUrl from "@/ambiente/mascara colisao/mapa original/Laboratorio Colisao.webp";
 import elementureMaskUrl from "@/ambiente/mascara colisao/mapa original/Elementure Colisao.webp";
-import arvCollisionUrl from "@/ambiente/arvcolisao.jpg";
 // TESTE LOCAL — mapas de exploração do atlas (sem spawn, sem objetos).
 // Carregados só em DEV via import.meta.glob: as imagens não versionadas ficam
 // fora do Git e, se ausentes (build de produção/CI), valem "" e os mapas nem
@@ -560,13 +559,7 @@ const mapEmy1Url = testMapAssets["../ambiente/emy 1.webp"] ?? "";
 import casinhaUrl from "@/ambiente/CASA/casinha.webp";
 import casinhaCollisionUrl from "@/ambiente/CASA/casinhacolisao1.webp";
 import epicPlantBridgeUrl from "@/ambiente/CASA/gP/epic plant.webp";
-import arvMapDefault from "@/game/maps/arv.default.json";
-// Mapa ARV: WebP de 5,4 MB empacotado no build (antes era um PNG de 53 MB
-// baixado do raw.githubusercontent.com, sem cache de CDN). VITE_ARV_MAP_URL
-// continua podendo apontar para outra origem quando for necessário.
-import arvMapUrl from "@/skill/srg/arv.webp";
-const arvUrl = import.meta.env.VITE_ARV_MAP_URL ?? arvMapUrl;
-// Mapas de teste (Emerald) — sem Pokémon/baús/obstáculos; entrada com senha.
+// Mapas de teste (Emerald) — sem Pokémon/baús/obstáculos.
 import emeraldMapUrl from "@/ambiente/map/EMERALD.webp";
 import emerald01MapUrl from "@/ambiente/map/EMERALD 01.webp";
 import rota1MapUrl from "@/ambiente/map/Rota1.jpg";
@@ -594,7 +587,7 @@ import dialogoBoxUrl from "@/ambiente/map/bb/dialogo_box.webp";
 import dialogoUrl from "@/ambiente/map/bb/dialogo.webp";
 import vipMemberUrl from "@/ambiente/map/bb/vip_member.webp";
 import slimeSheetUrl from "@/ambiente/map/pets/slime_sheet.webp";
-import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap, TEST_MAP_IDS } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap } from "@/game/mapAccess";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
@@ -615,8 +608,6 @@ import floresFramesUrl from "@/ambiente/xz/flores-frames.webp";
 import folhasFramesUrl from "@/ambiente/xz/folhas-frames.webp";
 import { collisionReady, ensureCollision, isRevolandOrangeDoor, isWalkable, maskZoneAt, POKEMARKT_EXIT, POKEMARKT_EXIT_APPROACH_Y } from "@/game/collision";
 import { getMaskFx, loadMaskFx } from "@/game/maskFx";
-import { loadArvWaterFx } from "@/game/arvWaterFx";
-import ddtVideoUrl from "@/ambiente/DDT.mp4";
 import { claimPromoCodeOnce } from "@/lib/promoCodes";
 import { loadMaterialsStore, saveMaterialsStore, MATERIALS, type MaterialId, type MaterialsStore } from "@/components/MercadorMateriaisOverlay";
 import {
@@ -1251,7 +1242,6 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapa_orange: { name: "Mapa Orange", diff: "Difícil+", bg: mapaOrangeUrl, rate: 2.2, minLevel: 60, maxLevel: 100, element: "Fogo", stars: 3 },
   elementure: { name: "Elementure", diff: "Especial", bg: elementureUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
   laboratorio: { name: "Laboratório", diff: "Especial", bg: laboratorioUrl, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Normal", stars: 1 },
-  arv: { name: "Emerald Global", diff: "Exploração", bg: arvUrl, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 },
   // TESTE LOCAL — mapas de exploração: andar livre, sem Pokémon e sem objetos.
   // Só entram em IDLE_MAPS quando a imagem existe (DEV/CI nunca as publica).
   ...(import.meta.env.DEV && mapMk1Url ? { mk1: { name: "MK1", diff: "Exploração", bg: mapMk1Url, rate: 1.0, minLevel: 1, element: "Normal", stars: 1 } } : {}),
@@ -2014,12 +2004,10 @@ function normalizeMapEditorObjects(raw: unknown): Record<string, EditorObstacle[
     }) : [],
   ]));
 }
-// Edição publicada do mapa ARV. O localStorage continua tendo prioridade quando
-// o jogador já possuir uma edição própria para não sobrescrevê-la.
-const DEFAULT_MAP_EDITOR_OBJECTS = normalizeMapEditorObjects({ arv: arvMapDefault.objects });
-const DEFAULT_MAP_EDITOR_SPAWNS: Record<string, EditorPokemonSpawn[]> = {
-  arv: arvMapDefault.spawns as unknown as EditorPokemonSpawn[],
-};
+// A edição pública vem do banco (`map_editor_published`) e é mesclada em
+// segundo plano. O localStorage/cloud da conta continua tendo prioridade.
+const DEFAULT_MAP_EDITOR_OBJECTS: Record<string, EditorObstacle[]> = {};
+const DEFAULT_MAP_EDITOR_SPAWNS: Record<string, EditorPokemonSpawn[]> = {};
 // ============ Obstáculos com colisão ============
 type Obstacle = {
   id: number;
@@ -4002,22 +3990,23 @@ const confirmName = () => {
     try {
       const raw = localStorage.getItem(MAP_EDITOR_SPAWNS_KEY);
       const saved = raw ? JSON.parse(raw) : {};
-      if (!saved || typeof saved !== "object") return DEFAULT_MAP_EDITOR_SPAWNS;
-      const merged = { ...DEFAULT_MAP_EDITOR_SPAWNS, ...saved } as Record<string, EditorPokemonSpawn[]>;
-      // Versões anteriores podiam salvar `arv: []` antes de o mapa padrão
-      // existir. Esse estado vazio não deve esconder a edição publicada.
-      if (!Array.isArray(saved.arv) || saved.arv.length === 0) merged.arv = DEFAULT_MAP_EDITOR_SPAWNS.arv;
-      return merged;
-    } catch { return DEFAULT_MAP_EDITOR_SPAWNS; }
+      const cached = readCachedPublishedMapEditor();
+      return {
+        ...((cached?.spawns as Record<string, EditorPokemonSpawn[]> | undefined) ?? {}),
+        ...(saved && typeof saved === "object" ? saved : {}),
+      };
+    } catch { return { ...DEFAULT_MAP_EDITOR_SPAWNS }; }
   });
   const [mapEditorObjects, setMapEditorObjects] = useState<Record<string, EditorObstacle[]>>(() => {
     try {
       const raw = localStorage.getItem(MAP_EDITOR_KEY);
       const saved = raw ? normalizeMapEditorObjects(JSON.parse(raw)) : {};
-      const merged = { ...DEFAULT_MAP_EDITOR_OBJECTS, ...saved };
-      if (!Array.isArray(saved.arv) || saved.arv.length === 0) merged.arv = DEFAULT_MAP_EDITOR_OBJECTS.arv;
-      return merged;
-    } catch { return DEFAULT_MAP_EDITOR_OBJECTS; }
+      const cached = readCachedPublishedMapEditor();
+      return {
+        ...(cached ? normalizeMapEditorObjects(cached.objects) : DEFAULT_MAP_EDITOR_OBJECTS),
+        ...saved,
+      };
+    } catch { return { ...DEFAULT_MAP_EDITOR_OBJECTS }; }
   });
   const mapEditorObjectsRef = useRef(mapEditorObjects);
   useEffect(() => { mapEditorObjectsRef.current = mapEditorObjects; }, [mapEditorObjects]);
@@ -4026,7 +4015,7 @@ const confirmName = () => {
     buildGrassPatches(mapEditorObjects[idle.currentMap] ?? []), [mapEditorObjects, idle.currentMap]);
   const grassPatchesRef = useRef(grassPatches);
   grassPatchesRef.current = grassPatches;
-  const grassHuntMap = idle.currentMap !== "arv" && (grassPatches.length > 0 || !!zoneForMap(idle.currentMap));
+  const grassHuntMap = grassPatches.length > 0 || !!zoneForMap(idle.currentMap);
   // O dono já tem um NPC Nevezinha salvo no Emerald. Ele vira o botão do
   // evento; nas outras contas usamos o mesmo ponto como NPC fixo.
   const emeraldHasNevezinhaNpc = idle.currentMap === "emerald"
@@ -4037,23 +4026,39 @@ const confirmName = () => {
   const [mapEditorTeleports, setMapEditorTeleports] = useState<Record<string, EditorTeleport[]>>(() => {
     try {
       const raw = localStorage.getItem(MAP_EDITOR_TELEPORTS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Record<string, EditorTeleport[]>;
-        if (parsed && typeof parsed === "object") return parsed;
-      }
+      const saved = raw ? JSON.parse(raw) as Record<string, EditorTeleport[]> : {};
+      const cached = readCachedPublishedMapEditor();
+      return {
+        ...((cached?.teleports as Record<string, EditorTeleport[]> | undefined) ?? {}),
+        ...(saved && typeof saved === "object" ? saved : {}),
+      };
     } catch { /* storage indisponivel */ }
     return {};
   });
   const [mapEditorSelectedTeleportId, setMapEditorSelectedTeleportId] = useState<number | null>(null);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_TELEPORTS_KEY, JSON.stringify(mapEditorTeleports)); } catch { /* ignore */ } }, [mapEditorTeleports]);
-  // Sincroniza a edição de mapas com a CONTA (vale em qualquer navegador).
+  // Publicação global + edição da conta. A publicação preenche o que a conta
+  // ainda não tem; a edição da conta (quando existe) vence para o dono.
   const mapEditorCloudReadyRef = useRef(false);
   const mapEditorCloudTimerRef = useRef(0);
   useEffect(() => {
     if (!identity?.id || mapEditorCloudReadyRef.current) return;
     let cancelled = false;
-    void loadMapEditorCloud(identity.id).then((cloud) => {
+    void (async () => {
+      const [published, cloud] = await Promise.all([
+        loadPublishedMapEditor().catch(() => null),
+        canUseMapEditor ? loadMapEditorCloud(identity.id).catch(() => null) : Promise.resolve(null),
+      ]);
       if (cancelled) return;
+      if (published?.objects) {
+        setMapEditorObjects((prev) => ({ ...normalizeMapEditorObjects(published.objects), ...prev }));
+      }
+      if (published?.spawns) {
+        setMapEditorSpawns((prev) => ({ ...(published.spawns as Record<string, EditorPokemonSpawn[]>), ...prev }));
+      }
+      if (published?.teleports) {
+        setMapEditorTeleports((prev) => ({ ...(published.teleports as Record<string, EditorTeleport[]>), ...prev }));
+      }
       if (cloud?.objects) {
         setMapEditorObjects((prev) => ({ ...prev, ...normalizeMapEditorObjects(cloud.objects) }));
       }
@@ -4064,15 +4069,17 @@ const confirmName = () => {
         setMapEditorTeleports((prev) => ({ ...prev, ...(cloud.teleports as Record<string, EditorTeleport[]>) }));
       }
       mapEditorCloudReadyRef.current = true;
-      // Dispara um salvamento imediato (sobe a edição local para a conta).
-      setMapEditorTeleports((prev) => ({ ...prev }));
-      if (cloud) pushChat("☁️ Edição de mapas carregada da sua conta.", "info");
-    }).catch(() => { mapEditorCloudReadyRef.current = true; });
+      if (canUseMapEditor) {
+        // Dispara um salvamento imediato (sobe a edição local para a conta).
+        setMapEditorTeleports((prev) => ({ ...prev }));
+        if (cloud) pushChat("☁️ Edição de mapas carregada da sua conta.", "info");
+      }
+    })();
     return () => { cancelled = true; };
-  }, [identity?.id]);
+  }, [identity?.id, canUseMapEditor]);
 
   useEffect(() => {
-    if (!identity?.id || !mapEditorCloudReadyRef.current) return;
+    if (!identity?.id || !canUseMapEditor || !mapEditorCloudReadyRef.current) return;
     window.clearTimeout(mapEditorCloudTimerRef.current);
     mapEditorCloudTimerRef.current = window.setTimeout(() => {
       void saveMapEditorCloud(identity.id, {
@@ -4081,7 +4088,7 @@ const confirmName = () => {
         teleports: mapEditorTeleports,
       });
     }, 2000);
-  }, [mapEditorObjects, mapEditorSpawns, mapEditorTeleports, identity?.id]);
+  }, [mapEditorObjects, mapEditorSpawns, mapEditorTeleports, identity?.id, canUseMapEditor]);
 
   // Painel do editor arrastavel
   const [mapEditorPos, setMapEditorPos] = useState<{ x: number; y: number } | null>(null);
@@ -6370,7 +6377,6 @@ const confirmName = () => {
   const dispScale = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
   // Dimensões nativas dos mapas custom (cidade + mapinhas) — evita espichar
   const customMapUrls: Record<string, string> = {
-    arv: arvUrl,
     mk1: mapMk1Url,
     guildas: mapGuildasUrl,
     mwt: mapMwtUrl,
@@ -6470,8 +6476,7 @@ const confirmName = () => {
     setArvEpicPlantPrompt(false);
   }, [idle.currentMap]);
   useEffect(() => {
-    if (idle.currentMap !== "arv") { setArvWaterMask(null); return; }
-    return loadArvWaterFx(arvCollisionUrl, setArvWaterMask);
+    setArvWaterMask(null);
   }, [idle.currentMap]);
   // Pontes Epic Plant são dados reais compartilhados: qualquer jogador
   // autenticado no ARV recebe a mesma ponte via Realtime.
@@ -6609,10 +6614,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["emerald","emerald_01","rota1","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const FREE_WALK_MAPS = ["emerald","emerald_01","rota1","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","rota1","arv","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","rota1","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (isTestMap(mapId)) {
       // Mapas de teste: mapa inteiro liberado (sem conteúdo, só cenário).
@@ -6686,8 +6691,7 @@ const confirmName = () => {
       const s = MAP_DISPLAY_SCALE[idle.currentMap] ?? 1;
       const cw = Math.round(width * s);
       const chh = Math.round(height * s);
-      if (idle.currentMap === "arv") ensureCollision("arv", arvCollisionUrl, cw, chh);
-      if (idle.currentMap === "casinha") ensureCollision("casinha", casinhaCollisionUrl, cw, chh);
+        if (idle.currentMap === "casinha") ensureCollision("casinha", casinhaCollisionUrl, cw, chh);
       if (idle.currentMap === "mapinha6") ensureCollision("mapinha6", cold6MaskUrl, cw, chh);
       if (idle.currentMap === "esfera_ancestral") ensureCollision("esfera_ancestral", mapaBanidoMaskUrl, cw, chh);
       if (idle.currentMap === "casa1") ensureCollision("casa1", casa1MaskUrl, cw, chh);
@@ -7266,28 +7270,6 @@ const confirmName = () => {
   const [walkMarker, setWalkMarker] = useState<{ x: number; y: number } | null>(null);
   const [bigMapOpen, setBigMapOpen] = useState(false);
   const [mapTeleportOpen, setMapTeleportOpen] = useState(false);
-  const [oldAtlasOpen, setOldAtlasOpen] = useState(false);
-  // Mapas de teste protegidos por senha (pedida ao clicar em Teleportar).
-  const [mapPasswordPrompt, setMapPasswordPrompt] = useState<{ id: string; name: string; value: string; error: boolean } | null>(null);
-  const mapPasswordResolveRef = useRef<((ok: boolean) => void) | null>(null);
-  const MAP_PASSWORDS: Record<string, string> = { emerald: "123", emerald_01: "123", rota1: "123" };
-  const askMapPassword = (id: string, name: string) =>
-    new Promise<boolean>((resolve) => {
-      mapPasswordResolveRef.current = resolve;
-      setMapPasswordPrompt({ id, name, value: "", error: false });
-    });
-  const closeMapPassword = (ok: boolean) => {
-    const resolve = mapPasswordResolveRef.current;
-    mapPasswordResolveRef.current = null;
-    setMapPasswordPrompt(null);
-    resolve?.(ok);
-  };
-  const submitMapPassword = () => {
-    if (!mapPasswordPrompt) return;
-    const expected = MAP_PASSWORDS[mapPasswordPrompt.id] ?? "";
-    if (mapPasswordPrompt.value.trim() === expected) closeMapPassword(true);
-    else setMapPasswordPrompt((p) => (p ? { ...p, error: true } : p));
-  };
   const [teleportTransition, setTeleportTransition] = useState<WorldMapDestination | null>(null);
   const teleportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revolandDoorTriggeredRef = useRef(false);
@@ -11043,7 +11025,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     setEnemies([]);
     clearBattleScene();
     setIdle((s) => ({ ...s, currentMap: toMap }));
-    pushChat(`🌀 Teleporte → ${IDLE_MAPS[toMap].name}`, "cap");
+    pushChat(`🌀 Teleporte → ${publicMapName(toMap)}`, "cap");
   };
   // Pisou no TP?
   useEffect(() => {
@@ -11080,7 +11062,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
       const now = Date.now();
       if (now - overCapMsgRef.current > 4000) {
         overCapMsgRef.current = now;
-        pushChat(`🔒 ${IDLE_MAPS[p.to].name} — requer Treinador Nv ${p.reqLevel} (você tem Nv ${lv}).`, "info");
+        pushChat(`🔒 ${publicMapName(p.to)} — requer Treinador Nv ${p.reqLevel} (você tem Nv ${lv}).`, "info");
       }
       return;
     }
@@ -11100,7 +11082,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     setAttackTargetId(null);
     setEnemies([]);
     clearBattleScene();
-    pushChat(`Chegou em ${IDLE_MAPS[p.to].name}! (-${TELEPORT_COST} 🪙)`, "cap");
+    pushChat(`Chegou em ${publicMapName(p.to)}! (-${TELEPORT_COST} 🪙)`, "cap");
     if (p.to === "terra") {
       setTimeout(() => {
         pushChat(`🧙 SÁBIO DAS COLMEIAS: "Bem-vindo, treinador! Aqui vivem Guardiões Anti-Paralisia..."`, "info");
@@ -13018,7 +13000,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             const now = Date.now();
             if (syncNoticeRef.current.map !== idle.currentMap || now - syncNoticeRef.current.ts > 60000) {
               syncNoticeRef.current = { map: idle.currentMap, ts: now };
-              queueMicrotask(() => pushChat(`⚖️ REGION SYNC ativo em ${IDLE_MAPS[idle.currentMap]?.name ?? idle.currentMap}: poder limitado ao teto da região (Nv ${sync.effLv}) e ganhos reduzidos. Avance para mapas do seu nível!`, "info"));
+              queueMicrotask(() => pushChat(`⚖️ REGION SYNC ativo em ${publicMapName(idle.currentMap)}: poder limitado ao teto da região (Nv ${sync.effLv}) e ganhos reduzidos. Avance para mapas do seu nível!`, "info"));
             }
           }
           const mythEventXpMult = idle.currentMap === "arena" ? 6 : 1;
@@ -14185,12 +14167,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     poisonUntilRef.current = 0;
     if (idle.currentMap !== "arena" && idle.currentMap !== "arena") return;
     const cm = idle.currentMap;
-    const warn1 = setTimeout(() => pushChat(`⏳ ${IDLE_MAPS[cm].name}: 30min para você ser levado de volta a Terras de Terry.`, "info"), 2.5 * 60 * 60 * 1000);
+    const warn1 = setTimeout(() => pushChat(`⏳ ${publicMapName(cm)}: 30min para você ser levado de volta a Terras de Terry.`, "info"), 2.5 * 60 * 60 * 1000);
     const kick = setTimeout(() => {
       setIdle((s) => ({ ...s, currentMap: "arena" }));
       setTrainerPos({ x: 200, y: WORLD_H / 2 });
       setEnemies([]);
-      pushChat(`⌛ Você excedeu 3h em ${IDLE_MAPS[cm].name}. Retornado para Terras de Terry.`, "cap");
+      pushChat(`⌛ Você excedeu 3h em ${publicMapName(cm)}. Retornado para Terras de Terry.`, "cap");
     }, 3 * 60 * 60 * 1000);
     return () => { clearTimeout(warn1); clearTimeout(kick); };
   }, [idle.currentMap]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -14210,7 +14192,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
         setEnemies([]);
         mythEventReturnMapRef.current = null;
-        pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
+        pushChat(`❄ Domínio Mítico Shiny fechou — teleportado de volta para ${publicMapName(ret)}.`, "info");
       }
     }, 1000);
     return () => clearInterval(iv);
@@ -14228,7 +14210,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
         setEnemies([]);
         geliusReturnMapRef.current = null;
-        pushChat(`🐧 Evento Gelius encerrado — teleportado de volta para ${IDLE_MAPS[ret].name}.`, "info");
+        pushChat(`🐧 Evento Gelius encerrado — teleportado de volta para ${publicMapName(ret)}.`, "info");
         return;
       }
       if (gi.phase === "phase1" && cm === "arena") {
@@ -17047,7 +17029,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     // de energia. Mapas `free` (Hallow, Caverna de Brok) não gastam nada.
     const payableDef = !import.meta.env.DEV && def && !def.free ? def : null;
     if (payableDef && trainerEnergy < LAB_MAP_ENERGY_COST) {
-      pushChat(`⚡ ${m.name} exige ${LAB_MAP_ENERGY_COST} de energia para entrar (você tem ${trainerEnergy}).`, "info");
+      pushChat(`⚡ ${publicMapName(mapId)} exige ${LAB_MAP_ENERGY_COST} de energia para entrar (você tem ${trainerEnergy}).`, "info");
       return;
     }
     playClick();
@@ -17061,7 +17043,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     setChests([]);
     setMapOrbs([]);
     clearBattleScene();
-    pushChat(`🗺️ Você viajou para ${m.name}!${payableDef ? ` (-${LAB_MAP_ENERGY_COST} ⚡)` : ""}`, "info");
+    pushChat(`🗺️ Você viajou para ${publicMapName(mapId)}!${payableDef ? ` (-${LAB_MAP_ENERGY_COST} ⚡)` : ""}`, "info");
   };
 
   // HALLOW → CAVERNA DE BROK: pisar na LUZ AMARELA (pixels amarelos puros da
@@ -18858,7 +18840,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)}
         pvpTargeted={!!pvpTarget} pvpMode={emeraldPvpActive ? idle.pvpMode ?? "peace" : "peace"}
         pvpActive={emeraldPvpActive} pvpWindowLabel={emeraldPvpLabel}
-        region={map.name} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
+        region={publicMapName(idle.currentMap)} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
         enemies={enemies.filter((enemy) => enemy.hp > 0)} now={now} zoom={zoom}
         auto={auto && (idle.autoBattle?.enabled ?? true)} autoCapture={idle.autoBattle?.useBall ?? true}
         autoHealEnabled={(idle.autoHeal ?? { enabled: true }).enabled} autoHealThreshold={(idle.autoHeal ?? { threshold: 0.5 }).threshold} potionCount={idle.items?.potion ?? 0}
@@ -20808,7 +20790,7 @@ A sucata afundou com o casco.
             // ===== SAGA EM ANDAMENTO =====
             const st = activeStage(sg);
             if (!st || st.npc !== npc) {
-              const hint = st ? `${SAGA_NPCS[st.npc].name} em ${IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? SAGA_NPCS[st.npc].map}` : "conclua a saga";
+              const hint = st ? `${SAGA_NPCS[st.npc].name} em ${publicMapName(SAGA_NPCS[st.npc].map)}` : "conclua a saga";
               const flavor: Record<SagaNpcId, string> = {
                 boby: "BOBY: Opa! Se precisar de bola, é comigo. Mas... você não era da minha parte da história, era?\n\n💡 DICA: deixa o AUTOMÁTICO ligado (botão ⚙️ ou ESPAÇO) que as Pokébolas voam sozinhas ao derrotar selvagens. Aperte 1, 2 ou 3 para trocar a bola favorita!",
                 san: "SAN: Orbs? Falo por horas. Mas sua missão atual é com outro, né?\n\n💡 DICA: Orb de XP dá +EXP por 1h — ative na mochila antes de farmar. E o AUTOMÁTICO só funciona fora da cidade inicial!",
@@ -20817,7 +20799,7 @@ A sucata afundou com o casco.
                 pan: "PAN: Shhh... sua missão atual é com outro NPC. Mas já que veio: confia no processo.\n\n💡 DICA: viajar custa energia — voltar pra Revoland e entrar no Pokémarkt é grátis, outros mapas 5⚡. O custo aparece antes de confirmar, e sem energia não tem viagem!",
               };
               const targetNpc = st ? st.npc : null;
-              const targetMapName = targetNpc ? (IDLE_MAPS[SAGA_NPCS[targetNpc].map]?.name ?? "Revoland") : "—";
+              const targetMapName = targetNpc ? publicMapName(SAGA_NPCS[targetNpc].map) : "-";
               return shell(npc, meta.title, (
                 <>
                   {portrait(npc)}
@@ -20849,7 +20831,7 @@ A sucata afundou com o casco.
             const chosen = sg.choices[st.id];
             const done = sagaObjectiveDone(st.id);
             const claimed = !!sg.claimed[st.id];
-            const stageMapName = IDLE_MAPS[SAGA_NPCS[st.npc].map]?.name ?? "Revoland";
+            const stageMapName = publicMapName(SAGA_NPCS[st.npc].map);
             return shell(npc, `${st.title} · etapa ${sg.stage + 1}/${SAGA_TOTAL_STAGES}`, (
               <>
                 {speakerPortrait(npc, st.lines[page])}
@@ -21134,7 +21116,7 @@ A sucata afundou com o casco.
                     setIdle((s) => ({ ...s, currentMap: target }));
                     setTrainerPos({ x: WORLD_W / 2, y: WORLD_H / 2 });
                     setEnemies([]);
-                    pushChat(`🐧 Entrou no evento GELIUS — ${IDLE_MAPS[target].name}!`, "cap");
+                    pushChat(`🐧 Entrou no evento GELIUS — ${publicMapName(target)}!`, "cap");
                     playBonus();
                   }}
                   title={inEvent
@@ -21599,20 +21581,6 @@ A sucata afundou com o casco.
                 WebkitMaskImage: `url("${arvWaterMask}")`,
                 maskImage: `url("${arvWaterMask}")`,
               }} />
-            )}
-            {/* DDT: o vídeo fica sempre no DOM (1px, invisível) para ser
-                desbloqueado no primeiro gesto; na morte ele expande. */}
-            {createPortal(
-              <div className={`arv-death-video${arvDeathVideo ? " is-active" : ""}`} aria-hidden={!arvDeathVideo}>
-                <video
-                  ref={arvDeathVideoRef}
-                  src={ddtVideoUrl}
-                  playsInline
-                  preload="auto"
-                  aria-label="Animação de morte"
-                />
-              </div>,
-              document.body
             )}
             {arvDeathNotice && createPortal(
               <div className="arv-death-screen" role="alert" aria-live="assertive">
@@ -24735,6 +24703,23 @@ A sucata afundou com o casco.
                   .catch(() => pushChat("Não consegui salvar na conta agora. Tente de novo.", "info"));
               }} style={{ marginTop: 6, width: "100%", padding: 7, background: "linear-gradient(180deg,#2f7d46,#1d5a31)", border: "1px solid #9be6a8", color: "#fff", borderRadius: 6, cursor: "pointer", fontWeight: 800 }}>☁️ Salvar na conta (mapa atual)</button>
               <button type="button" onClick={() => {
+                if (!identity?.id || !canUseMapEditor) return;
+                void (async () => {
+                  try {
+                    await saveMapEditorCloud(identity.id, {
+                      objects: mapEditorObjects,
+                      spawns: mapEditorSpawns,
+                      teleports: mapEditorTeleports,
+                    });
+                    const { data, error } = await (supabase as any).rpc("publish_map_editor_defaults");
+                    if (error) throw error;
+                    pushChat(`🌍 Mapas publicados para TODAS as contas (versão ${data?.version ?? "?"}).`, "cap");
+                  } catch {
+                    pushChat("Não consegui publicar os mapas agora. Salve na conta e tente de novo.", "info");
+                  }
+                })();
+              }} style={{ marginTop: 6, width: "100%", padding: 7, background: "linear-gradient(180deg,#7a4a16,#4d2c08)", border: "1px solid #ffd98a", color: "#fff", borderRadius: 6, cursor: "pointer", fontWeight: 800 }}>🌍 Publicar mapas para todos</button>
+              <button type="button" onClick={() => {
                 void (async () => {
                   if (!canUseMapEditor) return;
                   if (!await pushCloudSaveNow(buildFullBlob())) {
@@ -24840,7 +24825,7 @@ A sucata afundou com o casco.
                 // FALAR na quest NÒO abre diálogo: mostra onde o NPC está e
                 // abre o teleporte — o jogador precisa ir até ele e clicar.
                 const npcMap = SAGA_NPCS[n].map;
-                const mapName = IDLE_MAPS[npcMap]?.name ?? npcMap;
+                const mapName = publicMapName(npcMap);
                 if (idle.currentMap === npcMap) {
                   pushChat(`📍 ${SAGA_NPCS[n].name} está aqui em ${mapName}! Procure por ele no mapa e clique para conversar.`, "info");
                 } else {
@@ -24992,50 +24977,50 @@ A sucata afundou com o casco.
                 if (isMapBlocked(g.target)) { pushChat("🔒 Mapa temporariamente bloqueado.", "info"); return; }
                 const targetMap = IDLE_MAPS[g.target];
                 if (["rota_pinsir", "deserto_alaka"].includes(g.target)) {
-                  pushChat(`🔒 ${targetMap.name} está bloqueado no momento!`, "info");
+                  pushChat(`🔒 ${publicMapName(g.target)} está bloqueado no momento!`, "info");
                   return;
                 }
                 if (["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"].includes(g.target)) {
-                  pushChat(`🔒 ${targetMap.name} está bloqueado — a Torre Elemental só entra pela aba EVENTO!`, "info");
+                  pushChat(`🔒 ${publicMapName(g.target)} está bloqueado — a Torre Elemental só entra pela aba EVENTO!`, "info");
                   return;
                 }
                 const unlocked = (idle.trainerLevel ?? 1) >= targetMap.minLevel;
                 if (!unlocked) {
-                  pushChat(`🔒 ${targetMap.name} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
+                  pushChat(`🔒 ${publicMapName(g.target)} exige Treinador Lv ${targetMap.minLevel} para entrar.`, "info");
                   return;
                 }
                 // 🌑 MAPAS BÔNUS DARK — janela de 4h/2h + 5 stones de cada elemento
                 if (isDarkBonusMap(g.target)) {
                   const dw = darkBonusWindow();
                   if (!dw.open) {
-                    pushChat(`🌑 ${targetMap.name} está fechado. Abre em ${fmtMS(dw.msUntilChange)}.`, "info");
+                    pushChat(`🌑 ${publicMapName(g.target)} está fechado. Abre em ${fmtMS(dw.msUntilChange)}.`, "info");
                     return;
                   }
                   if (!hasDarkEntryStones(idle.items as any)) {
                     const miss = missingDarkEntryStones(idle.items as any);
-                    pushChat(`🌑 ${targetMap.name} exige ${DARK_ENTRY_STONE_QTY} stones de CADA elemento. Falta: ${miss.join(" · ")}`, "info");
+                    pushChat(`🌑 ${publicMapName(g.target)} exige ${DARK_ENTRY_STONE_QTY} stones de CADA elemento. Falta: ${miss.join(" · ")}`, "info");
                     return;
                   }
                   setIdle((s) => ({ ...s, items: payDarkEntryStones(s.items as any) as any }));
-                  pushChat(`🌑 Pagou ${DARK_ENTRY_STONE_QTY} stones de cada elemento para entrar em ${targetMap.name}. Você tem ${fmtMS(dw.msUntilChange)} lá dentro.`, "cap");
+                  pushChat(`🌑 Pagou ${DARK_ENTRY_STONE_QTY} stones de cada elemento para entrar em ${publicMapName(g.target)}. Você tem ${fmtMS(dw.msUntilChange)} lá dentro.`, "cap");
                 } else if (targetMap.cycle) {
                   const w = caveWindow();
                   if (!w.open) {
-                    pushChat(`⛰ ${targetMap.name} fechada. Abre em ${fmtMS(w.msUntilChange)}.`, "info");
+                    pushChat(`⛰ ${publicMapName(g.target)} fechada. Abre em ${fmtMS(w.msUntilChange)}.`, "info");
                     return;
                   }
                 }
                 if (targetMap.entryCrystals && idle.currentMap !== g.target) {
                   const cost = targetMap.entryCrystals;
                   if (idle.bank.crystals < cost) {
-                    pushChat(`�x} ${targetMap.name} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
+                    pushChat(`�x} ${publicMapName(g.target)} exige ${cost} cristais para entrar (você tem ${idle.bank.crystals}).`, "info");
                     return;
                   }
                   setIdle((s) => ({ ...s, bank: { ...s.bank, crystals: s.bank.crystals - cost } }));
-                  pushChat(`�x} Pagou ${cost} cristais para entrar em ${targetMap.name}.`, "cap");
+                  pushChat(`�x} Pagou ${cost} cristais para entrar em ${publicMapName(g.target)}.`, "cap");
                 }
                 playClick();
-                goTo(targetMap.name, g.x, g.y, () => {
+                goTo(publicMapName(g.target), g.x, g.y, () => {
                   setIdle((s) => ({ ...s, currentMap: g.target }));
                   let ax = g.arriveX;
                   let ay = g.arriveY;
@@ -25064,7 +25049,7 @@ A sucata afundou com o casco.
                   // Remove inimigos que excedem o teto do novo mapa
                   const cap = IDLE_MAPS[g.target].maxLevel;
                   if (cap != null) setEnemies((prev) => prev.filter((e) => e.editorSpawnId != null || (e.level ?? 1) <= cap));
-                  pushChat(`Chegou em ${targetMap.name}!`, "cap");
+                  pushChat(`Chegou em ${publicMapName(g.target)}!`, "cap");
                 });
               };
 
@@ -25120,7 +25105,7 @@ A sucata afundou com o casco.
                   {currentGates.map((g) => {
                     const targetMap = IDLE_MAPS[g.target];
                     const unlocked = true; // Ignora requisito de nível conforme pedido do usuário
-                    const label = targetMap.name;
+                    const label = publicMapName(g.target);
                     return (
                       <button
                         key={g.key}
@@ -25924,34 +25909,6 @@ A sucata afundou com o casco.
           </Panel>
 
 
-{mapPasswordPrompt && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{ position: "fixed", inset: 0, zIndex: 100000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,10,0.82)" }}
-              >
-                <div style={{ width: 300, maxWidth: "88vw", background: "#1a1024", border: "2px solid #f5cf6b", borderRadius: 10, padding: 16, boxShadow: "0 0 30px rgba(245,207,107,0.35)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#f5cf6b", marginBottom: 6 }}>🔒 Mapa protegido</div>
-                  <div style={{ fontSize: 11, color: "#cfc2dd", marginBottom: 10 }}>
-                    Digite a senha para entrar em <b>{mapPasswordPrompt.name}</b>.
-                  </div>
-                  <input
-                    autoFocus
-                    type="password"
-                    inputMode="numeric"
-                    value={mapPasswordPrompt.value}
-                    onChange={(e) => setMapPasswordPrompt((p) => (p ? { ...p, value: e.target.value, error: false } : p))}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submitMapPassword(); } else if (e.key === "Escape") { closeMapPassword(false); } }}
-                    placeholder="Senha"
-                    style={{ width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 6, border: `1px solid ${mapPasswordPrompt.error ? "#ff5c5c" : "#4a3a5e"}`, background: "#0e0816", color: "#fff", fontSize: 14, outline: "none", marginBottom: mapPasswordPrompt.error ? 4 : 10 }}
-                  />
-                  {mapPasswordPrompt.error && <div style={{ fontSize: 10, color: "#ff7a7a", marginBottom: 8 }}>Senha incorreta.</div>}
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button type="button" onClick={() => closeMapPassword(false)} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: "1px solid #4a3a5e", background: "transparent", color: "#b8a8cc", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Cancelar</button>
-                    <button type="button" onClick={submitMapPassword} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: "none", background: "#f5cf6b", color: "#231609", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>Entrar</button>
-                  </div>
-                </div>
-              </div>
-            )}
 {snowmanDialog && <NevezinhaDialog onDone={() => setSnowmanDialog(false)} />}
 {nevezinhaOpen && (
   <NevezinhaEvent
@@ -25968,110 +25925,70 @@ A sucata afundou com o casco.
     }}
   />
 )}
-{mapTeleportOpen && canUseMapEditor && (
+{mapTeleportOpen && (
           <WorldMapV2
+            currentMap={idle.currentMap}
+            trainerEnergy={trainerEnergy}
+            identityId={identity?.id}
+            destinations={Object.keys(IDLE_MAPS).map((id) => ({ id, ...IDLE_MAPS[id] }))}
             onClose={() => setMapTeleportOpen(false)}
-            onOldMap={() => { setMapTeleportOpen(false); setOldAtlasOpen(true); }}
+            energyCostFor={teleportEnergyCostFor}
             onTravelTo={(mapId) => {
-              const target = mapId as IdleMapId;
-              if (!IDLE_MAPS[target]) return;
-              houseArrivalRef.current = null;
-              walkTargetRef.current = null;
-              setWalkingTo(null);
-              setAttackTargetId(null);
-              setEnemies([]);
-              clearBattleScene();
-              setIdle((s) => ({ ...s, currentMap: target }));
+              const destination = IDLE_MAPS[mapId];
+              if (!destination) return;
+              if (!isWorldMapDestinationUnlocked(mapId, identity?.id)) {
+                pushChat("🔒 Esta área ainda está bloqueada.", "info");
+                return;
+              }
+              const entryError = mapEntryError(idleRef.current, mapId, identity?.id);
+              if (entryError) { pushChat(entryError, "info"); return; }
+              if (teleportTransition || teleportTimerRef.current) return;
+              const tpCost = teleportEnergyCostFor(mapId);
+              if (trainerEnergy < tpCost) {
+                pushChat(`⚡ Sem energia (precisa ${tpCost}) para viajar.`, "info");
+                return;
+              }
+              // Ponto de chegada conhecido: usa o destino de um teleporte já
+              // salvo para não nascer dentro de parede nos mapas do editor.
+              const incoming = Object.values(mapEditorTeleports).flat()
+                .find((tp) => tp.toMap === mapId);
+              playClick();
+              setTrainerEnergy((energy) => Math.max(0, energy - tpCost));
               setMapTeleportOpen(false);
-              pushChat(`🌀 ${IDLE_MAPS[target].name}`, "cap");
-            }}
-            onTravel={() => {
-              setMapTeleportOpen(false);
-              pushChat("🗺️ Mapa Mundi novo em construção — o botão de viajar entra na próxima etapa.", "info");
+              setTeleportTransition({ id: mapId, ...destination });
+              teleportTimerRef.current = setTimeout(() => {
+                const currentError = mapEntryError(idleRef.current, mapId, identity?.id);
+                if (currentError) {
+                  pushChat(currentError, "info");
+                  setTeleportTransition(null);
+                  teleportTimerRef.current = null;
+                  return;
+                }
+                setIdle((state) => applyMapEntry(state, mapId as IdleMapId, identity?.id));
+                if (mapId === "laboratorio") {
+                  const arrival = { x: 499, y: 416 };
+                  trainerPosRef.current = arrival;
+                  setTrainerPos(arrival);
+                } else if (incoming) {
+                  const arrival = { x: incoming.toX, y: incoming.toY };
+                  trainerPosRef.current = arrival;
+                  setTrainerPos(arrival);
+                } else {
+                  setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
+                }
+                walkTargetRef.current = null;
+                setWalkingTo(null);
+                setEnemies([]);
+                setChests([]);
+                setMapOrbs([]);
+                clearBattleScene();
+                pushChat(`🌀 Teleportado para ${publicMapName(mapId)}!${tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`, "info");
+                setTeleportTransition(null);
+                teleportTimerRef.current = null;
+              }, 4000);
             }}
           />
         )}
-{(oldAtlasOpen || (mapTeleportOpen && !canUseMapEditor)) && (() => {
-              const ev = eventualMapWindow();
-               const base = [...(canSeeTestMaps(identity?.id) ? TEST_MAP_IDS : []), "mapinha6","arv", ...(import.meta.env.DEV ? ["mk1","guildas","mwt","emy","emy_1"] : []), "mapinha13","valley_plume","florest_bone","florest_ice","ruinas","ruinas_de_venus","mapinha5","mapinha12","mapa_orange","mapinha8","mapinha10","revo_rout","mapinha11","laboratorio","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","hallow","caverna_brok"];
-              const eventual = ev.open ? ["florest_shiny","cristal_cave"] : [];
-              const destinations = [...base, ...eventual]
-                .filter((id) => Boolean(IDLE_MAPS[id]))
-                .map((id) => ({ id, ...IDLE_MAPS[id] }));
-              return (
-                <WorldMapTeleportHud
-                  currentMap={idle.currentMap}
-                  trainerEnergy={trainerEnergy}
-                  destinations={destinations}
-                  onClose={() => { setMapTeleportOpen(false); setOldAtlasOpen(false); }}
-                  energyCostFor={teleportEnergyCostFor}
-                  onTeleport={async (destination) => {
-                    // Mapas de teste: senha antes de qualquer outra verificação.
-                    if (MAP_PASSWORDS[destination.id]) {
-                      const ok = await askMapPassword(destination.id, destination.name);
-                      if (!ok) return;
-                    }
-                    if (!isWorldMapDestinationUnlocked(destination.id, identity?.id)) {
-                      pushChat("🔒 Este mapa está bloqueado no Mapa Mundi.", "info");
-                      return;
-                    }
-                    const entryError = mapEntryError(idleRef.current, destination.id, identity?.id);
-                    if (entryError) { pushChat(entryError, "info"); return; }
-                    const m = IDLE_MAPS[destination.id];
-                    if (!m || teleportTransition || teleportTimerRef.current) return;
-                    if (!import.meta.env.DEV && ["rota_pinsir", "deserto_alaka"].includes(destination.id)) {
-                      pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi no momento!`, "info");
-                      playClick();
-                      return;
-                    }
-                    if (!import.meta.env.DEV && ["areia_de_anubis", "torre_verdejante", "torre_ancestral", "elementure"].includes(destination.id)) {
-                      pushChat(`🔒 ${m.name} está bloqueado no Mapa Mundi — entre só pela aba EVENTO!`, "info");
-                      return;
-                    }
-                    const tpCost = teleportEnergyCostFor(destination.id);
-                    if (trainerEnergy < tpCost) { pushChat(`�a� Sem energia (precisa ${tpCost}) para teleportar.`, "info"); return; }
-                    playClick();
-                    setTrainerEnergy((energy) => Math.max(0, energy - tpCost));
-                    setMapTeleportOpen(false);
-                    setTeleportTransition(destination);
-                    teleportTimerRef.current = setTimeout(() => {
-                      const currentError = mapEntryError(idleRef.current, destination.id, identity?.id);
-                      if (currentError) { pushChat(currentError, "info"); setTeleportTransition(null); teleportTimerRef.current = null; return; }
-                       // Emerald Global sempre começa dentro da Casinha. A porta
-                       // é a única transição para o mapa perigoso, evitando nascer
-                       // numa célula fatal enquanto a máscara do ARV carrega.
-                       setIdle((state) => {
-                         const entered = applyMapEntry(state, destination.id as IdleMapId, identity?.id);
-                         return destination.id === "arv"
-                           ? { ...entered, currentMap: "casinha" as IdleMapId }
-                           : entered;
-                       });
-                       // Laboratório: chega fora da máquina central (ponto andável verificado).
-                       if (destination.id === "arv") {
-                         const arrival = { x: 469, y: 541 };
-                         trainerPosRef.current = arrival;
-                         setTrainerPos(arrival);
-                       } else if (destination.id === "laboratorio") setTrainerPos({ x: 499, y: 416 });
-                       else setTrainerPos({ x: curWorldW / 2, y: curWorldH / 2 });
-                      walkTargetRef.current = null;
-                      setWalkingTo(null);
-                      setEnemies([]);
-                      setChests([]);
-                      setMapOrbs([]);
-                      clearBattleScene();
-                       pushChat(
-                         destination.id === "arv"
-                           ? `Teleportado para a Casinha de Emerald Global!${tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`
-                           : `Teleportado para ${m.name}!${destination.id === "sa" ? " (-1.000 ouro · -10 Pepitas de Ouro)" : tpCost > 0 ? ` (-${tpCost} ⚡)` : " (grátis)"}`,
-                         "info",
-                       );
-                      setTeleportTransition(null);
-                      teleportTimerRef.current = null;
-                    }, 4000);
-                  }}
-                />
-              );
-            })()}
 
           {/* QUESTS — luzes neon, 9 bolas */}
           {false && <div className="mob-panel-quests" style={{
@@ -27566,7 +27483,7 @@ onClick={(e) => {
                      💰 Loot do Mapa 💰
                    </div>
                    <div style={{ fontSize: 10, color: "#78350f", textAlign: "center", marginBottom: 12, fontWeight: 700 }}>
-                     {IDLE_MAPS[idle.currentMap]?.name ?? idle.currentMap} · sessão atual
+                     {publicMapName(idle.currentMap)} · sessão atual
                    </div>
                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
                      {[
