@@ -33,7 +33,7 @@ export const IDENTITY_KEY = "rubym.identity.v1";
 /** TRAVA TOTAL: só esta conta entra; o resto vê a tela de manutenção. */
 const OWNER_UID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 const OWNER_EMAIL = "lordryuhhhuyuyghh@gmail.com";
-export const LOCKDOWN_ONLY_OWNER = true;
+export const LOCKDOWN_ONLY_OWNER = false;
 export const GUEST_KEY = "rubym.guest.v1";
 export const SESSION_TOKEN_KEY = "rubym.sessionToken.v1";
 

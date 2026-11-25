@@ -34,12 +34,13 @@ test("paginação não apaga nem duplica palavras", () => {
   const text = "Uma história com várias palavras e acentuação para testar a moldura no celular.";
   assert.equal(dialoguePages(text, 20).join(" "), text);
 });
-test("produção continua privada, sem ativação pública ou reset em massa na migration", () => {
+test("migration não faz reset em massa; liberação pública é feita na config", () => {
   assert.match(migration, /enabled boolean not null default false/);
   assert.ok(!migration.includes("set enabled=true"));
   assert.ok(!migration.includes("set enabled = true"));
   assert.ok(idle.includes("newHud={identity?.id === MAP_EDITOR_OWNER_ID}"));
-  assert.ok(read("../src/components/AuthGate.tsx").includes("LOCKDOWN_ONLY_OWNER = true"));
+  assert.ok(read("../src/components/AuthGate.tsx").includes("LOCKDOWN_ONLY_OWNER = false"));
+  assert.ok(read("../src/lib/maintenance.functions.ts").includes("return { enabled: false }"));
 });
 test("antes do fim, o jogo não monta; sem pular/fechar e com cursor confirmado", () => {
   const gate = read("../src/components/journey/JourneyGate.tsx");

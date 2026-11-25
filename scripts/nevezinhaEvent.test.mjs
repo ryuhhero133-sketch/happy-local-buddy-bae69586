@@ -96,7 +96,7 @@ test("boneco da Nevezinha pode ser usado para seguir o treinador", () => {
   assert.ok(idle.includes('"nevezinha_doll",'));
   assert.ok(idle.includes('if (id === "nevezinha_doll")'));
   assert.ok(idle.includes('if (item.id === "nevezinha_doll")'));
-  assert.ok(idle.includes("toggleSnowmanFollow()"));
+  assert.ok(idle.includes("onToggleSnowmanFollow()"));
   assert.ok(idle.includes("Nevezinha agora está seguindo você"));
   assert.ok(idle.includes('id === "nevezinha_doll" ? (snowmanFollow ? "PARAR" : "SEGUIR")'));
   assert.ok(idle.includes("Use na mochila para ele seguir você"));

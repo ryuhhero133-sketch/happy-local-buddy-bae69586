@@ -1,6 +1,8 @@
-# Jornada de abertura — liberação pendente
+> Status: manutenção removida e `private.emerald_journey_config.enabled = true`. A introdução é obrigatória; o reset único acontece ao concluir as 53 páginas.
 
-**Não desativar a manutenção nem liberar HUD/mapas ao publicar este código.**
+# Jornada de abertura — liberação oficial
+
+**Liberação oficial ativa.**
 
 O banco foi instalado com `private.emerald_journey_config.enabled = false`.
 Somente a conta proprietária recebe uma **prévia privada**, com progresso

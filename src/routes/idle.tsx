@@ -24786,6 +24786,8 @@ A sucata afundou com o casco.
               idle={idle}
               setIdle={setIdle}
               pushChat={pushChat}
+              snowmanFollow={snowmanFollow}
+              onToggleSnowmanFollow={toggleSnowmanFollow}
               equippedItems={equippedItems}
               setEquippedItems={setEquippedItems}
               ownedEquipment={ownedEquipment}
@@ -30962,6 +30964,7 @@ function TabOverlay({
   tasks, onClaimTask, cycleQuests, onClaimCycleQuest, cycleResetIn, onOpenColecaoDetail, onExchange, onSellItem, marketSellPrices, identity, onListMarket, onBuyMarket, onCancelMarket, onClaimMarketPayout, isVip, skinId, setSkinId, unlockedSkins, skinTickets, onUnlockSkin, trainerLevel, onUpgradeBook, orbTrades, onTradeOrb, pokemonMarketNode, benchUids,
   onSagaClaim, onSagaTalk, onSagaLocate, onAcceptSideQuest, onClaimSideQuest,
   idle, setIdle, pushChat,
+  snowmanFollow, onToggleSnowmanFollow,
   equippedItems, setEquippedItems, ownedEquipment, skinUrl, getTrainerStats, equipmentSlotPicker, setEquipmentSlotPicker, onEquipItem,
   trainerTheme, toggleTrainerTheme,
   guildPanelProps
@@ -31041,6 +31044,8 @@ function TabOverlay({
   idle: any;
   setIdle: React.Dispatch<React.SetStateAction<any>>;
   pushChat: (msg: string, tone?: any) => void;
+  snowmanFollow: boolean;
+  onToggleSnowmanFollow: () => void;
   equippedItems: Record<EquipmentSlot, string | null>;
   setEquippedItems: React.Dispatch<React.SetStateAction<Record<EquipmentSlot, string | null>>>;
   ownedEquipment: string[];
@@ -31710,7 +31715,7 @@ function TabOverlay({
         const useSelItem = (id: string, n: number) => {
           if (id === "nevezinha_doll") {
             const next = !snowmanFollow;
-            toggleSnowmanFollow();
+            onToggleSnowmanFollow();
             pushChat(next ? "❄ Nevezinha agora está seguindo você!" : "❄ Nevezinha parou de seguir você.", "cap");
             return;
           }
@@ -31773,7 +31778,7 @@ function TabOverlay({
              if (item.source !== "bag") return;
             if (item.id === "nevezinha_doll") {
               const next = !snowmanFollow;
-              toggleSnowmanFollow();
+              onToggleSnowmanFollow();
               pushChat(next ? "❄ Nevezinha agora está seguindo você!" : "❄ Nevezinha parou de seguir você.", "cap");
               return;
             }
