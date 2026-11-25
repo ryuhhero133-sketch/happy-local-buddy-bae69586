@@ -16654,8 +16654,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   }, [cloudBlobReady]);
 
   function spawnMilestoneSlime(): boolean {
-    // Slime é terrestre; em mapas de água ele ficaria inalcançável.
-    if (isWaterMap(idle.currentMap)) return false;
+    // Slime é terrestre; em mapas de água ele ficaria inalcançável. Na arena
+    // de evento a captura é bloqueada por regra, então não vale a pena surgir.
+    if (isWaterMap(idle.currentMap) || idle.currentMap === "arena") return false;
     if (enemiesRef.current.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length >= SLIME_MAX_ALIVE) return false;
     const w = customDims?.w ?? 1200;
     const h = customDims?.h ?? 1200;
