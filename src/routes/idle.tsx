@@ -38,6 +38,8 @@ import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapTeleportHud, type WorldMapDestination } from "@/components/WorldMapTeleportHud";
 import { WorldMapV2 } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
+import { JourneyGate } from "@/components/journey/JourneyGate";
+import { JOURNEY_VERSION } from "@/game/journey";
 import { loadMapEditorCloud, saveMapEditorCloud } from "@/lib/mapEditorCloud";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
@@ -2456,6 +2458,8 @@ type IdleState = {
   autoHeal: { enabled: boolean; threshold: number };
   autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball" | "safariball"; captureHpPct: number };
   trainerLevel?: number;
+  trainerStars?: number;
+  journey?: { version: string; completed: boolean; resetAppliedAt?: number };
   preregRewardDeliveredId?: string;
   trainerXp?: number;
   unlockedSkins?: string[];
@@ -2548,7 +2552,7 @@ type IdleState = {
 };
 
 
-export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string };
+export type CollectionEntry = { uid: string; species: Species; level: number; rarity: Rarity; capturedAt: number; xp?: number; traits?: string[]; event?: string; legacyStars?: number; rebirths?: number };
 
 export const MAX_COLLECTION = 500;
 
@@ -2728,7 +2732,8 @@ function loadIdle(): IdleState {
       // jogador para Revoland em vez de deixar o save preso num mapa ausente.
       if (!IDLE_MAPS[s.currentMap]) s.currentMap = "mapinha6";
       // Mapas de teste: save de outra conta nunca mantém o mapa (falha fechada).
-      if (isTestMap(s.currentMap) && !canSeeTestMaps(loadIdentity()?.id)) s.currentMap = "mapinha6";
+      if (isTestMap(s.currentMap) && !canSeeTestMaps(loadIdentity()?.id)
+        && !(s.currentMap === "emerald" && s.journey?.version === JOURNEY_VERSION && s.journey.completed)) s.currentMap = "mapinha6";
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {
@@ -3017,7 +3022,7 @@ export const Route = createFileRoute("/idle")({
       { name: "description", content: "Modo idle: seus Pokémon batalham e evoluem sozinhos." },
     ],
   }),
-  component: () => <IdlePage />,
+  component: () => <JourneyGate userId={loadIdentity()?.id}><IdlePage /></JourneyGate>,
 });
 
 // ============ Page ============
@@ -3198,6 +3203,8 @@ function IdlePage() {
         level: Math.max(current?.level ?? 1, pet.level ?? 1),
         xp: Math.max(current?.xp ?? 0, pet.xp ?? 0),
         rarity: pet.rarity,
+        legacyStars: Math.max(current?.legacyStars ?? 0, pet.legacyStars ?? 0),
+        rebirths: Math.max(current?.rebirths ?? 0, pet.rebirths ?? 0),
         capturedAt: current?.capturedAt ?? Date.now(),
         traits: current?.traits ?? (isAncestralRecord(pet)
           ? normalizeAncestralTraits(pet.traits, pet.uid) : pet.traits ?? []),
@@ -3530,7 +3537,8 @@ function IdlePage() {
             const merged: IdleState = { ...prev, ...blob.idle } as IdleState;
             if ((merged.currentMap as string) === "arena") merged.currentMap = "mapinha6";
             if (!IDLE_MAPS[merged.currentMap] || merged.currentMap === "arena") merged.currentMap = "mapinha6";
-            if (isTestMap(merged.currentMap) && !canSeeTestMaps(identity?.id)) merged.currentMap = "mapinha6";
+            if (isTestMap(merged.currentMap) && !canSeeTestMaps(identity?.id)
+              && !(merged.currentMap === "emerald" && merged.journey?.version === JOURNEY_VERSION && merged.journey.completed)) merged.currentMap = "mapinha6";
             if (!merged.saga) merged.saga = freshSaga();
             if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
@@ -4197,7 +4205,7 @@ const confirmName = () => {
   const autoBattleRef = useRef(idle.autoBattle ?? { enabled: true, useBall: true, preferredBall: "auto" as const, captureHpPct: 1 });
   useEffect(() => { if (idle.autoBattle) autoBattleRef.current = idle.autoBattle; }, [idle.autoBattle]);
   const onPickTeamFromColecao = (entry: CollectionEntry) => {
-    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), uid: entry.uid, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
+    const newPet = { ...makePet(entry.species, entry.level, entry.rarity), ...entry, xp: entry.xp ?? 0, traits: entry.traits ?? [], event: entry.event } as PetInstance;
     setTeam((tm) => {
       const idx = tm.findIndex((p) => p.uid === entry.uid);
       if (idx >= 0) {
@@ -14130,7 +14138,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         // durante uma troca/derrota. Marcar imediatamente evita inserir o mesmo
         // UID duas vezes dentro desta própria reconciliação.
         known.add(p.uid);
-        missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now(), traits: p.traits ?? [], event: p.event });
+        missing.push({ uid: p.uid, species: p.species, level: p.level, xp: p.xp ?? 0, rarity: p.rarity, capturedAt: Date.now(), traits: p.traits ?? [], event: p.event, legacyStars: p.legacyStars, rebirths: p.rebirths });
       }
       if (!changed && missing.length === 0) return s;
       return { ...s, collection: [...nextCol, ...missing] };
@@ -18981,7 +18989,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             flip: target.face === "right", elite: !!target.elite,
           } : null;
         })()}
-        name={identity?.name ?? "Treinador"} level={idle.trainerLevel ?? 1}
+        name={identity?.name ?? "Treinador"} level={idle.trainerLevel ?? 1} stars={idle.trainerStars ?? 0}
         avatar={skinPhotoOf(skinId) ?? trainerSheet}
         hp={leaderHp} maxHp={team[0] ? calcIdleMaxHp(team[0]) : 0}
         trainerHp={idle.currentMap === "sa" ? idle.safariTrainerHp ?? SAFARI_TRAINER_MAX_HP : undefined}
@@ -24886,6 +24894,15 @@ A sucata afundou com o casco.
                   .then(() => pushChat("☁️ Mapa salvo na conta (matos, spawns e teleports).", "cap"))
                   .catch(() => pushChat("Não consegui salvar na conta agora. Tente de novo.", "info"));
               }} style={{ marginTop: 6, width: "100%", padding: 7, background: "linear-gradient(180deg,#2f7d46,#1d5a31)", border: "1px solid #9be6a8", color: "#fff", borderRadius: 6, cursor: "pointer", fontWeight: 800 }}>☁️ Salvar na conta (mapa atual)</button>
+              <button type="button" onClick={() => {
+                void (async () => {
+                  if (!canUseMapEditor) return;
+                  if (!await pushCloudSaveNow(buildFullBlob())) {
+                    pushChat("Salve seu progresso na conta antes de abrir a prévia.", "info"); return;
+                  }
+                  window.dispatchEvent(new Event("rubym:journey-preview"));
+                })();
+              }} style={{ marginTop: 6, width: "100%", padding: 7, background: "#332249", border: "1px solid #cbb58a", color: "#ffe3a2", borderRadius: 6, cursor: "pointer" }}>▶ Rever abertura (prévia sem reset)</button>
 <small style={{ display: "block", marginTop: 5, color: "#b8a8cb" }}>Salvo sozinho neste navegador. O botão azul exporta tudo de uma vez.</small>
             </div>
           )}
@@ -29947,7 +29964,8 @@ onClick={(e) => {
               <button
                 onClick={() => {
                   const basePet = livePet ?? makePet(sp, displayLevel, entry.rarity);
-                  const pet = { ...basePet, traits: entry.traits ?? basePet.traits ?? [], event: entry.event ?? (basePet as any).event } as PetInstance;
+                  const pet = { ...basePet, legacyStars: entry.legacyStars ?? basePet.legacyStars,
+                    rebirths: entry.rebirths ?? basePet.rebirths, traits: entry.traits ?? basePet.traits ?? [], event: entry.event ?? (basePet as any).event } as PetInstance;
                   setStatsCardPet(pet);
                   setColecaoDetailUid(null);
                 }}
@@ -30361,6 +30379,7 @@ onClick={(e) => {
                       borderRadius: 8, padding: "3px 8px", whiteSpace: "nowrap",
                       boxShadow: "0 0 10px rgba(255,214,80,0.5)",
                     }}>Nível {lv}</span>
+                    {(idle.trainerStars ?? 0) > 0 && <span title="Estrelas permanentes da jornada" style={{ color: "#ffe095", fontSize: 13, whiteSpace: "nowrap" }}>{"★".repeat(Math.min(7, idle.trainerStars ?? 0))}</span>}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 10.5, fontWeight: 800, color: "#dbe6fa", whiteSpace: "nowrap" }}>
                         XP {xp.toLocaleString("pt-BR")} / {need.toLocaleString("pt-BR")}

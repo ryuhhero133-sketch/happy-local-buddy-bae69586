@@ -16,6 +16,7 @@ export type HudTab = "pokemon" | "mochila" | "colecao" | "pokedex" | "melhorias"
 type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
+  stars?: number;
   /** HUD V2 (beta) — liberada só para contas de teste. */
   newHud?: boolean;
   trainerHp?: number;
@@ -70,7 +71,7 @@ function PlayerHud({ hud }: { hud: GameHudProps }) {
     return <button type="button" className="revo-player revo-panel" onClick={hud.onProfile} title="Perfil do treinador · HP do Pokémon líder" aria-label={label}>
       <span className="revo-player__avatar"><img src={hud.avatar} alt="" /><span><Shield /></span></span>
       <span className="revo-player__info">
-        <span className="revo-player__name"><strong>{hud.name}</strong><b>Lv. {hud.level}</b></span>
+        <span className="revo-player__name"><strong>{hud.name}</strong><b>Lv. {hud.level} {hud.stars ? "★".repeat(Math.min(7, hud.stars)) : ""}</b></span>
         <span className="revo-player__stat"><span>HP</span><span className="revo-meter revo-meter--hp"><span style={{ width: `${hp / Math.max(1, hud.maxHp) * 100}%` }} /></span><b>{hp}/{hud.maxHp}</b></span>
         <span className="revo-player__stat"><span>EN</span><span className="revo-meter revo-meter--energy"><span style={{ width: `${Math.max(0, Math.min(100, hud.energy))}%` }} /></span><b>{Math.round(hud.energy)}/100</b></span>
         {hud.trainerHp != null && <span className="revo-player__stat" title="Vida do treinador no Safari — fica vulnerável com o Pokémon desmaiado"><span>TR</span><span className="revo-meter revo-meter--hp"><span style={{ width: `${Math.max(0, Math.min(100, hud.trainerHp))}%` }} /></span><b>{hud.trainerHp}/100</b></span>}
@@ -84,7 +85,7 @@ function PlayerHud({ hud }: { hud: GameHudProps }) {
       </span>
     </span>
     <span className="revo-player__info">
-      <span className="revo-player__name"><strong>{hud.name}</strong><b>Lv. {hud.level}</b></span>
+      <span className="revo-player__name"><strong>{hud.name}</strong><b>Lv. {hud.level} {hud.stars ? "★".repeat(Math.min(7, hud.stars)) : ""}</b></span>
       <span className="revo-player__hp"><b>{hp}</b><span>/{hud.maxHp} HP</span></span>
       {hud.trainerHp != null && <span className="revo-player__meta">❤ {Math.round(hud.trainerHp)}</span>}
     </span>

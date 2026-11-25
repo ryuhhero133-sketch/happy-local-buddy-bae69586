@@ -191,6 +191,7 @@ let pushing = false;
 let needsFlush = false;
 let needsRebase = false;
 let serverMutationBusy = false;
+let authoritativeEpoch = 0;
 let retryCount = 0;
 let status: CheckpointStatus = "idle";
 let lastError: string | null = null;
@@ -743,6 +744,7 @@ async function flushInternal(uid: string, immediate = false, fromMutation = fals
       /* ignore */
     }
     let res: { ok: boolean; server_version?: number; reason?: string };
+    const startedEpoch = authoritativeEpoch;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any).rpc("checkpoint_save", {
@@ -759,6 +761,9 @@ async function flushInternal(uid: string, immediate = false, fromMutation = fals
       }
       throw e;
     }
+    // Uma conclusão autoritativa da jornada pode ter substituído a base
+    // enquanto este request estava em voo. A resposta velha não manda nela.
+    if (startedEpoch !== authoritativeEpoch) return false;
     if (res.ok) {
       const sv = typeof res.server_version === "number" ? res.server_version : expected + 1;
       storeVersion(uid, sv);
@@ -954,6 +959,30 @@ function commitAdopt(uid: string, data: unknown, sv: number): unknown {
     /* ignore */
   }
   return data;
+}
+
+/** Somente após resposta confirmada do RPC da jornada; preserva a base
+ * anterior em recuperação e neutraliza todos os pushes anteriores ao reset. */
+export async function adoptJourneyCheckpoint(uid: string, snapshot: unknown, serverVersion: number) {
+  if ((await currentUid()) !== uid || !isValidSnapshot(snapshot)
+    || !Number.isSafeInteger(serverVersion) || serverVersion < 1) throw new Error("invalid_journey_checkpoint");
+  if (memSnapshot && isValidSnapshot(memSnapshot)) storeRecovery(uid, memSnapshot, loadVersion(uid), "before-journey");
+  authoritativeEpoch++;
+  if (debounceTimer) clearTimeout(debounceTimer);
+  if (maxDirtyTimer) clearTimeout(maxDirtyTimer);
+  if (retryTimer) clearTimeout(retryTimer);
+  debounceTimer = null; maxDirtyTimer = null; retryTimer = null;
+  needsFlush = false;
+  const pending = readJson<PendingSlot>(pendingKey(uid));
+  if (pending?.snapshot) {
+    storeRecovery(uid, pending.snapshot, pending.expectedVersion, "before-journey-pending");
+    try { localStorage.removeItem(pendingKey(uid)); } catch { /* storage unavailable */ }
+  }
+  memSnapshot = null;
+  claimSnapshotOwner(uid);
+  commitAdopt(uid, snapshot, serverVersion);
+  memSnapshot = snapshot;
+  setStatus("ok");
 }
 
 /**
