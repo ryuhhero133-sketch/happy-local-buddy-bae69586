@@ -11902,7 +11902,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     Math.max(2, Math.min(mapSpawnCap(map), waveCfg(wave).maxAlive));
   // Spawner por wave só atua em mapas de batalha (seguras/eventos têm regras próprias).
   const isWaveSpawnMap = (map: string): boolean =>
-    !["esfera_ancestral", "mapinha6", "mapinha9", "mapinha10", "mapinha11", "arena"].includes(map);
+    !zoneForMap(map) && grassPatchesRef.current.length === 0
+    && !["esfera_ancestral", "mapinha6", "mapinha9", "mapinha10", "mapinha11", "arena"].includes(map);
   // Posição de ataque: ponto walkable à distância preferida (≈ alcance × margem)
   // do alvo, do lado do atacante. Sem preferD, usa o padrão corpo a corpo.
   const getAttackPosition = (ax: number, ay: number, tx: number, ty: number, mapId: string, preferD?: number): { x: number; y: number } => {
@@ -11938,6 +11939,8 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
     const iv = setInterval(() => {
       if (!starterChosenRef.current) return;
       if (restingRef.current) return;
+      // Mapas com canteiros usam somente o spawner de mato.
+      if (zoneForMap(idle.currentMap) || grassPatchesRef.current.length > 0) return;
       setEnemies((prev) => {
         if (idle.currentMap === "arena" || idle.currentMap === "arena") {
           return prev.length > 0 ? [] : prev;
@@ -14152,42 +14155,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const currentMapRef = useRef(idle.currentMap);
   useEffect(() => { currentMapRef.current = idle.currentMap; }, [idle.currentMap]);
   useEffect(() => {
-    const trigger = () => {
-      // Lendários NUNCA aparecem no Vale Verdejante (mapa inicial), no Pokémarkt (loja) nem nos mapas de pool estrita
-      // + nunca em cidades/zonas seguras/Esfera (NO_HIGH_EVENT_MAPS).
-      const cm = currentMapRef.current;
-      if (NO_HIGH_EVENT_MAPS.includes(cm) || cm === "florest_ice" || cm === "florest_bone" || cm === "valley_plume" || cm === "mapinha13" || cm === "mapinha5" || cm === "ruinas" || cm === "ruinas_de_venus" || cm === "mapinha8") return;
-      const totalW = LEGEND_ROSTER.reduce((s, r) => s + r.w, 0);
-      let rw = Math.random() * totalW;
-      let pick = LEGEND_ROSTER[0];
-      for (const r of LEGEND_ROSTER) { rw -= r.w; if (rw <= 0) { pick = r; break; } }
-      legendIdxRef.current++;
-      const until = Date.now() + LEGEND_DURATION_MS;
-      setLegendUntil({ until, weather: pick.weather });
-      // clima desabilitado: if (pick.weather) setWeather(pick.weather);
-      setEnemies((prev) => {
-        if (prev.some((e) => e.sp === pick.sp)) return prev;
-        let x = 200, y = 200, tries = 0;
-        do {
-          x = 200 + Math.random() * (WORLD_W - 400);
-          y = 200 + Math.random() * (WORLD_H - 400);
-          tries++;
-        } while (collidesWithAny(x, y) && tries < 20);
-        const petA = makePet(pick.sp, pick.level);
-        const hpMult = pick.rarity === "mythic_shiny" ? 4 : pick.rarity === "mythic" ? 3.2 : 2.6;
-        const hp = Math.floor(calcIdleMaxHp(petA) * hpMult);
-        return [
-          ...prev,
-          { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left", aggressive: (pick.sp === "moltres" || pick.sp === "lugia"), aggroR: (pick.sp === "moltres" || pick.sp === "lugia") ? 800 : 0, elite: true, level: pick.level, rarity: pick.rarity, eventLegendary: true } as Enemy,
-        ];
-      });
-      const rarityLabel = pick.rarity === "mythic_shiny" ? "MÍTICO ✦" : pick.rarity === "mythic" ? "MÍTICO" : "ÉPICO";
-      pushEvent(pick.icon, `EVENTO ${rarityLabel}`, `${pick.label} apareceu! Só ULTRA/MASTER captura.`, pick.color);
-      
-    };
-    const firstTo = setTimeout(trigger, 45_000);
-    const iv = setInterval(trigger, LEGEND_INTERVAL_MS);
-    return () => { clearTimeout(firstTo); clearInterval(iv); };
+    // Eventos lendários aleatórios desativados a pedido do jogador.
+    setEnemies((prev) => prev.filter((enemy) => !enemy.eventLegendary));
+    setLegendUntil(null);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // (Clima gerenciado pelo ciclo global de neve — não sobrescrever aqui)
@@ -14299,40 +14269,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   const BIRD_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 horas
   const BIRD_WARN_MS = 5 * 60 * 1000; // aviso 5min antes
   useEffect(() => {
-    const spawnBird = () => {
-      // Zonas seguras/cidades/mapas do Professor (NO_HIGH_EVENT_MAPS): NUNCA spawna
-      // lendários — Moltres/Articuno não entram em laboratório, cidades nem lands.
-      if (NO_HIGH_EVENT_MAPS.includes(currentMapRef.current)) return;
-      if (currentMapRef.current === "arena") return;
-      const pick = BIRD_ROSTER[Math.floor(Math.random() * BIRD_ROSTER.length)];
-      setEnemies((prev) => {
-        if (prev.some((e) => e.sp === pick.sp)) return prev;
-        let x = 300, y = 300, tries = 0;
-        do {
-          x = 200 + Math.random() * (WORLD_W - 400);
-          y = 200 + Math.random() * (WORLD_H - 400);
-          tries++;
-        } while (collidesWithAny(x, y) && tries < 20);
-        const petA = makePet(pick.sp, pick.level);
-        const hp = Math.floor(calcIdleMaxHp(petA) * 5);
-        return [
-          ...prev,
-          { sp: pick.sp, hp, maxHp: hp, id: enemyIdRef.current++, x, y, face: "left",
-            aggressive: true, aggroR: 520, elite: true, level: pick.level,
-            rarity: "mythic" as Rarity, eventLegendary: true } as Enemy,
-        ];
-      });
-      pushEvent(pick.icon, "PÁSSARO LENDÁRIO", `${pick.label} desceu dos céus! Cuidado — ele ATACA à distância.`, pick.color);
-      pushChat(`⚠ ${pick.icon} ${pick.label} apareceu! MUITO FORTE, agressivo e quase impossível de capturar (ULTRA/MASTER).`, "cap");
-    };
-    const warn = () => {
-      pushChat(`⚠ Um PÁSSARO LENDÁRIO se aproxima... prepare-se! (em ~5min)`, "info");
-    };
-    const firstWarn = setTimeout(warn, Math.max(1000, BIRD_INTERVAL_MS - BIRD_WARN_MS));
-    const firstSpawn = setTimeout(spawnBird, BIRD_INTERVAL_MS);
-    const ivWarn = setInterval(warn, BIRD_INTERVAL_MS);
-    const ivSpawn = setInterval(spawnBird, BIRD_INTERVAL_MS);
-    return () => { clearTimeout(firstWarn); clearTimeout(firstSpawn); clearInterval(ivWarn); clearInterval(ivSpawn); };
+    // Pássaros lendários (Moltres/Articuno) desativados a pedido do jogador.
+    setEnemies((prev) => prev.filter((enemy) => !enemy.eventLegendary));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -15346,6 +15284,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Tenta criar UM inimigo respeitando obstáculos e distância mínima.
   // Retorna null se não achou posição válida em 40 tentativas.
   function spawnOneEnemy(placed: { x: number; y: number }[]): Enemy | null {
+    // Nunca gera Pokémon fora do mato em mapas com canteiro/zone.
+    if (zoneForMap(idle.currentMap) || grassPatchesRef.current.length > 0) return null;
+    if (idle.currentMap.startsWith("bobo_")) return null;
     if (isTestMap(idle.currentMap)) return null;
     // Esfera Ancestral (Mapa Banido): sem pokémons selvagens.
     if (idle.currentMap === "esfera_ancestral") {
@@ -15358,8 +15299,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }
     const leaderLv = team[0]?.level ?? 10;
     const maxTeamLv = team.reduce((m, p) => Math.max(m, p.level), 0);
-    // Sem eventos high-level (Dialga/roamers/MTC/menace/guardians/apex/riders) em cidades/zonas seguras.
-    const noHighEvents = NO_HIGH_EVENT_MAPS.includes(idle.currentMap);
+    // Eventos lendários aleatórios desativados em todos os mapas.
+    const noHighEvents = true;
     if ((idle.currentMap === "arena" || idle.currentMap === "arena") && !customDims) return null;
     const isSmallMapSpawn = idle.currentMap === "arena" || idle.currentMap === "arena" || idle.currentMap === "mapinha13" || !!customMapUrls[idle.currentMap];
     const useW = isSmallMapSpawn && customDims ? customDims.w : WORLD_W;
@@ -16352,7 +16293,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const spot = anchored ? grassHuntRef.current.center : null;
     const grass = patch.tiles.filter((tile) => {
       const point = grassTileCenter(tile);
-      return Math.hypot(point.x - trainer.x, point.y - trainer.y) <= 280
+      return Math.hypot(point.x - trainer.x, point.y - trainer.y) <= 240
         && (!spot || Math.hypot(point.x - spot.x, point.y - spot.y) <= GRASS_SPOT_RADIUS);
     });
     if (grass.length === 0 || list.length === 0) return [];
@@ -16395,8 +16336,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       out.push({
         id: enemyIdRef.current++, sp: species, hp, maxHp: hp, x, y,
         face: Math.random() < 0.5 ? "left" : "right",
-        level, rarity: baseRarity, behavior: "wander",
-        spawnX: x, spawnY: y, grassPatchId: patch.id, wanderRadius: 72, aggroR: 0,
+        level, rarity: baseRarity, behavior: "aggressive",
+        aggressive: true, aggroR: 240, detectionRadius: 240, maxChaseDistance: 360,
+        spawnX: x, spawnY: y, grassPatchId: patch.id, wanderRadius: 72,
       });
     }
     return out;
@@ -16405,6 +16347,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   function spawnEnemies(): Enemy[] {
     const zoneList = zoneForMap(idle.currentMap);
     if (zoneList) return spawnZoneEnemies(zoneList);
+    // Mapa tem canteiros mas não tem tabela de zona: não inventa spawns fora
+    // do mato; o editor pode definir spawns fixos se quiser.
+    if (grassPatchesRef.current.length > 0) return [];
+    // Mapas BOBO sem canteiro não recebem spawn aleatório.
+    if (idle.currentMap.startsWith("bobo_")) return [];
     if (isTestMap(idle.currentMap)) return [];
     if ((idle.currentMap === "arena" || idle.currentMap === "mapinha6" || idle.currentMap === "mapinha9" || idle.currentMap === "mapinha10" || idle.currentMap === "mapinha11" || idle.currentMap === "arena" || idle.currentMap === "arena" || FREE_WALK_MAPS.includes(idle.currentMap)) && idle.currentMap !== "florest_ice" && idle.currentMap !== "florest_bone" && idle.currentMap !== "valley_plume" && idle.currentMap !== "ruinas" && idle.currentMap !== "ruinas_de_venus" && idle.currentMap !== "venenot" && idle.currentMap !== "monte_floreto" && idle.currentMap !== "hallow" && idle.currentMap !== "caverna_brok") return [];
     const nowTs = Date.now();
@@ -30057,6 +30004,16 @@ onClick={(e) => {
                   }}
                 >📌</button>
                 <span style={{ fontSize: 8, fontWeight: 800, color: "#9fd8ff", border: "1px solid rgba(159,216,255,0.5)", borderRadius: 4, padding: "1px 4px" }}>TAB</span>
+                <button
+                  onClick={() => setHudTargetsOpen(false)}
+                  title="Fechar lista de alvos"
+                  aria-label="Fechar lista de alvos"
+                  style={{
+                    background: "rgba(180,40,60,0.35)", border: "1px solid rgba(255,130,150,0.6)",
+                    borderRadius: 4, color: "#ffd6de", fontSize: 10, fontWeight: 900, lineHeight: 1,
+                    padding: "3px 6px", cursor: "pointer",
+                  }}
+                >✕</button>
               </div>
             </div>
             {near.map(({ e, d }) => {

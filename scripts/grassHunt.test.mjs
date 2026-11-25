@@ -188,6 +188,11 @@ test("integração mantém versão privada e usa só um controlador de caçada",
   assert.ok(idle.includes("spawnZoneEnemiesRef.current"));
   assert.ok(idle.includes("<= GRASS_SPOT_RADIUS"));
   assert.ok(idle.includes("return zoneForMap(idle.currentMap) ? prev : spawnEnemies()"));
+  assert.ok(idle.includes("if (zoneForMap(idle.currentMap) || grassPatchesRef.current.length > 0) return null;"));
+  assert.ok(idle.includes('behavior: "aggressive"'));
+  assert.ok(idle.includes("Eventos lendários aleatórios desativados"));
+  assert.ok(idle.includes("Fechar lista de alvos"));
+  assert.ok(source.includes("pode sair do tile enquanto persegue"));
   assert.ok(!idle.includes("trainerPosRef.current.x + fx * FOLLOW_DIST"));
   assert.ok(!idle.includes("}, [enemies, moving, obstacles, chests, idle.currentMap, arvEpicPlants]"));
 });

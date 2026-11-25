@@ -189,12 +189,12 @@ export function grassHuntEnemies<T extends HuntEnemy>(
   if (!state.entered || !patch || !center || !isInGrassPatch(patch, trainer)
     || distance(trainer, center) > GRASS_SPOT_RADIUS + 12) return [];
   return enemies.filter((enemy) => {
-    if (enemy.hp <= 0 || distance(enemy, trainer) > GRASS_ENGAGE_RADIUS
-      || distance(enemy, center) > GRASS_SPOT_RADIUS + 32) return false;
+    if (enemy.hp <= 0 || distance(enemy, trainer) > GRASS_ENGAGE_RADIUS) return false;
     const origin = { x: enemy.spawnX ?? enemy.x, y: enemy.spawnY ?? enemy.y };
     const originPatch = enemy.grassPatchId ?? nearestGrassPatch(patches, origin, 100)?.id;
-    return originPatch === patch.id && isInGrassPatch(patch, enemy, 24, 24)
-      && (!canWalk || walkableSegment(trainer, enemy, canWalk));
+    // O inimigo pode sair do tile enquanto persegue o treinador. O que importa
+    // é ter nascido neste canteiro e estar dentro do alcance de combate.
+    return originPatch === patch.id && (!canWalk || walkableSegment(trainer, enemy, canWalk));
   });
 }
 
