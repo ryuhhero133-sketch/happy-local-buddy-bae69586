@@ -8546,6 +8546,7 @@ const confirmName = () => {
   const globalRewardVoucherBusyRef = useRef(false);
   const nevenatalinosCodeBusyRef = useRef(false);
   const goldVipCodeBusyRef = useRef(false);
+  const landCertCodeBusyRef = useRef(false);
   type NevenatalinosResponse = {
     ok?: boolean;
     reason?: string;
@@ -8574,6 +8575,15 @@ const confirmName = () => {
     items?: Record<string, number>;
     uses_remaining?: number;
     tickets?: number;
+  };
+  type LandCertificateResponse = {
+    ok?: boolean;
+    reason?: string;
+    server_version?: number;
+    saved_at?: number;
+    item_id?: string;
+    item_qty?: number;
+    uses_remaining?: number;
   };
   const normalizeCode = (value: string) => value
     .normalize("NFD")
@@ -8615,6 +8625,29 @@ const confirmName = () => {
       const previous = redCrystalCashAmount(base.idle.items?.[id]) ?? 0;
       items[id] = Math.max(0, Math.min(999_999, server + current - previous));
     }
+    return {
+      ...save,
+      savedAt: Math.max(save.savedAt ?? 0, serverSavedAt),
+      idle: { ...save.idle, items },
+    };
+  };
+  const patchCertificateSnapshot = (
+    snapshot: unknown,
+    serverItemQty: number,
+    checkpoint: unknown,
+    serverSavedAt = 0,
+  ) => {
+    const save = snapshot as { idle?: IdleState; savedAt?: number };
+    const base = checkpoint as { idle?: IdleState };
+    if (!save.idle || !base.idle) throw new Error("certificate_snapshot_invalid");
+    const server = redCrystalCashAmount(serverItemQty);
+    if (server === null) throw new Error("certificate_item_invalid");
+    const current = redCrystalCashAmount(save.idle.items?.certificado) ?? 0;
+    const previous = redCrystalCashAmount(base.idle.items?.certificado) ?? 0;
+    const items = {
+      ...(save.idle.items ?? {}),
+      certificado: Math.max(0, Math.min(999_999, server + current - previous)),
+    };
     return {
       ...save,
       savedAt: Math.max(save.savedAt ?? 0, serverSavedAt),
@@ -8962,6 +8995,85 @@ const confirmName = () => {
           setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o código." });
         } finally {
           globalRewardVoucherBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
+    if (/^LANDCERT[A-Z2-9]{20}$/.test(raw)) {
+      if (landCertCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      landCertCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Validando código de Certificado no servidor…" });
+      void (async () => {
+        try {
+          let confirmed: LandCertificateResponse | null = null;
+          let checkpointIdle: IdleState | null = null;
+          let confirmedSavedAt = 0;
+          const result = await runCheckpointMutation(
+            buildFullBlob(),
+            async (expectedVersion) => {
+              const { data, error } = await (supabase as any).rpc("redeem_land_certificate_code", {
+                p_code: raw,
+                p_expected_version: expectedVersion,
+              });
+              if (error) return { ok: false, reason: error.message };
+              const response = data as LandCertificateResponse | null;
+              if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+              const itemQty = redCrystalCashAmount(response.item_qty);
+              if (response.server_version !== expectedVersion + 1
+                || response.item_id !== "certificado"
+                || itemQty === null
+                || typeof response.uses_remaining !== "number") {
+                throw new Error("certificate_invalid_server_response");
+              }
+              confirmed = response;
+              confirmedSavedAt = Number(response.saved_at) || 0;
+              return { ok: true, server_version: response.server_version, value: itemQty };
+            },
+            (snapshot, _value, checkpoint) => {
+              if (!confirmed) throw new Error("certificate_confirmation_missing");
+              checkpointIdle = (checkpoint as { idle?: IdleState }).idle ?? null;
+              return patchCertificateSnapshot(snapshot, confirmed.item_qty ?? 0, checkpoint, confirmedSavedAt);
+            },
+          );
+          const confirmedReward = confirmed as LandCertificateResponse | null;
+          const confirmedCheckpoint = checkpointIdle as IdleState | null;
+          if (!result.ok || !confirmedReward || !confirmedCheckpoint) {
+            const messages: Record<string, string> = {
+              invalid_or_used: "Código de Certificado inválido ou já utilizado.",
+              inventory_cap: "Sua mochila atingiu o limite de Certificados.",
+              stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
+              checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
+              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue antes de repetir.",
+              unauthenticated: "Entre em sua conta para resgatar este código.",
+            };
+            throw new Error(messages[result.reason ?? ""] ?? "Não foi possível resgatar o Certificado. Tente novamente.");
+          }
+          setIdle((current) => {
+            const patched = patchCertificateSnapshot(
+              { idle: current },
+              confirmedReward.item_qty ?? 0,
+              { idle: confirmedCheckpoint },
+              confirmedSavedAt,
+            ) as { idle: IdleState };
+            idleRef.current = patched.idle;
+            saveIdle(patched.idle);
+            return patched.idle;
+          });
+          setCodeInput("");
+          const message = "📜 3 Certificados de Land entregues! Vá até a Land Revo e clique em Minha Land para posicionar.";
+          setCodeMsg({ kind: "ok", text: message });
+          pushChat(message, "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o Certificado." });
+        } finally {
+          landCertCodeBusyRef.current = false;
         }
       })();
       return;
@@ -27646,6 +27758,26 @@ onClick={(e) => {
       )}
       {/* ===== Painel das Lands (construir/gerenciar + barra de confirmação) ===== */}
       {renderLandPanel()}
+      {idle.currentMap === "land_revo" && !landPanel && !placingLand && (
+        <button
+          type="button"
+          onClick={() => { setLandPanel({ mode: "build" }); setForgeShowOrbit(false); playClick(); }}
+          title="Construir ou gerenciar sua Land"
+          style={{
+            position: "fixed", left: "50%", bottom: 104, transform: "translateX(-50%)",
+            zIndex: 4500, display: "flex", alignItems: "center", gap: 8,
+            padding: "10px 16px", borderRadius: 12, cursor: "pointer",
+            border: "2px solid #86efac", background: "linear-gradient(180deg,#14532d,#052e16)",
+            color: "#ecfdf5", fontWeight: 900, fontSize: 12, letterSpacing: 0.4,
+            boxShadow: "0 8px 22px rgba(0,0,0,0.55), 0 0 14px rgba(74,222,128,0.25)",
+          }}
+        >
+          <Home size={17} aria-hidden="true" /> Minha Land
+          <span style={{ fontSize: 10, color: "#bbf7d0", background: "#052e16aa", border: "1px solid #86efac55", borderRadius: 999, padding: "2px 7px" }}>
+            📜 {idle.items.certificado ?? 0}
+          </span>
+        </button>
+      )}
       <div
         className={forgeMinimized ? "revo-legacy-forge-orb" : "revo-forge-window"}
         onMouseDown={(e) => {
