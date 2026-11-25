@@ -44,8 +44,11 @@ begin
     if spin #>> '{reward,kind}' = 'fail' then
       select count(*)::int, coalesce(sum((e.value #>> '{}')::int), 0) into applied, qty
         from jsonb_each(spin #> '{reward,items}') e;
-      if applied <> 1 or qty <> 1 or not ((spin #> '{reward,items}') ? 'pokeball') then
-        raise exception 'Falha deveria dar exatamente 1 Pokébola';
+      if applied <> 3 or qty <> 3
+        or not ((spin #> '{reward,items}') ? 'pokeball')
+        or not ((spin #> '{reward,items}') ? 'potion')
+        or not ((spin #> '{reward,items}') ? 'berry') then
+        raise exception 'Falha deveria dar Pokébola + Poção + Baga';
       end if;
     end if;
     item_before := snapshot_items;
@@ -109,4 +112,4 @@ begin
   end if;
 end;
 $test$;
-select 'PASS: 3 tiros, falha com 1 item, 3º garantido, F5, novo dia, pity e rollback' as result;
+select 'PASS: 3 tiros, falha com Pokébola+Poção+Baga, 3º garantido, F5, novo dia, pity e rollback' as result;

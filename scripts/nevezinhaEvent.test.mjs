@@ -9,7 +9,8 @@ const css = read("../src/components/nevezinha/nevezinha-event.css");
 const idle = read("../src/routes/idle.tsx");
 const inventory = read("../src/components/inventory/inventoryModel.ts");
 const sql = read("../supabase/migrations/20261125005232_nevezinha_daily_event.sql")
-  + "\n" + read("../supabase/migrations/20261125013004_nevezinha_three_shots.sql");
+  + "\n" + read("../supabase/migrations/20261125013004_nevezinha_three_shots.sql")
+  + "\n" + read("../supabase/migrations/20261125014935_nevezinha_fail_consolation.sql");
 const testSql = read("../supabase/tests/nevezinha_event.test.sql");
 const saveManager = read("../src/lib/saveManager.ts");
 
@@ -22,6 +23,8 @@ test("TSX compila e usa portal, vídeos e checkpoint oficial", () => {
   for (const video of ["show.mp4", "fail.mp4", "stone.mp4", "items.mp4"]) assert.ok(component.includes(video));
   assert.ok(component.includes("3 tiros por dia"));
   assert.ok(component.includes("Tiros 1 e 2 podem falhar"));
+  assert.ok(component.includes("1 Poção + 1 Baga"));
+  assert.ok(component.includes("icon-potion.webp"));
   assert.ok(component.includes("F5"));
   assert.ok(component.includes("icon-pokeball.webp"));
   assert.ok(component.includes("chest-grass.webp"));
@@ -53,7 +56,7 @@ test("servidor: 3 tiros/dia, 70% falha nos dois primeiros, 3º garantido", () =>
   assert.ok(sql.includes("set tickets = 3"));
   assert.ok(sql.includes("_shots_left > 1 and random() < 0.70"));
   assert.ok(sql.includes("_roll < 0.05"));
-  assert.ok(sql.includes("jsonb_build_object('pokeball', 1)"));
+  assert.ok(sql.includes("jsonb_build_object('pokeball', 1, 'potion', 1, 'berry', 1)"));
   assert.ok(sql.includes("America/Sao_Paulo"));
   assert.ok(sql.includes("nevezinha_doll"));
   assert.ok(sql.includes("snapshot", "server_version"));
@@ -69,6 +72,12 @@ test("NPC do Emerald abre a aba do Festival", () => {
   assert.ok(idle.includes('editorObject?.assetId === "npc_nevezinha"'));
   assert.ok(idle.includes("setNevezinhaOpen(true)"));
   assert.ok(idle.includes("emeraldHasNevezinhaNpc"));
+  assert.ok(idle.includes("partyMemberIds"));
+  assert.ok(idle.includes("Na sua party"));
+  assert.ok(!idle.includes("SnowCanvas"));
+  assert.ok(!idle.includes("rainDropEls"));
+  assert.ok(!idle.includes("blackSnowEls"));
+  assert.ok(!idle.includes("Weather cycle:"));
 });
 
 test("boneco lendário entra na mochila e dá +5% de XP", () => {

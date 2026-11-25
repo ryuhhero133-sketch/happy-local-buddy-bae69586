@@ -8,8 +8,8 @@ NPC recebem o mesmo boneco fixo no ponto do mapa.
 
 - **3 tiros por dia**, liberados automaticamente ao abrir a aba.
 - O dia vira à **meia-noite de São Paulo**. Não acumula: no máximo 3.
-- **Tiros 1 e 2:** 70% de chance de falhar. Falha entrega **exatamente 1
-  Pokébola**.
+- **Tiros 1 e 2:** 70% de chance de falhar. Falha entrega **1 Pokébola +
+  1 Poção + 1 Baga** (comida Pokémon).
 - **Tiro 3:** prêmio garantido, nunca falha.
 - O ticket e o prêmio são definidos e creditados **no servidor** antes do vídeo.
 - **F5 não rerrola e não duplica**: o prêmio já está no `game_saves`; ao abrir

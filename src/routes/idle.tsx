@@ -1090,69 +1090,6 @@ const treeChopUrl = assetUrlFromJson(treeChopAsset);
 const treeStumpUrl = assetUrlFromJson(treeStumpAsset);
 
 type IdleMapId = string;
-// Neve em CANVAS: um único elemento desenhado por frame. Sem dezenas de divs,
-// sem camadas CSS e sem sombras — custo praticamente zero, inclusive no celular.
-const SnowCanvas = memo(function SnowCanvas() {
-  const ref = useRef<HTMLCanvasElement | null>(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    let raf = 0;
-    let w = 0, h = 0, dpr = 1;
-    type Flake = { x: number; y: number; s: number; v: number; d: number; o: number };
-    const flakes: Flake[] = [];
-    const resize = () => {
-      const parent = canvas.parentElement;
-      w = parent?.clientWidth || window.innerWidth;
-      h = parent?.clientHeight || window.innerHeight;
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      canvas.width = Math.max(1, Math.round(w * dpr));
-      canvas.height = Math.max(1, Math.round(h * dpr));
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    const lite = window.matchMedia("(pointer: coarse)").matches || w < 900;
-    const count = lite ? 26 : 60;
-    for (let i = 0; i < count; i++) {
-      flakes.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        s: 1 + Math.random() * 2,
-        v: 16 + Math.random() * 26,
-        d: (Math.random() - 0.5) * 12,
-        o: 0.45 + Math.random() * 0.55,
-      });
-    }
-    let last = performance.now();
-    const loop = (t: number) => {
-      // 30 fps: metade do desenho e visualmente igual para neve.
-      if (t - last < 33) { raf = requestAnimationFrame(loop); return; }
-      const dt = Math.min(60, t - last) / 1000;
-      last = t;
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#ffffff";
-      for (const f of flakes) {
-        f.y += f.v * dt;
-        f.x += f.d * dt;
-        if (f.y > h + 4) { f.y = -4; f.x = Math.random() * w; }
-        if (f.x < -4) f.x = w + 4;
-        else if (f.x > w + 4) f.x = -4;
-        ctx.globalAlpha = f.o;
-        ctx.fillRect(f.x, f.y, f.s, f.s);
-      }
-      ctx.globalAlpha = 1;
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
-  }, []);
-  return <canvas ref={ref} aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />;
-});
 // ─── Diálogo do Nevezinha ────────────────────────────────────────────────────
 // Texto datilografado DENTRO da moldura; clique/toque avança (ou completa a
 // frase se ainda estiver digitando). Memoizado para não reiniciar a digitação
@@ -4393,6 +4330,10 @@ const confirmName = () => {
   const [friends, setFriends] = useState<FriendEntry[]>(() => { try { return loadFriends(); } catch { return []; } });
   const [party, setParty] = useState<PartyState | null>(null);
   const [partyInvites, setPartyInvites] = useState<PartyInviteRow[]>([]);
+  const partyMemberIds = useMemo(
+    () => new Set((party?.members ?? []).map((member) => member.player_id)),
+    [party],
+  );
   const [remotePlayerAction, setRemotePlayerAction] = useState<{ userId: string; name: string } | null>(null);
   useEffect(() => { setRemotePlayerAction(null); }, [idle.currentMap]);
   const [legacyMissionProgress] = useState<Record<string, number>>(() => { try { return loadGuildMissionProgress(); } catch { return {}; } });
@@ -6167,93 +6108,6 @@ const confirmName = () => {
   const playLevelUp = () => playSfx(sfxLevelUpUrl);
   const playBonus = () => playSfx(sfxBonusUrl);
   const playChestOpen = () => playSfx(sfxChestOpenUrl);
-
-  // Weather cycle: 20 min de NEVE → 30 min limpo → repete
-  const [weather, setWeather] = useState<"rain" | "snow" | "clear">("clear");
-  useEffect(() => {
-    const SNOW_MS = 20 * 60 * 1000;
-    const CLEAR_MS = 30 * 60 * 1000;
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const cycle = (phase: "snow" | "clear") => {
-      if (cancelled) return;
-      
-
-
-      if (phase === "snow") {
-        setWeather("snow");
-        pushChat("❄ Uma nevasca começou a cair sobre a região...", "info");
-        timer = setTimeout(() => cycle("clear"), SNOW_MS);
-      } else {
-        setWeather("clear");
-        pushChat("☀ A nevasca passou. O clima está limpo agora.", "info");
-        timer = setTimeout(() => cycle("snow"), CLEAR_MS);
-      }
-    };
-    cycle("clear");
-    // Aviso a cada 30 minutos sobre criaturas poderosas
-    const warn = setInterval(() => {
-      pushChat("⚠ Criaturas MUITO PODEROSAS foram avistadas por perto... fique alerta!", "info");
-    }, 30 * 60 * 1000);
-    return () => { cancelled = true; clearTimeout(timer); clearInterval(warn); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Partículas pré-geradas
-  const rainDrops = useMemo(() => {
-    const lite = typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 900);
-    const count = lite ? 48 : 90;
-    const arr: { left: number; delay: number; dur: number; len: number; op: number; w: number }[] = [];
-    for (let i = 0; i < count; i++) {
-      const near = Math.random() < 0.35;
-      arr.push({
-        left: Math.random() * 110 - 5,
-        delay: Math.random() * 1.4,
-        dur: near ? 0.35 + Math.random() * 0.2 : 0.55 + Math.random() * 0.35,
-        len: near ? 18 + Math.round(Math.random() * 12) : 8 + Math.round(Math.random() * 10),
-        op: near ? 0.55 + Math.random() * 0.3 : 0.18 + Math.random() * 0.25,
-        w: near ? 1.4 : 1,
-      });
-    }
-    return arr;
-  }, []);
-  // Elementos das partículas memoizados: o jogo re-renderiza a 60fps e,
-  // sem isso, os 70 flocos / 140 gotas eram recriados a cada frame.
-  const rainDropEls = useMemo(() => rainDrops.map((d, i) => (
-    <span key={i} className="wx-drop" style={{
-      left: d.left + "%",
-      width: d.w,
-      height: d.len,
-      opacity: d.op,
-      animationDelay: "-" + d.delay + "s",
-      animationDuration: d.dur + "s",
-    }} />
-  )), [rainDrops]);
-  // Neve preta do mapa ancestral: memoizada e sem sombra desfocada.
-  const blackSnowEls = useMemo(() => {
-    // Neve preta removida (efeito pesado).
-    const count = 0;
-    const lite = true;
-    return Array.from({ length: count }, (_, i) => {
-      const r1 = ((i * 9301 + 49297) % 233280) / 233280;
-      const r2 = ((i * 7919) % 1000) / 1000;
-      const r3 = ((i * 6271) % 1000) / 1000;
-      const size = 3 + r3 * 5;
-      return (
-        <span key={"bsnow-" + i} style={{
-          position: "absolute", left: (r1 * 100) + "%", top: -12,
-          width: size, height: size, borderRadius: "50%",
-          background: "radial-gradient(circle at 35% 35%, #2a2a3a 0%, #0a0a12 70%)",
-          border: "1px solid rgba(150,80,255,0.5)",
-          opacity: 0.85,
-          animation: "blackSnowFall " + (7 + r2 * 6) + "s linear infinite",
-          animationDelay: "-" + (r2 * 10) + "s",
-          ["--drift" as string]: ((r3 - 0.5) * 120) + "px",
-        } as React.CSSProperties} />
-      );
-    });
-  }, []);
-
 
   type ChatMsg = { id: number; text: string; kind: "info" | "dmg" | "hit" | "cap" | "lv" | "chest" | "capture" | "pvp" };
   const [chat, setChat] = useState<ChatMsg[]>([]);
@@ -8117,12 +7971,6 @@ const confirmName = () => {
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idle.currentMap, shipTier, shipSunk, tentaList.length]);
-
-  // Nos mapas de água o clima é o ciclo de chuva do barco (4 min: 2 com
-  // chuva, 2 limpo). Fora deles, vale o clima global (neve/limpo) do jogo.
-  const effWeather: "rain" | "snow" | "clear" = (isWaterMap(idle.currentMap) || idle.currentMap === "sa")
-    ? (rainOn ? "rain" : "clear")
-    : weather;
 
   // Tick rápido e separado: faz os redemoinhos e a chuva girarem sem depender
   // do frame do barco (que anda mais devagar).
@@ -21499,69 +21347,6 @@ A sucata afundou com o casco.
 
 
 
-          {/* Clima estilo pixel-RPG */}
-          {false && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 40,
-              pointerEvents: "none", overflow: "hidden",
-              imageRendering: "pixelated",
-            }}>
-              {effWeather === "rain" && (
-                <div>
-                  <div className="wx-rain-tint" />
-                  <div className="wx-mist" />
-                  {rainDropEls}
-                  <div className="wx-flash" />
-                </div>
-              )}
-              {effWeather === "snow" && (
-                <div>
-                  <div className="wx-snow-tint" />
-                  {/* neve removida: efeito pesado e fora do jogo */}
-                </div>
-              )}
-              <div style={{
-                position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
-                background: "rgba(11,5,16,0.75)",
-                border: `1px solid ${effWeather === "rain" ? "rgba(140,201,255,0.5)" : "rgba(230,243,255,0.55)"}`,
-                color: effWeather === "rain" ? "#bcdcff" : "#f2faff",
-                padding: "4px 12px", borderRadius: 4, fontSize: 11, fontWeight: 700,
-                letterSpacing: 0.5, imageRendering: "pixelated",
-                fontFamily: "'Press Start 2P', 'Trebuchet MS', monospace",
-                textShadow: "1px 1px 0 #000",
-              }}>
-                {effWeather === "rain" ? "CHUVA" : "NEVE"}
-              </div>
-            </div>
-          )}
-              {idle.currentMap === "esfera_ancestral" && (
-                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5, overflow: "hidden" }}>
-                  <div className="aurora-band-a" style={{
-                    position: "absolute", left: "-10%", right: "-10%", top: "-12%", height: "46%",
-                    background: "linear-gradient(180deg, transparent 0%, rgba(60,220,180,0.28) 35%, rgba(120,80,255,0.35) 60%, transparent 100%)",
-                    filter: "blur(18px)", transform: "rotate(-6deg)",
-                    animation: "auroraDrift 9s ease-in-out infinite alternate",
-                  }} />
-                  <div className="aurora-band-b" style={{
-                    position: "absolute", left: "-10%", right: "-10%", top: "-6%", height: "34%",
-                    background: "linear-gradient(180deg, transparent 0%, rgba(150,80,255,0.30) 40%, rgba(60,200,255,0.25) 65%, transparent 100%)",
-                    filter: "blur(22px)", transform: "rotate(4deg)",
-                    animation: "auroraDrift 12s ease-in-out infinite alternate-reverse",
-                  }} />
-                  {blackSnowEls}
-                  <style>{`
-                    @keyframes blackSnowFall { 0% { transform: translate3d(0, -5vh, 0); } 100% { transform: translate3d(var(--drift, 40px), 110vh, 0); } }
-                    @keyframes auroraDrift { 0% { transform: rotate(-6deg) translateX(-3%); opacity: 0.75; } 100% { transform: rotate(-2deg) translateX(3%); opacity: 1; } }
-                  `}</style>
-                </div>
-              )}
-
-
-            {/* Contador de jogadores online removido a pedido do usuário */}
-
-
-
-
           {/* FUNDO DO MAPA — elemento do TAMANHO DA VIEWPORT, fora da camada
               transformada. Antes a imagem (até 4071×5200) vivia dentro do mundo
               escalado e virava uma textura gigante no compositor: no iOS Safari
@@ -23808,6 +23593,18 @@ A sucata afundou com o casco.
                     padding: "1px 5px", borderRadius: 4,
                     border: "1px solid rgba(107,178,255,0.6)",
                   }}>{rp.name}</div>
+                  {partyMemberIds.has(rp.userId) && (
+                    <span
+                      aria-label="Na sua party"
+                      title="Na sua party"
+                      style={{
+                        position: "absolute", left: 1, top: -9, zIndex: 3,
+                        width: 9, height: 9, borderRadius: "50%",
+                        background: "#3be36d", border: "1px solid #063d18",
+                        boxShadow: "0 0 7px #3be36d",
+                      }}
+                    />
+                  )}
                   <div style={{
                     width: "100%", height: "100%",
                     backgroundImage: `url(${rp.skinUrl ?? trainerSheet})`,
