@@ -241,6 +241,8 @@ export const TRAINER_FOOD_VALUES: Record<string, { hunger: number; energy: numbe
   cha_verde:   { hunger: 15, energy: 30, label: "🍵 Chá Verde" },
   bolo_morango:{ hunger: 60, energy: 40, label: "🍰 Bolo de Morango" },
   leite_manga: { hunger: 35, energy: 25, label: "🧋 Leite de Manga" },
+  // Combo da Loja Cash: além do treinador, alimenta o Pokémon líder.
+  combo_revo:  { hunger: 50, energy: 40, label: "🍱 Combo Revo" },
 };
 
 export type MealCycleResult = {
@@ -308,6 +310,8 @@ export const PET_UNLOCK_MIN_HUNGER = 30;
 export const PET_FOOD_VALUES: Record<string, { hunger: number; loyalty: number; label: string }> = {
   morango: { hunger: 30, loyalty: 10, label: "🍓 Morango" },
   limao:   { hunger: 20, loyalty: 5,  label: "🍋 Limão" },
+  // Combo da Loja Cash: alimenta o líder e também o treinador.
+  combo_revo: { hunger: 60, loyalty: 15, label: "🍱 Combo Revo" },
 };
 
 /** Pet com campos de cuidado (cast local — sem alterar o tipo global). */

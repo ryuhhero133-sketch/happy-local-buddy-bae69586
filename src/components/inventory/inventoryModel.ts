@@ -31,7 +31,7 @@ export const INVENTORY_TIERS: Record<InventoryRarity, { color: string; label: st
   mythic: { color: "#eda0ee", label: "Mítico" },
 };
 
-const FOOD = new Set(["potion", "revive", "berry", "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga", "antidoto", "rare_candy"]);
+const FOOD = new Set(["potion", "revive", "berry", "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga", "combo_revo", "antidoto", "rare_candy"]);
 const ORES = new Set(["ferro", "bronze", "pedra", "pepita", "sucata"]);
 const MATERIALS = new Set(["fibra", "agua", "buque", "chicote", "escamas", "perola", "flor", "lenha", "oleo"]);
 

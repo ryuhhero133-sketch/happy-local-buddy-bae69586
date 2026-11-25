@@ -273,7 +273,7 @@ import {
   TRAINER_ENERGY_MAX, teleportEnergyCostFor, TELEPORT_HOME_MAP_ID, TELEPORT_LAND_MAP_IDS, LAB_MAP_ENERGY_COST,
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
-  processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL,
+  processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL, PET_FOOD_VALUES,
   type CaredPet,
 } from "@/game/resources";
 import { getDex, TYPE_COLOR, TYPE_ICON } from "@/game/movesets";
@@ -460,6 +460,16 @@ const STONE_CHEST: Record<string, string> = {
   stone_electric: chestElectricImg, stone_dark: chestDarkImg, stone_dragon: chestDragonImg,
 };
 const STONE_PACK_SIZE = 20;
+const SLIME_KILL_MILESTONE = 100;
+const SLIME_MAX_ALIVE = 2;
+// Balanceamento de captura: -30% geral; shiny sofre uma redução extra de 50%.
+const CAPTURE_CHANCE_MULTIPLIER = 0.7;
+const SHINY_CAPTURE_CHANCE_MULTIPLIER = 0.5;
+function adjustedCaptureChance(chance: number, target: { sp: string; rarity: string }): number {
+  if (!(chance > 0)) return 0;
+  const shiny = isShinyCapture({ sp: target.sp, rarity: target.rarity });
+  return Math.max(0, Math.min(1, chance * CAPTURE_CHANCE_MULTIPLIER * (shiny ? SHINY_CAPTURE_CHANCE_MULTIPLIER : 1)));
+}
 const isStoneId = (id: string) => id.startsWith("stone_") && id !== "stone_pack_all";
 
 import mapSnowAsset from "@/assets/map-snow-valley.png.asset.json";
@@ -2606,7 +2616,7 @@ const ITEM_IMG: Record<string, string> = {
   maca: macaBagImg, laranja: laranjaBagImg, picole: picoleBagImg,
   refrigerante: refrigeranteBagImg, cafe: cafeBagImg, cha_verde: chaVerdeBagImg,
   bolo_morango: boloMorangoBagImg, leite_manga: leiteMangaBagImg, limao: limaBagImg,
-  morango: morangoBagImg, banana: bananaBagImg,
+  morango: morangoBagImg, banana: bananaBagImg, combo_revo: boloMorangoBagImg,
   certificado: assetUrlFromJson(certificadoBagAsset),
   egg_sprigatito: cardEggUrl,
   egg_mew_7: cardEggUrl, egg_lucario_7: cardEggUrl, egg_ditto_shiny_1: cardEggUrl,
@@ -2636,7 +2646,7 @@ const ALL_BALLS: ShopBall[] = [
   { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
   { id: "ultraball",  name: "Ultra Ball", price: 15000,  img: ballUltraImg, captureMult: 3.5 },
   { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
-  { id: "slimeball", name: "Pokébola Slime", price: 100, img: slimeBallImg, captureMult: 1 },
+  { id: "slimeball", name: "Pokébola Slime", price: 50, img: slimeBallImg, captureMult: 1 },
 ];
 
 type ShopBook = { id: "book_atk" | "book_def" | "book_atk_purple" | "book_def_purple" | "book_atk_gold" | "book_def_gold" | "book_exp" | "book_exp_big" | "book_exp_max" | "book_vip" | "book_vip_30" | "book_vip_60" | "orb_xp_minor" | "orb_xp_major" | "orb_xp_supreme" | "orb_team"; name: string; desc: string; price: number; img: string; currency?: "crystals" | "gold"; priceGold?: number };
@@ -3616,7 +3626,7 @@ function IdlePage() {
 
     if (mutation.item_id != null) {
       const allowedItems = new Set([
-        "pokeball", "greatball", "ultraball", "masterball", "potion", "slimeball",
+        "pokeball", "greatball", "ultraball", "masterball", "potion", "slimeball", "combo_revo",
         "book_atk", "book_exp", "book_vip", "book_vip_30",
         "egg_epic", "egg_mystic", "revive", "rare_candy",
         "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
@@ -3653,6 +3663,7 @@ function IdlePage() {
       ultraball_50: "ultraball",
       revive_pack_10: "revive",
       potion_20: "potion",
+      combo_revo: "combo_revo",
       slimeball: "slimeball",
       book_atk: "book_atk",
       book_exp: "book_exp",
@@ -13670,7 +13681,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 captured = usedBall.id === "slimeball";
               } else if (safariTarget) {
                 if (usedBall.id === "ultraball") safariUltraThrows += 1;
-                captured = Math.random() < safariCatchChance(usedBall.id, safariUltraThrows);
+                captured = Math.random() < adjustedCaptureChance(safariCatchChance(usedBall.id, safariUltraThrows), target);
                 if (captured) safariUltraThrows = 0;
               } else if (target.menace) {
                 // 💀 PERIGO ABISSAL — impossível capturar. Ao ser atacado com pokébola, vira agressivo.
@@ -13692,7 +13703,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                 } else {
                   // Depois do umbral, ultra ball 0.4%, master garantido.
                   if (usedBall.id === "masterball") captured = true;
-                  else if (usedBall.id === "ultraball") captured = Math.random() < 0.004;
+                  else if (usedBall.id === "ultraball") captured = Math.random() < adjustedCaptureChance(0.004, target);
                   else captured = false;
                 }
               } else if (target.sp === "dragonite_shiny" || target.sp === "zapdos" || target.sp === "blastoise_shiny" || target.sp === "rayquaza" || target.sp === "onix_shiny" || target.sp === "riolu" || (target.sp === "raichu" && (target.rarity === "mythic" || target.rarity === "mythic_shiny"))) {
@@ -13735,7 +13746,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   } else {
                     // Bosses do Grass Oddish: quase impossível — 0.3% por lançamento após o umbral.
                     const catchChance = (isRaichuMy || isRayquaza || isOnixShiny || isRiolu || isDragoShinyGrass) ? 0.003 : 0.02;
-                    captured = Math.random() < catchChance;
+                    captured = Math.random() < adjustedCaptureChance(catchChance, target);
                   }
                 }
               } else if (target.mtcBoss) {
@@ -13744,7 +13755,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                   captured = false;
                   pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
                 } else {
-                  captured = Math.random() < 0.017;
+                  captured = Math.random() < adjustedCaptureChance(0.017, target);
                 }
               
               } else if (isEventLeg && usedBall.id === "greatball") {
@@ -13754,14 +13765,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               } else if (isEventLeg) {
                 // Dialga: pokémon com a menor chance do jogo (1% fixo, só ultra)
                 if (target.sp === "dialga") {
-                  captured = usedBall.id === "ultraball" ? Math.random() < 0.01 : false;
+                  captured = usedBall.id === "ultraball" ? Math.random() < adjustedCaptureChance(0.01, target) : false;
                 } else {
                   // Ultra: chance muito baixa (~2%) contra lendários do evento
-                  captured = usedBall.id === "ultraball" ? Math.random() < 0.02 : false;
+                  captured = usedBall.id === "ultraball" ? Math.random() < adjustedCaptureChance(0.02, target) : false;
                 }
               } else if (target.rarity === "mythic" || target.rarity === "mythic_shiny") {
                 // 💠 Míticos (e shiny): 2% fixo por lançamento
-                captured = Math.random() < (0.02 + (idle.globalStats?.mastery ?? 0) * 0.005);
+                captured = Math.random() < adjustedCaptureChance(0.02 + (idle.globalStats?.mastery ?? 0) * 0.005, target);
               } else {
                 // 🖤 Guardiões anti-paralisia: um pouco mais difíceis (~55% da chance normal)
                 const isDittoSp = target.sp === "ditto" || target.sp === "ditto_shiny";
@@ -13769,7 +13780,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
 const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epic" ? 0.75 : target.rarity === "rare" ? 2.2 : target.rarity === "uncommon" ? 1.8 : target.rarity === "common" ? 1.6 : 1;
                // 🎃 Venusaur do Hallow: TODA bola perde quase toda a chance (captura bem difícil).
                const hallowVenMult = idle.currentMap === "hallow" && (target.sp === "venusaur" || target.sp === "venusaur_shiny") ? 0.15 : 1;
-               captured = Math.random() < baseChance * usedBall.captureMult * guardMult * rarityMult * 0.9 * hallowVenMult;
+               captured = Math.random() < adjustedCaptureChance(baseChance * usedBall.captureMult * guardMult * rarityMult * 0.9 * hallowVenMult, target);
               }
               if (captured) {
                 // 📖 Saga: progresso de capturas do objetivo ativo
@@ -13812,7 +13823,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                 void rColor;
                 // Broadcast global da captura
                 try {
-                  const chancePct = baseChance * usedBall.captureMult * 100;
+                  const chancePct = adjustedCaptureChance(baseChance * usedBall.captureMult, target) * 100;
                   void captureChanRef.current?.send({
                     type: "broadcast",
                     event: "capture",
@@ -13940,10 +13951,16 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               const drop: GroundDrop = { uid: `safari_crystal_${target.id}_${safariDefeats}`, mat: "morango" as MaterialId, qty: 1, currency: "crystals", x: target.x, y: target.y, droppedAt: Date.now(), map: "sa" };
               queueMicrotask(() => setGroundDrops((prev) => prev.some((d) => d.uid === drop.uid) ? prev : [...prev, drop]));
             }
-            // Bônus surpresa: a cada 100 mobs derrotados, ganhe 10 pokébolas.
-            const crossed100 = Math.floor(newKills / 100) > Math.floor(prevKills / 100);
+            // Bônus surpresa: a cada 100 mobs derrotados, ganhe 10 pokébolas
+            // e um Slime aparece no mapa atual.
+            const crossed100 = Math.floor(newKills / SLIME_KILL_MILESTONE) > Math.floor(prevKills / SLIME_KILL_MILESTONE);
             const surpriseBalls = crossed100 ? 10 : 0;
             if (crossed100) {
+              const slimeMilestone = Math.floor(newKills / SLIME_KILL_MILESTONE);
+              queueMicrotask(() => {
+                if (slimeMilestone <= lastSlimeMilestoneRef.current) return;
+                if (spawnMilestoneSlime()) lastSlimeMilestoneRef.current = slimeMilestone;
+              });
               queueMicrotask(() => {
                 pushChat(`�x}0 SURPRESA! ${newKills} mobs derrotados � +10 Pokébolas!`, "chest");
                 pushFxAt(trainerPos.x, trainerPos.y - 130, `+10 POKÉBOLAS!`, "capture");
@@ -14779,6 +14796,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       const hallowVenMult = idle.currentMap === "hallow" && (target.sp === "venusaur" || target.sp === "venusaur_shiny") ? 0.15 : 1;
       chance = Math.min(0.85, base * usedBall.captureMult * guardMult * rarityMult * 0.9 * hallowVenMult);
     }
+    // Capturas 100% garantidas (Slime e Master Ball em eventos) não são
+    // reduzidas; o restante sofre a penalidade extra quando o alvo é shiny.
+    if (!isSlime && chance < 1) chance = adjustedCaptureChance(chance, target);
     const success = Math.random() < chance;
     const ballId = usedBall.id;
     // FASE 3: cada Pokébola lançada conta no encontro (0/10). Isentos: bosses com mínimo próprio.
@@ -14935,6 +14955,13 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     // na mochila mas acabem sem efeito por faltar nesta lista.
     if (food) {
       const { now } = trustedNow();
+      const petFood = PET_FOOD_VALUES[id];
+      const pet = petFood ? (teamRef.current[0] as CaredPet | undefined) : undefined;
+      const fed = pet ? feedPet(pet, id, now) : null;
+      if (fed) {
+        setTeam((tm) => tm.length === 0 ? tm : [fed.pet as PetInstance, ...tm.slice(1)]);
+        bumpSagaCounter("feed_pet");
+      }
       setIdle((s) => ({
         ...s,
         items: { ...s.items, [id]: Math.max(0, (s.items[id] ?? 0) - 1) },
@@ -14942,8 +14969,16 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         trainerLastFedAt: now,
       }));
       setTrainerEnergy((energy) => Math.min(TRAINER_ENERGY_MAX, Math.max(0, energy ?? 0) + food.energy));
-      pushFxAt(trainerPos.x, trainerPos.y - 40, `+${food.hunger} 🍖 +${food.energy} ⚡`, "gold");
-      pushChat(`Você usou ${food.label}: +${food.hunger} fome e +${food.energy} energia.`, "cap");
+      if (fed) {
+        pushFxAt(trainerPos.x, trainerPos.y - 40, `+${food.hunger} 🍖 +${food.energy} ⚡ · 🐾 +${petFood?.hunger ?? 0} 🍖`, "gold");
+        pushChat(
+          `Você usou ${food.label}: +${food.hunger} fome / +${food.energy} energia e alimentou ${fed.pet.species.replace(/_/g, " ")} (+${petFood?.hunger ?? 0} fome, +${petFood?.loyalty ?? 0} lealdade).`,
+          "cap",
+        );
+      } else {
+        pushFxAt(trainerPos.x, trainerPos.y - 40, `+${food.hunger} 🍖 +${food.energy} ⚡`, "gold");
+        pushChat(`Você usou ${food.label}: +${food.hunger} fome e +${food.energy} energia.`, "cap");
+      }
       bumpSagaCounter("feed_trainer");
       return;
     }
@@ -16604,86 +16639,70 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
   // Alvo total de inimigos no mapa (top-up lento cuida do resto)
   const ENEMY_TARGET = idle.currentMap === "arena" ? 12 : (idle.currentMap === "mapinha7" ? 8 : idle.currentMap === "mapinha13" || idle.currentMap === "mapinha5" || idle.currentMap === "ruinas" || idle.currentMap === "ruinas_de_venus" || idle.currentMap === "mapinha8" ? 3 : (idle.currentMap === "florest_ice" || idle.currentMap === "florest_bone" || idle.currentMap === "valley_plume" ? 6 : 7));
 
-  // Slime: mob comum EXCLUSIVO dos mapas BOBO. Não usa o spawner normal
-  // (que escolhe espécies de Pokémon) — só este cria inimigos nesses mapas.
-  // Aparição reduzida: no máximo 2 vivos, entrada inicial de 1 e reposição lenta.
-  const BOBO_SLIME_MAX_ALIVE = 2;
-  const BOBO_SLIME_INITIAL_ALIVE = 1;
-  const BOBO_SLIME_SPAWN_INTERVAL_MS = 30_000;
-  function spawnBoboSlimes(count = BOBO_SLIME_MAX_ALIVE): Enemy[] {
-    const nowTs = Date.now();
-    if (nowTs - lastSpawnAtRef.current < 1500) return [];
-    lastSpawnAtRef.current = nowTs;
+  // Slime: recompensa determinística. Não há mais spawn aleatório; um Slime
+  // aparece no mapa atual a cada 100 Pokémon derrotados (máximo de 2 vivos).
+  const lastSlimeMilestoneRef = useRef(Math.floor((idleRef.current.totals.kills ?? 0) / SLIME_KILL_MILESTONE));
+  const slimeMilestoneReadyRef = useRef(false);
+  useEffect(() => {
+    if (!cloudBlobReady || slimeMilestoneReadyRef.current) return;
+    slimeMilestoneReadyRef.current = true;
+    // Evita despejar um Slime retroativo para contas que já têm milhares de kills.
+    lastSlimeMilestoneRef.current = Math.max(
+      lastSlimeMilestoneRef.current,
+      Math.floor((idleRef.current.totals.kills ?? 0) / SLIME_KILL_MILESTONE),
+    );
+  }, [cloudBlobReady]);
+
+  function spawnMilestoneSlime(): boolean {
+    // Slime é terrestre; em mapas de água ele ficaria inalcançável.
+    if (isWaterMap(idle.currentMap)) return false;
+    if (enemiesRef.current.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length >= SLIME_MAX_ALIVE) return false;
     const w = customDims?.w ?? 1200;
     const h = customDims?.h ?? 1200;
-    const base = Math.max(1, (team[0]?.level ?? 10) + 1);
     const trainer = trainerPosRef.current;
-    const grassTiles = grassPatchesRef.current.flatMap((patch) => patch.tiles);
-    // Em mapas com zona de mato, espera os canteiros carregarem para não
-    // colocar Slime na estrada/neve.
-    if (zoneForMap(idle.currentMap) && grassTiles.length === 0) return [];
-    const arr: Enemy[] = [];
-    for (let i = 0; i < Math.max(0, count); i++) {
-      let x = 0;
-      let y = 0;
-      if (grassTiles.length > 0) {
-        const tile = grassTiles[Math.floor(Math.random() * grassTiles.length)];
-        const center = grassTileCenter(tile, 24);
-        x = center.x;
-        y = center.y;
-      } else {
-        for (let tries = 0; tries < 24; tries++) {
-          x = w * (0.2 + Math.random() * 0.6);
-          y = h * (0.2 + Math.random() * 0.6);
-          if (Math.hypot(x - trainer.x, y - trainer.y) >= 140 && !collidesWithAny(x, y)) break;
-        }
+    let point: { x: number; y: number } | null = null;
+    // Nasce perto o suficiente para o jogador ver, mas fora do corpo do treinador.
+    for (let tries = 0; tries < 60; tries++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 150 + Math.random() * 130;
+      const x = Math.max(16, Math.min(w - 16, trainer.x + Math.cos(angle) * radius));
+      const y = Math.max(16, Math.min(h - 16, trainer.y + Math.sin(angle) * radius));
+      if (Math.hypot(x - trainer.x, y - trainer.y) >= 120 && !collidesWithAny(x, y)) {
+        point = { x, y };
+        break;
       }
-      if (!grassTiles.length && collidesWithAny(x, y)) continue;
-      const level = base + (i % 2);
-      const hp = 60 + level * 12;
-      arr.push({
-        id: enemyIdRef.current++,
-        sp: "rattata_f" as Species,
-        hp,
-        maxHp: hp,
-        x,
-        y,
-        face: Math.random() < 0.5 ? "left" : "right",
-        level,
-        rarity: "common" as Rarity,
-        aggressive: true,
-        behavior: "aggressive",
-        aggroR: 260,
-        detectionRadius: 260,
-        maxChaseDistance: 900,
-        spawnX: x,
-        spawnY: y,
-        wanderRadius: 140,
-        slimeSheet: true,
-      });
     }
-    return arr;
-  }
-
-  // Slimes aparecem nos mapas BOBO. Máximo de 2 vivos; usam a grama quando existe.
-  useEffect(() => {
-    if (!idle.currentMap.startsWith("bobo_")) return;
-    const spawn = (initial = false) => {
-      setEnemies((prev) => {
-        const alive = prev.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length;
-        if (alive >= BOBO_SLIME_MAX_ALIVE) return prev;
-        const missing = BOBO_SLIME_MAX_ALIVE - alive;
-        const wanted = initial ? Math.min(BOBO_SLIME_INITIAL_ALIVE, missing) : missing;
-        const fresh = spawnBoboSlimes(wanted);
-        if (fresh.length === 0) return prev;
-        return [...prev.filter((enemy) => enemy.hp > 0), ...fresh];
-      });
+    if (!point) return false;
+    const level = Math.max(1, (teamRef.current[0]?.level ?? 10) + 1);
+    const hp = 60 + level * 12;
+    const slime: Enemy = {
+      id: enemyIdRef.current++,
+      sp: "rattata_f" as Species,
+      hp,
+      maxHp: hp,
+      x: point.x,
+      y: point.y,
+      face: Math.random() < 0.5 ? "left" : "right",
+      level,
+      rarity: "common" as Rarity,
+      aggressive: true,
+      behavior: "aggressive",
+      aggroR: 260,
+      detectionRadius: 260,
+      maxChaseDistance: 900,
+      spawnX: point.x,
+      spawnY: point.y,
+      wanderRadius: 140,
+      slimeSheet: true,
     };
-    spawn(true);
-    const timer = window.setInterval(() => spawn(), BOBO_SLIME_SPAWN_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idle.currentMap, team]);
+    setEnemies((prev) => {
+      const alive = prev.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length;
+      if (alive >= SLIME_MAX_ALIVE) return prev;
+      return [...prev.filter((enemy) => enemy.hp > 0), slime];
+    });
+    pushChat(`🔵 ${SLIME_KILL_MILESTONE} Pokémon derrotados: um Slime apareceu!`, "cap");
+    return true;
+  }
 
   // Spawns das 8 zonas de mato: nascem SOBRE os tiles de mato.
   function spawnZoneEnemies(list: ZoneSpawn[]): Enemy[] {
@@ -32167,6 +32186,7 @@ function TabOverlay({
           cha_verde: "Chá Verde 🍵", bolo_morango: "Bolo de Morango 🍰",
           leite_manga: "Leite de Manga 🧋",
           morango: "Morango 🍓", banana: "Banana 🍌",
+          combo_revo: "Combo Revo 🍱",
           certificado: "Certificado 📜",
           fibra: "Fibra 🪵", ferro: "Ferro ⛓️", agua: "Água 💧",
           bronze: "Bronze 🟤", buque: "Buquê 💐", chicote: "Chicote 🌿",
@@ -32329,7 +32349,7 @@ function TabOverlay({
            "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet", "nevezinha_doll",
            "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
            "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
-          "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga",
+          "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga", "combo_revo",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
           "carta_montaria",
         ]);
@@ -32345,7 +32365,7 @@ function TabOverlay({
           const hint = category === "balls" ? "As Pokébolas são usadas automaticamente em combate." : "Use este item no sistema correspondente do jogo.";
           const food = TRAINER_FOOD_VALUES[id];
           return {
-             key: id, id, quantity, name: NAMES[id] ?? id, description: id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : food ? `Restaura +${food.hunger} fome e +${food.energy} energia do treinador.` : `${ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}${usable ? "" : ` ${hint}`}`,
+             key: id, id, quantity, name: NAMES[id] ?? id, description: id === "combo_revo" ? "Alimenta o Pokémon líder (+60 fome, +15 lealdade) e o treinador (+50 fome, +40 energia)." : id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : food ? `Restaura +${food.hunger} fome e +${food.energy} energia do treinador.` : `${ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}${usable ? "" : ` ${hint}`}`,
             image: PROFILE_SPRITES.books[id as keyof typeof PROFILE_SPRITES.books] ?? ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id],
             color: EGG_COLORS[id] ?? ITEM_COLORS[id], rarity: inventoryRarity(id), category, source: "bag", usable,
             bulk: ["potion", "book_atk", "book_def"].includes(id), actionLabel: usable ? category === "eggs" ? "Chocar" : id === "nevezinha_doll" ? (snowmanFollow ? "Parar de seguir" : "Seguir") : "Usar" : category === "balls" ? "Uso em combate" : "Uso no sistema",

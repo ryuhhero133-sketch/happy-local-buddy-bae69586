@@ -29,6 +29,16 @@ function initializer(name) {
 function actualHandler(name, globals) {
   return new Function(...Object.keys(globals), `${transpile(`const handler = ${initializer(name)};`)}\nreturn handler;`)(...Object.values(globals));
 }
+function functionSource(name) {
+  let found;
+  function visit(node) {
+    if (ts.isFunctionDeclaration(node) && node.name?.getText(sourceFile) === name) found = node;
+    if (!found) ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  assert.ok(found, `${name} deve existir no jogo`);
+  return found.getText(sourceFile);
+}
 const resources = await import(`data:text/javascript;base64,${Buffer.from(
   transpile(read("src/game/resources.ts"), ts.ModuleKind.ESNext),
 ).toString("base64")}`);
@@ -100,6 +110,31 @@ test("presença publica VIP, Nevezinha e montaria sem depender de quem observa",
   assert.ok(idle.includes('alt="VIP"'));
   assert.ok(idle.includes("rp.hasNevezinha"));
   assert.ok(idle.includes("remoteMount ? sawsbuckMountPng"));
+});
+
+test("captura global reduzida e shiny recebe penalidade extra", () => {
+  assert.ok(idle.includes("const CAPTURE_CHANCE_MULTIPLIER = 0.7;"));
+  assert.ok(idle.includes("const SHINY_CAPTURE_CHANCE_MULTIPLIER = 0.5;"));
+  const code = transpile(`const CAPTURE_CHANCE_MULTIPLIER = 0.7;\nconst SHINY_CAPTURE_CHANCE_MULTIPLIER = 0.5;\n${functionSource("adjustedCaptureChance")}\n`);
+  const adjusted = new Function("isShinyCapture", `${code}\nreturn adjustedCaptureChance;`)((capture) =>
+    /shiny/i.test(capture.sp ?? "") || capture.rarity === "mythic_shiny");
+  const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} != ${expected}`);
+  close(adjusted(1, { sp: "pikachu", rarity: "rare" }), 0.7);
+  close(adjusted(1, { sp: "pikachu_shiny", rarity: "rare" }), 0.35);
+  close(adjusted(0.02, { sp: "mewtwo", rarity: "mythic" }), 0.014);
+  assert.equal(adjusted(0, { sp: "pikachu", rarity: "common" }), 0);
+  assert.ok(idle.includes("adjustedCaptureChance(chance, target)"));
+  assert.ok(idle.includes("SHINY_CAPTURE_CHANCE_MULTIPLIER = 0.5"));
+  assert.ok((idle.match(/adjustedCaptureChance\(/g) ?? []).length >= 9);
+});
+
+test("Combo Revo alimenta Pokémon e treinador e usa a mesma mochila", () => {
+  assert.equal(resources.PET_FOOD_VALUES.combo_revo.hunger, 60);
+  assert.equal(resources.PET_FOOD_VALUES.combo_revo.loyalty, 15);
+  assert.equal(resources.TRAINER_FOOD_VALUES.combo_revo.hunger, 50);
+  assert.equal(resources.TRAINER_FOOD_VALUES.combo_revo.energy, 40);
+  assert.ok(idle.includes("const petFood = PET_FOOD_VALUES[id]"));
+  assert.ok(idle.includes('"combo_revo",'));
 });
 
 test("HUD sem calendário, relógio ou atalho de evento", () => {

@@ -10,6 +10,8 @@ const welcome = read("../src/lib/welcomePack.ts");
 const welcomeSql = read("../supabase/migrations/20261125034907_welcome_potion_pack.sql");
 const shopSql = read("../supabase/migrations/20261125034747_red_crystal_potion_pack.sql");
 const slimeSql = read("../supabase/migrations/20261125062401_red_crystal_slimeball.sql");
+const cashFoodSql = read("../supabase/migrations/20261125120715_cash_shop_combo_and_slimeball_50.sql");
+const resources = read("../src/game/resources.ts");
 const rewardCodeSql = read("../supabase/migrations/20261125065731_reward_code_nevenatalinos.sql");
 const rewardCodeResetSql = read("../supabase/migrations/20261125071920_reward_code_ticket_reset.sql");
 const captureQuests = read("../src/game/captureQuests.ts");
@@ -44,7 +46,8 @@ test("20 Poções por 1 Cristal Vermelho na Loja Cash", () => {
 test("Pokébola Slime e confirmação na Loja Cash", () => {
   assert.ok(shop.includes('id: "slimeball"'));
   assert.ok(shop.includes('name: "Pokébola Slime"'));
-  assert.ok(shop.includes("price: 100"));
+  assert.ok(shop.includes("price: 50,"));
+  assert.ok(idle.includes('{ id: "slimeball", name: "Pokébola Slime", price: 50'));
   assert.ok(shop.includes("icon-slime.webp"));
   assert.ok(shop.includes("setConfirming(product.id)"));
   assert.ok(shop.includes("Confirmar compra"));
@@ -53,18 +56,31 @@ test("Pokébola Slime e confirmação na Loja Cash", () => {
   assert.ok(idle.includes('b.id === "slimeball"'));
   assert.ok(slimeSql.includes("when 'slimeball' then"));
   assert.ok(slimeSql.includes("v_price := 100; v_granted_item := 'slimeball'; v_granted_qty := 1;"));
-  assert.ok(idle.includes("spawnBoboSlimes"));
+  assert.ok(cashFoodSql.includes("v_price := 50; v_granted_item := 'slimeball'; v_granted_qty := 1;"));
+  assert.ok(idle.includes("spawnMilestoneSlime"));
   assert.ok(idle.includes("slimeSheet"));
   assert.ok(idle.includes("Slime só pode ser capturado com Pokébola Slime"));
 });
 
-test("aparição de Slime reduzida nos mapas BOBO", () => {
-  assert.ok(idle.includes("const BOBO_SLIME_MAX_ALIVE = 2"));
-  assert.ok(idle.includes("const BOBO_SLIME_INITIAL_ALIVE = 1"));
-  assert.ok(idle.includes("BOBO_SLIME_SPAWN_INTERVAL_MS = 30_000"));
-  assert.ok(idle.includes("spawn(true)"));
-  assert.ok(idle.includes("setInterval(() => spawn(), BOBO_SLIME_SPAWN_INTERVAL_MS)"));
-  assert.ok(!idle.includes("spawnBoboSlimes(4 - alive)"));
+test("Combo Revo alimenta Pokémon e treinador por 20 Cristais Vermelhos", () => {
+  assert.ok(shop.includes('id: "combo_revo"'));
+  assert.ok(shop.includes('name: "Combo Revo"'));
+  assert.ok(shop.includes("price: 20,"));
+  assert.ok(idle.includes('combo_revo: "combo_revo"'));
+  assert.ok(idle.includes('"slimeball", "combo_revo"'));
+  assert.ok(resources.includes("combo_revo: { hunger: 60, loyalty: 15"));
+  assert.ok(resources.includes("combo_revo:  { hunger: 50, energy: 40"));
+  assert.ok(cashFoodSql.includes("when 'combo_revo' then"));
+  assert.ok(cashFoodSql.includes("v_price := 20; v_granted_item := 'combo_revo'; v_granted_qty := 1;"));
+});
+
+test("Slime aparece a cada 100 derrotas, sem spawn aleatório", () => {
+  assert.ok(idle.includes("const SLIME_KILL_MILESTONE = 100"));
+  assert.ok(idle.includes("const SLIME_MAX_ALIVE = 2"));
+  assert.ok(idle.includes("spawnMilestoneSlime"));
+  assert.ok(idle.includes("Math.floor(newKills / SLIME_KILL_MILESTONE)"));
+  assert.ok(idle.includes("if (spawnMilestoneSlime()) lastSlimeMilestoneRef.current = slimeMilestone"));
+  assert.ok(!idle.includes("spawnBoboSlimes"));
   assert.ok(!idle.includes("setInterval(spawn, 12000)"));
 });
 

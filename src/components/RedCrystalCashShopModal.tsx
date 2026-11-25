@@ -6,6 +6,7 @@ import pokeballImg from "@/assets/items/icon-pokeball.webp";
 import ultraballImg from "@/assets/items/icon-ultraball.webp";
 import reviveImg from "@/assets/items/icon-revive.webp";
 import potionImg from "@/assets/items/icon-potion.webp";
+import comboFoodImg from "@/assets/comida/cake_strawberry.png";
 import slimeBallImg from "@/assets/items/icon-slime.webp";
 import bookAtkImg from "@/assets/icons/book-atk.webp";
 import bookExpImg from "@/assets/icons/book-exp.webp";
@@ -70,10 +71,19 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     tag: "CURA",
   },
   {
+    id: "combo_revo",
+    name: "Combo Revo",
+    description: "Alimenta o Pokémon líder (+60 fome, +15 lealdade) e o treinador (+50 fome, +40 energia).",
+    price: 20,
+    image: comboFoodImg,
+    accent: "#f5b85b",
+    tag: "COMIDA",
+  },
+  {
     id: "slimeball",
     name: "Pokébola Slime",
-    description: "A única bola que captura Slimes. Cada uma custa 100 Cristais Vermelhos.",
-    price: 100,
+    description: "A única bola que captura Slimes. Cada uma custa 50 Cristais Vermelhos.",
+    price: 50,
     image: slimeBallImg,
     accent: "#38bdf8",
     tag: "ESPECIAL",
