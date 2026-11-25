@@ -403,6 +403,8 @@ import charGokuPng from "@/CHAR/Skin goku.png";
 import perfilGokuPng from "@/CHAR/goku-profile.png";
 import charVegetaPng from "@/CHAR/Skin Vegeta.png";
 import perfilVegetaPng from "@/CHAR/vegeta-profile.png";
+import charOnePng from "@/ambiente/ANCESTRAIS/one.png";
+import perfilOnePng from "@/assets/skins/one-portrait.png";
 
 const SKINS: { id: string; label: string; url: string; photo: string; gender: "male" | "female"; locked?: boolean; codeOnly?: boolean }[] = [
   { id: "char01", label: "Char 01", url: char01Png, photo: perfilChar01Png, gender: "male" },
@@ -412,6 +414,7 @@ const SKINS: { id: string; label: string; url: string; photo: string; gender: "m
   { id: "charash", label: "Char Ash", url: charAshPng, photo: perfilCharAshPng, gender: "male", locked: true },
   { id: "goku", label: "Goku", url: charGokuPng, photo: perfilGokuPng, gender: "male", locked: true, codeOnly: true },
   { id: "vegeta", label: "Vegeta", url: charVegetaPng, photo: perfilVegetaPng, gender: "male", locked: true, codeOnly: true },
+  { id: "one", label: "One", url: charOnePng, photo: perfilOnePng, gender: "male", locked: true, codeOnly: true },
 ];
 const skinPhotoOf = (id: string | null | undefined): string | null =>
   SKINS.find((s) => s.id === id)?.photo ?? null;
@@ -8538,6 +8541,7 @@ const confirmName = () => {
   const blackAwakeningCodeBusyRef = useRef(false);
   const gokuSkinCodeBusyRef = useRef(false);
   const vegetaSkinCodeBusyRef = useRef(false);
+  const oneSkinCodeBusyRef = useRef(false);
   const globalRewardVoucherBusyRef = useRef(false);
   const nevenatalinosCodeBusyRef = useRef(false);
   type NevenatalinosResponse = {
@@ -8929,10 +8933,11 @@ const confirmName = () => {
       return;
     }
 
-    if (raw.startsWith("GOKU") || raw.startsWith("VEGETA")) {
-      const skin = raw.startsWith("VEGETA") ? "vegeta" : "goku";
-      const skinName = skin === "vegeta" ? "Vegeta" : "Goku";
-      const busyRef = skin === "vegeta" ? vegetaSkinCodeBusyRef : gokuSkinCodeBusyRef;
+    if (raw.startsWith("GOKU") || raw.startsWith("VEGETA") || raw.startsWith("ONP222")) {
+      const skin = raw.startsWith("VEGETA") ? "vegeta" : raw.startsWith("ONP222") ? "one" : "goku";
+      const skinName = skin === "vegeta" ? "Vegeta" : skin === "one" ? "One" : "Goku";
+      const redeemRpc = skin === "vegeta" ? "redeem_vegeta_voucher" : skin === "one" ? "redeem_one_voucher" : "redeem_goku_voucher";
+      const busyRef = skin === "vegeta" ? vegetaSkinCodeBusyRef : skin === "one" ? oneSkinCodeBusyRef : gokuSkinCodeBusyRef;
       if (busyRef.current) return;
       if (!cloudBlobReady) {
         setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
@@ -8980,7 +8985,7 @@ const confirmName = () => {
           };
           const callRedeem = async (expected: number): Promise<{ ok: boolean; server_version?: number; reason?: string; saved_at?: number }> => {
             const { data, error } = await (supabase as any).rpc(
-              skin === "vegeta" ? "redeem_vegeta_voucher" : "redeem_goku_voucher",
+              redeemRpc,
               { p_code: raw, p_expected_version: expected },
             );
             if (error) {
@@ -9016,7 +9021,7 @@ const confirmName = () => {
               buildFullBlob(),
               async (expectedVersion) => {
                 const { data, error } = await (supabase as any).rpc(
-                  skin === "vegeta" ? "redeem_vegeta_voucher" : "redeem_goku_voucher",
+                  redeemRpc,
                   { p_code: raw, p_expected_version: expectedVersion },
                 );
                 if (error) throw error;
