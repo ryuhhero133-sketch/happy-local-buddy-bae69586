@@ -43,6 +43,7 @@ import { JOURNEY_VERSION } from "@/game/journey";
 import { loadMapEditorCloud, loadPublishedMapEditor, readCachedPublishedMapEditor, saveMapEditorCloud } from "@/lib/mapEditorCloud";
 import { claimWelcomePotions } from "@/lib/welcomePack";
 import { publicMapName } from "@/game/mapLabels";
+import { CAPTURE_QUESTS, applyCaptureQuest, type CaptureQuestProgress } from "@/game/captureQuests";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
 import { buildGrassPatches, createGrassHuntState, GRASS_ARRIVAL_RADIUS, GRASS_SPOT_RADIUS, grassHuntEnemies, grassTileCenter, isInGrassPatch, isOnGrassTile, nearestGrassPatch, tickGrassHunt } from "@/game/grassHunt";
@@ -2433,6 +2434,8 @@ type IdleState = {
   saga?: SagaProgress;
   // ===== Pedidos secundários dos NPCs (estrelas + missões) =====
   sideQuests?: SideQuestProgress;
+  // ===== 20 missões individuais de captura =====
+  captureQuests?: CaptureQuestProgress;
   // ===== PERFIL DE TREINADOR — espiritualidade (só eventos registrados) =====
   /** Pontuação -100..+100 (LUZ ≥ +20 · SOMBRAS ≤ -20). Regra: src/game/trainerProfile.ts */
   spiritScore?: number;
@@ -2746,6 +2749,7 @@ export function freshIdle(): IdleState {
     // Saga "As Memórias Apagadas" começa zerada.
     saga: freshSaga(),
     sideQuests: freshSideQuests(),
+    captureQuests: { completed: [], milestones: [] },
     welcomeBonusUntil: 0, // timestamp até quando o bônus de boas-vindas (+100% ATK/DEF) está ativo
     mountSkinBought: false,
     mountUntil: 0,
@@ -3472,6 +3476,7 @@ function IdlePage() {
               && !(merged.currentMap === "emerald" && merged.journey?.version === JOURNEY_VERSION && merged.journey.completed)) merged.currentMap = "mapinha6";
             if (!merged.saga) merged.saga = freshSaga();
             if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
+    if (!merged.captureQuests) merged.captureQuests = { completed: [], milestones: [] };
             const uskins = Array.isArray(merged.unlockedSkins) ? merged.unlockedSkins.slice() : [];
             if (!uskins.includes("default")) uskins.unshift("default");
             merged.unlockedSkins = uskins;
@@ -6140,6 +6145,26 @@ const confirmName = () => {
       const next = [...prev, { id: chatIdRef.current++, text, kind }];
       return next.slice(-40);
     });
+  };
+  // Progresso das 20 missões de captura + prêmios automáticos a cada 5.
+  const applyCaptureQuestProgress = (state: IdleState, species: string): IdleState => {
+    const update = applyCaptureQuest(state.captureQuests, species);
+    if (!update.completedNow.length && !update.rewards.length) return state;
+    const items = { ...state.items };
+    for (const reward of update.rewards) {
+      for (const [id, qty] of Object.entries(reward.items)) {
+        items[id] = (items[id] ?? 0) + qty;
+      }
+    }
+    if (update.completedNow.length > 0) {
+      const names = update.completedNow.map((quest) => quest.title).join(" · ");
+      queueMicrotask(() => pushChat(`🏅 Missão concluída: ${names}`, "cap"));
+    }
+    if (update.rewards.length > 0) {
+      const labels = update.rewards.map((reward) => reward.label).join(" · ");
+      queueMicrotask(() => pushChat(`🎁 Missões 20: prêmio ${labels} recebido na mochila!`, "chest"));
+    }
+    return { ...state, items, captureQuests: update.progress };
   };
   // Pacote único de 200 Poções. O servidor controla a concessão; se o save
   // ainda não existir (conta nova), tenta de novo por alguns segundos.
@@ -13656,7 +13681,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
                 try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "🌿 Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
               });
             }
-            return {
+            const capturedState: IdleState = {
               ...applied.state,
               pending: { ...s.pending, gold: s.pending.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + partyGiantGoldBonus, crystals: s.pending.crystals + ancestralCrystal },
               totals: { gold: s.totals.gold + Math.floor(gold * (1 + getTrainerStats().goldBonus)) + partyGiantGoldBonus, captured: s.totals.captured + capturedInc, kills: newKills },
@@ -13672,6 +13697,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               // 🎯 Tentativa de captura consumiu 1 arremesso (sucesso ou falha).
               ...(spentThrow ? { throwsLeft: Math.max(0, (s.throwsLeft ?? MAX_THROW_COUNT) - 1) } : {}),
             };
+            return captured ? applyCaptureQuestProgress(capturedState, target.sp) : capturedState;
           });
         }
         const survivors = next.filter((e) => e.hp > 0);
@@ -14517,7 +14543,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           : task);
         if (prev.length >= MAX_COLLECTION) {
           queueMicrotask(() => pushChat(`�a� Coleção cheia (${MAX_COLLECTION}). Venda ou fragmente para liberar espaço.`, "info"));
-          return { ...s, tasks: captureTasks, totals: { ...s.totals, captured: s.totals.captured + 1 } };
+          return applyCaptureQuestProgress(
+            { ...s, tasks: captureTasks, totals: { ...s.totals, captured: s.totals.captured + 1 } },
+            target.sp,
+          );
         }
         const isOddishEvent = s.currentMap === "arena" || s.currentMap === "arena" || s.currentMap === "arena";
         const isGrassOddish = s.currentMap === "arena";
@@ -14528,14 +14557,14 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             try { window.dispatchEvent(new CustomEvent("rubym:toast", { detail: { title: "�xR� Grass Oddish", body: `+1 Oddish Capturado\nTotal: ${total}`, tone: "success" } })); } catch {}
           });
         }
-        return {
+        return applyCaptureQuestProgress({
           ...s,
           tasks: captureTasks,
           totals: { ...s.totals, captured: s.totals.captured + 1 },
           grassOddishCaptured: (s.grassOddishCaptured ?? 0) + (isGrassOddish ? 1 : 0),
           caughtSpecies: s.caughtSpecies.includes(target.sp) ? s.caughtSpecies : [...s.caughtSpecies, target.sp],
           collection: [...prev, { uid: np.uid, species: np.species, level: finalLevel, rarity: np.rarity, capturedAt: Date.now(), traits: rolled, ...(isOddishEvent ? { event: "oddish_odyssey" } : {}), ...(isGrassOddish ? { event: "arena" } : {}), ...(safariTarget ? { event: safariEvent(target.sp) } : {}) }],
-        };
+        }, target.sp);
       });
     } else {
       // FASE 3: 10ª tentativa falhou �  o Pokémon foge e o encontro termina.
@@ -18862,6 +18891,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         }}
         activeTab={tab} vip={isVip()} questReset={fmtMS(QUEST_WINDOW_MS - (now % QUEST_WINDOW_MS))}
         quests={QUEST_DEFS.map((quest) => ({ ...quest, progress: questProgress[quest.id] ?? 0, claimed: !!questClaimed[quest.id] }))}
+        captureQuests={CAPTURE_QUESTS.map((quest) => ({
+          ...quest,
+          done: (idle.captureQuests?.completed ?? []).includes(quest.id),
+        }))}
+        captureQuestMilestones={idle.captureQuests?.milestones ?? []}
         messages={chat}
         team={team.map((pet, index) => ({
           uid: pet.uid, name: pet.species.replace(/_/g, " "), image: GIF[pet.species],

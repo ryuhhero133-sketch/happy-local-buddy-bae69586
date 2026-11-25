@@ -2,6 +2,7 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { Bell, ChevronDown, ChevronUp, Coins, Compass, Crosshair, Home, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Zap } from "lucide-react";
 import { ChatHud, type HudMessage } from "./ChatHud";
 import { QuestTracker, type HudQuest } from "./QuestTracker";
+import { CaptureQuestHud, type CaptureQuestView } from "./CaptureQuestHud";
 import { TeamHud, type HudTeamMember } from "./TeamHud";
 import { TargetHud, type HudTarget } from "./TargetHud";
 import { getHudScale, type HudMapBounds } from "./hudLayout";
@@ -17,7 +18,7 @@ type Point = { x: number; y: number };
 export type GameHudProps = {
   name: string; level: number; avatar: string; hp: number; maxHp: number; energy: number; hunger: number;
   stars?: number;
-  /** HUD V2 (beta) — liberada só para contas de teste. */
+  /** HUD V2 — liberada para todas as contas. */
   newHud?: boolean;
   trainerHp?: number;
   ballCount: number; throws: number; maxThrows: number; gold: number; crystals: number; rubies: number; pepitas?: number;
@@ -53,6 +54,8 @@ export type GameHudProps = {
   onJoystickMove: (x: number, y: number) => void;
   mapBounds: HudMapBounds; viewportWidth: number; target: HudTarget | null;
   guideAccountId?: string;
+  captureQuests?: CaptureQuestView[];
+  captureQuestMilestones?: number[];
 };
 
 function IconButton({ label, children, onClick, active = false, badge = false, className = "", guideTarget }: {
@@ -200,6 +203,7 @@ export function GameHud(hud: GameHudProps) {
         {hud.newHud
           ? <QuestOrb hud={hud} />
           : <QuestTracker quests={hud.quests} region={hud.region} resetIn={hud.questReset} vip={hud.vip} onClaim={hud.onClaimQuest} onOpen={hud.onQuests} />}
+        <CaptureQuestHud quests={hud.captureQuests ?? []} milestones={hud.captureQuestMilestones ?? []} />
       </div>
       <ChatHud messages={hud.messages} pvpActive={hud.pvpActive} pvpWindowLabel={hud.pvpWindowLabel} />
       <TouchJoystick onMove={hud.onJoystickMove} />
