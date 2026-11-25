@@ -137,6 +137,13 @@ test("Combo Revo alimenta Pokémon e treinador e usa a mesma mochila", () => {
   assert.ok(idle.includes('"combo_revo",'));
 });
 
+test("Coleção usa a spritesheet da zona quando falta GIF", () => {
+  assert.ok(idle.includes("const sheet = gif"));
+  assert.ok(idle.includes("SPRITE_SHEET[species] ?? zoneSheet(species)"));
+  assert.ok(idle.includes("image: gif ?? sheet"));
+  assert.ok(idle.includes("sheet,"));
+});
+
 test("HUD sem calendário, relógio ou atalho de evento", () => {
   assert.ok(!hud.includes('label="Eventos"'));
   assert.ok(!hud.includes('className="revo-clock'));

@@ -31765,9 +31765,15 @@ function TabOverlay({
     const makeRecord = (species: Species, entry?: CollectionEntry): PokemonRecord => {
       const dex = getDex(species);
       const teamPet = entry ? team.find(pet => pet.uid === entry.uid) : undefined;
+      const gif = gifMap[species];
+      // Muitas espécies (Alakazam, Doduo, Nidoran M, Haunter...) só têm a
+      // spritesheet 4x4 da zona. Sem este fallback o cartão cai no placeholder.
+      const sheet = gif
+        ? (SPRITE_SHEET[species] === gif ? gif : undefined)
+        : (SPRITE_SHEET[species] ?? zoneSheet(species));
       return {
-        key: isDex ? `dex:${species}` : entry!.uid, species, name: pokemonName(species), number: pokemonNumber(species), image: gifMap[species],
-        sheet: SPRITE_SHEET[species] === gifMap[species] ? gifMap[species] : undefined,
+        key: isDex ? `dex:${species}` : entry!.uid, species, name: pokemonName(species), number: pokemonNumber(species), image: gif ?? sheet,
+        sheet,
         rarity: entry?.rarity ?? SPECIES_BASE[species]?.rarity ?? "common", level: entry ? teamPet?.level ?? entry.level : undefined,
         capturedAt: entry?.capturedAt, event: entry?.event, types: dex.types.map(type => ({ name: type, color: TYPE_COLOR[type], icon: TYPE_ICON[type] })),
         caught: caught.has(species), seen: seen.has(species), inTeam: !!teamPet, locked: !!entry && lockedSet.has(entry.uid),
