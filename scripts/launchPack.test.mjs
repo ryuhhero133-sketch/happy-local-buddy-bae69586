@@ -58,6 +58,16 @@ test("Pokébola Slime e confirmação na Loja Cash", () => {
   assert.ok(idle.includes("Slime só pode ser capturado com Pokébola Slime"));
 });
 
+test("aparição de Slime reduzida nos mapas BOBO", () => {
+  assert.ok(idle.includes("const BOBO_SLIME_MAX_ALIVE = 2"));
+  assert.ok(idle.includes("const BOBO_SLIME_INITIAL_ALIVE = 1"));
+  assert.ok(idle.includes("BOBO_SLIME_SPAWN_INTERVAL_MS = 30_000"));
+  assert.ok(idle.includes("spawn(true)"));
+  assert.ok(idle.includes("setInterval(() => spawn(), BOBO_SLIME_SPAWN_INTERVAL_MS)"));
+  assert.ok(!idle.includes("spawnBoboSlimes(4 - alive)"));
+  assert.ok(!idle.includes("setInterval(spawn, 12000)"));
+});
+
 test("cada 3 missões gera ticket da Nevezinha", () => {
   assert.ok(captureQuests.includes("ticketGroups"));
   assert.ok(read("../src/lib/nevezinhaTickets.ts").includes("nevezinha_grant_tickets"));

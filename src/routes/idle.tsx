@@ -16606,7 +16606,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
   // Slime: mob comum EXCLUSIVO dos mapas BOBO. Não usa o spawner normal
   // (que escolhe espécies de Pokémon) — só este cria inimigos nesses mapas.
-  function spawnBoboSlimes(count = 4): Enemy[] {
+  // Aparição reduzida: no máximo 2 vivos, entrada inicial de 1 e reposição lenta.
+  const BOBO_SLIME_MAX_ALIVE = 2;
+  const BOBO_SLIME_INITIAL_ALIVE = 1;
+  const BOBO_SLIME_SPAWN_INTERVAL_MS = 30_000;
+  function spawnBoboSlimes(count = BOBO_SLIME_MAX_ALIVE): Enemy[] {
     const nowTs = Date.now();
     if (nowTs - lastSpawnAtRef.current < 1500) return [];
     lastSpawnAtRef.current = nowTs;
@@ -16661,20 +16665,22 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     return arr;
   }
 
-  // Slimes aparecem nos mapas BOBO. Máximo de 4 vivos; usam a grama quando existe.
+  // Slimes aparecem nos mapas BOBO. Máximo de 2 vivos; usam a grama quando existe.
   useEffect(() => {
     if (!idle.currentMap.startsWith("bobo_")) return;
-    const spawn = () => {
+    const spawn = (initial = false) => {
       setEnemies((prev) => {
         const alive = prev.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length;
-        if (alive >= 4) return prev;
-        const fresh = spawnBoboSlimes(4 - alive);
+        if (alive >= BOBO_SLIME_MAX_ALIVE) return prev;
+        const missing = BOBO_SLIME_MAX_ALIVE - alive;
+        const wanted = initial ? Math.min(BOBO_SLIME_INITIAL_ALIVE, missing) : missing;
+        const fresh = spawnBoboSlimes(wanted);
         if (fresh.length === 0) return prev;
         return [...prev.filter((enemy) => enemy.hp > 0), ...fresh];
       });
     };
-    spawn();
-    const timer = window.setInterval(spawn, 12000);
+    spawn(true);
+    const timer = window.setInterval(() => spawn(), BOBO_SLIME_SPAWN_INTERVAL_MS);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idle.currentMap, team]);
