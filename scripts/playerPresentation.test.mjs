@@ -144,6 +144,13 @@ test("Coleção usa a spritesheet da zona quando falta GIF", () => {
   assert.ok(idle.includes("sheet,"));
 });
 
+test("líder local e líder remoto usam sheet de zona em vez de sumir", () => {
+  assert.ok(idle.includes("const leaderSheet = SPRITE_SHEET[leaderSp] ?? zoneSheet(leaderSp)"));
+  assert.ok(idle.includes("const rpLeaderSheet = pvpLeaderSp ? (SPRITE_SHEET[pvpLeaderSp] ?? zoneSheet(pvpLeaderSp))"));
+  assert.ok(idle.includes("backgroundImage: `url(${leaderSheet})`"));
+  assert.ok(idle.includes("backgroundImage: `url(${rpLeaderSheet})`"));
+});
+
 test("HUD sem calendário, relógio ou atalho de evento", () => {
   assert.ok(!hud.includes('label="Eventos"'));
   assert.ok(!hud.includes('className="revo-clock'));

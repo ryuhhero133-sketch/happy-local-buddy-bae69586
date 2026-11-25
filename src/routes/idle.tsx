@@ -24038,7 +24038,9 @@ A sucata afundou com o casco.
               // O líder de PvP vem do heartbeat seguro (team[0]), não do card visual
               // que pode levar até 8s para atualizar.
               const pvpLeaderSp = remotePvp?.leader_species ?? rp.leaderSp;
-              const rpLeaderSrc = pvpLeaderSp ? GIF[pvpLeaderSp] : undefined;
+              // O líder de outro jogador também pode ter só spritesheet de zona.
+              const rpLeaderSheet = pvpLeaderSp ? (SPRITE_SHEET[pvpLeaderSp] ?? zoneSheet(pvpLeaderSp)) : undefined;
+              const rpLeaderSrc = pvpLeaderSp ? (GIF[pvpLeaderSp] ?? rpLeaderSheet) : undefined;
               const pvpSelected = pvpTargetUserId === rp.userId;
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const remotePvpEligible = !!remotePvp && remotePvp.hp > 0 && remotePvp.trainer_level >= 11;
@@ -24181,8 +24183,8 @@ A sucata afundou com o casco.
                       {pvpSelected && <span aria-hidden="true" style={{ position: "absolute", inset: -7, border: "2px dashed #ff314b", borderRadius: "50%", animation: "targetReticleSpin 1.5s linear infinite", pointerEvents: "none" }} />}
                       {remotePvp?.hp === 0 ? (
                         <span aria-label="Pokémon derrotado" style={{ position: "absolute", left: 8, top: 3, fontSize: 31, lineHeight: 1, filter: "drop-shadow(0 2px 2px #000)" }}>💀</span>
-                      ) : pvpLeaderSp && SPRITE_SHEET[pvpLeaderSp] ? (
-                        <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${SPRITE_SHEET[pvpLeaderSp]})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
+                      ) : rpLeaderSheet ? (
+                        <span style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, backgroundImage: `url(${rpLeaderSheet})`, backgroundSize: "400% 400%", backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`, imageRendering: "pixelated" }} />
                       ) : (
                         <img src={rpLeaderSrc} alt={`Pokémon líder de ${rp.name}`} style={{ position: "absolute", left: 5, top: 5, width: 36, height: 36, imageRendering: "pixelated" }} />
                       )}
@@ -24305,7 +24307,10 @@ A sucata afundou com o casco.
               const leader = team[0];
               if (!leader) return null;
               const leaderSp = leader.species;
-              const leaderSrc = GIF[leaderSp];
+              // Muitas espécies só têm a spritesheet 4x4 da zona. Sem este
+              // fallback o líder que segue o treinador ficava invisível.
+              const leaderSheet = SPRITE_SHEET[leaderSp] ?? zoneSheet(leaderSp);
+              const leaderSrc = GIF[leaderSp] ?? leaderSheet;
               if (!leaderSrc) return null;
               const leaderMax = calcIdleMaxHp(leader);
               const hpPct = Math.max(0, (leaderHp / leaderMax) * 100);
@@ -24384,11 +24389,11 @@ A sucata afundou com o casco.
                       ))}
                     </div>
                   )}
-                   {!pvpFainted && (SPRITE_SHEET[leaderSp] ? (
+                   {!pvpFainted && (leaderSheet ? (
                      <div style={{
                        position: "relative", zIndex: isAncestral ? 2 : undefined,
                        width: "100%", height: "100%",
-                      backgroundImage: `url(${SPRITE_SHEET[leaderSp]})`,
+                      backgroundImage: `url(${leaderSheet})`,
                       backgroundSize: "400% 400%",
                       backgroundPosition: `${(followerState.moving ? walkStep : 0) * 33.333}% ${DIR_ROW[followerState.dir] * 33.333}%`,
                       imageRendering: "pixelated",
