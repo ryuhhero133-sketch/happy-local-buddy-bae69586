@@ -13183,7 +13183,9 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           // O valor vem de uma ref para o tick de batalha sempre usar o estado mais recente.
           const partyRewardMult = partyRewardMultiplierRef.current;
           const xpBase = Math.floor((60 + Math.random() * 100) * boostMult * lvlMult * mapMult * sync.xpMult * enemyRarityMult * 0.15 * overLvlPenalty * riderMult * mythEventXpMult * grassOddishXpMult * oddishEventXpMult * darkBonusXpMult);
-          const xp = Math.max(1, Math.floor(xpBase * partyRewardMult * (ancestralBonus ? ANCESTRAL_PET_XP_MULT : 1)));
+          // Boneco lendário da Nevezinha: +5% de XP enquanto estiver na mochila.
+          const nevezinhaDollXpMult = (idle.items?.nevezinha_doll ?? 0) > 0 ? 1.05 : 1;
+          const xp = Math.max(1, Math.floor(xpBase * partyRewardMult * (ancestralBonus ? ANCESTRAL_PET_XP_MULT : 1) * nevezinhaDollXpMult));
           const ancestralCrystal = ancestralBonus && Math.random() < ANCESTRAL_CRYSTAL_DROP_CHANCE ? 1 : 0;
           // Ouro NERFADO — teto ~40k/2h. Mapas altos dão +15% só.
           const mapGoldMult: Record<string, number> = {
@@ -13241,6 +13243,7 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
           if (partyRewardMult > 1) bonusParts.push(`PARTY ×${partyRewardMult.toFixed(1)}`);
           if (rarityBonus > 0) bonusParts.push(`Líder ${leaderRarity}+${Math.round(rarityBonus * 100)}%`);
           if (synergyBonus > 0) bonusParts.push(`Sinergia ${synergyRarity}+${Math.round(synergyBonus * 100)}%`);
+          if (nevezinhaDollXpMult > 1) bonusParts.push("Nevezinha +5% XP");
           const suffix = bonusParts.length ? ` (${bonusParts.join(" · ")})` : "";
           // Acumula ganhos e deixa o timer (30s) anunciar o resumo no chat.
           xpAccumRef.current.xp += xp;
@@ -13721,7 +13724,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
             const totalTrainerXp = Math.max(1, Math.round(
               (killTrainerXp + captureTrainerXp)
               * partyRewardMult
-              * (ancestralBonus ? ANCESTRAL_TRAINER_XP_MULT : 1),
+              * (ancestralBonus ? ANCESTRAL_TRAINER_XP_MULT : 1)
+              * nevezinhaDollXpMult,
             ));
             const applied = applyTrainerXp(s, totalTrainerXp);
             if (applied.leveledTo != null) {
@@ -31885,7 +31889,7 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯 · +10% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
-          nevezinha_doll: "Boneco da Nevezinha ⛄ · lembrança rara do Festival de Inverno. Fica na mochila como coleção do evento.",
+          nevezinha_doll: "Boneco da Nevezinha ⛄ · LENDÁRIO do Festival de Inverno. Enquanto estiver na mochila, dá +5% de XP ao time e ao treinador.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
           chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",

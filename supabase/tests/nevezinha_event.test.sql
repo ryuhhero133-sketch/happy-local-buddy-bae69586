@@ -14,6 +14,7 @@ declare
   spin_again jsonb;
   key text;
   qty integer;
+  applied integer;
 begin
   select data, save_version into original_data, original_version from public.game_saves where user_id = uid;
   if original_data is null then raise exception 'Conta de teste sem save'; end if;
@@ -26,28 +27,55 @@ begin
     perform set_config('request.jwt.claim.sub', uid::text, true);
     delete from public.nevezinha_event_state where user_id = uid;
     state := public.nevezinha_event_status();
-    if (state->>'tickets')::int <> 1 then raise exception 'Ticket diário não foi concedido'; end if;
+    if (state->>'tickets')::int <> 3 then raise exception 'Ticket diário não concedeu 3 tiros'; end if;
     item_before := original_data #> '{idle,items}';
 
     spin := public.nevezinha_event_spin();
-    if not (spin->>'ok')::boolean then raise exception 'Giro falhou: %', spin; end if;
-    if (spin->>'tickets')::int <> 0 then raise exception 'Ticket não foi consumido'; end if;
-    if spin #> '{reward,items}' is null then raise exception 'Giro sem prêmio'; end if;
-    if (spin->>'server_version')::bigint <> original_version + 1 then raise exception 'Versão do save não avançou'; end if;
+    if not (spin->>'ok')::boolean then raise exception 'Tiro 1 falhou: %', spin; end if;
+    if (spin->>'tickets')::int <> 2 then raise exception 'Tiro 1 não consumiu 1 de 3'; end if;
     select data, save_version into snapshot, version from public.game_saves where user_id = uid;
     snapshot_items := snapshot #> '{idle,items}';
-    if version <> original_version + 1 then raise exception 'Save não foi atualizado'; end if;
+    if version <> original_version + 1 then raise exception 'Save do tiro 1 não atualizou'; end if;
     for key, qty in select e.key, (e.value #>> '{}')::int from jsonb_each(spin #> '{reward,items}') e loop
-      if coalesce((snapshot_items->>key)::int, 0)
-        <> coalesce((item_before->>key)::int, 0) + qty then
-        raise exception 'Item % não creditado: antes %, depois %, qtd %',
-          key, item_before->>key, snapshot_items->>key, qty;
+      if coalesce((snapshot_items->>key)::int, 0) <> coalesce((item_before->>key)::int, 0) + qty then
+        raise exception 'Tiro 1 não creditou % corretamente', key;
+      end if;
+    end loop;
+    if spin #>> '{reward,kind}' = 'fail' then
+      select count(*)::int, coalesce(sum((e.value #>> '{}')::int), 0) into applied, qty
+        from jsonb_each(spin #> '{reward,items}') e;
+      if applied <> 1 or qty <> 1 or not ((spin #> '{reward,items}') ? 'pokeball') then
+        raise exception 'Falha deveria dar exatamente 1 Pokébola';
+      end if;
+    end if;
+    item_before := snapshot_items;
+
+    spin := public.nevezinha_event_spin();
+    if not (spin->>'ok')::boolean or (spin->>'tickets')::int <> 1 then raise exception 'Tiro 2 inválido'; end if;
+    select data into snapshot from public.game_saves where user_id = uid;
+    snapshot_items := snapshot #> '{idle,items}';
+    for key, qty in select e.key, (e.value #>> '{}')::int from jsonb_each(spin #> '{reward,items}') e loop
+      if coalesce((snapshot_items->>key)::int, 0) <> coalesce((item_before->>key)::int, 0) + qty then
+        raise exception 'Tiro 2 não creditou % corretamente', key;
+      end if;
+    end loop;
+    item_before := snapshot_items;
+
+    spin := public.nevezinha_event_spin();
+    if not (spin->>'ok')::boolean or (spin->>'tickets')::int <> 0 then raise exception 'Tiro 3 inválido'; end if;
+    if spin #>> '{reward,kind}' = 'fail' then raise exception 'Tiro 3 não pode falhar'; end if;
+    if spin #> '{reward,items}' is null then raise exception 'Tiro 3 sem prêmio'; end if;
+    select data into snapshot from public.game_saves where user_id = uid;
+    snapshot_items := snapshot #> '{idle,items}';
+    for key, qty in select e.key, (e.value #>> '{}')::int from jsonb_each(spin #> '{reward,items}') e loop
+      if coalesce((snapshot_items->>key)::int, 0) <> coalesce((item_before->>key)::int, 0) + qty then
+        raise exception 'Tiro 3 não creditou % corretamente', key;
       end if;
     end loop;
 
     spin_again := public.nevezinha_event_spin();
     if (spin_again->>'ok')::boolean or spin_again->>'reason' <> 'no_ticket' then
-      raise exception 'Foi possível dar dois tiros no mesmo dia';
+      raise exception 'Foi possível dar um quarto tiro';
     end if;
     state := public.nevezinha_event_status();
     if state #>> '{last_result,kind}' is distinct from spin #>> '{reward,kind}'
@@ -59,7 +87,8 @@ begin
       set last_claim_day = private.nevezinha_today() - 1, tickets = 0, last_result = null
       where user_id = uid;
     state := public.nevezinha_event_status();
-    if (state->>'tickets')::int <> 1 then raise exception 'Novo dia não liberou o ticket'; end if;
+    if (state->>'tickets')::int <> 3 then raise exception 'Novo dia não liberou 3 tiros'; end if;
+    if state->'last_result' is distinct from 'null'::jsonb then raise exception 'Novo dia não limpou o último prêmio'; end if;
 
     update public.nevezinha_event_state set tickets = 1, pity = 19 where user_id = uid;
     spin := public.nevezinha_event_spin();
@@ -67,7 +96,9 @@ begin
       raise exception 'Garantia de 20 tiros não entregou o boneco';
     end if;
     state := public.nevezinha_event_status();
-    if (state->>'pity_max')::int <> 20 then raise exception 'Pity máximo incorreto'; end if;
+    if (state->>'pity_max')::int <> 20 or (state->>'pity')::int <> 0 then
+      raise exception 'Pity não reiniciou';
+    end if;
 
     raise sqlstate 'NV001' using message = 'rollback do teste, inclusive no sucesso';
   exception when sqlstate 'NV001' then null;
@@ -78,4 +109,4 @@ begin
   end if;
 end;
 $test$;
-select 'PASS: ticket diário, prêmio atômico, F5, novo dia, pity e rollback' as result;
+select 'PASS: 3 tiros, falha com 1 item, 3º garantido, F5, novo dia, pity e rollback' as result;

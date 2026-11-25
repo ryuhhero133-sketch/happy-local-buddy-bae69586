@@ -5,6 +5,17 @@ import { adoptAuthoritativeCheckpoint } from "@/lib/saveManager";
 import nevezinha from "@/ambiente/map/bb/nevezinha.webp";
 import machine from "@/ambiente/nevezinha/machine.webp";
 import ticketIcon from "@/ambiente/nevezinha/ticket.webp";
+import iconPokeball from "@/assets/items/icon-pokeball.webp";
+import iconGreatball from "@/assets/items/icon-greatball.webp";
+import iconUltraball from "@/assets/items/icon-ultraball.webp";
+import iconBerry from "@/assets/items/icon-berry.webp";
+import cakeStrawberry from "@/assets/comida/cake_strawberry.png";
+import stoneGrass from "@/assets/chest-grass.webp";
+import stoneFire from "@/assets/chest-fire.webp";
+import stoneWater from "@/assets/chest-water.webp";
+import stoneElectric from "@/assets/chest-electric.webp";
+import stoneDark from "@/assets/chest-dark.webp";
+import stoneDragon from "@/assets/chest-dragon.webp";
 import showVideo from "@/ambiente/nevezinha/show.mp4";
 import failVideo from "@/ambiente/nevezinha/fail.mp4";
 import stoneVideo from "@/ambiente/nevezinha/stone.mp4";
@@ -57,32 +68,32 @@ const ITEM_NAMES: Record<string, string> = {
   stone_dark: "Stone Sombria",
   stone_dragon: "Stone Dragão",
 };
-const ITEM_EMOJI: Record<string, string> = {
-  nevezinha_doll: "⛄",
-  pokeball: "🔴",
-  greatball: "🔵",
-  ultraball: "⚫",
-  berry: "🫐",
-  refeicao: "🍱",
-  stone_grass: "🌿",
-  stone_fire: "🔥",
-  stone_water: "💧",
-  stone_electric: "⚡",
-  stone_dark: "🌑",
-  stone_dragon: "🐉",
+const ITEM_IMAGES: Record<string, string> = {
+  nevezinha_doll: nevezinha,
+  pokeball: iconPokeball,
+  greatball: iconGreatball,
+  ultraball: iconUltraball,
+  berry: iconBerry,
+  refeicao: cakeStrawberry,
+  stone_grass: stoneGrass,
+  stone_fire: stoneFire,
+  stone_water: stoneWater,
+  stone_electric: stoneElectric,
+  stone_dark: stoneDark,
+  stone_dragon: stoneDragon,
 };
 const PRIZES = [
-  { icon: "⛄", label: "Boneco da Nevezinha", chance: "4% · garantido no 20º" },
-  { icon: "💎", label: "Stone Elemental", chance: "16%" },
-  { icon: "⚫", label: "Ultra Ball", chance: "10%" },
-  { icon: "🔴", label: "Pokébolas", chance: "30%" },
-  { icon: "🍱", label: "Comida Pokémon", chance: "15%" },
-  { icon: "🎁", label: "Consolação", chance: "25%" },
+  { image: nevezinha, label: "Boneco da Nevezinha", chance: "5% · lendário · +5% XP" },
+  { image: stoneGrass, label: "Stone Elemental", chance: "25%" },
+  { image: iconUltraball, label: "Ultra Ball", chance: "15%" },
+  { image: iconPokeball, label: "Pokébolas", chance: "30%" },
+  { image: iconBerry, label: "Comida Pokémon", chance: "25%" },
+  { image: iconPokeball, label: "Falha nos tiros 1–2", chance: "70% · 1 Pokébola" },
 ];
 const itemList = (items: Record<string, number>) =>
   Object.entries(items).map(([id, qty]) => `+${qty} ${ITEM_NAMES[id] ?? id}`).join(" · ");
 const itemSummary = (items: Record<string, number>) =>
-  Object.entries(items).map(([id, qty]) => `${ITEM_EMOJI[id] ?? "✦"} ${ITEM_NAMES[id] ?? id} ×${qty}`).join(" · ");
+  Object.entries(items).map(([id, qty]) => `${ITEM_NAMES[id] ?? id} ×${qty}`).join(" · ");
 
 function nextTicketLabel(iso: string | undefined, now: number) {
   const stamp = iso ? Date.parse(iso) : NaN;
@@ -107,6 +118,7 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
   const [lastResult, setLastResult] = useState<Reward | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [videoDone, setVideoDone] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [playBlocked, setPlayBlocked] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -162,12 +174,14 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
   };
   const finishVideo = () => {
     videoRef.current?.pause();
+    setVideoLoading(false);
     setVideoDone(true);
   };
   const closeResult = () => {
     videoRef.current?.pause();
     setVideoOpen(false);
     setVideoDone(false);
+    setVideoLoading(false);
     setResult(null);
     setVideoError(false);
     setPlayBlocked(false);
@@ -179,6 +193,7 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
     setNotice("");
     setResult(null);
     setVideoDone(false);
+    setVideoLoading(true);
     setVideoError(false);
     setPlayBlocked(false);
     try {
@@ -197,7 +212,9 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
         return;
       }
       setStatus((current) => current ? {
-        ...current, tickets: 0, pity: response.pity ?? current.pity,
+        ...current,
+        tickets: response.tickets ?? Math.max(0, (current.tickets ?? 1) - 1),
+        pity: response.pity ?? current.pity,
         next_ticket_at: response.next_ticket_at ?? current.next_ticket_at,
         last_result: response.reward,
       } : current);
@@ -234,7 +251,7 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
             <div className="neve-card-title">MASCOTE DO EVENTO</div>
             <img src={nevezinha} alt="Nevezinha" draggable={false} />
             <strong>Nevezinha</strong>
-            <p>Um boneco raro do festival. Não é garantido em todo tiro.</p>
+            <p>Boneco lendário do festival: +5% de XP enquanto estiver na mochila. Não é garantido em todo tiro.</p>
             <div className="neve-pity-label"><span>Sorte do boneco</span><b>{status?.pity ?? 0}/{status?.pity_max ?? 20}</b></div>
             <div className="neve-bar"><i style={{ width: `${Math.min(100, ((status?.pity ?? 0) / Math.max(1, status?.pity_max ?? 20)) * 100)}%` }} /></div>
           </aside>
@@ -246,14 +263,14 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
             <div className="neve-ticket">
               <img src={ticketIcon} alt="" width={40} height={40} />
               <strong>{status?.tickets ?? 0}</strong>
-              <span>ticket{(status?.tickets ?? 0) === 1 ? "" : "s"} hoje</span>
+              <span>tiro{(status?.tickets ?? 0) === 1 ? "" : "s"} hoje</span>
             </div>
             <button type="button" className="neve-spin" onClick={() => { void handleSpin(); }}
               disabled={loading || spinning || !status || status.tickets < 1 || !userId}>
               {spinning ? "Preparando o tiro..." : loading ? "Carregando..." : status && status.tickets > 0 ? "DAR O TIRO" : "VOLTE AMANHÃ"}
-              <span>{status && status.tickets > 0 ? "1 ticket · 1 tiro por dia" : loading ? "" : `próximo ticket em ${nextTicketLabel(status?.next_ticket_at, now)}`}</span>
+              <span>{status && status.tickets > 0 ? `3 tiros por dia · restam ${status.tickets}` : loading ? "" : `próximo ticket em ${nextTicketLabel(status?.next_ticket_at, now)}`}</span>
             </button>
-            <p className="neve-hint">O prêmio é definido no servidor antes do vídeo. Se der F5, ele continua na sua mochila e não rerrola.</p>
+            <p className="neve-hint">Tiros 1 e 2 podem falhar; o 3º sempre dá um prêmio. Falha entrega só 1 Pokébola. O prêmio é salvo no servidor antes do vídeo; F5 não perde nem rerrola.</p>
             {error && <p className="neve-error" role="alert">{error}</p>}
             {notice && <p className="neve-notice">{notice}</p>}
             {lastResult && !result && (
@@ -272,14 +289,14 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
             <div className="neve-card-title">PRÊMIOS DO TIRO</div>
             <ul>
               {PRIZES.map((prize) => <li key={prize.label}>
-                <span className="neve-prize-icon">{prize.icon}</span>
+                <span className="neve-prize-icon"><img src={prize.image} alt="" draggable={false} /></span>
                 <span><strong>{prize.label}</strong><small>{prize.chance}</small></span>
               </li>)}
             </ul>
-            <p>1 ticket por dia. O contador volta à meia-noite (horário de São Paulo).</p>
+            <p>3 tiros por dia. O contador volta à meia-noite (horário de São Paulo).</p>
           </aside>
         </div>
-        <footer className="neve-foot">Evento de inverno · recompensas creditadas no save da conta</footer>
+        <footer className="neve-foot">3 tiros por dia · recompensas creditadas no save da conta</footer>
       </section>
 
       {result && videoOpen && (
@@ -295,9 +312,13 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
                   autoPlay
                   playsInline
                   preload="auto"
+                  onLoadedData={() => setVideoLoading(false)}
+                  onCanPlay={() => setVideoLoading(false)}
+                  onPlaying={() => setVideoLoading(false)}
                   onEnded={finishVideo}
-                  onError={() => { setVideoError(true); finishVideo(); }}
+                  onError={() => { setVideoError(true); setVideoLoading(false); finishVideo(); }}
                 />
+                {videoLoading && <div className="neve-video-loading">Carregando vídeo...</div>}
                 <div className="neve-video-controls">
                   <button type="button" onClick={finishVideo}>Pular vídeo</button>
                   <button type="button" onClick={() => setMuted((value) => !value)}>{muted ? "Ativar som" : "Silenciar"}</button>
@@ -306,13 +327,19 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
               </>
             ) : (
               <div className="neve-result">
-                <span className="neve-result-kicker">{videoError ? "Vídeo indisponível · prêmio salvo" : "VOCÊ GANHOU"}</span>
+                <span className="neve-result-kicker">{videoError ? "Vídeo indisponível · prêmio salvo" : result.kind === "fail" ? "NÃO FOI DESSA VEZ" : "VOCÊ GANHOU"}</span>
                 <div className={`neve-result-prize is-${result.rarity}`}>
-                  {result.kind === "doll" ? <img src={nevezinha} alt="" draggable={false} /> : <span>{ITEM_EMOJI[Object.keys(result.items)[0] ?? ""] ?? "🎁"}</span>}
-                  <div>
-                    <strong>{result.label}</strong>
-                    <p>{itemSummary(result.items)}</p>
+                  <div className="neve-result-icons">
+                    {Object.entries(result.items).map(([id, qty]) => (
+                      <span key={id} className="neve-result-item">
+                        <img src={ITEM_IMAGES[id] ?? nevezinha} alt="" draggable={false} />
+                        <b>×{qty}</b>
+                        <small>{ITEM_NAMES[id] ?? id}</small>
+                      </span>
+                    ))}
                   </div>
+                  <strong>{result.label}</strong>
+                  <p>{itemSummary(result.items)}</p>
                 </div>
                 <p className="neve-result-note">Prêmio já creditado na sua mochila. Você pode fechar sem perder nada.</p>
                 <button type="button" className="neve-result-ok" onClick={closeResult}>OBA!</button>
