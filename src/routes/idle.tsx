@@ -31603,7 +31603,7 @@ function TabOverlay({
           incenso_mel: "Incenso de Mel 🍯 · +10% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro: "Incenso Raro ✨🍯 · +20% drop/xp/def/velocidade por 1 hora.",
           incenso_mel_raro_24h: "Incenso Raro 24h ✨🍯 · +20% drop/xp/def/velocidade por 24 horas contínuas.",
-          nevezinha_doll: "Boneco da Nevezinha ⛄ · LENDÁRIO do Festival de Inverno. Enquanto estiver na mochila, dá +5% de XP ao time e ao treinador.",
+          nevezinha_doll: "Boneco da Nevezinha ⛄ · LENDÁRIO do Festival de Inverno. Dá +5% de XP ao time e ao treinador. Use na mochila para ele seguir você.",
           premium_box: "Caixa Premium ✦ Evento · abre para receber 50 Poções, 50 Pokébolas e 1 Ticket de Skin.",
           bau_esmeralda: "Baú de Esmeralda 💠 · loot aleatório de alto valor (balls, orbs, stones, cristais).",
           chave_ruby: "Chave Ruby 🔴 · usada para conversão na Escala Ruby (loja exclusiva). Recompensa do Top 50 do Ranked Global — coletada uma única vez por conta. Top 1: 15 · Top 2: 13 · Top 3: 11 · Top 4: 7 · Top 5–50: 3.",
@@ -31704,6 +31704,12 @@ function TabOverlay({
           return `${slotName[e.slot]} · ${s.join(" · ") || "Sem bônus"}`;
         };
         const useSelItem = (id: string, n: number) => {
+          if (id === "nevezinha_doll") {
+            const next = !snowmanFollow;
+            toggleSnowmanFollow();
+            pushChat(next ? "❄ Nevezinha agora está seguindo você!" : "❄ Nevezinha parou de seguir você.", "cap");
+            return;
+          }
           const bulk = id === "book_atk" || id === "book_def" || id === "potion";
           if (bulk && n > 1) {
             const raw = window.prompt(`Usar quantos ${NAMES[id] ?? id}? (1–${n})`, String(n));
@@ -31717,7 +31723,7 @@ function TabOverlay({
 
         // Only IDs with actual useItem effects; upgrade books/ancestral eggs belong to other systems.
         const directUse = new Set([
-           "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet",
+           "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet", "nevezinha_doll",
            "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
            "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga",
@@ -31739,7 +31745,7 @@ function TabOverlay({
              key: id, id, quantity, name: NAMES[id] ?? id, description: id === "rare_candy" ? "Use 2 Rare Candy para restaurar 100 de energia do baú (máximo de 200)." : food ? `Restaura +${food.hunger} fome e +${food.energy} energia do treinador.` : `${ITEM_DESC[id] ?? "Item do universo Poke Emerald Saga."}${usable ? "" : ` ${hint}`}`,
             image: PROFILE_SPRITES.books[id as keyof typeof PROFILE_SPRITES.books] ?? ITEM_IMG[id] ?? (DROP_IMG_BY_MAT as Record<string, string>)[id],
             color: EGG_COLORS[id] ?? ITEM_COLORS[id], rarity: inventoryRarity(id), category, source: "bag", usable,
-            bulk: ["potion", "book_atk", "book_def"].includes(id), actionLabel: usable ? category === "eggs" ? "Chocar" : "Usar" : category === "balls" ? "Uso em combate" : "Uso no sistema",
+            bulk: ["potion", "book_atk", "book_def"].includes(id), actionLabel: usable ? category === "eggs" ? "Chocar" : id === "nevezinha_doll" ? (snowmanFollow ? "Parar de seguir" : "Seguir") : "Usar" : category === "balls" ? "Uso em combate" : "Uso no sistema",
             actionHint: usable ? undefined : hint, sellPrice: marketSellPrices[id] ?? 0, stoneSale: isStoneId(id),
             upgrade: rule ? { label: `Forjar ${rule.label}`, enabled: quantity >= rule.cost && (idle.trainerLevel ?? 1) >= rule.level, hint: `Requer ${rule.cost}× e Treinador Nv. ${rule.level}` } : undefined,
           };
@@ -31761,6 +31767,12 @@ function TabOverlay({
           onUse={(item, quantity) => {
             if (item.source === "equipment") { const eq = eqInfo(item.id); if (eq) { if (equippedItems[eq.slot] === item.id) onEquipItem(eq.slot, null); else setEquipmentSlotPicker(eq.slot); } return; }
              if (item.source !== "bag") return;
+            if (item.id === "nevezinha_doll") {
+              const next = !snowmanFollow;
+              toggleSnowmanFollow();
+              pushChat(next ? "❄ Nevezinha agora está seguindo você!" : "❄ Nevezinha parou de seguir você.", "cap");
+              return;
+            }
             if (import.meta.env.DEV && (item.id === "egg_pinsir" || item.id === "egg_venusaur_shiny")) {
               const stones = ["stone_grass", "stone_fire", "stone_water", "stone_electric", "stone_dark", "stone_dragon"];
               const stoneCost = 100;
@@ -32185,7 +32197,7 @@ function TabOverlay({
                         <button
                           onClick={() => useSelItem(id, n)}
                           style={{ ...btnBase, background: "linear-gradient(180deg, #7dd87d, #3a9a4a)", color: "#0b2010", border: "2px solid #1e5a2a", boxShadow: "0 2px 0 #1e5a2a" }}
-                        >{isEgg ? "CHOCAR" : "USAR"}</button>
+                        >{isEgg ? "CHOCAR" : id === "nevezinha_doll" ? (snowmanFollow ? "PARAR" : "SEGUIR") : "USAR"}</button>
                         <button
                           onClick={() => {
                             if (!window.confirm(`Descartar 1× ${dispName(id)}?`)) return;

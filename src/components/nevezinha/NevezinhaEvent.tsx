@@ -91,7 +91,7 @@ const PRIZES = [
   { image: iconUltraball, label: "Ultra Ball", chance: "15%" },
   { image: iconPokeball, label: "Pokébolas", chance: "30%" },
   { image: iconBerry, label: "Comida Pokémon", chance: "25%" },
-  { image: iconPokeball, label: "Falha nos tiros 1–2", chance: "70% · Pokébola + Poção + Baga" },
+  { image: iconPokeball, label: "Falha nos tiros 1–2", chance: "70% · Pokébola + 100–200 Poções + Baga" },
 ];
 const itemList = (items: Record<string, number>) =>
   Object.entries(items).map(([id, qty]) => `+${qty} ${ITEM_NAMES[id] ?? id}`).join(" · ");
@@ -273,7 +273,7 @@ export function NevezinhaEvent({ userId, onClose, onReward }: {
               {spinning ? "Preparando o tiro..." : loading ? "Carregando..." : status && status.tickets > 0 ? "DAR O TIRO" : "VOLTE AMANHÃ"}
               <span>{status && status.tickets > 0 ? `3 tiros por dia · restam ${status.tickets}` : loading ? "" : `próximo ticket em ${nextTicketLabel(status?.next_ticket_at, now)}`}</span>
             </button>
-            <p className="neve-hint">Tiros 1 e 2 podem falhar; o 3º sempre dá um prêmio. Falha entrega 1 Pokébola + 1 Poção + 1 Baga. O prêmio é salvo no servidor antes do vídeo; F5 não perde nem rerrola.</p>
+            <p className="neve-hint">Tiros 1 e 2 podem falhar; o 3º sempre dá um prêmio. Falha entrega 1 Pokébola + 100–200 Poções + 1 Baga. O prêmio é salvo no servidor antes do vídeo; F5 não perde nem rerrola.</p>
             {error && <p className="neve-error" role="alert">{error}</p>}
             {notice && <p className="neve-notice">{notice}</p>}
             {lastResult && !result && (

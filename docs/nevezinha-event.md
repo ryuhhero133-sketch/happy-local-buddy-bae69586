@@ -9,7 +9,7 @@ NPC recebem o mesmo boneco fixo no ponto do mapa.
 - **3 tiros por dia**, liberados automaticamente ao abrir a aba.
 - O dia vira à **meia-noite de São Paulo**. Não acumula: no máximo 3.
 - **Tiros 1 e 2:** 70% de chance de falhar. Falha entrega **1 Pokébola +
-  1 Poção + 1 Baga** (comida Pokémon).
+  100–200 Poções + 1 Baga** (comida Pokémon).
 - **Tiro 3:** prêmio garantido, nunca falha.
 - O ticket e o prêmio são definidos e creditados **no servidor** antes do vídeo.
 - **F5 não rerrola e não duplica**: o prêmio já está no `game_saves`; ao abrir
@@ -28,7 +28,9 @@ NPC recebem o mesmo boneco fixo no ponto do mapa.
 
 O **Boneco da Nevezinha** é um item **lendário** de coleção na mochila
 (`nevezinha_doll`). Enquanto estiver na mochila, concede **+5% de XP** ao time
-e ao treinador. Não é um Pokémon.
+e ao treinador. Use o item na mochila (**Seguir**) para o boneco acompanhar o
+treinador pelo mapa; use de novo (**Parar**) para ele voltar a ficar parado.
+Não é um Pokémon e não é consumido.
 
 ## Vídeos e ícones
 
@@ -38,7 +40,7 @@ Quatro vídeos do diretório original da Nevezinha foram recodificados em
 dá aquele tiro**. A aba abre sem baixar vídeo.
 
 - `show.mp4` — boneco apareceu (tela cheia)
-- `fail.mp4` — falha (1 Pokébola)
+- `fail.mp4` - falha (Pokébola + Poções + Baga)
 - `stone.mp4` — Stone Elemental
 - `items.mp4` — bolas/comida
 
