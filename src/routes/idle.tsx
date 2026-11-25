@@ -16673,18 +16673,28 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     // de evento a captura é bloqueada por regra, então não vale a pena surgir.
     if (isWaterMap(idle.currentMap) || idle.currentMap === "arena") return false;
     if (enemiesRef.current.filter((enemy) => enemy.hp > 0 && enemy.slimeSheet).length >= SLIME_MAX_ALIVE) return false;
-    const w = customDims?.w ?? 1200;
-    const h = customDims?.h ?? 1200;
     const trainer = trainerPosRef.current;
+    // O Slime só pode nascer DENTRO de um tile de mato. Se não houver mato
+    // por perto, não inventa spawn na neve/estrada: fica para a próxima marca.
+    const patch = nearestGrassPatch(grassPatchesRef.current, trainer, 420);
+    if (!patch) return false;
+    const tiles = patch.tiles
+      .map((tile) => ({ tile, center: grassTileCenter(tile, 24) }))
+      .sort((a, b) => Math.hypot(a.center.x - trainer.x, a.center.y - trainer.y)
+        - Math.hypot(b.center.x - trainer.x, b.center.y - trainer.y));
+    const localTiles = tiles.filter(({ center }) => Math.hypot(center.x - trainer.x, center.y - trainer.y) <= 320);
+    const candidates = localTiles.length ? localTiles : tiles;
     let point: { x: number; y: number } | null = null;
-    // Nasce perto o suficiente para o jogador ver, mas fora do corpo do treinador.
     for (let tries = 0; tries < 60; tries++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 150 + Math.random() * 130;
-      const x = Math.max(16, Math.min(w - 16, trainer.x + Math.cos(angle) * radius));
-      const y = Math.max(16, Math.min(h - 16, trainer.y + Math.sin(angle) * radius));
-      if (Math.hypot(x - trainer.x, y - trainer.y) >= 120 && !collidesWithAny(x, y)) {
-        point = { x, y };
+      const { tile, center } = candidates[Math.floor(Math.random() * candidates.length)];
+      const candidate = {
+        x: center.x + (Math.random() - 0.5) * tile.w * 0.55,
+        y: center.y + (Math.random() - 0.5) * tile.h * 0.24,
+      };
+      // Nasce no mato, perto o suficiente para ver, mas sem cair no corpo do treinador.
+      if (Math.hypot(candidate.x - trainer.x, candidate.y - trainer.y) < 80) continue;
+      if (isOnGrassTile(tile, candidate, 24) && !collidesWithAny(candidate.x, candidate.y)) {
+        point = candidate;
         break;
       }
     }

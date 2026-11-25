@@ -80,6 +80,9 @@ test("Slime aparece a cada 100 derrotas, sem spawn aleatório", () => {
   assert.ok(idle.includes("spawnMilestoneSlime"));
   assert.ok(idle.includes("Math.floor(newKills / SLIME_KILL_MILESTONE)"));
   assert.ok(idle.includes("if (spawnMilestoneSlime()) lastSlimeMilestoneRef.current = slimeMilestone"));
+  assert.ok(idle.includes("const patch = nearestGrassPatch(grassPatchesRef.current, trainer, 420)"));
+  assert.ok(idle.includes("isOnGrassTile(tile, candidate, 24)"));
+  assert.ok(!idle.includes("const angle = Math.random() * Math.PI * 2"));
   assert.ok(!idle.includes("spawnBoboSlimes"));
   assert.ok(!idle.includes("setInterval(spawn, 12000)"));
 });
