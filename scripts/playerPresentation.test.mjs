@@ -182,6 +182,8 @@ test("Mapa Mundi renderiza todos os ícones reais, com imagens válidas e rótul
   assert.match(markup, /Insígnia de Pedra/);
   assert.match(markup, /wm2-route__icon/);
   assert.match(markup, /wm2-pin__lock/);
+  assert.match(markup, /wm2-revo/);
+  assert.match(markup, /Land Revo/);
   assert.ok(!markup.includes("🪨"));
   assert.ok(!markup.includes("🌀"));
 });

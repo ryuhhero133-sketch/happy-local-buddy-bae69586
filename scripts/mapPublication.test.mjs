@@ -59,6 +59,14 @@ test("publicação global é lida do banco e mantém prioridade da conta", () =>
   assert.ok(migration.includes("create or replace function public.publish_map_editor_defaults"));
 });
 
+test("Mapa Mundi oferece viagem direta para a Land Revo", () => {
+  assert.ok(atlas.includes('onTravelTo("land_revo")'));
+  assert.ok(atlas.includes('className="wm2-revo"'));
+  assert.ok(atlas.includes("Land Revo"));
+  assert.ok(idle.includes('mapId === "land_revo"'));
+  assert.ok(idle.includes("x: 700, y: 560"));
+});
+
 test("Mapa Mundi mantém ginásios, insígnias, continente e recompensas", () => {
   assert.ok(atlas.includes("Ginásios"));
   assert.ok(atlas.includes("Insígnias"));

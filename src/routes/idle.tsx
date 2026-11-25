@@ -26722,6 +26722,11 @@ A sucata afundou com o casco.
                   const arrival = { x: 499, y: 416 };
                   trainerPosRef.current = arrival;
                   setTrainerPos(arrival);
+                } else if (mapId === "land_revo") {
+                  // Chegada segura na estrada central da Land Revo (mapa 1402×1122).
+                  const arrival = { x: 700, y: 560 };
+                  trainerPosRef.current = arrival;
+                  setTrainerPos(arrival);
                 } else if (incoming) {
                   const arrival = { x: incoming.toX, y: incoming.toY };
                   trainerPosRef.current = arrival;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bug, Clock, Droplets, Feather, Flame, Heart, Leaf, LockKeyhole, Menu, Mountain, Swords, X, Zap } from "lucide-react";
+import { Bug, Clock, Droplets, Feather, Flame, Heart, Leaf, LockKeyhole, MapPin, Menu, Mountain, Swords, X, Zap } from "lucide-react";
 import mundiBg from "@/ambiente/mundi/mundi-bg.jpg";
 import kantoThumb from "@/ambiente/mundi/kanto-thumb.jpg";
 import mapIcon from "@/ambiente/aba/men ic/Mapa.webp";
@@ -142,6 +142,17 @@ export function WorldMapV2({ onClose, onTravel, onTravelTo }: {
             {TABS.map((item) => (
               <button type="button" key={item} className={tab === item ? "is-on" : ""} onClick={() => setTab(item)}>{item}</button>
             ))}
+            {onTravelTo && (
+              <button
+                type="button"
+                className="wm2-revo"
+                onClick={() => onTravelTo("land_revo")}
+                title="Ir para Land Revo"
+                aria-label="Ir para Land Revo"
+              >
+                <MapPin aria-hidden="true" /> Land Revo
+              </button>
+            )}
           </nav>
 
           {tab === "Campanha" ? <>
