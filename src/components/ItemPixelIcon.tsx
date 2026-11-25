@@ -205,6 +205,7 @@ const ICONS: Record<string, () => Cell[]> = {
   book_vip: () => drawBook("#f2c94c", "#8a5a10", "V"),
   book_vip_30: () => drawBook("#ff9ad4", "#8f2f6b", "V"),
   book_vip_60: () => drawBook("#7ff0ff", "#1a6f8a", "V"),
+  book_vip_gold_30: () => drawBook("#ffe27a", "#8a5a12", "V"),
 
   // OVOS
   egg_common: () => drawEgg("#e8dcc0", "#a58c60"),

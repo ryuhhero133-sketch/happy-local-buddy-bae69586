@@ -2607,6 +2607,7 @@ const ITEM_IMG: Record<string, string> = {
   revive: reviveIconImg, berry: berryIconImg, key: keyIconImg,
   book_atk: bookAtkImg, book_def: bookDefImg, book_exp: bookExpImg,
   book_exp_big: bookExpImg, book_exp_max: bookExpImg, book_vip: bookExpImg,
+  book_vip_gold_30: PROFILE_SPRITES.books.book_vip_60,
   // ═══ Ovos ancestrais + Esfera de Safira ═══
   egg_anc_selado: eggSeladoAncPng, egg_anc_plus: eggAncPlusPng, egg_anc_luck: eggAncLuckPng,
   esfera_safira: esferaSafiraImg,
@@ -8544,6 +8545,7 @@ const confirmName = () => {
   const oneSkinCodeBusyRef = useRef(false);
   const globalRewardVoucherBusyRef = useRef(false);
   const nevenatalinosCodeBusyRef = useRef(false);
+  const goldVipCodeBusyRef = useRef(false);
   type NevenatalinosResponse = {
     ok?: boolean;
     reason?: string;
@@ -8563,6 +8565,15 @@ const confirmName = () => {
     item_qty?: number;
     reward_qty?: number;
     uses_remaining?: number;
+  };
+  type GoldVipResponse = {
+    ok?: boolean;
+    reason?: string;
+    server_version?: number;
+    saved_at?: number;
+    items?: Record<string, number>;
+    uses_remaining?: number;
+    tickets?: number;
   };
   const normalizeCode = (value: string) => value
     .normalize("NFD")
@@ -8586,6 +8597,29 @@ const confirmName = () => {
         }
       }
     }
+  };
+  const patchGoldVipSnapshot = (
+    snapshot: unknown,
+    serverItems: Record<string, number>,
+    checkpoint: unknown,
+    serverSavedAt = 0,
+  ) => {
+    const save = snapshot as { idle?: IdleState; savedAt?: number };
+    const base = checkpoint as { idle?: IdleState };
+    if (!save.idle || !base.idle) throw new Error("goldvip_snapshot_invalid");
+    const items = { ...(save.idle.items ?? {}) };
+    for (const id of ["book_vip_gold_30", "ultraball", "pokeball"]) {
+      const server = redCrystalCashAmount(serverItems[id]);
+      if (server === null) throw new Error("goldvip_item_invalid");
+      const current = redCrystalCashAmount(save.idle.items?.[id]) ?? 0;
+      const previous = redCrystalCashAmount(base.idle.items?.[id]) ?? 0;
+      items[id] = Math.max(0, Math.min(999_999, server + current - previous));
+    }
+    return {
+      ...save,
+      savedAt: Math.max(save.savedAt ?? 0, serverSavedAt),
+      idle: { ...save.idle, items },
+    };
   };
   // Abre a caixa de brinde das missões (5/10/15/20) e entrega o prêmio sorteado.
   const openCaptureChest = (chestId: string): CaptureChestReward | null => {
@@ -8928,6 +8962,87 @@ const confirmName = () => {
           setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o código." });
         } finally {
           globalRewardVoucherBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
+    if (/^GOLDVIP[A-Z2-9]{20}$/.test(raw)) {
+      if (goldVipCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      goldVipCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Validando GOLDVIP no servidor…" });
+      void (async () => {
+        try {
+          let confirmed: GoldVipResponse | null = null;
+          let checkpointIdle: IdleState | null = null;
+          let confirmedSavedAt = 0;
+          const result = await runCheckpointMutation(
+            buildFullBlob(),
+            async (expectedVersion) => {
+              const { data, error } = await (supabase as any).rpc("redeem_goldvip_code", {
+                p_code: raw,
+                p_expected_version: expectedVersion,
+              });
+              if (error) return { ok: false, reason: error.message };
+              const response = data as GoldVipResponse | null;
+              if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+              if (response.server_version !== expectedVersion + 1
+                || !response.items
+                || ["book_vip_gold_30", "ultraball", "pokeball"].some(
+                  (id) => redCrystalCashAmount(response.items?.[id]) === null,
+                )
+                || typeof response.uses_remaining !== "number") {
+                throw new Error("goldvip_invalid_server_response");
+              }
+              confirmed = response;
+              confirmedSavedAt = Number(response.saved_at) || 0;
+              return { ok: true, server_version: response.server_version, value: response.uses_remaining };
+            },
+            (snapshot, _value, checkpoint) => {
+              if (!confirmed) throw new Error("goldvip_confirmation_missing");
+              checkpointIdle = (checkpoint as { idle?: IdleState }).idle ?? null;
+              return patchGoldVipSnapshot(snapshot, confirmed.items ?? {}, checkpoint, confirmedSavedAt);
+            },
+          );
+          const confirmedReward = confirmed as GoldVipResponse | null;
+          const confirmedCheckpoint = checkpointIdle as IdleState | null;
+          if (!result.ok || !confirmedReward || !confirmedCheckpoint) {
+            const messages: Record<string, string> = {
+              invalid_or_used: "Código GOLDVIP inválido ou os 2 usos do servidor já foram consumidos.",
+              inventory_cap: "Sua mochila atingiu o limite de um dos itens.",
+              stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
+              checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
+              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue antes de repetir.",
+              unauthenticated: "Entre em sua conta para resgatar este código.",
+            };
+            throw new Error(messages[result.reason ?? ""] ?? "Não foi possível resgatar o GOLDVIP. Tente novamente.");
+          }
+          setIdle((current) => {
+            const patched = patchGoldVipSnapshot(
+              { idle: current },
+              confirmedReward.items ?? {},
+              { idle: confirmedCheckpoint },
+              confirmedSavedAt,
+            ) as { idle: IdleState };
+            idleRef.current = patched.idle;
+            saveIdle(patched.idle);
+            return patched.idle;
+          });
+          setCodeInput("");
+          const tickets = Number(confirmedReward.tickets ?? 3);
+          const message = `GOLDVIP resgatado: Livro VIP GOLD 30 dias + 10 Ultra Balls + 20 Pokébolas + ${tickets} tiros da Nevezinha. Restam ${confirmedReward.uses_remaining} usos no servidor.`;
+          setCodeMsg({ kind: "ok", text: message });
+          pushChat(message, "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o GOLDVIP." });
+        } finally {
+          goldVipCodeBusyRef.current = false;
         }
       })();
       return;
@@ -15143,12 +15258,14 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushFxAt(trainerPos.x, trainerPos.y - 40, `TIME EXP · 3h`, "capture");
       pushEvent("✦", "ORB DE TIME ATIVO", "Todo o time ganha EXP por 3 horas", "#ffd94d");
       pushChat(`✦ Orb de Time ativado — todos os pokémons do time ganham EXP por 3 horas.`, "cap");
-    } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60") {
+    } else if (id === "book_vip" || id === "book_vip_30" || id === "book_vip_60" || id === "book_vip_gold_30") {
       const cfg = id === "book_vip_60"
         ? { add: 0.40, ms: 365 * 24 * 3600_000, label: "1 ano" }
-        : id === "book_vip_30"
-          ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
-          : { add: 0.20, ms: 3600_000, label: "1 hora" };
+        : id === "book_vip_gold_30"
+          ? { add: 0.40, ms: 30 * 24 * 3600_000, label: "30 dias GOLD" }
+          : id === "book_vip_30"
+            ? { add: 0.30, ms: 30 * 24 * 3600_000, label: "30 dias" }
+            : { add: 0.20, ms: 3600_000, label: "1 hora" };
       const nowT = Date.now();
       const curUntil = Math.max(idle.buffs.expMultUntil ?? 0, idle.buffs.goldMultUntil ?? 0);
       const curMult = curUntil > nowT ? Math.max(idle.buffs.expMult ?? 0, idle.buffs.goldMult ?? 0) : 0;
@@ -32190,6 +32307,7 @@ function TabOverlay({
           book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
           book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP EPIC ✦",
           book_vip_30: "Livro VIP CRISTAL ✦✦", book_vip_60: "Livro VIP GOLD ✦✦✦",
+          book_vip_gold_30: "Livro VIP GOLD 30 dias ✦✦✦",
           chest_amulet: "Amuleto do Baú", berry: "Baga", revive: "Reviver", key: "Chave",
           premium_box: "Caixa Premium ✦ Evento",
           skin_ticket: "Ticket de Skin ✦",
@@ -32253,6 +32371,7 @@ function TabOverlay({
           book_vip: "Livro VIP EPIC ✦ · +20% Ouro e EXP por 1 hora.",
           book_vip_30: "Livro VIP CRISTAL ✦✦ · +30% Ouro e EXP por 30 dias.",
           book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 1 ANO. Com AUTO ligado, recolhe automaticamente todos os drops do chão sem interromper a batalha do Pokémon.",
+          book_vip_gold_30: "Livro VIP GOLD 30 dias ✦✦✦ · +40% Ouro e EXP por 30 dias. Com AUTO ligado, recolhe automaticamente todos os drops do chão.",
           orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
           orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
           orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",
@@ -32384,7 +32503,7 @@ function TabOverlay({
         // Only IDs with actual useItem effects; upgrade books/ancestral eggs belong to other systems.
         const directUse = new Set([
            "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet", "nevezinha_doll",
-           "book_vip", "book_vip_30", "book_vip_60", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
+           "book_vip", "book_vip_30", "book_vip_60", "book_vip_gold_30", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
            "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga", "combo_revo",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
