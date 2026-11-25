@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { Bell, ChevronDown, ChevronUp, Coins, Compass, Crosshair, Home, Map, MapPin, Minus, Plus, Settings, Shield, Sun, Trophy, Zap } from "lucide-react";
+import { Bell, ChevronDown, ChevronUp, Coins, Compass, Crosshair, Home, Map, MapPin, Minus, Plus, Settings, Shield, Trophy, Zap } from "lucide-react";
 import { ChatHud, type HudMessage } from "./ChatHud";
 import { QuestTracker, type HudQuest } from "./QuestTracker";
 import { CaptureQuestHud, type CaptureQuestView } from "./CaptureQuestHud";
@@ -10,7 +10,6 @@ import { getHudScale, type HudMapBounds } from "./hudLayout";
 import { MainMenu } from "./MainMenu";
 import { TouchJoystick } from "./TouchJoystick";
 import { TrainerGuide } from "@/components/TrainerGuide";
-import eventIcon from "@/skill/srg/ICONE DE EVENTO.webp";
 import "./hud.css";
 import "./mobile-landscape.css";
 
@@ -168,11 +167,9 @@ export function GameHud(hud: GameHudProps) {
     <PlayerHud hud={hud} />
     <ResourceBar hud={hud} />
     <div className="revo-systems" aria-label="Atalhos do jogo">
-       <IconButton label="Eventos" guideTarget="events" className="revo-event-highlight" onClick={hud.onEvents}><img className="revo-event-icon" src={eventIcon} alt="" /></IconButton>
       <IconButton label="Ranking" onClick={hud.onRank}><Trophy /></IconButton>
       <IconButton label="Notificações" active={noticesOpen} badge={readyQuests > 0 || hud.forgeNotification} onClick={() => setNoticesOpen(!noticesOpen)}><Bell /></IconButton>
       <IconButton label="Configurações" onClick={hud.onSettings}><Settings /></IconButton>
-      <div className="revo-clock revo-resource"><Sun /><time dateTime={new Date(hud.now).toISOString()}>{new Date(hud.now).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</time></div>
     </div>
     {noticesOpen && <section className="revo-notices revo-panel" aria-label="Notificações"><header className="revo-panel__header"><Bell /><strong>Notificações</strong></header>
       {readyQuests > 0 && <button type="button" onClick={() => { hud.onQuests(); setNoticesOpen(false); }}>{readyQuests} missão(ões) pronta(s) para resgatar.</button>}

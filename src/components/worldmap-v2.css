@@ -1,4 +1,4 @@
-/* ===== Mapa Mundial V2 (beta, só na conta liberada) ===== */
+/* ===== Mapa Mundial — arte existente e ícones sem dependência de emojis ===== */
 .wm2-backdrop {
   position: fixed;
   inset: 0;
@@ -67,6 +67,22 @@
   cursor: pointer;
 }
 .wm2-close:hover { filter: brightness(1.12); }
+.wm2-close, .wm2-panel__x { display: grid; place-items: center; padding: 0; flex-shrink: 0; }
+.wm2-close svg { width: 24px; height: 24px; }
+.wm2-panel__x svg { width: 18px; height: 18px; }
+.wm2-title > img { width: 32px; height: 32px; object-fit: contain; }
+.wm2-pin__lock svg { width: 20px; height: 20px; }
+.wm2-openpanel, .wm2-go { display: flex; justify-content: center; align-items: center; gap: 6px; }
+.wm2-openpanel svg, .wm2-go svg { width: 16px; height: 16px; flex-shrink: 0; }
+.wm2-card__req { display: inline-flex; align-items: center; gap: 4px; }
+.wm2-card__req svg { width: 12px; height: 12px; flex-shrink: 0; }
+.wm2-badge > svg { width: 65%; height: 65%; opacity: .32; }
+.wm2-badge.is-on > svg { opacity: 1; }
+.wm2-season__icon > img { width: 38px; height: 38px; object-fit: contain; }
+.wm2-season small { display: flex; align-items: center; gap: 4px; }
+.wm2-season small svg { width: 11px; height: 11px; }
+.wm2-panel > * { flex-shrink: 0; }
+.wm2-season__rewards span img { max-width: 80%; max-height: 80%; }
 
 /* ---------- palco ---------- */
 .wm2-stage { position: relative; overflow: hidden; background: #071427; }
@@ -103,15 +119,32 @@
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .6));
 }
 .wm2-pin__badge {
+  position: relative;
   width: 46px;
   height: 46px;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  overflow: hidden;
   border-radius: 50%;
   border: 3px solid #ffd94d;
   background: radial-gradient(circle at 50% 30%, #2a4b8e, #11224a);
   box-shadow: 0 0 14px rgba(255, 217, 77, .55);
+}
+.wm2-pin__badge > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.wm2-pin__lock {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 10, 22, .58);
+  font-size: 18px;
+  text-shadow: 0 1px 3px #000;
 }
 .wm2-pin__name {
   font-size: 14px;
@@ -133,8 +166,8 @@
   border-color: #8fa4c4;
   background: radial-gradient(circle at 50% 30%, #33415c, #131c2e);
   box-shadow: 0 0 10px rgba(120, 150, 190, .35);
-  font-size: 18px;
 }
+.wm2-pin.is-locked .wm2-pin__badge > img { filter: grayscale(.7) brightness(.62); }
 .wm2-pin.is-locked .wm2-pin__sub { color: #c9d7ea; border-color: rgba(160, 180, 210, .4); }
 .wm2-pin.is-active .wm2-pin__badge {
   border-color: #7ef27a;
@@ -276,6 +309,14 @@
   border: 1px solid #f2cf72;
   background: linear-gradient(180deg, #24386b, #14224a);
 }
+.wm2-rewards span img,
+.wm2-season__rewards span img {
+  width: min(38px, 80%);
+  height: min(38px, 80%);
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .45));
+}
 .wm2-soon { margin: 0; padding: 14px 6px; text-align: center; font-size: 11px; color: #9fb4d8; }
 
 .wm2-go {
@@ -369,6 +410,22 @@
   text-shadow: 0 1px 0 #06210f;
 }
 .wm2-route:hover { filter: brightness(1.12); }
+.wm2-route__icon {
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid #ffd94d;
+  background: #0b1a36;
+}
+.wm2-route__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
 
 /* ---------- aviso ---------- */
 .wm2-toast {

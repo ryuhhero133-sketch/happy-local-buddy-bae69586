@@ -371,7 +371,7 @@ import {
   type BoatTier,
   type ShipState,
 } from "@/game/ships";
-import { applySpiritEvent, spiritEventId, patenteOf, patentePrizeReady, vipTierOf, type VipBookId } from "@/game/trainerProfile";
+import { applySpiritEvent, spiritEventId, patenteOf, patentePrizeReady, vipTierOf, VIP_BOOK_BY_TIER, type VipBookId, type VipTierId } from "@/game/trainerProfile";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -10337,7 +10337,15 @@ const confirmName = () => {
   }, []);
 
   // ===== Multiplayer: presença por mapa via Supabase Realtime =====
-  type RemotePlayer = { id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number; leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId };
+  type RemotePlayer = {
+    id: string; userId: string; name: string; x: number; y: number; dir: Dir; step: number;
+    leaderSp?: Species; ts: number; skinUrl?: string; mapId?: IdleMapId;
+    vipTier?: VipTierId | null;
+    vipUntil?: number;
+    hasNevezinha?: boolean;
+    mountActive?: boolean;
+    mountUntil?: number;
+  };
   type PvpPresence = { user_id: string; player_name: string; map_id: string; x: number; y: number; leader_species?: Species; leader_level: number; trainer_level: number; hp: number; max_hp: number; last_hit_at?: string | null; last_attacker_name?: string | null; last_death_at?: string | null; updated_at: string };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
   const [pvpPresence, setPvpPresence] = useState<PvpPresence[]>([]);
@@ -10438,6 +10446,10 @@ const confirmName = () => {
   useEffect(() => { leaderLevelRef.current = team[0]?.level ?? 1; }, [team]);
   const skinUrlRef = useRef<string | null>(null);
   useEffect(() => { skinUrlRef.current = skinUrl; }, [skinUrl]);
+  // Cosméticos públicos: o selo VIP, a Nevezinha e a montaria aparecem para
+  // todos os jogadores que estiverem no mesmo mapa.
+  const snowmanFollowRef = useRef(snowmanFollow);
+  useEffect(() => { snowmanFollowRef.current = snowmanFollow; }, [snowmanFollow]);
   useEffect(() => {
     // Presença multiplayer ativa em QUALQUER mapa.
     if (!identity?.id) return;
@@ -10445,13 +10457,31 @@ const confirmName = () => {
     const meUserId = identity.id;
     const meId = getMultiplayerSessionId(meUserId);
     const meName = identity.name || "Treinador";
-    const payloadNow = (): RemotePlayer => ({
-      id: meId, userId: meUserId, name: meName,
-      x: trainerPosRef.current.x, y: trainerPosRef.current.y,
-      dir: walkDirRef.current, step: walkStepRef.current,
-      leaderSp: leaderSpRef.current, skinUrl: skinUrlRef.current ?? undefined, ts: Date.now(),
-    });
+    let disposed = false;
+    const payloadNow = (): RemotePlayer => {
+      const state = idleRef.current;
+      const at = Date.now();
+      return {
+        id: meId, userId: meUserId, name: meName,
+        x: trainerPosRef.current.x, y: trainerPosRef.current.y,
+        dir: walkDirRef.current, step: walkStepRef.current,
+        leaderSp: leaderSpRef.current, skinUrl: skinUrlRef.current ?? undefined, ts: at,
+        vipTier: vipTierOf(state.buffs?.goldMult, state.buffs?.goldMultUntil).tier,
+        vipUntil: state.buffs?.goldMultUntil ?? 0,
+        hasNevezinha: snowmanFollowRef.current && (state.items?.nevezinha_doll ?? 0) > 0,
+        mountActive: !!state.mountOn && at < (state.mountUntil ?? 0),
+        mountUntil: state.mountUntil ?? 0,
+      };
+    };
     const savePresence = async (payload: RemotePlayer) => {
+      const cosmetics = {
+        vip: payload.vipTier ?? null,
+        vip_until: payload.vipUntil ?? 0,
+        nevezinha: !!payload.hasNevezinha,
+        mount: !!payload.mountActive,
+        mount_until: payload.mountUntil ?? 0,
+        step: payload.step,
+      };
       const row = {
         id: payload.id,
         name: payload.name,
@@ -10467,12 +10497,17 @@ const confirmName = () => {
         updated_at: new Date().toISOString(),
       };
       try {
-        // Tenta com skin_url (precisa da coluna no banco; SQL no relatório).
-        await gameDb.from("players").upsert({ ...row, skin_url: payload.skinUrl ?? null });
+        await gameDb.from("players").upsert({ ...row, skin_url: payload.skinUrl ?? null, cosmetics }).throwOnError();
       } catch {
         try {
-          await gameDb.from("players").upsert(row);
-        } catch { /* multiplayer via DB polling */ }
+          await gameDb.from("players").upsert({ ...row, cosmetics }).throwOnError();
+        } catch {
+          try {
+            await gameDb.from("players").upsert({ ...row, skin_url: payload.skinUrl ?? null }).throwOnError();
+          } catch {
+            try { await gameDb.from("players").upsert(row).throwOnError(); } catch { /* multiplayer via DB polling */ }
+          }
+        }
       }
     };
     const loadPresence = async () => {
@@ -10482,23 +10517,36 @@ const confirmName = () => {
         try {
           const res = await gameDb
             .from("players")
-            .select("id,name,map,x,y,dir,leader_species,skin_url,updated_at")
+            .select("id,name,map,x,y,dir,leader_species,skin_url,cosmetics,updated_at")
             .eq("map", mapId)
-            .gte("updated_at", since);
+            .gte("updated_at", since).throwOnError();
           data = res.data as any[] | null;
         } catch {
-          const res = await gameDb
-            .from("players")
-            .select("id,name,map,x,y,dir,leader_species,updated_at")
-            .eq("map", mapId)
-            .gte("updated_at", since);
-          data = res.data as any[] | null;
+          try {
+            const res = await gameDb
+              .from("players")
+              .select("id,name,map,x,y,dir,leader_species,skin_url,updated_at")
+              .eq("map", mapId)
+              .gte("updated_at", since).throwOnError();
+            data = res.data as any[] | null;
+          } catch {
+            const res = await gameDb
+              .from("players")
+              .select("id,name,map,x,y,dir,leader_species,updated_at")
+              .eq("map", mapId)
+              .gte("updated_at", since).throwOnError();
+            data = res.data as any[] | null;
+          }
         }
-        if (!data) return;
+        if (!data || disposed) return;
         setRemotePlayers((prev) => {
           const byId = new Map(prev.map((p) => [p.id, p]));
           for (const row of data as any[]) {
             if (!row?.id || row.id === meId) continue;
+            const cosmetics = row.cosmetics && typeof row.cosmetics === "object" ? row.cosmetics : {};
+            const vip = ["vip", "vip30", "vip60"].includes(String(cosmetics.vip)) && Number(cosmetics.vip_until) > Date.now()
+              ? cosmetics.vip as VipTierId
+              : null;
             byId.set(row.id, {
               id: String(row.id),
               userId: String(row.id).split(":")[0] || String(row.id),
@@ -10506,9 +10554,14 @@ const confirmName = () => {
               x: Number(row.x) || WORLD_W / 2,
               y: Number(row.y) || WORLD_H / 2,
               dir: (["down", "left", "right", "up"].includes(row.dir) ? row.dir : "down") as Dir,
-              step: byId.get(row.id)?.step ?? 0,
+              step: Number.isInteger(cosmetics.step) && cosmetics.step >= 0 && cosmetics.step <= 3 ? cosmetics.step : 0,
               leaderSp: row.leader_species || undefined,
               skinUrl: (row as any).skin_url || undefined,
+              vipTier: vip,
+              vipUntil: Number(cosmetics.vip_until) || 0,
+              hasNevezinha: cosmetics.nevezinha === true,
+              mountActive: cosmetics.mount === true && Number(cosmetics.mount_until) > Date.now(),
+              mountUntil: Number(cosmetics.mount_until) || 0,
               ts: new Date(row.updated_at || Date.now()).getTime(),
             });
           }
@@ -10530,6 +10583,7 @@ const confirmName = () => {
       setRemotePlayers((prev) => prev.filter((p) => p.ts >= cutoff));
     }, 4_000);
     return () => {
+      disposed = true;
       clearInterval(dbIv);
       clearInterval(prune);
       void gameDb.from("players").delete().eq("id", meId);
@@ -14759,6 +14813,39 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
 
 
+  // Alimenta o líder direto pelo balão de fruta sobre a cabeça dele.
+  const feedLeaderWithFruit = () => {
+    const current = idleRef.current;
+    const morango = current.items?.morango ?? 0;
+    const limao = current.items?.limao ?? 0;
+    const kind = morango > 0 ? "morango" : limao > 0 ? "limao" : null;
+    if (!kind) {
+      pushChat("Você não tem Morango nem Limão na mochila para alimentar.", "info");
+      return;
+    }
+    const leader = teamRef.current[0];
+    if (!leader) return;
+    const cared = leader as CaredPet;
+    if ((cared.fome ?? 100) >= 100 && !cared.needFeeding) {
+      pushChat(`${leader.species.replace(/_/g, " ")} já está satisfeito.`, "info");
+      return;
+    }
+    const fedAt = trustedNow().now;
+    const fed = feedPet(cared, kind, fedAt);
+    fed.pet.hungerUpdatedAt = fedAt;
+    const nextTeam = teamRef.current.map((pet, index) => index === 0 ? fed.pet as PetInstance : pet);
+    teamRef.current = nextTeam;
+    setTeam(nextTeam);
+    const next: IdleState = {
+      ...current,
+      items: { ...current.items, [kind]: Math.max(0, (current.items[kind] ?? 0) - 1) },
+    };
+    idleRef.current = next;
+    setIdle(next);
+    pushFxAt(trainerPos.x, trainerPos.y - 48, kind === "morango" ? "🍓 +30" : "🍋 +20", "capture");
+    pushChat(`${kind === "morango" ? "🍓 Morango" : "🍋 Limão"}: ${leader.species.replace(/_/g, " ")} alimentado! Fome ${Math.round(fed.pet.fome ?? 0)}/100.`, "cap");
+  };
+
   // Usar item da mochila
   const useItem = (id: string, qty: number = 1) => {
     const have = (idle.items[id] ?? 0);
@@ -17020,6 +17107,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const until = idle.buffs?.goldMultUntil ?? 0;
     return until > Date.now();
   };
+  const vipBadgeUrl = (() => {
+    const info = vipTierOf(idle.buffs?.goldMult, idle.buffs?.goldMultUntil);
+    return info.bookId ? PROFILE_SPRITES.books[info.bookId] : vipMemberUrl;
+  })();
   // ===== Loja VIP do Laboratório (aba VIP): compra com CRISTAIS, ativa na hora =====
   const LAB_VIP_PRICES: Record<VipBookId, number> = {
     book_vip: 10_000,
@@ -23644,7 +23735,7 @@ A sucata afundou com o casco.
                   pointerEvents: "none",
                 }}>
                   {(vipTitleOn || isVip()) && (
-                    <img src={vipMemberUrl} alt="" style={{ height: vipTitleSize, width: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }} />
+                    <img src={vipBadgeUrl} alt="VIP" style={{ height: vipTitleSize, width: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }} />
                   )}
                   <div style={{
                     fontSize: 10, fontWeight: 800,
@@ -23750,6 +23841,8 @@ A sucata afundou com o casco.
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const remotePvpEligible = !!remotePvp && remotePvp.hp > 0 && remotePvp.trainer_level >= 11;
               const actionMenuOpen = remotePlayerAction?.userId === rp.userId;
+              const remoteVipImg = rp.vipTier ? PROFILE_SPRITES.books[VIP_BOOK_BY_TIER[rp.vipTier]] : null;
+              const remoteMount = !!rp.mountActive;
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
                 if (!emeraldPvpActive) {
@@ -23791,7 +23884,7 @@ A sucata afundou com o casco.
                 }} title={`Clique para interagir com ${rp.name}`} style={{
                   position: "absolute",
                   left: rp.x, top: rp.y,
-                  width: 56, height: 56,
+                  width: remoteMount ? 76 : 56, height: remoteMount ? 76 : 56,
                   transform: "translate(-50%, -50%)",
                   transition: "left 220ms linear, top 220ms linear",
                   filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
@@ -23799,19 +23892,46 @@ A sucata afundou com o casco.
                   pointerEvents: "auto",
                   cursor: "pointer",
                 }}>
-                  {/* Nome */}
+                  {/* Nome + selo VIP + Nevezinha/montaria (visível para todos) */}
                   <div style={{
-                    position: "absolute", left: "50%", top: -18,
+                    position: "absolute", left: "50%", top: -22,
                     transform: "translateX(-50%)",
-                    fontSize: 10, fontWeight: 700,
-                    color: "#fff",
-                    textShadow: "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000",
+                    display: "flex", alignItems: "center", gap: 4,
                     whiteSpace: "nowrap",
-                    fontFamily: "monospace",
-                    background: "rgba(20,40,80,0.55)",
-                    padding: "1px 5px", borderRadius: 4,
-                    border: "1px solid rgba(107,178,255,0.6)",
-                  }}>{rp.name}</div>
+                  }}>
+                    {remoteVipImg && (
+                      <img
+                        src={remoteVipImg}
+                        alt="VIP"
+                        title="Jogador VIP"
+                        draggable={false}
+                        style={{ height: 20, width: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 2px 2px rgba(0,0,0,.65))" }}
+                      />
+                    )}
+                    <div style={{
+                      fontSize: 10, fontWeight: 700,
+                      color: "#fff",
+                      textShadow: "0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000",
+                      fontFamily: "monospace",
+                      background: rp.vipTier ? "rgba(120,52,0,0.78)" : "rgba(20,40,80,0.55)",
+                      padding: "1px 5px", borderRadius: 4,
+                      border: `1px solid ${rp.vipTier ? "#ffb347" : "rgba(107,178,255,0.6)"}`,
+                    }}>{rp.vipTier ? "✦ " : ""}{rp.name}</div>
+                  </div>
+                  {rp.hasNevezinha && (
+                    <img
+                      src={nevezinhaUrl}
+                      alt=""
+                      title={`${rp.name} tem a Nevezinha`}
+                      draggable={false}
+                      style={{
+                        position: "absolute", left: -24, top: 14,
+                        width: 34, height: 34, objectFit: "contain", imageRendering: "pixelated",
+                        pointerEvents: "none", zIndex: 4,
+                        filter: "drop-shadow(0 2px 2px rgba(0,0,0,.5))",
+                      }}
+                    />
+                  )}
                   {partyMemberIds.has(rp.userId) && (
                     <span
                       aria-label="Na sua party"
@@ -23826,12 +23946,27 @@ A sucata afundou com o casco.
                   )}
                   <div style={{
                     width: "100%", height: "100%",
-                    backgroundImage: `url(${rp.skinUrl ?? trainerSheet})`,
+                    backgroundImage: `url(${remoteMount ? sawsbuckMountPng : (rp.skinUrl ?? trainerSheet)})`,
                     backgroundSize: "400% 400%",
                     backgroundPosition: `${rp.step * 33.333}% ${DIR_ROW[rp.dir] * 33.333}%`,
                     imageRendering: "pixelated",
-                    filter: rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
+                    filter: remoteMount ? "drop-shadow(0 2px 3px rgba(0,0,0,.55))" : rp.skinUrl ? undefined : "hue-rotate(140deg) saturate(1.1)",
                   }} />
+                  {remoteMount && (
+                    <span
+                      aria-label="Jogador com montaria ativa"
+                      title="Montaria ativa"
+                      style={{
+                        position: "absolute", right: -5, bottom: 4, zIndex: 4,
+                        width: 21, height: 21, display: "grid", placeItems: "center",
+                        borderRadius: "50%", background: "#3a2508",
+                        border: "1px solid #ffd166", boxShadow: "0 2px 5px rgba(0,0,0,.6)",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      <img src={montariaIconPng} alt="" draggable={false} style={{ width: 18, height: 18, objectFit: "contain", imageRendering: "pixelated" }} />
+                    </span>
+                  )}
                   {rpLeaderSrc && (
                     <button type="button" onClick={selectRemotePvp} disabled={!emeraldPvpActive || !remotePvpEligible} title={!emeraldPvpActive ? "PvP indisponível neste mapa ou período" : remotePvp?.trainer_level != null && remotePvp.trainer_level < 11 ? "Jogador protegido até o nível 11 do treinador" : remotePvpEligible ? `Atacar o Pokémon de ${rp.name}` : "Pokémon indisponível para PvP"} style={{
                       // Para observadores, a caveira fica no chão mesmo se o treinador andar.
@@ -24071,23 +24206,41 @@ A sucata afundou com o casco.
                     const fomeLead = Math.max(0, Math.min(100, ((team[0] as unknown as { fome?: number })?.fome ?? 100)));
                     const fomeSt = petHungerState(fomeLead);
                     if (fomeSt !== "fome" && fomeSt !== "faminto" && fomeSt !== "critica") return null;
+                    const haveMorango = (idle.items?.morango ?? 0) > 0;
+                    const haveLimao = (idle.items?.limao ?? 0) > 0;
+                    const canFeed = haveMorango || haveLimao;
                     return (
-                      <div style={{
-                        position: "absolute", top: -30, left: "50%", transform: "translateX(-50%)",
-                        background: "linear-gradient(180deg, rgba(20,10,4,0.96), rgba(8,4,2,0.96))",
-                        border: "1px solid #f5cf6b", borderRadius: 12, padding: "2px 7px",
-                        fontSize: 12, lineHeight: 1, pointerEvents: "none", whiteSpace: "nowrap",
-                        boxShadow: "0 4px 10px rgba(0,0,0,0.6)", zIndex: 8,
-                        animation: "pulse 1.2s ease-in-out infinite",
-                      }}>
-                        �x�
+                      <button
+                        type="button"
+                        onClick={(event) => { event.stopPropagation(); feedLeaderWithFruit(); }}
+                        title={canFeed
+                          ? `Clique para alimentar com ${haveMorango ? "Morango" : "Limão"} (fome ${Math.round(fomeLead)}/100)`
+                          : "Seu Pokémon está com fome — coloque Morango ou Limão na mochila"}
+                        aria-label={`Alimentar Pokémon com fome ${Math.round(fomeLead)} de 100`}
+                        style={{
+                          position: "absolute", top: -42, left: "50%", transform: "translateX(-50%)",
+                          width: 40, height: 40, padding: 3, display: "grid", placeItems: "center",
+                          background: "linear-gradient(180deg, #f7df9a, #b8862c)",
+                          border: "2px solid #fff2bd", borderRadius: 11,
+                          boxShadow: "0 0 0 2px #6d4b13, 0 5px 12px rgba(0,0,0,0.65), 0 0 16px rgba(255,214,80,0.45)",
+                          cursor: canFeed ? "pointer" : "help", pointerEvents: "auto", zIndex: 9,
+                          opacity: canFeed ? 1 : 0.72, fontSize: 0, lineHeight: 0,
+                          animation: canFeed ? "pulse 1.2s ease-in-out infinite" : undefined,
+                        }}
+                      >
+                        <img
+                          src={haveMorango ? morangoBagImg : haveLimao ? limaBagImg : morangoBagImg}
+                          alt=""
+                          draggable={false}
+                          style={{ width: 30, height: 30, objectFit: "contain", imageRendering: "pixelated", filter: "drop-shadow(0 1px 1px rgba(0,0,0,.5))" }}
+                        />
                         <span style={{
-                          position: "absolute", bottom: -4, left: "50%", width: 7, height: 7,
-                          background: "rgba(12,6,3,0.96)",
-                          borderRight: "1px solid #f5cf6b", borderBottom: "1px solid #f5cf6b",
+                          position: "absolute", bottom: -6, left: "50%", width: 9, height: 9,
+                          background: "#b8862c",
+                          borderRight: "2px solid #fff2bd", borderBottom: "2px solid #fff2bd",
                           transform: "translateX(-50%) rotate(45deg)",
                         }} />
-                      </div>
+                      </button>
                     );
                   })()}
                   <div style={{
@@ -26789,8 +26942,8 @@ A sucata afundou com o casco.
         );
       })()}
 
-      {/* CALENDÁRIO DIÁRIO */}
-      {tab === "evento" && (
+       {/* Calendário diário removido da interface; histórico das recompensas preservado. */}
+       {false && tab === "evento" && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 10000,
           background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)",
