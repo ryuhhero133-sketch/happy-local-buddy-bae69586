@@ -6970,7 +6970,7 @@ const confirmName = () => {
   // Zonas de mato: encontros locais; o tick de combate não fura o intervalo.
   useEffect(() => {
     if (!zoneForMap(idle.currentMap)) return;
-    const topUp = (announce = false) => {
+    const topUp = () => {
       setEnemies((prev) => {
         const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
         const pos = trainerPosRef.current;
@@ -6984,7 +6984,6 @@ const confirmName = () => {
         if (alive.length >= cap) return alive.length === prev.length ? prev : alive;
         const fresh = spawnZoneEnemiesRef.current(zoneForMap(idleRef.current.currentMap) ?? []);
         if (fresh.length === 0) return alive.length === prev.length ? prev : alive;
-        if (announce) queueMicrotask(() => pushChat("🌿 O mato se mexe...", "info"));
         return [...alive, ...fresh];
       });
     };
@@ -6997,18 +6996,23 @@ const confirmName = () => {
       }
     }
     // O combate não respawna a cada 900ms: patrulha entre encontros.
-    // Abate agenda 8–20s; sem abate, 35–65s. Checagem leve sem capturar matos antigos.
-    let nextSpawnAt = Date.now() + 800;
+    // Abate agenda 2,5–5,5s; sem abate, 7–12s. Se o mato ainda não carregou,
+    // tenta de novo em 500ms em vez de esperar o próximo ciclo longo.
+    let nextSpawnAt = Date.now() + 500;
     let killsBase = totalKillsRef.current;
     const timer = window.setInterval(() => {
       const stamp = Date.now();
       if (totalKillsRef.current > killsBase) {
         killsBase = totalKillsRef.current;
-        nextSpawnAt = stamp + 8000 + Math.random() * 12000;
+        nextSpawnAt = stamp + 2500 + Math.random() * 3000;
       }
       if (stamp < nextSpawnAt) return;
-      topUp(true);
-      nextSpawnAt = stamp + 35000 + Math.random() * 30000;
+      if (grassPatchesRef.current.length === 0) {
+        nextSpawnAt = stamp + 500;
+        return;
+      }
+      topUp();
+      nextSpawnAt = stamp + 7000 + Math.random() * 5000;
     }, 1000);
     return () => window.clearInterval(timer);
   }, [idle.currentMap]);
@@ -12724,10 +12728,16 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
         if (allAlive.length === 0) { combatMoveRef.current = null; return zoneForMap(idle.currentMap) ? prev : spawnEnemies(); }
         // O mesmo alvo comanda a pausa do treinador e o ataque do líder.
         // Não combate da borda antes de entrar, nem usa o follower como nova âncora.
-        const alive = autoRef.current && grassHuntMap
-          ? grassHuntEnemies(grassHuntRef.current, grassPatchesRef.current, allAlive, trainerPosRef.current)
-            .filter((enemy) => enemy.id === grassHuntRef.current.targetId)
-          : allAlive;
+        let alive = allAlive;
+        if (autoRef.current && grassHuntMap) {
+          const inRange = grassHuntEnemies(grassHuntRef.current, grassPatchesRef.current, allAlive, trainerPosRef.current);
+          const tp = trainerPosRef.current;
+          const focus = inRange.find((enemy) => enemy.id === grassHuntRef.current.targetId)
+            ?? [...inRange].sort((a, b) => Math.hypot(a.x - tp.x, a.y - tp.y) - Math.hypot(b.x - tp.x, b.y - tp.y))[0];
+          // Se o alvo do canteiro desapareceu, cai no inimigo próximo em vez de
+          // ficar um tick parado. Sem ninguém no alcance, não ataca à distância.
+          alive = focus ? [focus] : [];
+        }
         if (alive.length === 0) {
           setAttackTargetId((id) => id == null ? id : null);
           combatMoveRef.current = null;

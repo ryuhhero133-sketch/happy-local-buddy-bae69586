@@ -190,11 +190,10 @@ export function grassHuntEnemies<T extends HuntEnemy>(
     || distance(trainer, center) > GRASS_SPOT_RADIUS + 12) return [];
   return enemies.filter((enemy) => {
     if (enemy.hp <= 0 || distance(enemy, trainer) > GRASS_ENGAGE_RADIUS) return false;
-    const origin = { x: enemy.spawnX ?? enemy.x, y: enemy.spawnY ?? enemy.y };
-    const originPatch = enemy.grassPatchId ?? nearestGrassPatch(patches, origin, 100)?.id;
-    // O inimigo pode sair do tile enquanto persegue o treinador. O que importa
-    // é ter nascido neste canteiro e estar dentro do alcance de combate.
-    return originPatch === patch.id && (!canWalk || walkableSegment(trainer, enemy, canWalk));
+    // Qualquer inimigo próximo e alcançável deve ser combatido — inclusive
+    // Slime, spawn do editor ou Pokémon que nasceu em outro canteiro. Antes o
+    // filtro exigia `grassPatchId === patch.id` e ignorava alvos ao lado.
+    return !canWalk || walkableSegment(trainer, enemy, canWalk);
   });
 }
 

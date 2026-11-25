@@ -4,6 +4,7 @@ import test from "node:test";
 import ts from "typescript";
 
 const source = readFileSync(new URL("../src/game/grassHunt.ts", import.meta.url), "utf8");
+const idle = readFileSync(new URL("../src/routes/idle.tsx", import.meta.url), "utf8");
 const code = ts.transpileModule(source, { compilerOptions: {
   module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022,
 } }).outputText;
@@ -89,8 +90,8 @@ test("um inimigo distante não bloqueia a entrada nem a patrulha", () => {
 });
 
 test("nunca troca de canteiro para buscar inimigo; não deriva enquanto patrulha", () => {
-  const patches = buildGrassPatches([...grid(), ...grid(440, 240, 3, 3, 40, 100)]);
-  const enemy = { id: 99, hp: 100, ...grassTileCenter(patches[1].tiles[0], 24), grassPatchId: patches[1].id };
+  const patches = buildGrassPatches([...grid(), ...grid(900, 240, 3, 3, 40, 100)]);
+  const enemy = { id: 99, hp: 100, ...grassTileCenter(patches[1].tiles.at(-1), 24), grassPatchId: patches[1].id };
   const result = simulate(patches, { x: 210, y: 360 }, 1500, () => [enemy]);
   assert.equal(result.state.patchId, patches[0].id);
   assert.ok(result.state.entered);
@@ -125,6 +126,21 @@ test("alvo que sai do leash do treinador não puxa o spot pelo follower", () => 
   const { state, position } = simulate(patches, { x: 350, y: 380 }, 160);
   const enemy = { id: 9, hp: 10, x: position.x + 300, y: position.y, grassPatchId: state.patchId };
   assert.equal(grassHuntEnemies(state, patches, [enemy], position).length, 0);
+});
+
+test("inimigo próximo de outro canteiro ou sem vínculo é combatido", () => {
+  const patches = buildGrassPatches([...grid(), ...grid(440, 240, 3, 3, 40, 100)]);
+  const result = simulate(patches, { x: 350, y: 380 }, 300, (_i, state, position) =>
+    state.entered ? [{ id: 777, hp: 100, x: position.x + 120, y: position.y, grassPatchId: 999 }] : []);
+  assert.ok(result.history.some((h) => h.action.kind === "battle" && h.action.targetId === 777));
+});
+
+test("reposição do mato voltou a ser rápida", () => {
+  assert.ok(idle.includes("nextSpawnAt = Date.now() + 500"));
+  assert.ok(idle.includes("nextSpawnAt = stamp + 2500 + Math.random() * 3000"));
+  assert.ok(idle.includes("nextSpawnAt = stamp + 7000 + Math.random() * 5000"));
+  assert.ok(idle.includes("grassPatchesRef.current.length === 0"));
+  assert.ok(idle.includes("const focus = inRange.find"));
 });
 
 test("caminho local contorna obstáculo, não atravessa máscara rosa nem corta diagonal", () => {
@@ -192,7 +208,7 @@ test("integração mantém versão privada e usa só um controlador de caçada",
   assert.ok(idle.includes('behavior: "aggressive"'));
   assert.ok(idle.includes("Eventos lendários aleatórios desativados"));
   assert.ok(idle.includes("Fechar lista de alvos"));
-  assert.ok(source.includes("pode sair do tile enquanto persegue"));
+  assert.ok(source.includes("Qualquer inimigo próximo e alcançável"));
   assert.ok(!idle.includes("trainerPosRef.current.x + fx * FOLLOW_DIST"));
   assert.ok(!idle.includes("}, [enemies, moving, obstacles, chests, idle.currentMap, arvEpicPlants]"));
 });
