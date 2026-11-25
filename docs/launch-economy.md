@@ -40,8 +40,32 @@ O catálogo e o preço são validados no servidor por
 `buy_red_crystal_cash_product('potion_20', versão)`. O cliente não informa
 quantidade nem preço.
 
+## Código de recompensa NEVENATALINOSPLUS44YHWH
+
+O código `NEVENATALINOSPLUS44YHWH` pode ser resgatado **2 vezes por conta**.
+A trava é atômica no servidor, na tabela `private.reward_code_uses`; depois do
+segundo uso o RPC responde `already_used`.
+
+Cada resgate entrega:
+
+- 100 Ultra Balls;
+- 200 Pokébolas;
+- 300 Poções;
+- 300 Morangos;
+- 20 tiros da Nevezinha;
+- 50 Stones de cada elemento (Planta, Fogo, Água, Elétrica, Sombria e Dracônica);
+- 10 Livros de Ataque;
+- 20 Orbs Supremos de XP;
+- 3 Discos de Habilidade (Raiz Aprisionante, Combustão e Maré Cortante).
+
+O resgate roda em `redeem_nevenatalinos_code()`, que atualiza o save, os
+tickets e devolve o checkpoint oficial para o cliente adotar. Antes de somar os
+20 tiros, a função aplica o reset diário de 3 tiros, então o bônus não é
+reduzido quando o Festival é aberto no mesmo dia.
+
 ## Testes
 
 - `supabase/tests/welcome_potion_pack.test.sql`
 - `supabase/tests/red_crystal_potion_pack.test.sql`
 - `node --test scripts/launchPack.test.mjs`
+- `node --test scripts/captureQuests.test.mjs`

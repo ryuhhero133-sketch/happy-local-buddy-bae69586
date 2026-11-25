@@ -4,8 +4,10 @@ Cada conta tem as mesmas 20 missões, mas o progresso é individual e fica salvo
 no `idle.captureQuests`. A missão conclui quando a espécie indicada é capturada
 em qualquer mapa; mapa, nível e chance são apenas a dica de onde encontrar.
 
-O painel aparece no lado direito do HUD. O botão **Ver as 20** abre a lista
-completa com o progresso e os pacotes a cada 5.
+O painel aparece no lado direito do HUD como um **ícone de Pokébola** com o
+contador `x/20`. Ele substitui o orb antigo de notificações. Um clique abre a
+lista completa, com a fotinha de cada Pokémon, o progresso e as caixas de
+brinde. Quando há uma caixa pronta, aparece um 🎁 piscando no ícone.
 
 ## Lista
 
@@ -51,3 +53,27 @@ Nevezinha** (o ticket é somado no servidor e pode passar dos 3 diários).
 
 Os prêmios são entregues uma única vez por conta. O helper
 `applyCaptureQuest` marca a captura, libera os pacotes e evita duplicação.
+
+## Caixas de brinde
+
+A cada 5 missões a conta ganha uma caixa para abrir no painel:
+
+| Missões | Caixa |
+|---:|---|
+| 5 | Baú Verde |
+| 10 | Baú Épico |
+| 15 | Baú Verde |
+| 20 | Baú Épico |
+
+O conteúdo é sorteado na hora da abertura e pode incluir:
+
+- Poções;
+- Morangos;
+- Pedra Elemental (Planta, Fogo, Água, Elétrica, Sombria ou Dracônica);
+- 1 tiro da Nevezinha (somado no servidor);
+- 1 Ovo Emerald;
+- 1 Carta Montaria SAWSBUCK-S3 (24 horas).
+
+O Baú Épico tem quantidades maiores e mais chance de Ovo Emerald e Montaria.
+Cada caixa abre **uma única vez**; o estado fica em
+`idle.captureQuests.openedChests` e é salvo junto com a conta.

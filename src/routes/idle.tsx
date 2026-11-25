@@ -44,7 +44,14 @@ import { loadMapEditorCloud, loadPublishedMapEditor, readCachedPublishedMapEdito
 import { claimWelcomePotions } from "@/lib/welcomePack";
 import { grantNevezinhaTickets } from "@/lib/nevezinhaTickets";
 import { publicMapName } from "@/game/mapLabels";
-import { CAPTURE_QUESTS, applyCaptureQuest, type CaptureQuestProgress } from "@/game/captureQuests";
+import {
+  CAPTURE_QUESTS,
+  applyCaptureQuest,
+  captureQuestChests,
+  openCaptureQuestChest,
+  type CaptureChestReward,
+  type CaptureQuestProgress,
+} from "@/game/captureQuests";
 import { starsOf } from "@/game/systems";
 import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
 import { buildGrassPatches, createGrassHuntState, GRASS_ARRIVAL_RADIUS, GRASS_SPOT_RADIUS, grassHuntEnemies, grassTileCenter, isInGrassPatch, isOnGrassTile, nearestGrassPatch, tickGrassHunt } from "@/game/grassHunt";
@@ -252,7 +259,7 @@ import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
-import { runCheckpointMutation, alignServerCheckpoint } from "@/lib/saveManager";
+import { runCheckpointMutation, alignServerCheckpoint, adoptAuthoritativeCheckpoint } from "@/lib/saveManager";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -1670,6 +1677,19 @@ const SPRITE_SHEET: Partial<Record<Species, string>> = {
   fearow: fearowSheetPng,
   fearow_shiny: fearowShinySheetPng,
 };
+
+// Arte fofa do painel das 20 missões: GIF/ícone quando existir; senão usa a
+// spritesheet 4x4 recortada pelo CSS (igual ao sprite do mapa).
+function captureQuestSpriteImage(species: Species): string | undefined {
+  const image = GIF[species];
+  const sheet = SPRITE_SHEET[species] ?? zoneSheet(species);
+  return image && image !== sheet ? image : undefined;
+}
+function captureQuestSpriteSheet(species: Species): string | undefined {
+  const image = GIF[species];
+  const sheet = SPRITE_SHEET[species] ?? zoneSheet(species);
+  return sheet && (!image || image === sheet) ? sheet : undefined;
+}
 
 
 const ENEMY_POOL: Species[] = ["rattata_f", "pidgey", "zubat", "ekans", "machop", "diglett", "meowth", "psyduck"];
@@ -6180,7 +6200,7 @@ const confirmName = () => {
     }
     if (update.rewards.length > 0) {
       const labels = update.rewards.map((reward) => reward.label).join(" · ");
-      queueMicrotask(() => pushChat(`🎁 Missões 20: prêmio ${labels} recebido na mochila!`, "chest"));
+      queueMicrotask(() => pushChat(`🎁 Missões 20: prêmio ${labels} recebido + caixa de brinde disponível no ícone da Pokébola!`, "chest"));
     }
     if (update.tickets > 0) {
       queueMicrotask(() => pushChat(`❄ ${update.tickets} ticket(s) de tiro da Nevezinha recebido(s)!`, "cap"));
@@ -8468,6 +8488,16 @@ const confirmName = () => {
   const gokuSkinCodeBusyRef = useRef(false);
   const vegetaSkinCodeBusyRef = useRef(false);
   const globalRewardVoucherBusyRef = useRef(false);
+  const nevenatalinosCodeBusyRef = useRef(false);
+  type NevenatalinosResponse = {
+    ok?: boolean;
+    reason?: string;
+    uses?: number;
+    remaining?: number;
+    snapshot?: unknown;
+    server_version?: number;
+    tickets?: number;
+  };
   type GlobalRewardVoucherResponse = {
     ok?: boolean;
     reason?: string;
@@ -8500,9 +8530,104 @@ const confirmName = () => {
       }
     }
   };
+  // Abre a caixa de brinde das missões (5/10/15/20) e entrega o prêmio sorteado.
+  const openCaptureChest = (chestId: string): CaptureChestReward | null => {
+    const current = idleRef.current;
+    const result = openCaptureQuestChest(current.captureQuests, chestId);
+    if (!result) return null;
+    let next: IdleState = { ...current, captureQuests: result.progress };
+    if (result.reward.itemId) {
+      const itemId = result.reward.itemId;
+      const have = next.items[itemId] ?? 0;
+      next = {
+        ...next,
+        items: { ...next.items, [itemId]: Math.min(999_999, have + result.reward.qty) },
+      };
+    }
+    persistCodeReward(next);
+    setIdle(next);
+    playChestOpen();
+    if (result.reward.ticket) {
+      void grantNevezinhaTickets(result.reward.qty);
+    }
+    pushChat(`🎁 Caixa de brinde: ${result.reward.label}!`, "chest");
+    return result.reward;
+  };
   const redeemCrystalCode = () => {
     const raw = normalizeCode(codeInput);
     if (!raw) { setCodeMsg({ kind: "err", text: "Digite um código." }); return; }
+
+    // Código de recompensa especial com 2 usos por conta. Fica ANTES da trava
+    // de uso único porque o segundo resgate é permitido pelo servidor.
+    if (raw === "NEVENATALINOSPLUS44YHWH") {
+      if (nevenatalinosCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      nevenatalinosCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Validando o código e salvando sua recompensa…" });
+      void (async () => {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getSession();
+          const userId = authData.session?.user?.id;
+          if (authError || !userId) throw new Error("Entre na sua conta para resgatar.");
+          if (!(await pushCloudSaveNow(buildFullBlob()))) {
+            throw new Error("Não foi possível salvar seu progresso. Tente novamente.");
+          }
+          const { data, error } = await (supabase as any).rpc("redeem_nevenatalinos_code");
+          if (error) throw error;
+          const result = data as NevenatalinosResponse | null;
+          if (!result?.ok) {
+            const messages: Record<string, string> = {
+              already_used: "Este código já foi usado 2 vezes nesta conta e não pode mais ser resgatado.",
+              save_not_ready: "Seu save ainda não sincronizou. Aguarde alguns segundos e tente de novo.",
+              unauthenticated: "Entre na sua conta para resgatar este código.",
+            };
+            throw new Error(messages[result?.reason ?? ""] ?? "Não foi possível resgatar o código. Tente novamente.");
+          }
+          const authoritativeSnapshot = result.snapshot;
+          const serverVersion = result.server_version;
+          if (!authoritativeSnapshot || typeof serverVersion !== "number") {
+            throw new Error("Recompensa salva, mas o servidor não devolveu o checkpoint. Recarregue o jogo.");
+          }
+          await adoptAuthoritativeCheckpoint(userId, authoritativeSnapshot, serverVersion, "before-reward-code");
+          const snapshot = authoritativeSnapshot as {
+            idle: IdleState;
+            team?: PetInstance[];
+            restingBench?: PetInstance[];
+          };
+          idleRef.current = snapshot.idle;
+          setIdle(snapshot.idle);
+          if (Array.isArray(snapshot.team)) {
+            teamRef.current = snapshot.team;
+            setTeam(snapshot.team);
+          }
+          if (Array.isArray(snapshot.restingBench)) setRestingBench(snapshot.restingBench);
+          saveIdleStamped(snapshot.idle);
+          const remaining = Math.max(0, Number(result.remaining ?? Math.max(0, 2 - (result.uses ?? 2))));
+          setCodeInput("");
+          setCodeMsg({
+            kind: "ok",
+            text: remaining > 0
+              ? `🎁 Pacote entregue! Ainda resta ${remaining} uso deste código nesta conta.`
+              : "🎁 Pacote entregue! Este código foi usado 2 vezes e não pode mais ser resgatado.",
+          });
+          pushChat(
+            "🎁 NEVENATALINOSPLUS44YHWH: 100 Ultra Balls, 200 Pokébolas, 300 Poções, 300 Morangos, "
+            + "20 tiros da Nevezinha, 50 Stones de cada elemento, 10 Livros de Ataque, "
+            + "20 Orbs Supremos de XP e 3 Discos de Habilidade!",
+            "cap",
+          );
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o código." });
+        } finally {
+          nevenatalinosCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
     const codeKey = scopedCodeKey(raw);
     const alreadyUsed = Boolean(idleRef.current.redeemedCodes?.[raw]);
     try {
@@ -18981,6 +19106,20 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
           done: (idle.captureQuests?.completed ?? []).includes(quest.id),
         }))}
         captureQuestMilestones={idle.captureQuests?.milestones ?? []}
+        captureQuestImages={Object.fromEntries(
+          CAPTURE_QUESTS.flatMap((quest): [string, string][] => {
+            const image = captureQuestSpriteImage(quest.species);
+            return image ? [[quest.species, image]] : [];
+          }),
+        )}
+        captureQuestSheets={Object.fromEntries(
+          CAPTURE_QUESTS.flatMap((quest): [string, string][] => {
+            const sheet = captureQuestSpriteSheet(quest.species);
+            return sheet ? [[quest.species, sheet]] : [];
+          }),
+        )}
+        captureQuestChests={captureQuestChests(idle.captureQuests)}
+        onOpenCaptureChest={openCaptureChest}
         messages={chat}
         team={team.map((pet, index) => ({
           uid: pet.uid, name: pet.species.replace(/_/g, " "), image: GIF[pet.species],

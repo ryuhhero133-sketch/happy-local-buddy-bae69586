@@ -3,6 +3,7 @@ import { Bell, ChevronDown, ChevronUp, Coins, Compass, Crosshair, Home, Map, Map
 import { ChatHud, type HudMessage } from "./ChatHud";
 import { QuestTracker, type HudQuest } from "./QuestTracker";
 import { CaptureQuestHud, type CaptureQuestView } from "./CaptureQuestHud";
+import type { CaptureChestReward, CaptureChestView } from "@/game/captureQuests";
 import { TeamHud, type HudTeamMember } from "./TeamHud";
 import { TargetHud, type HudTarget } from "./TargetHud";
 import { getHudScale, type HudMapBounds } from "./hudLayout";
@@ -56,6 +57,10 @@ export type GameHudProps = {
   guideAccountId?: string;
   captureQuests?: CaptureQuestView[];
   captureQuestMilestones?: number[];
+  captureQuestImages?: Record<string, string>;
+  captureQuestSheets?: Record<string, string>;
+  captureQuestChests?: CaptureChestView[];
+  onOpenCaptureChest?: (chestId: string) => CaptureChestReward | null;
 };
 
 function IconButton({ label, children, onClick, active = false, badge = false, className = "", guideTarget }: {
@@ -108,26 +113,6 @@ function ResourceBar({ hud }: { hud: GameHudProps }) {
   ];
   return <div className="revo-resources" aria-label="Recursos do treinador">{resources.map((resource) =>
     <div key={resource.label} className="revo-resource" title={`${resource.label}: ${resource.value}`} aria-label={`${resource.label}: ${resource.value}`}>{resource.icon}<strong>{resource.value}</strong></div>)}
-  </div>;
-}
-
-function QuestOrb({ hud }: { hud: GameHudProps }) {
-  // "Pronta" = dá para resgatar agora. Só nesse caso a faixa aparece.
-  const pending = hud.quests.filter((quest) => !quest.claimed);
-  const ready = pending.find((quest) => quest.progress >= quest.target && (!quest.vipOnly || hud.vip));
-  return <div className={`revo-questorb ${pending.length > 0 ? "is-live" : ""} ${ready ? "is-ready" : ""}`}>
-    {ready && <button type="button" className="revo-questorb__banner" onClick={() => hud.onClaimQuest(ready.id)} aria-label={`Resgatar missão ${ready.title}`}>
-      <span className="revo-questorb__spark" aria-hidden="true">🎁</span>
-      <span className="revo-questorb__text">
-        <strong>Missão pronta!</strong>
-        <span>toque para resgatar</span>
-        <i className="revo-questorb__bar"><i style={{ width: "100%" }} /></i>
-      </span>
-    </button>}
-    <button type="button" className={`revo-questorb__ball ${ready ? "is-ready" : ""}`} onClick={hud.onQuests} title="Missões — ver quanto falta" aria-label={ready ? `Missões — ${ready.title} pronta para resgatar` : "Missões — ver quanto falta"}>
-      <img src={hud.icons.ball} alt="" />
-      {pending.length > 0 && <span className="revo-questorb__dot">{ready ? "!" : pending.length}</span>}
-    </button>
   </div>;
 }
 
@@ -201,9 +186,15 @@ export function GameHud(hud: GameHudProps) {
         <MinimapHud hud={hud} />
         {!hud.newHud && hud.guideAccountId && <TrainerGuide accountId={hud.guideAccountId} />}
         {hud.newHud
-          ? <QuestOrb hud={hud} />
+          ? <CaptureQuestHud
+              quests={hud.captureQuests ?? []}
+              milestones={hud.captureQuestMilestones ?? []}
+              pokemonImages={hud.captureQuestImages}
+              pokemonSheets={hud.captureQuestSheets}
+              chests={hud.captureQuestChests}
+              onOpenChest={hud.onOpenCaptureChest}
+            />
           : <QuestTracker quests={hud.quests} region={hud.region} resetIn={hud.questReset} vip={hud.vip} onClaim={hud.onClaimQuest} onOpen={hud.onQuests} />}
-        <CaptureQuestHud quests={hud.captureQuests ?? []} milestones={hud.captureQuestMilestones ?? []} />
       </div>
       <ChatHud messages={hud.messages} pvpActive={hud.pvpActive} pvpWindowLabel={hud.pvpWindowLabel} />
       <TouchJoystick onMove={hud.onJoystickMove} />

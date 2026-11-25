@@ -10,6 +10,10 @@ const welcome = read("../src/lib/welcomePack.ts");
 const welcomeSql = read("../supabase/migrations/20261125034907_welcome_potion_pack.sql");
 const shopSql = read("../supabase/migrations/20261125034747_red_crystal_potion_pack.sql");
 const slimeSql = read("../supabase/migrations/20261125062401_red_crystal_slimeball.sql");
+const rewardCodeSql = read("../supabase/migrations/20261125065731_reward_code_nevenatalinos.sql");
+const rewardCodeResetSql = read("../supabase/migrations/20261125071920_reward_code_ticket_reset.sql");
+const captureQuests = read("../src/game/captureQuests.ts");
+const captureQuestHud = read("../src/components/hud/CaptureQuestHud.tsx");
 
 test("HUD branca liberada para todos", () => {
   assert.ok(idle.includes("newHud\n"));
@@ -55,9 +59,39 @@ test("Pokébola Slime e confirmação na Loja Cash", () => {
 });
 
 test("cada 3 missões gera ticket da Nevezinha", () => {
-  assert.ok(read("../src/game/captureQuests.ts").includes("ticketGroups"));
+  assert.ok(captureQuests.includes("ticketGroups"));
   assert.ok(read("../src/lib/nevezinhaTickets.ts").includes("nevezinha_grant_tickets"));
   assert.ok(idle.includes("grantNevezinhaTickets(update.tickets)"));
   assert.ok(idle.includes("completedCount * 50"));
   assert.ok(idle.includes("completedCount * 250"));
+});
+
+test("caixas de brinde verdes e épicas a cada 5 missões", () => {
+  assert.ok(captureQuests.includes("CAPTURE_QUEST_CHESTS"));
+  assert.ok(captureQuests.includes("openedChests"));
+  assert.ok(captureQuests.includes("rollCaptureChest"));
+  assert.ok(captureQuests.includes('"emerald_egg"'));
+  assert.ok(captureQuests.includes('"carta_montaria"'));
+  assert.ok(captureQuestHud.includes("bau_verde.webp"));
+  assert.ok(captureQuestHud.includes("bau_epic.webp"));
+  assert.ok(captureQuestHud.includes("VOCÊ GANHOU"));
+  assert.ok(captureQuestHud.includes("capture-quests-modal__sheet"));
+  assert.ok(idle.includes("captureQuestChests(idle.captureQuests)"));
+  assert.ok(idle.includes("onOpenCaptureChest={openCaptureChest}"));
+});
+
+test("código NEVENATALINOSPLUS44YHWH com 2 usos por conta", () => {
+  assert.ok(idle.includes("NEVENATALINOSPLUS44YHWH"));
+  assert.ok(idle.includes("redeem_nevenatalinos_code"));
+  assert.ok(idle.includes("adoptAuthoritativeCheckpoint"));
+  assert.ok(rewardCodeSql.includes("NEVENATALINOSPLUS44YHWH"));
+  assert.ok(rewardCodeSql.includes("uses between 0 and 2"));
+  assert.ok(rewardCodeSql.includes("if v_uses >= 2 then"));
+  for (const item of ["ultraball", "pokeball", "potion", "morango", "book_atk", "orb_xp_supreme", "disc_raiz", "disc_combustao", "disc_mare"]) {
+    assert.ok(rewardCodeSql.includes(`'${item}'`), `faltou ${item}`);
+  }
+  assert.ok(rewardCodeSql.includes("tickets + 20"));
+  assert.ok(rewardCodeSql.includes("least(999"));
+  assert.ok(rewardCodeResetSql.includes("last_claim_day is distinct from v_today"));
+  assert.ok(rewardCodeResetSql.includes("set tickets = 3"));
 });

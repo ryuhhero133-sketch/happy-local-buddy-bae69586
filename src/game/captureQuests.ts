@@ -33,12 +33,137 @@ export const CAPTURE_QUESTS: CaptureQuestDef[] = [
   { id: "cq20", species: "dragonite", map: "08", level: "88–90", chance: "1%", title: "O Último Dragão" },
 ];
 
+export type CaptureChestKind = "green" | "epic";
+
 export type CaptureQuestProgress = {
   completed?: string[];
   milestones?: number[];
   /** Grupos de 3 missões já convertidos em ticket da Nevezinha. */
   ticketGroups?: number;
+  /** Caixas de brinde já abertas (ids `chest_5`, `chest_10`, ...). */
+  openedChests?: string[];
 };
+
+/** Uma caixa de brinde a cada 5 missões: verde nos ímpares e épica nos pares. */
+export const CAPTURE_QUEST_CHESTS: { at: number; kind: CaptureChestKind }[] = [
+  { at: 5, kind: "green" },
+  { at: 10, kind: "epic" },
+  { at: 15, kind: "green" },
+  { at: 20, kind: "epic" },
+];
+
+export type CaptureChestView = {
+  id: string;
+  at: number;
+  kind: CaptureChestKind;
+  opened: boolean;
+  ready: boolean;
+};
+
+export type CaptureChestReward = {
+  itemId: string | null;
+  qty: number;
+  label: string;
+  /** Ticket não entra na mochila: é somado no evento da Nevezinha. */
+  ticket?: boolean;
+  chestKind: CaptureChestKind;
+};
+
+const STONE_IDS = [
+  "stone_grass", "stone_fire", "stone_water",
+  "stone_electric", "stone_dark", "stone_dragon",
+] as const;
+
+const STONE_NAMES: Record<string, string> = {
+  stone_grass: "Planta",
+  stone_fire: "Fogo",
+  stone_water: "Água",
+  stone_electric: "Elétrica",
+  stone_dark: "Sombria",
+  stone_dragon: "Dracônica",
+};
+
+type ChestPoolEntry = {
+  itemId: string | null;
+  min: number;
+  max: number;
+  weight: number;
+  label: string;
+  ticket?: boolean;
+  stone?: boolean;
+};
+
+const GREEN_CHEST_POOL: ChestPoolEntry[] = [
+  { itemId: "potion", min: 20, max: 40, weight: 34, label: "{qty} Poções" },
+  { itemId: null, min: 1, max: 2, weight: 28, label: "{qty} Pedra(s) Elemental(is)", stone: true },
+  { itemId: "morango", min: 20, max: 50, weight: 14, label: "{qty} Morangos" },
+  { itemId: null, min: 1, max: 1, weight: 14, label: "{qty} tiro da Nevezinha", ticket: true },
+  { itemId: "emerald_egg", min: 1, max: 1, weight: 7, label: "1 Ovo Emerald" },
+  { itemId: "carta_montaria", min: 1, max: 1, weight: 3, label: "1 Carta Montaria (24h)" },
+];
+
+const EPIC_CHEST_POOL: ChestPoolEntry[] = [
+  { itemId: "potion", min: 50, max: 100, weight: 22, label: "{qty} Poções" },
+  { itemId: null, min: 2, max: 4, weight: 22, label: "{qty} Pedra(s) Elemental(is)", stone: true },
+  { itemId: "morango", min: 50, max: 100, weight: 12, label: "{qty} Morangos" },
+  { itemId: null, min: 1, max: 1, weight: 20, label: "{qty} tiro da Nevezinha", ticket: true },
+  { itemId: "emerald_egg", min: 1, max: 1, weight: 14, label: "1 Ovo Emerald" },
+  { itemId: "carta_montaria", min: 1, max: 1, weight: 10, label: "1 Carta Montaria (24h)" },
+];
+
+/** Lista as 4 caixas, marcando quais já podem ser abertas. */
+export function captureQuestChests(progress: CaptureQuestProgress | null | undefined): CaptureChestView[] {
+  const count = captureQuestCount(progress);
+  const opened = new Set(progress?.openedChests ?? []);
+  return CAPTURE_QUEST_CHESTS.map((chest) => {
+    const id = `chest_${chest.at}`;
+    return {
+      id,
+      at: chest.at,
+      kind: chest.kind,
+      opened: opened.has(id),
+      ready: count >= chest.at && !opened.has(id),
+    };
+  });
+}
+
+/** Sorteia o conteúdo de uma caixa. `random` é injetável para testes. */
+export function rollCaptureChest(
+  kind: CaptureChestKind,
+  random: () => number = Math.random,
+): CaptureChestReward {
+  const pool = kind === "epic" ? EPIC_CHEST_POOL : GREEN_CHEST_POOL;
+  const total = pool.reduce((sum, entry) => sum + entry.weight, 0);
+  let roll = random() * total;
+  let picked = pool[pool.length - 1];
+  for (const entry of pool) {
+    roll -= entry.weight;
+    if (roll < 0) { picked = entry; break; }
+  }
+  const itemId = picked.stone
+    ? STONE_IDS[Math.min(STONE_IDS.length - 1, Math.floor(random() * STONE_IDS.length))]
+    : picked.itemId;
+  const qty = picked.min + Math.floor(random() * (picked.max - picked.min + 1));
+  const label = picked.stone
+    ? `${qty} ${qty === 1 ? "Pedra Elemental" : "Pedras Elementais"} (${STONE_NAMES[itemId ?? ""] ?? "Elemental"})`
+    : picked.label.replace("{qty}", String(qty));
+  return { itemId, qty, label, ticket: picked.ticket, chestKind: kind };
+}
+
+/** Abre uma caixa pronta e devolve o prêmio sorteado + o novo progresso. */
+export function openCaptureQuestChest(
+  progress: CaptureQuestProgress | null | undefined,
+  chestId: string,
+  random: () => number = Math.random,
+): { progress: CaptureQuestProgress; reward: CaptureChestReward } | null {
+  const chest = captureQuestChests(progress).find((item) => item.id === chestId);
+  if (!chest || !chest.ready) return null;
+  const openedChests = [...(progress?.openedChests ?? []), chest.id];
+  return {
+    progress: { ...(progress ?? {}), openedChests },
+    reward: rollCaptureChest(chest.kind, random),
+  };
+}
 
 export type CaptureQuestMilestone = {
   at: number;
@@ -85,7 +210,12 @@ export function applyCaptureQuest(
   const changed = completedNow.length > 0 || rewards.length > 0 || tickets > 0;
   return {
     progress: changed
-      ? { completed: [...completed], milestones: [...milestones], ticketGroups }
+      ? {
+          completed: [...completed],
+          milestones: [...milestones],
+          ticketGroups,
+          openedChests: progress?.openedChests ?? [],
+        }
       : (progress ?? {}),
     completedNow,
     rewards,
