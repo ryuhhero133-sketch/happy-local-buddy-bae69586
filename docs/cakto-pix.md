@@ -28,8 +28,8 @@ O cliente já foi publicado na Cloudflare, mas a seção PIX fica **oculta** enq
 3. O pedido guarda `cakto_payment_id`, QR, expiração e valor.
 4. A Cakto envia o webhook para `cakto-webhook`.
 5. A função valida assinatura, corpo e janela temporal; em `purchase_approved` com `status = paid` e `paymentMethod = pix`, chama `cakto_deliver_order`.
-6. A entrega bloqueia o pedido e o save, valida oferta/valor/moeda, credita uma única vez e grava o histórico.
-7. O cliente consulta `get_my_cakto_order` e atualiza o saldo exibido.
+6. A entrega bloqueia o pedido e o save, valida oferta/valor/moeda, credita uma única vez e grava o histórico. Um Pix aprovado depois de `pix_expirado` também é creditado, como o próprio fluxo da Cakto prevê.
+7. O cliente consulta `get_my_cakto_order` e hidrata o checkpoint oficial para atualizar a HUD sem novo login.
 
 ## Banco
 
@@ -130,7 +130,7 @@ node --test scripts/cakto.test.mjs
 bun run build
 ```
 
-Os testes cobrem HMAC, janela temporal, UUID, SQL de entrega única, RLS, ausência de crédito em `pix_gerado`, idempotência e a interface da Loja Cash.
+Os testes cobrem HMAC, janela temporal, UUID, os três pacotes, SQL de entrega única, RLS, ausência de crédito em `pix_gerado`, aprovação tardia após `pix_expirado`, idempotência e a interface da Loja Cash.
 
 ## Regra de segurança
 

@@ -145,12 +145,16 @@ Deno.serve(async (request) => {
     const expirationIso = Number.isFinite(rawExpiration) ? new Date(rawExpiration).toISOString() : null;
     const amount = Number(payload.amount);
     const amountCents = Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : null;
+    const rawCheckoutUrl = typeof payload.checkoutUrl === "string" ? payload.checkoutUrl.trim() : "";
+    const checkoutUrl = rawCheckoutUrl
+      ? (/^https?:\/\//i.test(rawCheckoutUrl) ? rawCheckoutUrl : `https://${rawCheckoutUrl}`).slice(0, 2048)
+      : null;
 
     const { error: saveError } = await admin.rpc("cakto_server_save_payment", {
       p_order_id: orderId,
       p_payment_id: typeof payload.id === "string" ? payload.id : null,
       p_ref_id: typeof payload.refId === "string" ? payload.refId : null,
-      p_checkout_url: typeof payload.checkoutUrl === "string" ? payload.checkoutUrl : null,
+      p_checkout_url: checkoutUrl,
       p_pix_qr_code: qrCode,
       p_pix_expiration: expirationIso,
       p_status: "pending",
@@ -168,7 +172,7 @@ Deno.serve(async (request) => {
       currency: String(order.currency ?? "BRL"),
       pixQrCode: qrCode,
       pixExpiration: expirationIso,
-      checkoutUrl: typeof payload.checkoutUrl === "string" ? payload.checkoutUrl : null,
+      checkoutUrl,
     });
   } catch (error) {
     console.error("[cakto-create-payment]", error instanceof Error ? error.message : "unknown_error");

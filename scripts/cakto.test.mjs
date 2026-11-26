@@ -33,6 +33,22 @@ test("order IDs are validated before being used as UUID filters", () => {
   assert.equal(validUuid(null), false);
 });
 
+test("the three packages map to the exact server-side diamond amounts", () => {
+  const sql = read("supabase/migrations/20261126150000_cakto_pix.sql");
+  assert.match(sql, /'bau_inicial',\s*'Pacote 1[^']*',\s*1000,/);
+  assert.match(sql, /'bau_avancado',\s*'Pacote 2[^']*',\s*2000,/);
+  assert.match(sql, /'bau_supremo',\s*'Pacote 3[^']*',\s*3200,/);
+  assert.match(sql, /active boolean not null default false/);
+  assert.match(sql, /currency = 'BRL'/);
+});
+
+test("a Pix approved after pix_expirado still credits exactly once", () => {
+  const sql = read("supabase/migrations/20261126160000_cakto_late_pix.sql");
+  assert.match(sql, /''created'', ''pending'', ''failed'', ''expired''/);
+  assert.match(sql, /pg_get_functiondef/);
+  assert.match(sql, /private\.cakto_deliver_order/);
+});
+
 test("payment database is server-authoritative and delivery is exactly once", () => {
   const sql = read("supabase/migrations/20261126150000_cakto_pix.sql");
   for (const text of [
