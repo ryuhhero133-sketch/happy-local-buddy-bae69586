@@ -34,7 +34,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Home } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
-import { AmbientTrainers } from "@/components/AmbientTrainers";
+import { EditorBots } from "@/components/EditorBots";
 import { TrainerActionMenu } from "@/components/TrainerActionMenu";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapV2, type WorldMapDestination } from "@/components/WorldMapV2";
@@ -378,6 +378,7 @@ import {
   type ShipState,
 } from "@/game/ships";
 import { applySpiritEvent, spiritEventId, patenteOf, patentePrizeReady, vipTierOf, VIP_BOOK_BY_TIER, type VipBookId, type VipTierId } from "@/game/trainerProfile";
+import { DEFAULT_EDITOR_BOT, normalizeEditorBots, type EditorBot, type EditorBotDir, type EditorBotFollower } from "@/game/editorBots";
 import trainerSheet from "@/assets/trainer.png";
 import skinPedroAsset from "@/assets/skins/pedro.webp.asset.json";
 import skinPhoneAsset from "@/assets/skins/phone.webp.asset.json";
@@ -421,6 +422,10 @@ const SKINS: { id: string; label: string; url: string; photo: string; gender: "m
 ];
 const skinPhotoOf = (id: string | null | undefined): string | null =>
   SKINS.find((s) => s.id === id)?.photo ?? null;
+const BOT_SKIN_URLS: Record<string, string> = {
+  default: trainerSheet,
+  ...Object.fromEntries(SKINS.map((skin) => [skin.id, skin.url])),
+};
 const SKIN_KEY = "rubym.skin.v1";
 const EQUIPMENT_KEY = "rubym.trainer.equipment.v1";
 const OWNED_EQUIPMENT_KEY = "rubym.trainer.owned_equipment.v1";
@@ -992,6 +997,7 @@ const MAP_EDITOR_KEY = "rubym.map-editor.v1";
 // cópia v2 que o navegador salvou antes da publicação deste mapa.
 const MAP_EDITOR_SPAWNS_KEY = "rubym.map-editor-spawns.v3";
 const MAP_EDITOR_TELEPORTS_KEY = "rubym.map-editor-teleports.v1";
+const MAP_EDITOR_BOTS_KEY = "rubym.map-editor-bots.v1";
 /** Teleporte colocado no editor: pisa na bolinha -> vai para (toMap, toX, toY). */
 type EditorTeleport = { id: number; x: number; y: number; toMap: IdleMapId; toX: number; toY: number; r: number };
 const MAP_EDITOR_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
@@ -4016,7 +4022,7 @@ const confirmName = () => {
   const [eventToast, setEventToast] = useState<{ id: number; icon: string; title: string; sub?: string; color: string } | null>(null);
   const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [mapEditorOpen, setMapEditorOpen] = useState(false);
-  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon" | "teleport">("sprites");
+  const [mapEditorTab, setMapEditorTab] = useState<"sprites" | "pokemon" | "teleport" | "bots">("sprites");
   const [mapEditorAsset, setMapEditorAsset] = useState<string | null>(null);
   const [mapEditorSelectedId, setMapEditorSelectedId] = useState<number | null>(null);
   const [mapEditorSelectedIds, setMapEditorSelectedIds] = useState<number[]>([]);
@@ -4063,7 +4069,8 @@ const confirmName = () => {
   const grassTouchRef = useRef<Map<number, number>>(new Map());
   const [mapEditorSelectedSpawnId, setMapEditorSelectedSpawnId] = useState<number | null>(null);
   const [mapEditorMove, setMapEditorMove] = useState(false);
-  const editorDragRef = useRef<{ kind: "object" | "pokemon"; id: number; pointerId: number; clientX: number; clientY: number; x: number; y: number } | null>(null);
+  const editorDragRef = useRef<{ kind: "object" | "pokemon" | "bot"; id: number; pointerId: number; clientX: number; clientY: number; x: number; y: number } | null>(null);
+  const zoomRef = useRef(1);
   const [mapEditorPokemon, setMapEditorPokemon] = useState<Species>("charmander");
   const [mapEditorPokemonSearch, setMapEditorPokemonSearch] = useState("");
   const [mapEditorPokemonLevel, setMapEditorPokemonLevel] = useState(1);
@@ -4111,7 +4118,7 @@ const confirmName = () => {
   const emeraldHasNevezinhaNpc = idle.currentMap === "emerald"
     && (mapEditorObjects.emerald ?? []).some((object) => object.assetId === "npc_nevezinha");
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_SPAWNS_KEY, JSON.stringify(mapEditorSpawns)); } catch { /* storage indisponível */ } }, [mapEditorSpawns]);
-  useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorMove(false); }, [idle.currentMap]);
+  useEffect(() => { setMapEditorSelectedId(null); setMapEditorSelectedIds([]); setMapEditorSelectedSpawnId(null); setMapEditorSelectedBotId(null); setMapEditorMove(false); setMapEditorBotPlace(false); }, [idle.currentMap]);
   // ---- Teleportes criados no editor (por mapa) ----
   const [mapEditorTeleports, setMapEditorTeleports] = useState<Record<string, EditorTeleport[]>>(() => {
     try {
@@ -4127,10 +4134,51 @@ const confirmName = () => {
   });
   const [mapEditorSelectedTeleportId, setMapEditorSelectedTeleportId] = useState<number | null>(null);
   useEffect(() => { try { localStorage.setItem(MAP_EDITOR_TELEPORTS_KEY, JSON.stringify(mapEditorTeleports)); } catch { /* ignore */ } }, [mapEditorTeleports]);
+  // ---- Treinadores visuais criados no editor (por mapa) ----
+  const [mapEditorBots, setMapEditorBots] = useState<Record<string, EditorBot[]>>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_EDITOR_BOTS_KEY);
+      const saved = raw ? normalizeEditorBots(JSON.parse(raw)) : {};
+      const cached = readCachedPublishedMapEditor();
+      return { ...normalizeEditorBots(cached?.bots), ...saved };
+    } catch { return {}; }
+  });
+  const [mapEditorSelectedBotId, setMapEditorSelectedBotId] = useState<number | null>(null);
+  const [mapEditorBotDraft, setMapEditorBotDraft] = useState(DEFAULT_EDITOR_BOT);
+  const [mapEditorBotPlace, setMapEditorBotPlace] = useState(false);
+  const [mapEditorBotSearch, setMapEditorBotSearch] = useState("");
+  const [mapEditorBotsReady, setMapEditorBotsReady] = useState(false);
+  const mapEditorBotsRef = useRef(mapEditorBots);
+  useEffect(() => { mapEditorBotsRef.current = mapEditorBots; }, [mapEditorBots]);
+  useEffect(() => { try { localStorage.setItem(MAP_EDITOR_BOTS_KEY, JSON.stringify(mapEditorBots)); } catch { /* storage indisponível */ } }, [mapEditorBots]);
+  const mapEditorSpawnsRef = useRef(mapEditorSpawns);
+  useEffect(() => { mapEditorSpawnsRef.current = mapEditorSpawns; }, [mapEditorSpawns]);
+  const mapEditorTeleportsRef = useRef(mapEditorTeleports);
+  useEffect(() => { mapEditorTeleportsRef.current = mapEditorTeleports; }, [mapEditorTeleports]);
   // Publicação global + edição da conta. A publicação preenche o que a conta
   // ainda não tem; a edição da conta (quando existe) vence para o dono.
   const mapEditorCloudReadyRef = useRef(false);
   const mapEditorCloudTimerRef = useRef(0);
+  const mapEditorBotsPublishTimerRef = useRef(0);
+  const mapEditorBotsAutoPublishArmedRef = useRef(false);
+  const mapEditorLiveReloadRef = useRef(false);
+
+  const broadcastMapEditorPublished = async () => {
+    try {
+      const channel = (gameDb as any).channel("map-editor-live-v1");
+      await new Promise<void>((resolve) => {
+        let settled = false;
+        const finish = () => { if (settled) return; settled = true; resolve(); };
+        const timer = window.setTimeout(finish, 1500);
+        channel.subscribe((status: string) => {
+          if (status === "SUBSCRIBED") { window.clearTimeout(timer); finish(); }
+        });
+      });
+      await channel.send({ type: "broadcast", event: "published", payload: { at: Date.now() } });
+      window.setTimeout(() => { void (gameDb as any).removeChannel(channel); }, 1200);
+    } catch { /* quem estiver online atualiza no próximo carregamento */ }
+  };
+
   useEffect(() => {
     if (!identity?.id || mapEditorCloudReadyRef.current) return;
     let cancelled = false;
@@ -4140,25 +4188,37 @@ const confirmName = () => {
         canUseMapEditor ? loadMapEditorCloud(identity.id).catch(() => null) : Promise.resolve(null),
       ]);
       if (cancelled) return;
-      if (published?.objects) {
-        setMapEditorObjects((prev) => ({ ...normalizeMapEditorObjects(published.objects), ...prev }));
+      const preferPublished = !canUseMapEditor;
+      if (published) {
+        if (published.objects) {
+          setMapEditorObjects((prev) => preferPublished
+            ? normalizeMapEditorObjects(published.objects)
+            : { ...normalizeMapEditorObjects(published.objects), ...prev });
+        }
+        if (published.spawns) {
+          setMapEditorSpawns((prev) => preferPublished
+            ? (published.spawns as Record<string, EditorPokemonSpawn[]>)
+            : { ...(published.spawns as Record<string, EditorPokemonSpawn[]>), ...prev });
+        }
+        if (published.teleports) {
+          setMapEditorTeleports((prev) => preferPublished
+            ? (published.teleports as Record<string, EditorTeleport[]>)
+            : { ...(published.teleports as Record<string, EditorTeleport[]>), ...prev });
+        }
+        if (published.bots) {
+          setMapEditorBots((prev) => preferPublished
+            ? normalizeEditorBots(published.bots)
+            : { ...normalizeEditorBots(published.bots), ...prev });
+        }
       }
-      if (published?.spawns) {
-        setMapEditorSpawns((prev) => ({ ...(published.spawns as Record<string, EditorPokemonSpawn[]>), ...prev }));
-      }
-      if (published?.teleports) {
-        setMapEditorTeleports((prev) => ({ ...(published.teleports as Record<string, EditorTeleport[]>), ...prev }));
-      }
-      if (cloud?.objects) {
-        setMapEditorObjects((prev) => ({ ...prev, ...normalizeMapEditorObjects(cloud.objects) }));
-      }
-      if (cloud?.spawns) {
-        setMapEditorSpawns((prev) => ({ ...prev, ...(cloud.spawns as Record<string, EditorPokemonSpawn[]>) }));
-      }
-      if (cloud?.teleports) {
-        setMapEditorTeleports((prev) => ({ ...prev, ...(cloud.teleports as Record<string, EditorTeleport[]>) }));
+      if (cloud) {
+        if (cloud.objects) setMapEditorObjects((prev) => ({ ...prev, ...normalizeMapEditorObjects(cloud.objects) }));
+        if (cloud.spawns) setMapEditorSpawns((prev) => ({ ...prev, ...(cloud.spawns as Record<string, EditorPokemonSpawn[]>) }));
+        if (cloud.teleports) setMapEditorTeleports((prev) => ({ ...prev, ...(cloud.teleports as Record<string, EditorTeleport[]>) }));
+        if (cloud.bots) setMapEditorBots((prev) => ({ ...prev, ...normalizeEditorBots(cloud.bots) }));
       }
       mapEditorCloudReadyRef.current = true;
+      setMapEditorBotsReady(true);
       if (canUseMapEditor) {
         // Dispara um salvamento imediato (sobe a edição local para a conta).
         setMapEditorTeleports((prev) => ({ ...prev }));
@@ -4176,9 +4236,63 @@ const confirmName = () => {
         objects: mapEditorObjects,
         spawns: mapEditorSpawns,
         teleports: mapEditorTeleports,
+        bots: mapEditorBots,
       });
     }, 2000);
-  }, [mapEditorObjects, mapEditorSpawns, mapEditorTeleports, identity?.id, canUseMapEditor]);
+  }, [mapEditorObjects, mapEditorSpawns, mapEditorTeleports, mapEditorBots, identity?.id, canUseMapEditor]);
+
+  // Bots publicados ao vivo: o dono salva + publica + avisa os clientes online.
+  useEffect(() => {
+    if (!identity?.id || !canUseMapEditor || !mapEditorBotsReady) return;
+    if (!mapEditorBotsAutoPublishArmedRef.current) {
+      mapEditorBotsAutoPublishArmedRef.current = true;
+      return;
+    }
+    window.clearTimeout(mapEditorBotsPublishTimerRef.current);
+    mapEditorBotsPublishTimerRef.current = window.setTimeout(() => {
+      void (async () => {
+        try {
+          await saveMapEditorCloud(identity.id, {
+            objects: mapEditorObjectsRef.current,
+            spawns: mapEditorSpawnsRef.current,
+            teleports: mapEditorTeleportsRef.current,
+            bots: mapEditorBotsRef.current,
+          });
+          const { error } = await (supabase as any).rpc("publish_map_editor_defaults");
+          if (error) return;
+          await broadcastMapEditorPublished();
+        } catch { /* tenta no próximo ajuste */ }
+      })();
+    }, 1500);
+    return () => window.clearTimeout(mapEditorBotsPublishTimerRef.current);
+  }, [mapEditorBots, identity?.id, canUseMapEditor, mapEditorBotsReady]);
+
+  // Quem está online recebe a publicação sem precisar recarregar a página.
+  useEffect(() => {
+    if (!identity?.id || canUseMapEditor) return;
+    let disposed = false;
+    const channel = (gameDb as any).channel("map-editor-live-v1")
+      .on("broadcast", { event: "published" }, () => {
+        if (mapEditorLiveReloadRef.current) return;
+        mapEditorLiveReloadRef.current = true;
+        void loadPublishedMapEditor()
+          .then((published) => {
+            if (disposed || !published) return;
+            setMapEditorObjects(normalizeMapEditorObjects(published.objects));
+            setMapEditorSpawns((published.spawns as Record<string, EditorPokemonSpawn[]>) ?? {});
+            setMapEditorTeleports((published.teleports as Record<string, EditorTeleport[]>) ?? {});
+            setMapEditorBots(normalizeEditorBots(published.bots));
+          })
+          .finally(() => {
+            window.setTimeout(() => { mapEditorLiveReloadRef.current = false; }, 600);
+          });
+      })
+      .subscribe();
+    return () => {
+      disposed = true;
+      void (gameDb as any).removeChannel(channel);
+    };
+  }, [identity?.id, canUseMapEditor]);
 
   // Painel do editor arrastavel
   const [mapEditorPos, setMapEditorPos] = useState<{ x: number; y: number } | null>(null);
@@ -7047,6 +7161,24 @@ const confirmName = () => {
   const editorObstacles = mapEditorObjects[idle.currentMap] ?? EMPTY_EDITOR_OBSTACLES;
   const selectedMapEditorObject = editorObstacles.find((object) => object.id === mapEditorSelectedId) ?? null;
   const selectedMapEditorSpawn = (mapEditorSpawns[idle.currentMap] ?? []).find((spawn) => spawn.id === mapEditorSelectedSpawnId) ?? null;
+  const selectedMapEditorBot = (mapEditorBots[idle.currentMap] ?? []).find((bot) => bot.id === mapEditorSelectedBotId) ?? null;
+  const mapEditorBotForm = selectedMapEditorBot ? {
+    name: selectedMapEditorBot.name,
+    avatarId: selectedMapEditorBot.avatarId,
+    leaderSpecies: selectedMapEditorBot.leaderSpecies,
+    vipTier: selectedMapEditorBot.vipTier,
+    follower: selectedMapEditorBot.follower,
+    moving: selectedMapEditorBot.moving,
+    dir: selectedMapEditorBot.dir,
+  } : mapEditorBotDraft;
+  const botSpeciesSearch = mapEditorBotSearch.trim().toLowerCase().replace(/[ _-]/g, "");
+  const botSpeciesOptions = Object.keys(SPECIES_BASE)
+    .filter((species) => !!GIF[species as Species] || !!zoneSheet(species))
+    .filter((species) => !botSpeciesSearch || species.toLowerCase().replace(/[ _-]/g, "").includes(botSpeciesSearch))
+    .sort();
+  const visibleBotSpeciesOptions = botSpeciesOptions.includes(mapEditorBotForm.leaderSpecies)
+    ? botSpeciesOptions
+    : [mapEditorBotForm.leaderSpecies, ...botSpeciesOptions];
   const editorPokemonSearch = mapEditorPokemonSearch.trim().toLowerCase().replace(/[ _-]/g, "");
   const editorPokemonOptions = Object.keys(SPECIES_BASE)
     .filter((species) => !!GIF[species as Species])
@@ -7056,30 +7188,36 @@ const confirmName = () => {
   const visibleEditorPokemonOptions = editorPokemonOptions.includes(selectedEditorPokemon)
     ? editorPokemonOptions
     : [selectedEditorPokemon, ...editorPokemonOptions];
-  const startEditorDrag = (event: React.PointerEvent<HTMLElement>, kind: "object" | "pokemon", id: number, x: number, y: number) => {
-    if (!mapEditorOpen || mapEditorAsset || mapEditorMove || event.button !== 0 || (kind === "object" ? mapEditorTab !== "sprites" : mapEditorTab !== "pokemon")) return;
+  const startEditorDrag = useCallback((event: React.PointerEvent<HTMLElement>, kind: "object" | "pokemon" | "bot", id: number, x: number, y: number) => {
+    if (!mapEditorOpen || mapEditorAsset || mapEditorMove || event.button !== 0) return;
+    if (kind === "object" ? mapEditorTab !== "sprites" : kind === "pokemon" ? mapEditorTab !== "pokemon" : mapEditorTab !== "bots") return;
     event.stopPropagation();
     if (kind === "object") setMapEditorSelectedId(id);
-    else setMapEditorSelectedSpawnId(id);
+    else if (kind === "pokemon") setMapEditorSelectedSpawnId(id);
+    else { setMapEditorSelectedBotId(id); setMapEditorBotPlace(false); }
     editorDragRef.current = { kind, id, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, x, y };
     event.currentTarget.setPointerCapture(event.pointerId);
-  };
-  const dragEditorEntity = (event: React.PointerEvent<HTMLElement>) => {
+  }, [mapEditorOpen, mapEditorAsset, mapEditorMove, mapEditorTab]);
+  const startEditorBotDrag = useCallback((event: React.PointerEvent<HTMLElement>, id: number, x: number, y: number) => {
+    startEditorDrag(event, "bot", id, x, y);
+  }, [startEditorDrag]);
+  const dragEditorEntity = useCallback((event: React.PointerEvent<HTMLElement>) => {
     const drag = editorDragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.stopPropagation();
-    const x = Math.round(drag.x + (event.clientX - drag.clientX) / zoom);
-    const y = Math.round(drag.y + (event.clientY - drag.clientY) / zoom);
+    const x = Math.round(drag.x + (event.clientX - drag.clientX) / zoomRef.current);
+    const y = Math.round(drag.y + (event.clientY - drag.clientY) / zoomRef.current);
     if (x === drag.x && y === drag.y) return;
     if (drag.kind === "object") setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === drag.id ? { ...item, x, y } : item) }));
-    else setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === drag.id ? { ...item, x, y } : item) }));
-  };
-  const endEditorDrag = (event: React.PointerEvent<HTMLElement>) => {
+    else if (drag.kind === "pokemon") setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === drag.id ? { ...item, x, y } : item) }));
+    else setMapEditorBots((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((item) => item.id === drag.id ? { ...item, x, y } : item) }));
+  }, [idle.currentMap]);
+  const endEditorDrag = useCallback((event: React.PointerEvent<HTMLElement>) => {
     if (editorDragRef.current?.pointerId !== event.pointerId) return;
     editorDragRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     event.stopPropagation();
-  };
+  }, []);
   const removeEditorObject = (id: number) => {
     setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
     setMapEditorSelectedId((selected) => selected === id ? null : selected);
@@ -7115,6 +7253,34 @@ const confirmName = () => {
     setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
     setMapEditorSelectedSpawnId((selected) => selected === id ? null : selected);
     setMapEditorMove(false);
+  };
+  const removeEditorBot = useCallback((id: number) => {
+    setMapEditorBots((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).filter((item) => item.id !== id) }));
+    setMapEditorSelectedBotId((selected) => selected === id ? null : selected);
+    setMapEditorMove(false);
+  }, [idle.currentMap]);
+  const selectEditorBot = useCallback((id: number) => {
+    setMapEditorSelectedBotId(id);
+    setMapEditorBotPlace(false);
+    setMapEditorMove(false);
+  }, []);
+  const setBotField = <K extends keyof typeof mapEditorBotDraft>(key: K, value: (typeof mapEditorBotDraft)[K]) => {
+    if (selectedMapEditorBot) {
+      setMapEditorBots((prev) => ({
+        ...prev,
+        [idle.currentMap]: (prev[idle.currentMap] ?? []).map((bot) =>
+          bot.id === selectedMapEditorBot.id ? { ...bot, [key]: value } : bot),
+      }));
+    } else {
+      setMapEditorBotDraft((prev) => ({ ...prev, [key]: value }));
+    }
+  };
+  const createEditorBotAt = (x: number, y: number) => {
+    const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+    const bot: EditorBot = { id, x, y, ...mapEditorBotForm };
+    setMapEditorBots((prev) => ({ ...prev, [idle.currentMap]: [...(prev[idle.currentMap] ?? []), bot] }));
+    setMapEditorSelectedBotId(id);
+    setMapEditorBotPlace(false);
   };
   const obstacles = useMemo(() => {
     // Quando o mapa tem cenário do editor (matos, árvores, pedras), ele é a
@@ -11322,6 +11488,7 @@ const confirmName = () => {
   // Do not force a "cover" zoom: the player can zoom out to 80%, even on small maps.
   // Camera, sprites and click coordinates still share the same uniform scale.
   const zoom = Math.max(0.8, requestedZoom);
+  zoomRef.current = zoom;
   // ===== Ranking Global =====
   type RankRow = {
     id: string;
@@ -20412,12 +20579,19 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
               const wx = Math.round(renderCamX + (e.clientX - rect.left - centerOffX) / zoom);
               const wy = Math.round(renderCamY + (e.clientY - rect.top - centerOffY) / zoom);
               if (mapEditorMove) {
-                if (mapEditorTab === "pokemon" && mapEditorSelectedSpawnId != null) {
+                if (mapEditorTab === "bots" && mapEditorSelectedBotId != null) {
+                  setMapEditorBots((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((bot) => bot.id === mapEditorSelectedBotId ? { ...bot, x: wx, y: wy } : bot) }));
+                } else if (mapEditorTab === "pokemon" && mapEditorSelectedSpawnId != null) {
                   setMapEditorSpawns((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((spawn) => spawn.id === mapEditorSelectedSpawnId ? { ...spawn, x: wx, y: wy } : spawn) }));
                 } else if (mapEditorSelectedId != null) {
                   setMapEditorObjects((prev) => ({ ...prev, [idle.currentMap]: (prev[idle.currentMap] ?? []).map((object) => object.id === mapEditorSelectedId ? { ...object, x: wx, y: wy } : object) }));
                 }
                 setMapEditorMove(false); e.stopPropagation(); return;
+              }
+              if (mapEditorTab === "bots") {
+                if (!mapEditorBotPlace) return;
+                createEditorBotAt(wx, wy);
+                playClick(); e.stopPropagation(); return;
               }
               const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
               if (mapEditorTab === "teleport") {
@@ -24387,17 +24561,25 @@ A sucata afundou com o casco.
             })()}
 
 
-            {/* Treinadores ambiente: client-side, sem rede/save. Ficam atrás dos jogadores reais. */}
-            {!mapEditorOpen && (
-              <AmbientTrainers
-                key={idle.currentMap}
-                mapId={String(idle.currentMap)}
-                worldW={curWorldW}
-                worldH={curWorldH}
-                grassPatches={grassPatches}
-                guildEnabled={!!guild}
-              />
-            )}
+            {/* Treinadores criados no editor: visuais, sem rede/save por bot. */}
+            <EditorBots
+              key={idle.currentMap}
+              mapId={String(idle.currentMap)}
+              worldW={curWorldW}
+              worldH={curWorldH}
+              bots={mapEditorBots[idle.currentMap] ?? []}
+              editorMode={mapEditorOpen}
+              editorInteractive={mapEditorOpen && mapEditorTab === "bots"}
+              selectedBotId={mapEditorSelectedBotId}
+              skinUrls={BOT_SKIN_URLS}
+              gifMap={GIF}
+              guildEnabled={!!guild}
+              onSelect={selectEditorBot}
+              onRemove={removeEditorBot}
+              onStartDrag={startEditorBotDrag}
+              onDrag={dragEditorEntity}
+              onEndDrag={endEditorDrag}
+            />
 
             {/* Outros jogadores no mesmo mapa */}
             {visibleMapPlayers.map((rp) => {
@@ -25348,16 +25530,16 @@ A sucata afundou com o casco.
                 <span style={{ color: "#9b8bb4", alignSelf: "center" }}>sua posição</span>
               </div>
               <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                {(["sprites", "pokemon", "teleport"] as const).map((mode) => <button type="button" key={mode}
-                  onClick={() => { setMapEditorTab(mode); setMapEditorAsset(null); setMapEditorMove(false); }}
+                {(["sprites", "pokemon", "bots", "teleport"] as const).map((mode) => <button type="button" key={mode}
+                  onClick={() => { setMapEditorTab(mode); setMapEditorAsset(null); setMapEditorMove(false); setMapEditorBotPlace(false); }}
                   style={{ flex: 1, padding: 6, borderRadius: 7, color: "#fff", cursor: "pointer",
                     border: `1px solid ${mapEditorTab === mode ? "#ffe08a" : "#61477f"}`,
                     background: mapEditorTab === mode ? "#5b3573" : "#261a3b" }}>
-                  {mode === "sprites" ? "🌳 OBJ" : mode === "pokemon" ? "⚡ MON" : "🌀 TP"}
+                  {mode === "sprites" ? "🌳 OBJ" : mode === "pokemon" ? "⚡ MON" : mode === "bots" ? "🤖 BOT" : "🌀 TP"}
                 </button>)}
               </div>
               <div style={{ color: "#d8c8e8", fontSize: 11, marginBottom: 8 }}>
-                {mapEditorMove ? "Clique no mapa para mover o selecionado." : mapEditorAsset ? "Clique no mapa para adicionar, mesmo perto de outros itens. Botão direito remove." : "Arraste para mover. Botão direito remove. Para adicionar, escolha um item."}
+                {mapEditorMove ? "Clique no mapa para mover o selecionado." : mapEditorTab === "bots" ? (mapEditorBotPlace ? "Clique no mapa para colocar o bot." : "Arraste bots para mover. Botão direito remove. Use + Colocar bot para criar.") : mapEditorAsset ? "Clique no mapa para adicionar, mesmo perto de outros itens. Botão direito remove." : "Arraste para mover. Botão direito remove. Para adicionar, escolha um item."}
               </div>
               {mapEditorTab === "teleport" ? <>
                 <div style={{ color: "#d8c8e8", fontSize: 11, marginBottom: 8 }}>
@@ -25528,6 +25710,82 @@ A sucata afundou com o casco.
                     </div>
                   </div>;
                 })()}
+              </> : mapEditorTab === "bots" ? <>
+                <div style={{ display: "flex", gap: 6, marginBottom: 7 }}>
+                  <button type="button" onClick={() => { if (selectedMapEditorBot) setMapEditorBotDraft({ ...mapEditorBotForm }); setMapEditorSelectedBotId(null); setMapEditorBotPlace(false); setMapEditorMove(false); }}
+                    style={{ flex: 1, padding: 7, cursor: "pointer", background: !mapEditorBotPlace ? "#63395b" : "#261a3b", border: "1px solid #d9b46b", color: "#fff", borderRadius: 6 }}>☝ Selecionar / arrastar</button>
+                  <button type="button" onClick={() => { if (selectedMapEditorBot) setMapEditorBotDraft({ ...mapEditorBotForm }); setMapEditorSelectedBotId(null); setMapEditorBotPlace(true); setMapEditorMove(false); }}
+                    style={{ flex: 1, padding: 7, cursor: "pointer", background: mapEditorBotPlace ? "#63395b" : "#261a3b", border: "1px solid #d9b46b", color: "#fff", borderRadius: 6 }}>+ Colocar bot</button>
+                </div>
+                <div style={{ color: "#d8c8e8", fontSize: 10, marginBottom: 7 }}>
+                  {mapEditorBotPlace ? "Clique no mapa onde o bot deve ficar." : "Arraste um bot para mover. Botão direito remove. Para criar, use + Colocar bot."}
+                </div>
+                <label style={{ display: "block", marginBottom: 6, color: "#ffe8b0", fontWeight: 800 }}>Nome
+                  <input value={mapEditorBotForm.name} maxLength={24} onChange={(event) => setBotField("name", event.target.value)}
+                    placeholder="Nome do treinador" autoComplete="off"
+                    style={{ display: "block", boxSizing: "border-box", width: "100%", marginTop: 4, padding: "7px 9px", border: "1px solid #d9b46b", borderRadius: 6, background: "#120b22", color: "#fff7da", fontSize: 13, outline: "none" }} />
+                </label>
+                <label style={{ display: "block", marginBottom: 6, color: "#ffe8b0", fontWeight: 800 }}>Avatar
+                  <select value={mapEditorBotForm.avatarId} onChange={(event) => setBotField("avatarId", event.target.value)} style={{ width: "100%" }}>
+                    <option value="default">Treinador padrão</option>
+                    {SKINS.map((skin) => <option key={skin.id} value={skin.id}>{skin.label}</option>)}
+                  </select>
+                </label>
+                <label style={{ display: "block", marginBottom: 6, color: "#ffe8b0", fontWeight: 800 }}>🔎 Pokémon do bot
+                  <input type="search" value={mapEditorBotSearch} onChange={(event) => setMapEditorBotSearch(event.target.value)}
+                    placeholder="Digite: gengar, pikachu..." autoComplete="off"
+                    style={{ display: "block", boxSizing: "border-box", width: "100%", marginTop: 4, padding: "7px 9px", border: "1px solid #d9b46b", borderRadius: 6, background: "#120b22", color: "#fff7da", fontSize: 13, outline: "none" }} />
+                </label>
+                <select value={mapEditorBotForm.leaderSpecies} size={5} onChange={(event) => setBotField("leaderSpecies", event.target.value as Species)}
+                  style={{ display: "block", boxSizing: "border-box", width: "100%", padding: 4, border: "1px solid #d9b46b", borderRadius: 6, background: "#120b22", color: "#fff7da", fontSize: 13, lineHeight: 1.6 }}>
+                  {visibleBotSpeciesOptions.map((species) => <option key={species} value={species} style={{ background: "#160f2a", color: "#fff7da", padding: 4 }}>{species.replace(/_/g, " ")}</option>)}
+                </select>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 7 }}>
+                  <label>VIP
+                    <select value={mapEditorBotForm.vipTier ?? ""} onChange={(event) => setBotField("vipTier", event.target.value ? event.target.value as VipTierId : null)} style={{ width: "100%" }}>
+                      <option value="">Sem VIP</option>
+                      <option value="vip">VIP EPIC ✦</option>
+                      <option value="vip30">VIP CRISTAL ✦✦</option>
+                      <option value="vip60">VIP GOLD ✦✦✦</option>
+                    </select>
+                  </label>
+                  <label>Companheiro
+                    <select value={mapEditorBotForm.follower} onChange={(event) => setBotField("follower", event.target.value as EditorBotFollower)} style={{ width: "100%" }}>
+                      <option value="none">Nenhum</option>
+                      <option value="nevezinha">Nevezinha ⛄</option>
+                      <option value="slime">Slime 🔵</option>
+                    </select>
+                  </label>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 7 }}>
+                  <label style={{ alignSelf: "center", cursor: "pointer" }}>
+                    <input type="checkbox" checked={mapEditorBotForm.moving} onChange={(event) => setBotField("moving", event.target.checked)} /> Em movimento
+                    <small style={{ display: "block", color: "#cbb9dc" }}>anda sozinho perto do ponto</small>
+                  </label>
+                  <label>Direção (parado)
+                    <select value={mapEditorBotForm.dir} disabled={mapEditorBotForm.moving} onChange={(event) => setBotField("dir", event.target.value as EditorBotDir)} style={{ width: "100%" }}>
+                      <option value="down">Baixo</option>
+                      <option value="left">Esquerda</option>
+                      <option value="right">Direita</option>
+                      <option value="up">Cima</option>
+                    </select>
+                  </label>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                  {selectedMapEditorBot && <button type="button" onClick={() => { setMapEditorMove(true); setMapEditorBotPlace(false); }}>Mover no mapa</button>}
+                  <button type="button" onClick={() => { createEditorBotAt(Math.round(trainerPos.x), Math.round(trainerPos.y)); }}>Usar meu local</button>
+                  {selectedMapEditorBot && <button type="button" onClick={() => removeEditorBot(selectedMapEditorBot.id)}>Remover bot</button>}
+                </div>
+                <div style={{ maxHeight: 110, overflowY: "auto", marginTop: 8 }}>
+                  {(mapEditorBots[idle.currentMap] ?? []).map((bot) => (
+                    <button type="button" key={bot.id} onClick={() => selectEditorBot(bot.id)}
+                      style={{ display: "block", width: "100%", textAlign: "left", padding: 5, marginBottom: 3, fontSize: 10, color: selectedMapEditorBot?.id === bot.id ? "#ffe08a" : "#e2d2ec", background: "#221733", border: `1px solid ${selectedMapEditorBot?.id === bot.id ? "#ffe08a" : "#594779"}`, borderRadius: 6, cursor: "pointer" }}>
+                      {bot.moving ? "🚶" : "🧍"} {bot.name} · {bot.leaderSpecies.replace(/_/g, " ")}{bot.vipTier ? " · VIP" : ""}{bot.follower === "nevezinha" ? " · ⛄" : bot.follower === "slime" ? " · 🔵" : ""}
+                    </button>
+                  ))}
+                  {(mapEditorBots[idle.currentMap] ?? []).length === 0 && <small style={{ color: "#b8a8cb" }}>Nenhum bot neste mapa ainda.</small>}
+                </div>
+                <small style={{ display: "block", marginTop: 6, color: "#9fe6b0" }}>Alterações de bots são publicadas automaticamente para quem está online.</small>
               </> : <>
                 <div style={{ display: "flex", gap: 6, marginBottom: 7 }}>
                   <button type="button" onClick={() => { setMapEditorAsset(null); setMapEditorMove(false); }}
@@ -25597,7 +25855,7 @@ A sucata afundou com o casco.
                 </div>
               </>}
               <button type="button" onClick={() => {
-                const json = JSON.stringify({ version: 4, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [], teleports: mapEditorTeleports[idle.currentMap] ?? [] }, null, 2);
+                const json = JSON.stringify({ version: 5, map: idle.currentMap, objects: editorObstacles, spawns: mapEditorSpawns[idle.currentMap] ?? [], teleports: mapEditorTeleports[idle.currentMap] ?? [], bots: mapEditorBots[idle.currentMap] ?? [] }, null, 2);
                 const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
                 const link = document.createElement("a"); link.href = url; link.download = `mapa-${idle.currentMap}.json`; link.click();
                 window.setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -25607,6 +25865,7 @@ A sucata afundou com o casco.
                   ...Object.keys(mapEditorObjects),
                   ...Object.keys(mapEditorSpawns),
                   ...Object.keys(mapEditorTeleports),
+                  ...Object.keys(mapEditorBots),
                 ]);
                 const maps: Record<string, unknown> = {};
                 for (const id of ids) {
@@ -25614,9 +25873,10 @@ A sucata afundou com o casco.
                     objects: mapEditorObjects[id] ?? [],
                     spawns: mapEditorSpawns[id] ?? [],
                     teleports: mapEditorTeleports[id] ?? [],
+                    bots: mapEditorBots[id] ?? [],
                   };
                 }
-                const json = JSON.stringify({ version: 5, exportedAt: new Date().toISOString(), maps }, null, 2);
+                const json = JSON.stringify({ version: 6, exportedAt: new Date().toISOString(), maps }, null, 2);
                 const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
                 const link = document.createElement("a");
                 link.href = url;
@@ -25630,8 +25890,9 @@ A sucata afundou com o casco.
                   objects: mapEditorObjects,
                   spawns: mapEditorSpawns,
                   teleports: mapEditorTeleports,
+                  bots: mapEditorBots,
                 })
-                  .then(() => pushChat("☁️ Mapa salvo na conta (matos, spawns e teleports).", "cap"))
+                  .then(() => pushChat("☁️ Mapa salvo na conta (matos, spawns, teleports e bots).", "cap"))
                   .catch(() => pushChat("Não consegui salvar na conta agora. Tente de novo.", "info"));
               }} style={{ marginTop: 6, width: "100%", padding: 7, background: "linear-gradient(180deg,#2f7d46,#1d5a31)", border: "1px solid #9be6a8", color: "#fff", borderRadius: 6, cursor: "pointer", fontWeight: 800 }}>☁️ Salvar na conta (mapa atual)</button>
               <button type="button" onClick={() => {
@@ -25642,10 +25903,12 @@ A sucata afundou com o casco.
                       objects: mapEditorObjects,
                       spawns: mapEditorSpawns,
                       teleports: mapEditorTeleports,
+                      bots: mapEditorBots,
                     });
                     const { data, error } = await (supabase as any).rpc("publish_map_editor_defaults");
                     if (error) throw error;
-                    pushChat(`🌍 Mapas publicados para TODAS as contas (versão ${data?.version ?? "?"}).`, "cap");
+                    await broadcastMapEditorPublished();
+                    pushChat(`🌍 Mapas publicados para TODAS as contas (versão ${data?.version ?? "?"}) e sincronizados ao vivo.`, "cap");
                   } catch {
                     pushChat("Não consegui publicar os mapas agora. Salve na conta e tente de novo.", "info");
                   }

@@ -4,6 +4,7 @@ export type MapEditorCloudPayload = {
   objects?: Record<string, unknown[]>;
   spawns?: Record<string, unknown[]>;
   teleports?: Record<string, unknown[]>;
+  bots?: Record<string, unknown[]>;
 };
 
 const PUBLISHED_CACHE_KEY = "rubym.published-maps.v1";
@@ -43,7 +44,7 @@ export async function loadMapEditorCloud(userId: string): Promise<MapEditorCloud
     .maybeSingle();
   if (error || !data?.data) return null;
   const payload = data.data as MapEditorCloudPayload;
-  const temAlgo = Object.keys(payload.objects ?? {}).length + Object.keys(payload.spawns ?? {}).length + Object.keys(payload.teleports ?? {}).length > 0;
+  const temAlgo = Object.keys(payload.objects ?? {}).length + Object.keys(payload.spawns ?? {}).length + Object.keys(payload.teleports ?? {}).length + Object.keys(payload.bots ?? {}).length > 0;
   return temAlgo ? payload : null;
 }
 
