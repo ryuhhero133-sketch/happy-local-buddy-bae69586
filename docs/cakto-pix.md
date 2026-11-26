@@ -19,7 +19,7 @@ Não publicado ainda:
 - Secrets da Cakto.
 - Oferta/preço de cada pacote no catálogo.
 
-O código está em `supabase/functions/`. O banco já foi migrado e testado. O catálogo começa com os pacotes **inativos** até a sincronização real; a loja mostra “EM CONFIGURAÇÃO” em vez de inventar preço ou ID.
+O cliente já foi publicado na Cloudflare, mas a seção PIX fica **oculta** enquanto não houver pacote ativo com preço e oferta. Nada de preço ou ID inventado aparece para o jogador. O código das Functions está em `supabase/functions/`; o banco já foi migrado e testado.
 
 ## Arquitetura
 
@@ -115,8 +115,8 @@ Produtos: os três produtos dos pacotes. A Cakto exige produtos explícitos no w
 ### 4. Publicar Functions
 
 ```powershell
-npx supabase functions deploy --remote=zdeduwsbzupulomxvfmb `
-  cakto-create-payment cakto-webhook cakto-sync-catalog --use-api
+npx supabase functions deploy --remote=zdeduwsbzupulomxvfmb --use-api --yes `
+  cakto-create-payment cakto-webhook cakto-sync-catalog
 ```
 
 ### 5. Descobrir IDs e preços reais
@@ -127,7 +127,7 @@ Com as credenciais configuradas e as Functions publicadas, entre na conta princi
 
 ```powershell
 node --test scripts/cakto.test.mjs
-npm run build
+bun run build
 ```
 
 Os testes cobrem HMAC, janela temporal, UUID, SQL de entrega única, RLS, ausência de crédito em `pix_gerado`, idempotência e a interface da Loja Cash.

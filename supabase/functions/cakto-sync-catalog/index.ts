@@ -3,7 +3,10 @@
 import { adminClient, caktoFetch, corsHeaders, env, json, userClient } from "../_shared/cakto.ts";
 
 type Product = { id: string; name?: string; status?: string };
-type Offer = { id: string; name?: string; price?: number; currency?: string; product?: string; status?: string; default?: boolean };
+type Offer = {
+  id: string; name?: string; price?: number; currency?: string; product?: string;
+  status?: string; default?: boolean; type?: string;
+};
 type PackageRow = { id: string; name: string; diamonds: number };
 
 const OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
@@ -51,16 +54,23 @@ Deno.serve(async (request) => {
     const missing: string[] = [];
     for (const pkg of (packages ?? []) as PackageRow[]) {
       const keywords = PACKAGE_KEYWORDS[pkg.id] ?? [];
-      const product = products.find((candidate) => {
+      // Só aceita um produto por pacote. Nome ambíguo não vira oferta ativa.
+      const matches = products.filter((candidate) => {
         const haystack = normalize(candidate.name);
         return keywords.some((keyword) => haystack.includes(keyword));
       });
-      if (!product) { missing.push(pkg.id); continue; }
-      const productOffers = offers
-        .filter((offer) => offer.product === product.id && offer.status === "active")
-        .sort((a, b) => Number(b.default === true) - Number(a.default === true));
-      const offer = productOffers[0];
-      if (!offer || typeof offer.price !== "number" || offer.price <= 0 || offer.currency !== "BRL") {
+      if (matches.length !== 1) { missing.push(pkg.id); continue; }
+      const product = matches[0];
+      const productOffers = offers.filter((offer) =>
+        offer.product === product.id
+        && offer.status === "active"
+        && offer.currency === "BRL"
+        && (offer.type === undefined || offer.type === "unique")
+      );
+      const defaults = productOffers.filter((offer) => offer.default === true);
+      // Prefere a oferta padrão; sem padrão, só aceita se houver exatamente uma.
+      const offer = defaults.length === 1 ? defaults[0] : defaults.length === 0 && productOffers.length === 1 ? productOffers[0] : null;
+      if (!offer || typeof offer.price !== "number" || offer.price <= 0) {
         missing.push(pkg.id);
         continue;
       }

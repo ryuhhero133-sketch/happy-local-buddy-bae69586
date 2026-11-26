@@ -31702,15 +31702,37 @@ onClick={(e) => {
         playerName={identity?.name ?? "Treinador"}
         onPurchase={buyRedCrystalCashProduct}
         onCrystalsCredited={(redCrystals) => {
-          setIdle((current) => {
-            const next = { ...current, items: { ...current.items, cr_red: redCrystals } };
-            idleRef.current = next;
-            saveIdle(next);
-            return next;
-          });
-          // O webhook altera a versão oficial do save. Alinha o checkpoint para
-          // o próximo autosave não parecer um save antigo em conflito.
-          if (identity?.id) void fetchServer(identity.id).catch(() => {});
+          const uid = identity?.id;
+          if (!uid) return;
+          // O webhook altera o save no servidor. Hidrata o checkpoint oficial
+          // inteiro para não reenviar por cima de outras mudanças do save.
+          void (async () => {
+            try {
+              const server = await fetchServer(uid);
+              const snapshot = server?.snapshot as {
+                idle?: IdleState;
+                team?: PetInstance[];
+                restingBench?: PetInstance[];
+              } | null;
+              if (snapshot?.idle) {
+                idleRef.current = snapshot.idle;
+                setIdle(snapshot.idle);
+                if (Array.isArray(snapshot.team)) {
+                  teamRef.current = snapshot.team;
+                  setTeam(snapshot.team);
+                }
+                if (Array.isArray(snapshot.restingBench)) setRestingBench(snapshot.restingBench);
+                saveIdleStamped(snapshot.idle);
+                return;
+              }
+            } catch { /* usa o saldo devolvido pelo pedido */ }
+            // Fallback visual: não força um push com versão antiga.
+            setIdle((current) => {
+              const next = { ...current, items: { ...current.items, cr_red: redCrystals } };
+              idleRef.current = next;
+              return next;
+            });
+          })();
         }}
       />
 
