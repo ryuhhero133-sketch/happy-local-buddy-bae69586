@@ -8547,6 +8547,7 @@ const confirmName = () => {
   const globalRewardVoucherBusyRef = useRef(false);
   const nevenatalinosCodeBusyRef = useRef(false);
   const goldVipCodeBusyRef = useRef(false);
+  const gengarGoldCodeBusyRef = useRef(false);
   const landCertCodeBusyRef = useRef(false);
   type NevenatalinosResponse = {
     ok?: boolean;
@@ -8609,19 +8610,21 @@ const confirmName = () => {
       }
     }
   };
-  const patchGoldVipSnapshot = (
+  const patchServerItemsSnapshot = (
     snapshot: unknown,
     serverItems: Record<string, number>,
     checkpoint: unknown,
+    itemIds: readonly string[],
     serverSavedAt = 0,
+    errorTag = "server_items",
   ) => {
     const save = snapshot as { idle?: IdleState; savedAt?: number };
     const base = checkpoint as { idle?: IdleState };
-    if (!save.idle || !base.idle) throw new Error("goldvip_snapshot_invalid");
+    if (!save.idle || !base.idle) throw new Error(`${errorTag}_snapshot_invalid`);
     const items = { ...(save.idle.items ?? {}) };
-    for (const id of ["book_vip_gold_30", "ultraball", "pokeball"]) {
+    for (const id of itemIds) {
       const server = redCrystalCashAmount(serverItems[id]);
-      if (server === null) throw new Error("goldvip_item_invalid");
+      if (server === null) throw new Error(`${errorTag}_item_invalid`);
       const current = redCrystalCashAmount(save.idle.items?.[id]) ?? 0;
       const previous = redCrystalCashAmount(base.idle.items?.[id]) ?? 0;
       items[id] = Math.max(0, Math.min(999_999, server + current - previous));
@@ -8632,6 +8635,19 @@ const confirmName = () => {
       idle: { ...save.idle, items },
     };
   };
+  const patchGoldVipSnapshot = (
+    snapshot: unknown,
+    serverItems: Record<string, number>,
+    checkpoint: unknown,
+    serverSavedAt = 0,
+  ) => patchServerItemsSnapshot(
+    snapshot,
+    serverItems,
+    checkpoint,
+    ["book_vip_gold_30", "ultraball", "pokeball"],
+    serverSavedAt,
+    "goldvip",
+  );
   const patchCertificateSnapshot = (
     snapshot: unknown,
     serverItemQty: number,
@@ -9156,6 +9172,95 @@ const confirmName = () => {
           setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o GOLDVIP." });
         } finally {
           goldVipCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
+    if (/^GENGOLD[A-Z2-9]{20}$/.test(raw)) {
+      if (gengarGoldCodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      gengarGoldCodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Validando GENGOLD no servidor…" });
+      void (async () => {
+        try {
+          let confirmed: GoldVipResponse | null = null;
+          let checkpointIdle: IdleState | null = null;
+          let confirmedSavedAt = 0;
+          const result = await runCheckpointMutation(
+            buildFullBlob(),
+            async (expectedVersion) => {
+              const { data, error } = await (supabase as any).rpc("redeem_gengar_gold_code", {
+                p_code: raw,
+                p_expected_version: expectedVersion,
+              });
+              if (error) return { ok: false, reason: error.message };
+              const response = data as GoldVipResponse | null;
+              if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+              if (response.server_version !== expectedVersion + 1
+                || !response.items
+                || ["book_vip_gold_30", "egg_gengar_epic"].some(
+                  (id) => redCrystalCashAmount(response.items?.[id]) === null,
+                )
+                || typeof response.uses_remaining !== "number") {
+                throw new Error("gengold_invalid_server_response");
+              }
+              confirmed = response;
+              confirmedSavedAt = Number(response.saved_at) || 0;
+              return { ok: true, server_version: response.server_version, value: response.uses_remaining };
+            },
+            (snapshot, _value, checkpoint) => {
+              if (!confirmed) throw new Error("gengold_confirmation_missing");
+              checkpointIdle = (checkpoint as { idle?: IdleState }).idle ?? null;
+              return patchServerItemsSnapshot(
+                snapshot,
+                confirmed.items ?? {},
+                checkpoint,
+                ["book_vip_gold_30", "egg_gengar_epic"],
+                confirmedSavedAt,
+                "gengold",
+              );
+            },
+          );
+          const confirmedReward = confirmed as GoldVipResponse | null;
+          const confirmedCheckpoint = checkpointIdle as IdleState | null;
+          if (!result.ok || !confirmedReward || !confirmedCheckpoint) {
+            const messages: Record<string, string> = {
+              invalid_or_used: "Código GENGOLD inválido ou o uso do servidor já foi consumido.",
+              inventory_cap: "Sua mochila atingiu o limite de um dos itens.",
+              stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
+              checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
+              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue antes de repetir.",
+              unauthenticated: "Entre em sua conta para resgatar este código.",
+            };
+            throw new Error(messages[result.reason ?? ""] ?? "Não foi possível resgatar o GENGOLD. Tente novamente.");
+          }
+          setIdle((current) => {
+            const patched = patchServerItemsSnapshot(
+              { idle: current },
+              confirmedReward.items ?? {},
+              { idle: confirmedCheckpoint },
+              ["book_vip_gold_30", "egg_gengar_epic"],
+              confirmedSavedAt,
+              "gengold",
+            ) as { idle: IdleState };
+            idleRef.current = patched.idle;
+            saveIdle(patched.idle);
+            return patched.idle;
+          });
+          setCodeInput("");
+          const message = "GENGOLD resgatado: 1 Livro VIP GOLD 30 dias + 1 Ovo de Gengar Épico. Use o livro na Mochila para ativar os 30 dias e use o ovo em Ovos > Chocar para enviar o Gengar Épico à Coleção.";
+          setCodeMsg({ kind: "ok", text: message });
+          pushChat(message, "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o GENGOLD." });
+        } finally {
+          gengarGoldCodeBusyRef.current = false;
         }
       })();
       return;
@@ -15425,7 +15530,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       } else {
         pushChat(`Livro VIP usado (+${Math.round(newMult*100)}% ouro e EXP por ${cfg.label}).`, "cap");
       }
-    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_lugia" || id === "egg_dragonite" || id === "egg_mew_7" || id === "egg_lucario_7" || id === "egg_ditto_shiny_1") {
+    } else if (id === "egg_common" || id === "egg_rare" || id === "egg_epic" || id === "egg_mystic" || id === "egg_aura" || id === "egg_charizard" || id === "egg_charizard_epic" || id === "egg_gengar_epic" || id === "egg_lugia" || id === "egg_dragonite" || id === "egg_mew_7" || id === "egg_lucario_7" || id === "egg_ditto_shiny_1") {
       openEgg(id as EggId);
     } else if (id === "egg_anc_selado" || id === "egg_anc_plus" || id === "egg_anc_luck") {
       // Ovos Ancestrais NÃO chocam na mochila: selam um pokémon ESCOLHIDO
@@ -15585,7 +15690,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     common: "#c8b8d0", uncommon: "#5ec26a", rare: "#6bd4ff",
     epic: "#c084fc", legendary: "#f5cf6b", mythic: "#ff6b3d", mythic_shiny: "#ff97e1",
   };
-  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_lugia" | "egg_dragonite" | "egg_mew_7" | "egg_lucario_7" | "egg_ditto_shiny_1";
+  type EggId = "egg_common" | "egg_rare" | "egg_epic" | "egg_mystic" | "egg_aura" | "egg_charizard" | "egg_charizard_epic" | "egg_gengar_epic" | "egg_lugia" | "egg_dragonite" | "egg_mew_7" | "egg_lucario_7" | "egg_ditto_shiny_1";
   // Ovos ancestrais: NÃO chocam sozinhos (selam o pokémon escolhido na aba ANCESTRAL).
   type AncEggId = "egg_anc_selado" | "egg_anc_plus" | "egg_anc_luck";
   const EGG_TIERS: Record<EggId, { weights: Partial<Record<Rarity, number>> }> = {
@@ -15596,6 +15701,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     egg_aura:   { weights: { mythic: 100 } },
     egg_charizard: { weights: { mythic: 100 } },
     egg_charizard_epic: { weights: { epic: 100 } },
+    egg_gengar_epic: { weights: { epic: 100 } },
     egg_lugia:  { weights: { mythic: 100 } },
     egg_dragonite: { weights: { mythic: 100 } },
     egg_mew_7: { weights: { mythic: 100 } },
@@ -15638,6 +15744,32 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       pushChat("🥚 Nasceu DITTO SHINY Mítico Shiny Lv.1! Foi para a Coleção.", "cap");
       return;
     }
+    if (eggId === "egg_gengar_epic") {
+      const base = idleRef.current;
+      if ((base.items[eggId] ?? 0) <= 0) return;
+      if ((base.collection ?? []).length >= MAX_COLLECTION) {
+        pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). O ovo de Gengar continua na Mochila.`, "info");
+        return;
+      }
+      const pet = makePet("gengar", 50, "epic");
+      const next: IdleState = {
+        ...base,
+        items: { ...base.items, [eggId]: base.items[eggId] - 1 },
+        caughtSpecies: base.caughtSpecies.includes("gengar") ? base.caughtSpecies : [...base.caughtSpecies, "gengar"],
+        seenSpecies: base.seenSpecies.includes("gengar") ? base.seenSpecies : [...base.seenSpecies, "gengar"],
+        collection: [...(base.collection ?? []), {
+          uid: pet.uid, species: "gengar", level: pet.level, xp: pet.xp, rarity: "epic",
+          traits: pet.traits ?? [], capturedAt: Date.now(), event: "hatch_code:gengar_epic",
+        }],
+      };
+      idleRef.current = next;
+      saveIdleStamped(next);
+      setIdle(next);
+      void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
+      setEggOpenResult({ sp: "gengar", rarity: "epic" });
+      pushChat("🥚 Nasceu GENGAR ÉPICO Lv. 50! Foi para a Coleção.", "cap");
+      return;
+    }
     if (eggId === "egg_mew_7" || eggId === "egg_lucario_7") {
       const base = idleRef.current;
       if ((base.items[eggId] ?? 0) <= 0) return;
@@ -15676,6 +15808,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     } else if (eggId === "egg_charizard_epic") {
       // Ovo do Charizard ÉPICO: Charizard normal (não shiny) com raridade Épica.
       sp = "charizard" as Species;
+    } else if (eggId === "egg_gengar_epic") {
+      // Ovo de Gengar ÉPICO: Gengar normal (não shiny) com raridade Épica.
+      sp = "gengar" as Species;
     } else if (eggId === "egg_lugia") {
       sp = "lugia" as Species;
     } else if (eggId === "egg_dragonite") {
@@ -15687,7 +15822,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" || eggId === "egg_charizard_epic" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
+    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" || eggId === "egg_charizard_epic" || eggId === "egg_gengar_epic" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
     const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
@@ -32476,7 +32611,8 @@ function TabOverlay({
           ticket_ancestral: "Ticket Ancestral 🎫",
           bau_esmeralda: "Baú de Esmeralda �x�",
           chave_ruby: "Chave Ruby 🔴",
-          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico", egg_lugia: "Ovo de Lugia ✦",
+          egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo Épico", egg_mystic: "Ovo Místico",
+    egg_gengar_epic: "Ovo de Gengar Épico 👻", egg_aura: "Ovo da Aura", egg_charizard: "Ovo do Charizard", egg_charizard_epic: "Ovo do Charizard Épico", egg_gengar_epic: "Ovo de Gengar Épico 👻", egg_lugia: "Ovo de Lugia ✦",
            egg_mew_7: "Ovo Mítico de Mew ✦", egg_lucario_7: "Ovo Mítico de Lucario ✦",
            egg_ditto_shiny_1: "Ovo Raro de Ditto Shiny ✨",
            egg_sprigatito: "Ovo Sprigatito 🌱",
@@ -32560,6 +32696,7 @@ function TabOverlay({
           egg_ditto_shiny_1: "Ovo Raro · ao abrir nasce Ditto Shiny Mítico Shiny nível 1 na Coleção. Não é consumido se a Coleção estiver cheia.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
           egg_charizard_epic: "Ovo do Charizard Épico · choca sempre um Charizard ÉPICO (não shiny) Lv 50.",
+          egg_gengar_epic: "Ovo de Gengar Épico · choca sempre um Gengar ÉPICO (não shiny) Lv 50 e envia para a Coleção.",
            egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
            ...(import.meta.env.DEV ? { egg_pinsir: "Ovo de Pinsir de teste · use Chocar para receber Pinsir Nv. 1 na Coleção.", egg_venusaur_shiny: "Ovo de Venusaur Shiny de teste · use Chocar para receber Venusaur Shiny Nv. 1 na Coleção." } : {}),
           egg_sprigatito: "Ovo Sprigatito 🌱 · choca Sprigatito MÍTICO Nv 1 (carta do evento).",
@@ -32603,7 +32740,7 @@ function TabOverlay({
           oleo: "Óleo · combustível bruto.",
           certificado: "Certificado · autoriza construir 1 casa na Land.",
         };
-        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_ditto_shiny_1: "#ff97e1", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2", ...(import.meta.env.DEV ? { egg_pinsir: "#bd8a55", egg_venusaur_shiny: "#8df0a0" } : {}) };
+        const EGG_COLORS: Record<string, string> = { egg_common: "#c8b8d0", egg_rare: "#6bd4ff", egg_epic: "#c084fc", egg_mystic: "#ff97e1", egg_aura: "#6bd4ff", egg_charizard: "#ff6b3d", egg_charizard_epic: "#ff8a3d", egg_gengar_epic: "#a97bff", egg_lugia: "#a9d8ff", egg_mew_7: "#f4a5ef", egg_lucario_7: "#77b9ff", egg_ditto_shiny_1: "#ff97e1", egg_anc_selado: "#c98cff", egg_anc_plus: "#ffd94d", egg_anc_luck: "#7cffb2", ...(import.meta.env.DEV ? { egg_pinsir: "#bd8a55", egg_venusaur_shiny: "#8df0a0" } : {}) };
         const catOf = (id: string): "balls" | "potions" | "books" | "eggs" | "other" => {
           if (id.endsWith("ball") || id === "pokeball" || id === "greatball" || id === "ultraball") return "balls";
         if (id === "potion" || id === "revive" || id === "berry" || id === "fruta" || id === "suco" || id === "energetico" || id === "refeicao" || id === "morango" || id === "banana" || id === "limao" || id === "maca" || id === "laranja" || id === "picole" || id === "refrigerante" || id === "cafe" || id === "cha_verde" || id === "bolo_morango" || id === "leite_manga") return "potions";
@@ -32666,7 +32803,7 @@ function TabOverlay({
         const directUse = new Set([
            "potion", "berry", "revive", "antidoto", "rare_candy", "premium_box", "bau_esmeralda", "stone_pack_all", "chest_amulet", "nevezinha_doll",
            "book_vip", "book_vip_30", "book_vip_60", "book_vip_gold_30", "book_atk", "book_def", "book_exp", "book_exp_big", "book_exp_max",
-           "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
+           "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_gengar_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga", "combo_revo",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
           "carta_montaria",

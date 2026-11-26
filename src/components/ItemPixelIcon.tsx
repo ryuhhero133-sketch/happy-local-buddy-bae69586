@@ -215,6 +215,7 @@ const ICONS: Record<string, () => Cell[]> = {
   egg_aura: () => drawEgg("#c4ffe8", "#1f8060"),
   egg_charizard: () => drawEgg("#ffbd7a", "#8f3f0f"),
   egg_charizard_epic: () => drawEgg("#ffa25a", "#b3470a"),
+  egg_gengar_epic: () => drawEgg("#c9a6ff", "#3b1f6e"),
   egg_lugia: () => drawEgg("#e8f4ff", "#5a7fa8"),
   emerald_egg: () => drawEgg("#7dffbe", "#1f8060"),
 

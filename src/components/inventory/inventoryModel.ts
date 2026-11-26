@@ -52,7 +52,7 @@ export function inventoryRarity(id: string): InventoryRarity {
   if (id === "egg_ditto_shiny_1") return "rare";
   if (/egg_(aura|charizard|lugia|dragonite|sprigatito|mew_7|lucario_7)|black_mitic|emerald_egg|egg_anc/.test(id)) return "mythic";
   if (/book_vip_60|_gold|_max|_supreme|masterball|stone_dragon|stone_dark|esfera_safira|nevezinha_|slime_/.test(id)) return "legendary";
-  if (/egg_epic|egg_mystic|_purple|book_vip|orb_team|premium_box|carta_|bau_esmeralda/.test(id)) return "epic";
+  if (/egg_epic|egg_mystic|egg_gengar_epic|_purple|book_vip|orb_team|premium_box|carta_|bau_esmeralda/.test(id)) return "epic";
   if (/egg_rare|ultraball|greatball|_big|_major|stone_|cr_/.test(id)) return "rare";
   if (/orb_|incenso_|revive/.test(id)) return "uncommon";
   return "common";
