@@ -11622,7 +11622,9 @@ const confirmName = () => {
         }));
         if (!cancelled) {
           setRankRows(toRankTop10(rows));
-          setRankSnapshotAt(Date.now());
+          const refreshedRaw = top[0]?.refreshed_at;
+          const refreshedAt = refreshedRaw ? Date.parse(refreshedRaw.replace(" ", "T")) : NaN;
+          setRankSnapshotAt(Number.isFinite(refreshedAt) ? refreshedAt : Date.now());
         }
       } catch (error) {
         console.warn("[idle ranked] load:", error);
@@ -23428,7 +23430,8 @@ A sucata afundou com o casco.
                       Os maiores treinadores do nosso mundo!
                     </div>
                     <div style={{ fontSize: 10, opacity: 0.75, marginTop: 2 }}>
-                      Top {RANK_TOP_N} · servidor · atualizado {rankSnapshotAt ? new Date(rankSnapshotAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"}
+                      Top {RANK_TOP_N} · servidor · atualiza a cada 6h
+                      {rankSnapshotAt ? ` · snapshot ${new Date(rankSnapshotAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}
                     </div>
                     <button
                       onClick={() => setRankOpen(false)}

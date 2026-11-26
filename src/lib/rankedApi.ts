@@ -11,6 +11,8 @@ export type RankedRow = {
   leader_species?: string | null;
   leader_rarity?: string | null;
   skin_url?: string | null;
+  /** Hora real do snapshot oficial (gerado a cada 6 horas). */
+  refreshed_at?: string | null;
 };
 
 export type RankedSeason = {
@@ -214,10 +216,9 @@ export async function fetchTopRanked(limit = 50): Promise<RankedRow[]> {
       return [];
     }
     if (!Array.isArray(data)) return [];
-    return (data as RankedRow[])
-      .map(normalizeRankedRow)
-      .sort((a, b) => b.score - a.score || rowTime(a) - rowTime(b))
-      .slice(0, safeLimit);
+    // A RPC já devolve o snapshot na posição oficial. Não reordenar no cliente:
+    // o Top 10 precisa ser idêntico para todos até a próxima janela de 6 horas.
+    return (data as RankedRow[]).map(normalizeRankedRow).slice(0, safeLimit);
   } catch (e) {
     console.warn("[ranked] global rpc exc:", e);
     return [];
