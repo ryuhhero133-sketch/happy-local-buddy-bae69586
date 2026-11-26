@@ -15751,7 +15751,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         pushChat(`⚠ Coleção cheia (${MAX_COLLECTION}). O ovo de Gengar continua na Mochila.`, "info");
         return;
       }
-      const pet = makePet("gengar", 50, "epic");
+      const pet = makePet("gengar", 1, "epic");
       const next: IdleState = {
         ...base,
         items: { ...base.items, [eggId]: base.items[eggId] - 1 },
@@ -15767,7 +15767,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       setIdle(next);
       void pushCloudSaveNow({ idle: next, team: teamRef.current, restingBench, savedAt: Date.now() });
       setEggOpenResult({ sp: "gengar", rarity: "epic" });
-      pushChat("🥚 Nasceu GENGAR ÉPICO Lv. 50! Foi para a Coleção.", "cap");
+      pushChat("🥚 Nasceu GENGAR ÉPICO Nv 1! Foi para a Coleção.", "cap");
       return;
     }
     if (eggId === "egg_mew_7" || eggId === "egg_lucario_7") {
@@ -15822,7 +15822,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       sp = pickFrom[Math.floor(Math.random() * pickFrom.length)] as Species;
     }
     const rarity = rollEggRarity(eggId);
-    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" || eggId === "egg_charizard_epic" || eggId === "egg_gengar_epic" ? 50 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
+    const fixedLv = eggId === "egg_lugia" ? 200 : eggId === "egg_charizard" || eggId === "egg_charizard_epic" ? 50 : eggId === "egg_gengar_epic" ? 1 : eggId === "egg_dragonite" ? 100 : Math.max(1, leaderLv);
     const pet = makePet(sp, fixedLv, rarity as Rarity);
 
     setIdle((s) => {
@@ -32696,7 +32696,7 @@ function TabOverlay({
           egg_ditto_shiny_1: "Ovo Raro · ao abrir nasce Ditto Shiny Mítico Shiny nível 1 na Coleção. Não é consumido se a Coleção estiver cheia.",
           egg_charizard: "Ovo do Charizard · choca sempre um Charizard.",
           egg_charizard_epic: "Ovo do Charizard Épico · choca sempre um Charizard ÉPICO (não shiny) Lv 50.",
-          egg_gengar_epic: "Ovo de Gengar Épico · choca sempre um Gengar ÉPICO (não shiny) Lv 50 e envia para a Coleção.",
+          egg_gengar_epic: "Ovo de Gengar Épico · choca sempre um Gengar ÉPICO (não shiny) Nv 1 e envia para a Coleção.",
            egg_lugia: "Ovo de Lugia ✦ · choca um Lugia mítico.",
            ...(import.meta.env.DEV ? { egg_pinsir: "Ovo de Pinsir de teste · use Chocar para receber Pinsir Nv. 1 na Coleção.", egg_venusaur_shiny: "Ovo de Venusaur Shiny de teste · use Chocar para receber Venusaur Shiny Nv. 1 na Coleção." } : {}),
           egg_sprigatito: "Ovo Sprigatito 🌱 · choca Sprigatito MÍTICO Nv 1 (carta do evento).",

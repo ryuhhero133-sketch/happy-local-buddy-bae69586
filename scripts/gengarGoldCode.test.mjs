@@ -18,16 +18,18 @@ test("GENGOLD entrega Livro VIP GOLD 30 dias + Ovo de Gengar Épico", () => {
   assert.ok(migration.includes("v_egg := v_egg + 1"));
 });
 
-test("ovo de Gengar é épico fixo, nível 50, e vai para a Coleção", () => {
+test("ovo de Gengar é épico fixo, nível 1, e vai para a Coleção", () => {
   assert.ok(idle.includes('"egg_gengar_epic"'));
   assert.ok(idle.includes('eggId === "egg_gengar_epic"'));
   assert.ok(idle.includes('sp = "gengar" as Species'));
-  assert.ok(idle.includes('makePet("gengar", 50, "epic")'));
+  assert.ok(idle.includes('makePet("gengar", 1, "epic")'));
+  assert.ok(!idle.includes('makePet("gengar", 50, "epic")'));
   assert.ok(idle.includes('event: "hatch_code:gengar_epic"'));
   assert.ok(idle.includes("O ovo de Gengar continua na Mochila"));
-  assert.ok(idle.includes("GENGAR ÉPICO Lv. 50"));
+  assert.ok(idle.includes("GENGAR ÉPICO Nv 1"));
+  assert.ok(!idle.includes("GENGAR ÉPICO Lv. 50"));
   assert.ok(idle.includes("egg_gengar_epic: { weights: { epic: 100 } }"));
-  assert.ok(idle.includes('eggId === "egg_gengar_epic" ? 50'));
+  assert.ok(idle.includes('eggId === "egg_gengar_epic" ? 1'));
   assert.ok(idle.includes("Ovo de Gengar Épico"));
   assert.ok(icons.includes("egg_gengar_epic"));
   assert.ok(inventory.includes("egg_gengar_epic"));
