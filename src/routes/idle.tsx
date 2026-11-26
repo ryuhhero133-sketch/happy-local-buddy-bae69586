@@ -34,6 +34,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlaskConical, Sparkles, Home } from "lucide-react";
 import { ItemPixelIcon } from "@/components/ItemPixelIcon";
+import { AmbientTrainers } from "@/components/AmbientTrainers";
 import { PokemarktNpcShop } from "@/components/PokemarktNpcShop";
 import { WorldMapV2, type WorldMapDestination } from "@/components/WorldMapV2";
 import { PetCard } from "@/components/PetCard";
@@ -10987,58 +10988,7 @@ const confirmName = () => {
   }, [identity?.id, identity?.name, idle.currentMap]);
 
 
-  const fakeMapPlayers = useMemo<RemotePlayer[]>(() => {
-
-    const names = [
-      "Luna", "Ryu", "Mika", "Theo", "Nina", "Kai", "Yuri", "Lia", "Noah", "Iris",
-      "Bento", "Akira", "Tina", "Kiko", "Maya", "Zeca", "Lipe", "Sora", "Neko", "Ruby",
-      "Ash", "Brock", "Misty", "Red", "Blue", "Green", "Gold", "Silver", "Leaf", "Dawn",
-      "May", "Serena", "Clem", "Rosa", "Hilda", "Nate", "Hugo", "Lola", "Jade", "Bolt",
-      "Pyro", "Flora", "Ghost", "Rocky", "Aqua", "Zuzu", "Pip", "Max", "Lulu", "Toby",
-    ];
-    const leaders: Species[] = [
-      "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "zubat", "jigglypuff", "oddish", "growlithe", "golem",
-      "cubone", "magnemite", "poliwag", "vulpix", "sandshrew", "mankey", "bellsprout", "venonat", "clefairy", "meowth",
-    ];
-    const mapIds = Object.keys(IDLE_MAPS) as IdleMapId[];
-    const skinUrls = SKINS.map((s) => s.url);
-    const t = Math.floor(Date.now() / 1000);
-    // 30 jogadores espalhados por TODOS os mapas; cada um em um mapa fixo.
-    const all: RemotePlayer[] = Array.from({ length: 30 }, (_, i) => {
-      const mapId = mapIds[i % mapIds.length];
-      const a = (i * 47 + mapId.length * 19) % 360;
-      const r1 = 260 + ((i * 83) % 620);
-      const r2 = 210 + ((i * 61) % 570);
-      const speed = 0.018 + (i % 7) * 0.003;
-      const phase = (a * Math.PI) / 180 + t * speed;
-      const x = Math.max(90, Math.min(WORLD_W - 90, WORLD_W / 2 + Math.cos(phase) * r1 + Math.sin(phase * 0.7 + i) * 90));
-      const y = Math.max(110, Math.min(WORLD_H - 110, WORLD_H / 2 + Math.sin(phase * 1.13) * r2 + Math.cos(phase * 0.55 + i) * 70));
-      const dx = -Math.sin(phase) * r1;
-      const dy = Math.cos(phase * 1.13) * r2;
-      const dir: Dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
-      return {
-        id: `fake-${mapId}-${i}`,
-        userId: `fake-${i}`,
-        name: names[i] ?? `Trainer ${i + 1}`,
-        x,
-        y,
-        dir,
-        step: Math.floor((t / 0.45 + i) % 4),
-        leaderSp: leaders[i % leaders.length],
-        ts: Date.now(),
-        skinUrl: skinUrls[i % skinUrls.length],
-        mapId,
-      } as RemotePlayer & { fake: true };
-    });
-    // Filtra só os do mapa atual para renderizar.
-    return all.filter((p) => p.mapId === idle.currentMap);
-  }, [idle.currentMap, energyTick]);
-
-  const visibleMapPlayers = useMemo(() => {
-    // Remove fakeMapPlayers do jogo conforme pedido.
-    // Jogadores se veem em qualquer mapa (filtro por mapa já vem do banco).
-    return remotePlayers;
-  }, [remotePlayers, idle.currentMap]);
+  const visibleMapPlayers = remotePlayers;
 
   const pvpTarget = useMemo(
     () => pvpTargetUserId ? pvpPresence.find((p) => p.user_id === pvpTargetUserId) ?? null : null,
@@ -24435,6 +24385,16 @@ A sucata afundou com o casco.
               );
             })()}
 
+
+            {/* Treinadores ambiente: client-side, sem rede/save. Ficam atrás dos jogadores reais. */}
+            {!mapEditorOpen && (
+              <AmbientTrainers
+                key={idle.currentMap}
+                mapId={String(idle.currentMap)}
+                worldW={curWorldW}
+                worldH={curWorldH}
+              />
+            )}
 
             {/* Outros jogadores no mesmo mapa */}
             {visibleMapPlayers.map((rp) => {
