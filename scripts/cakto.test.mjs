@@ -109,5 +109,7 @@ test("cash shop exposes PIX, QR, polling and the approved message", () => {
   assert.match(shop, /PAGAMENTO APROVADO!/);
   assert.match(shop, /Seus Diamantes Vermelhos chegaram!/);
   assert.match(shop, /Boa aventura, treinador!/);
+  assert.match(shop, /EM CONFIGURAÇÃO/);
+  assert.match(shop, /!hasAvailablePackage/);
   assert.match(read("src/components/RedCrystalCashShopModal.tsx"), /CaktoPixShop/);
 });

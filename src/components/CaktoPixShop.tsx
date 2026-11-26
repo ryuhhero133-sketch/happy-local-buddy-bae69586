@@ -238,8 +238,8 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
     }
   };
 
-  const availablePackages = packages.filter((pkg) => pkg.active && pkg.price_cents != null);
-  if (loading || availablePackages.length === 0) return null;
+  const hasAvailablePackage = packages.some((pkg) => pkg.active && pkg.price_cents != null);
+  if (loading || packages.length === 0) return null;
 
   return <section style={{ marginBottom: 18 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
@@ -250,7 +250,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
       </div>
     </div>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 9 }}>
-      {availablePackages.map((pkg) => {
+      {packages.map((pkg) => {
         const available = pkg.active && pkg.price_cents != null;
         return <article key={pkg.id} style={{ padding: 11, borderRadius: 12, border: "1px solid rgba(255,113,113,.5)", background: "linear-gradient(150deg, rgba(145,24,38,.36), rgba(12,12,30,.76))", boxShadow: "inset 0 1px #fff2, 0 5px 18px #0005" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -270,6 +270,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
         </article>;
       })}
     </div>
+    {!hasAvailablePackage && <p style={{ margin: "8px 0 0", color: "#ffc2bc", fontSize: 11 }}>Pagamento PIX em configuração.</p>}
     {formOpen && selected && <div role="dialog" aria-modal="true" aria-label={`Pagamento PIX de ${selected.name}`} style={{ position: "fixed", inset: 0, zIndex: 60002, display: "grid", placeItems: "center", padding: 14, background: "rgba(2,5,12,.82)", backdropFilter: "blur(6px)" }}>
       <div style={{ width: "min(430px, 100%)", padding: 17, borderRadius: 14, border: "2px solid #e6b85e", background: "linear-gradient(160deg,#1b1222,#0a101d)", color: "#fff" }}>
         <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>PAGAMENTO PIX</div>
