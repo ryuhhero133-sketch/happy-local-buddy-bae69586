@@ -8722,6 +8722,7 @@ const confirmName = () => {
   const globalRewardVoucherBusyRef = useRef(false);
   const nevenatalinosCodeBusyRef = useRef(false);
   const goldVipCodeBusyRef = useRef(false);
+  const vipGold60CodeBusyRef = useRef(false);
   const gengarGoldCodeBusyRef = useRef(false);
   const landCertCodeBusyRef = useRef(false);
   type NevenatalinosResponse = {
@@ -8761,6 +8762,15 @@ const confirmName = () => {
     item_id?: string;
     item_qty?: number;
     uses_remaining?: number;
+  };
+  type VipGold60Response = {
+    ok?: boolean;
+    reason?: string;
+    server_version?: number;
+    saved_at?: number;
+    days?: number;
+    gold_mult?: number;
+    until?: number;
   };
   const normalizeCode = (value: string) => value
     .normalize("NFD")
@@ -8823,6 +8833,38 @@ const confirmName = () => {
     serverSavedAt,
     "goldvip",
   );
+  const patchVipGold60Snapshot = (
+    snapshot: unknown,
+    serverMult: unknown,
+    serverUntil: unknown,
+    checkpoint: unknown,
+    serverSavedAt: number,
+    code: string,
+  ) => {
+    const save = snapshot as { idle?: IdleState; savedAt?: number };
+    const base = checkpoint as { idle?: IdleState };
+    if (!save.idle || !base.idle) throw new Error("vipgold60_snapshot_invalid");
+    const mult = Number(serverMult);
+    const until = Number(serverUntil);
+    if (!Number.isFinite(mult) || mult < 0.4 || !Number.isFinite(until) || until <= Date.now()) {
+      throw new Error("vipgold60_server_values_invalid");
+    }
+    return {
+      ...save,
+      savedAt: Math.max(save.savedAt ?? 0, serverSavedAt),
+      idle: {
+        ...save.idle,
+        buffs: {
+          ...save.idle.buffs,
+          goldMult: mult,
+          goldMultUntil: until,
+          expMult: mult,
+          expMultUntil: until,
+        },
+        redeemedCodes: { ...(save.idle.redeemedCodes ?? {}), [code]: true },
+      },
+    };
+  };
   const patchCertificateSnapshot = (
     snapshot: unknown,
     serverItemQty: number,
@@ -9266,6 +9308,98 @@ const confirmName = () => {
           setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o Certificado." });
         } finally {
           landCertCodeBusyRef.current = false;
+        }
+      })();
+      return;
+    }
+
+    if (/^VIPGOLD60[A-Z2-9]{20}$/.test(raw)) {
+      if (vipGold60CodeBusyRef.current) return;
+      if (!cloudBlobReady) {
+        setCodeMsg({ kind: "err", text: "Aguarde o save da nuvem carregar antes de resgatar." });
+        return;
+      }
+      vipGold60CodeBusyRef.current = true;
+      setCodeMsg({ kind: "ok", text: "Validando o VIP GOLD 60 dias no servidor…" });
+      void (async () => {
+        try {
+          let confirmed: VipGold60Response | null = null;
+          let checkpointIdle: IdleState | null = null;
+          let confirmedSavedAt = 0;
+          const result = await runCheckpointMutation(
+            buildFullBlob(),
+            async (expectedVersion) => {
+              const { data, error } = await (supabase as any).rpc("redeem_vipgold60_code", {
+                p_code: raw,
+                p_expected_version: expectedVersion,
+              });
+              if (error) return { ok: false, reason: error.message };
+              const response = data as VipGold60Response | null;
+              if (response?.ok !== true) return { ok: false, reason: response?.reason ?? "mutation_failed" };
+              const mult = Number(response.gold_mult);
+              const until = Number(response.until);
+              if (response.server_version !== expectedVersion + 1
+                || Number(response.days) !== 60
+                || !Number.isFinite(mult) || mult < 0.4
+                || !Number.isFinite(until) || until <= Date.now()) {
+                throw new Error("vipgold60_invalid_server_response");
+              }
+              confirmed = response;
+              confirmedSavedAt = Number(response.saved_at) || 0;
+              return { ok: true, server_version: response.server_version, value: until };
+            },
+            (snapshot, _value, checkpoint) => {
+              if (!confirmed) throw new Error("vipgold60_confirmation_missing");
+              checkpointIdle = (checkpoint as { idle?: IdleState }).idle ?? null;
+              return patchVipGold60Snapshot(
+                snapshot,
+                confirmed.gold_mult,
+                confirmed.until,
+                checkpoint,
+                confirmedSavedAt,
+                raw,
+              );
+            },
+          );
+          const confirmedReward = confirmed as VipGold60Response | null;
+          const confirmedCheckpoint = checkpointIdle as IdleState | null;
+          if (!result.ok || !confirmedReward || !confirmedCheckpoint) {
+            const messages: Record<string, string> = {
+              invalid_or_used: "Código VIP GOLD 60 dias inválido ou já utilizado.",
+              save_incomplete: "Seu save ainda não está pronto. Aguarde alguns segundos e tente novamente.",
+              stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+              save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
+              checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
+              confirmation_unknown: "Não foi possível confirmar o resgate. Recarregue antes de repetir.",
+              unauthenticated: "Entre em sua conta para resgatar este código.",
+            };
+            throw new Error(messages[result.reason ?? ""] ?? "Não foi possível resgatar o VIP GOLD 60 dias. Tente novamente.");
+          }
+          const reward = confirmedReward;
+          const serverCheckpoint = confirmedCheckpoint;
+          setIdle((current) => {
+            const patched = patchVipGold60Snapshot(
+              { idle: current },
+              reward.gold_mult,
+              reward.until,
+              { idle: serverCheckpoint },
+              confirmedSavedAt,
+              raw,
+            ) as { idle: IdleState };
+            idleRef.current = patched.idle;
+            saveIdle(patched.idle);
+            return patched.idle;
+          });
+          try { localStorage.setItem(codeKey, "1"); } catch { /* storage optional */ }
+          setCodeInput("");
+          const message = "👑 VIP GOLD ativado por 60 dias! +40% Ouro e EXP, coleta automática dos drops e alimentação automática do líder com AUTO ligado.";
+          setCodeMsg({ kind: "ok", text: message });
+          pushChat(message, "cap");
+        } catch (error) {
+          setCodeMsg({ kind: "err", text: error instanceof Error ? error.message : "Falha ao resgatar o VIP GOLD 60 dias." });
+        } finally {
+          vipGold60CodeBusyRef.current = false;
         }
       })();
       return;
