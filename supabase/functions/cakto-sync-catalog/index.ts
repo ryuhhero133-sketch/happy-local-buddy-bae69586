@@ -2,7 +2,7 @@
 // and offer IDs. Never invents an ID or price.
 import { adminClient, caktoFetch, corsHeaders, env, json, userClient } from "../_shared/cakto.ts";
 
-type Product = { id: string; name?: string; status?: string };
+type Product = { id: string; name?: string; status?: string; type?: string };
 type Offer = {
   id: string; name?: string; price?: number; currency?: string; product?: string;
   status?: string; default?: boolean; type?: string;
@@ -11,9 +11,9 @@ type PackageRow = { id: string; name: string; diamonds: number };
 
 const OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 const PACKAGE_KEYWORDS: Record<string, string[]> = {
-  bau_inicial: ["bau inicial", "pacote 1"],
-  bau_avancado: ["bau avancado", "pacote 2"],
-  bau_supremo: ["bau supremo", "pacote 3"],
+  bau_inicial: ["bau inicial", "pacote 1", "1000 diamante", "1.000 diamante"],
+  bau_avancado: ["bau avancado", "pacote 2", "2000 diamante", "2.000 diamante"],
+  bau_supremo: ["bau supremo", "pacote 3", "3200 diamante", "3.200 diamante"],
 };
 
 const normalize = (value: unknown) => String(value ?? "")
@@ -56,6 +56,7 @@ Deno.serve(async (request) => {
       const keywords = PACKAGE_KEYWORDS[pkg.id] ?? [];
       // Só aceita um produto por pacote. Nome ambíguo não vira oferta ativa.
       const matches = products.filter((candidate) => {
+        if (candidate.type !== undefined && candidate.type !== "unique") return false;
         const haystack = normalize(candidate.name);
         return keywords.some((keyword) => haystack.includes(keyword));
       });

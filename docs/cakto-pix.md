@@ -75,7 +75,18 @@ npx supabase login
 
 Ou crie um token scoped com `edge_functions_write`, `secrets_write` e `projects_read` e configure `SUPABASE_ACCESS_TOKEN`.
 
-### 2. Secrets
+### 2. Escopos da chave Cakto
+
+A chave usada em `CAKTO_CLIENT_ID`/`CAKTO_CLIENT_SECRET` precisa dos escopos:
+
+- `read products` — validar os três produtos.
+- `read offers` — ler oferta padrão e preço real.
+- `write payments` — criar a cobrança PIX.
+- `write webhooks` — criar/consultar o webhook (também `read webhooks` para auditoria).
+
+Sem `write payments` a criação do PIX responde `403`; sem `read offers` a sincronização do catálogo não consegue os IDs reais.
+
+### 3. Secrets
 
 Depois do login, crie um arquivo local ignorado pelo Git (nunca cole valores no chat):
 
@@ -97,7 +108,7 @@ O segredo do webhook é gerado pela própria Cakto ao criar o webhook. Copie `fi
 
 Status: **pendente**. Nenhum valor foi exibido ou versionado.
 
-### 3. Webhook na Cakto
+### 4. Webhook na Cakto
 
 URL definitiva:
 
@@ -116,14 +127,14 @@ Eventos:
 
 Produtos: os três produtos dos pacotes. A Cakto exige produtos explícitos no webhook.
 
-### 4. Publicar Functions
+### 5. Publicar Functions
 
 ```powershell
 npx supabase functions deploy --project-ref zdeduwsbzupulomxvfmb --use-api --yes `
   cakto-create-payment cakto-webhook cakto-sync-catalog
 ```
 
-### 5. Descobrir IDs e preços reais
+### 6. Descobrir IDs e preços reais
 
 Com as credenciais configuradas e as Functions publicadas, entre na conta principal e chame `cakto-sync-catalog`. Ela lê produtos/ofertas reais da Cakto e grava `cakto_offer_id` e `price_cents`. Não há IDs ou preços inventados no projeto.
 
