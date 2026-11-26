@@ -77,19 +77,23 @@ Ou crie um token scoped com `edge_functions_write`, `secrets_write` e `projects_
 
 ### 2. Secrets
 
-Depois do login, configure sem colar valores no chat:
+Depois do login, crie um arquivo local ignorado pelo Git (nunca cole valores no chat):
+
+```powershell
+# supabase/.env.cakto.local
+CAKTO_CLIENT_ID=...
+CAKTO_CLIENT_SECRET=...
+CAKTO_WEBHOOK_SECRET=...
+```
+
+E envie os três de uma vez:
 
 ```powershell
 npx supabase secrets set --project-ref zdeduwsbzupulomxvfmb `
-  CAKTO_CLIENT_ID=... `
-  CAKTO_CLIENT_SECRET=...
+  --env-file supabase/.env.cakto.local --yes
 ```
 
-O segredo do webhook é gerado pela própria Cakto ao criar o webhook. Copie `fields.secret` da resposta e grave:
-
-```powershell
-npx supabase secrets set --project-ref zdeduwsbzupulomxvfmb CAKTO_WEBHOOK_SECRET=...
-```
+O segredo do webhook é gerado pela própria Cakto ao criar o webhook. Copie `fields.secret` da resposta (ou do painel) para `CAKTO_WEBHOOK_SECRET`.
 
 Status: **pendente**. Nenhum valor foi exibido ou versionado.
 
@@ -115,7 +119,7 @@ Produtos: os três produtos dos pacotes. A Cakto exige produtos explícitos no w
 ### 4. Publicar Functions
 
 ```powershell
-npx supabase functions deploy --remote=zdeduwsbzupulomxvfmb --use-api --yes `
+npx supabase functions deploy --project-ref zdeduwsbzupulomxvfmb --use-api --yes `
   cakto-create-payment cakto-webhook cakto-sync-catalog
 ```
 
