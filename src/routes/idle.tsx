@@ -10752,15 +10752,15 @@ const confirmName = () => {
   const emeraldPvpWindow = useMemo(() => getGlobalPvpWindow(pvpScheduleNow), [pvpScheduleNow]);
   const emeraldPvpActive = isPvpActiveOnMap(String(idle.currentMap), pvpScheduleNow);
   const emeraldPvpLabel = emeraldPvpActive
-    ? `Emerald Global · PvP ativo · ${Math.ceil(emeraldPvpWindow.remainingMs / 60_000)} min restantes`
-    : "Emerald Global está em período de Paz";
+    ? `PvP ativo nos mapas de caça · ${Math.ceil(emeraldPvpWindow.remainingMs / 60_000)} min restantes`
+    : `PvP em Paz · próxima janela em ${Math.ceil(emeraldPvpWindow.remainingMs / 60_000)} min`;
   const pvpSchedulePhaseRef = useRef<string | null>(null);
   useEffect(() => { pvpTargetUserIdRef.current = pvpTargetUserId; }, [pvpTargetUserId]);
   // Posição mais recente dos alvos PvP — usada para o FX "ERROU!" do servidor.
   const pvpPresenceRef = useRef(pvpPresence);
   useEffect(() => { pvpPresenceRef.current = pvpPresence; }, [pvpPresence]);
-  // A agenda roda só no único mapa participante: horas pares de São Paulo
-  // são PvP e horas ímpares são Paz. O banco repete esta mesma regra.
+  // A agenda roda nos 8 mapas de caça: a cada hora, os 10 primeiros minutos
+  // são PvP e os 50 restantes são Paz. O banco repete esta mesma regra.
   useEffect(() => {
     if (!isScheduledPvpMap(String(idle.currentMap))) return;
     const tick = () => setPvpScheduleNow(Date.now());
@@ -10781,15 +10781,15 @@ const confirmName = () => {
     if (emeraldPvpWindow.active) {
       pushChat(
         changed
-          ? "⚔️ EMERALD GLOBAL: a janela PvP começou! O chat ficou vermelho por 1 hora."
-          : "⚔️ EMERALD GLOBAL: PvP está ATIVO. O chat fica vermelho até a próxima hora.",
+          ? "⚔️ PvP: a janela começou! O chat ficou vermelho por 10 minutos."
+          : "⚔️ PvP está ATIVO. O chat fica vermelho até os 10 minutos da hora.",
         "pvp",
       );
     } else {
       pushChat(
         changed
-          ? "🕊️ EMERALD GLOBAL: período de PAZ iniciado. O PvP voltou a ficar bloqueado por 1 hora."
-          : "🕊️ EMERALD GLOBAL está em período de PAZ. A próxima janela PvP abre na hora cheia.",
+          ? "🕊️ PvP: período de PAZ iniciado. A próxima janela abre na próxima hora cheia."
+          : "🕊️ PvP está em período de PAZ. A próxima janela abre na hora cheia.",
         "pvp",
       );
     }
@@ -11225,7 +11225,7 @@ const confirmName = () => {
       } else if (["pvp_peace_window", "pvp_map_required"].includes(result.reason)) {
         setPvpTargetUserId(null);
         setIdle((state) => state.pvpMode === "peace" ? state : { ...state, pvpMode: "peace" });
-        pushChat("🕊️ O servidor encerrou este combate: PvP só funciona na janela ativa de Emerald Global.", "pvp");
+        pushChat("🕊️ O servidor encerrou este combate: PvP só funciona na janela ativa dos mapas de caça.", "pvp");
       } else if (result.reason === "target_pvp_protected") {
         pushChat("🔒 Este jogador ainda está protegido: PvP só libera no nível 11 do treinador.", "info");
         setPvpTargetUserId(null);
@@ -19783,7 +19783,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         onEpicPlant={() => { void castArvEpicPlant(); }}
         onPvpMode={() => {
           if (!emeraldPvpActive) {
-            pushChat("🕊️ PvP fica disponível somente em Emerald Global durante a janela ativa.", "pvp");
+            pushChat("🕊️ PvP fica disponível apenas nos 8 mapas de caça durante a janela ativa (10 min por hora).", "pvp");
             return;
           }
           const current = idle.pvpMode ?? "peace";
@@ -24454,7 +24454,7 @@ A sucata afundou com o casco.
               const selectRemotePvp = (ev: React.MouseEvent) => {
                 ev.stopPropagation();
                 if (!emeraldPvpActive) {
-                  pushChat("🕊️ PvP só está disponível em Emerald Global durante a janela ativa.", "pvp");
+                  pushChat("🕊️ PvP só está disponível nos 8 mapas de caça durante a janela ativa (10 min por hora).", "pvp");
                   return;
                 }
                 if ((idle.trainerLevel ?? 1) <= 10) {

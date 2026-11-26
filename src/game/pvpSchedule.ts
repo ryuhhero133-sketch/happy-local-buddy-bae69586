@@ -1,6 +1,26 @@
-/** Agenda global de PvP: Emerald Global alterna 1h PvP / 1h Paz em São Paulo. */
-export const PVP_SCHEDULE_MAP_ID = "arv";
+/**
+ * Agenda global de PvP: a cada hora, os 10 primeiros minutos são PvP e os
+ * 50 minutos restantes são Paz, no horário de São Paulo. O banco repete esta
+ * mesma regra em public.pvp_attack.
+ */
 export const PVP_SCHEDULE_TIME_ZONE = "America/Sao_Paulo";
+export const PVP_WINDOW_MINUTES = 10;
+export const PVP_WINDOW_MS = PVP_WINDOW_MINUTES * 60_000;
+
+/**
+ * Os 8 mapas de caça que possuem Pokémon (espelho de GRASS_ZONE_BY_MAP em
+ * src/game/grassZones.ts). PvP não abre nos demais mapas.
+ */
+export const PVP_SCHEDULE_MAP_IDS = [
+  "rota1",
+  "bobo_rota2",
+  "bobo_uuid",
+  "bobo_transicao",
+  "bobo_g11ds",
+  "bobo_rota_gelo",
+  "bobo_transicao_gelo",
+  "bobo_mmmm",
+] as const;
 
 export type PvpWindow = {
   active: boolean;
@@ -13,7 +33,7 @@ function clockPart(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPa
   return Number(parts.find((part) => part.type === type)?.value ?? 0);
 }
 
-/** A mesma regra usada no banco: horas pares são PvP; horas ímpares são Paz. */
+/** A mesma regra usada no banco: PvP do minuto 0 ao 9 de cada hora. */
 export function getGlobalPvpWindow(now = Date.now()): PvpWindow {
   const date = new Date(now);
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -32,10 +52,14 @@ export function getGlobalPvpWindow(now = Date.now()): PvpWindow {
   const hour = clockPart(parts, "hour");
   const minute = clockPart(parts, "minute");
   const second = clockPart(parts, "second");
-  const remainingMs = Math.max(1, (60 - minute) * 60_000 - second * 1_000 - date.getMilliseconds());
+  const active = minute < PVP_WINDOW_MINUTES;
+  const msIntoHour = (minute * 60 + second) * 1_000 + date.getMilliseconds();
+  const remainingMs = active
+    ? Math.max(1, PVP_WINDOW_MS - msIntoHour)
+    : Math.max(1, 60 * 60_000 - msIntoHour);
 
   return {
-    active: hour % 2 === 0,
+    active,
     phaseKey: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}`,
     remainingMs,
     endsAt: now + remainingMs,
@@ -43,7 +67,7 @@ export function getGlobalPvpWindow(now = Date.now()): PvpWindow {
 }
 
 export function isScheduledPvpMap(mapId: string): boolean {
-  return mapId === PVP_SCHEDULE_MAP_ID;
+  return (PVP_SCHEDULE_MAP_IDS as readonly string[]).includes(mapId);
 }
 
 export function isPvpActiveOnMap(mapId: string, now = Date.now()): boolean {

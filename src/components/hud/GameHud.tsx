@@ -223,7 +223,7 @@ export function GameHud(hud: GameHudProps) {
           <IconButton
             label={hud.pvpActive
               ? `PvP ativo: ${hud.pvpMode === "pk" ? "PK" : hud.pvpMode === "offensive" ? "Ofensivo" : "Paz"}`
-              : "PvP indisponível — Emerald Global está em período de Paz"}
+              : "PvP indisponível — janela de Paz (abre na próxima hora cheia)"}
             active={!!hud.pvpActive && hud.pvpMode !== "peace"}
             className={hud.pvpActive ? "revo-pvp-active" : ""}
             onClick={hud.onPvpMode}

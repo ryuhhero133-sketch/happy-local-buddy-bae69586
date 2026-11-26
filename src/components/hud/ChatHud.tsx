@@ -6,7 +6,7 @@ type Filter = "all" | "system" | "world" | "captures";
 
 export function ChatHud({ messages, pvpActive = false, pvpWindowLabel }: {
   messages: HudMessage[];
-  /** Emerald Global está em uma janela ativa de PvP. */
+  /** Janela ativa de PvP nos 8 mapas de caça. */
   pvpActive?: boolean;
   pvpWindowLabel?: string;
 }) {
