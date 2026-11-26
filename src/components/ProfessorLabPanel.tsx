@@ -3033,6 +3033,7 @@ export function ProfessorLabPanel(props: Props) {
                       ["📈", "+30% Ouro e EXP por 30 dias (Livro VIP 30d)"],
                       ["🚀", "+40% Ouro e EXP por 1 ANO (Livro VIP Anual)"],
                       ["🧺", "VIP GOLD + AUTO: recolhe automaticamente todos os drops do chão"],
+                      ["🍓", "VIP GOLD: alimenta o líder sozinho quando ele fica com fome"],
                       ["🏷️", "Anunciar no Mercado é exclusivo VIP"],
                       ["⭐", "Acesso à quest diária dourada (Coleta Dourada)"],
                       ["🎁", "Bônus extras em pacotes premium"],

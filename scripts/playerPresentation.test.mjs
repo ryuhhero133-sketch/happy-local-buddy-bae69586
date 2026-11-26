@@ -83,6 +83,50 @@ test("sem fruta, sem líder ou com fome cheia não consome item", () => {
   assert.equal(full.idleRef.current.items.morango, 2);
 });
 
+test("VIP GOLD alimenta sozinho apenas quando a fome aparece", () => {
+  const base = {
+    isVipGold: true, fome: 50, needFeeding: false,
+    items: { morango: 1 }, nowMs: 10 * 60_000, lastAutoFeedAtMs: 0,
+  };
+  assert.equal(resources.shouldAutoFeedPet(base), true);
+  assert.equal(resources.AUTO_FEED_COOLDOWN_MS, 60_000);
+  // VIP EPIC (20%) e VIP CRISTAL (30%) não têm alimentação automática.
+  assert.equal(resources.shouldAutoFeedPet({ ...base, isVipGold: false }), false);
+  // "normal" e "cheio" não disparam sozinhos...
+  assert.equal(resources.shouldAutoFeedPet({ ...base, fome: 51 }), false);
+  assert.equal(resources.shouldAutoFeedPet({ ...base, fome: 100 }), false);
+  // ...mas um pet bloqueado por fome/lealdade é cuidado mesmo com a barra cheia.
+  assert.equal(resources.shouldAutoFeedPet({ ...base, fome: 100, needFeeding: true }), true);
+  // Sem fruta na mochila não há o que consumir.
+  assert.equal(resources.shouldAutoFeedPet({ ...base, items: {} }), false);
+  assert.equal(resources.shouldAutoFeedPet({ ...base, items: { limao: 1 } }), true);
+  // Cooldown: no máximo uma fruta por minuto.
+  assert.equal(resources.shouldAutoFeedPet({ ...base, nowMs: 59_999, lastAutoFeedAtMs: 0 }), false);
+  assert.equal(resources.shouldAutoFeedPet({ ...base, nowMs: 60_000, lastAutoFeedAtMs: 0 }), true);
+});
+
+test("VIP GOLD consome uma fruta por vez e não incomoda quando não pode alimentar", () => {
+  const fixture = feedingFixture({ morango: 2 }, [{ uid: "leader", species: "pikachu", fome: 20, lealdade: 10 }]);
+  fixture.feed(true);
+  assert.equal(fixture.idleRef.current.items.morango, 1);
+  assert.equal(fixture.teamRef.current[0].fome, 50);
+  assert.match(fixture.messages.at(-1), /automaticamente pelo VIP GOLD/);
+
+  const withoutFruit = feedingFixture({}, [{ uid: "leader", species: "pikachu", fome: 20 }]);
+  withoutFruit.feed(true);
+  assert.equal(withoutFruit.messages.length, 0);
+
+  const full = feedingFixture({ morango: 1 }, [{ uid: "leader", species: "pikachu", fome: 100 }]);
+  full.feed(true);
+  assert.equal(full.idleRef.current.items.morango, 1);
+  assert.equal(full.messages.length, 0);
+
+  assert.ok(idle.includes("shouldAutoFeedPet({"));
+  assert.ok(idle.includes("isVipGold: hasVipGoldGroundPickup()"));
+  assert.ok(idle.includes("feedLeaderWithFruit(true)"));
+  assert.ok(idle.includes('vipTierOf(buffs?.goldMult, buffs?.goldMultUntil).tier === "vip60"'));
+});
+
 test("presença publica VIP, Nevezinha e montaria sem depender de quem observa", () => {
   const idleRef = { current: {
     buffs: { goldMult: 0.4, goldMultUntil: Date.now() + 60000 },

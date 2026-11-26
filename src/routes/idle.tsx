@@ -274,6 +274,7 @@ import {
   energySpeedMult, TRAINER_HUNGER_MAX, TRAINER_FOOD_VALUES,
   MAX_THROW_COUNT, THROW_REGEN_MS,
   processPetCare, feedPet, petHungerState, PET_HUNGER_LABEL, PET_FOOD_VALUES,
+  shouldAutoFeedPet,
   type CaredPet,
 } from "@/game/resources";
 import { getDex, TYPE_COLOR, TYPE_ICON } from "@/game/movesets";
@@ -15152,20 +15153,20 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
 
 
   // Alimenta o líder direto pelo balão de fruta sobre a cabeça dele.
-  const feedLeaderWithFruit = () => {
+  const feedLeaderWithFruit = (automatic = false) => {
     const current = idleRef.current;
     const morango = current.items?.morango ?? 0;
     const limao = current.items?.limao ?? 0;
     const kind = morango > 0 ? "morango" : limao > 0 ? "limao" : null;
     if (!kind) {
-      pushChat("Você não tem Morango nem Limão na mochila para alimentar.", "info");
+      if (!automatic) pushChat("Você não tem Morango nem Limão na mochila para alimentar.", "info");
       return;
     }
     const leader = teamRef.current[0];
     if (!leader) return;
     const cared = leader as CaredPet;
     if ((cared.fome ?? 100) >= 100 && !cared.needFeeding) {
-      pushChat(`${leader.species.replace(/_/g, " ")} já está satisfeito.`, "info");
+      if (!automatic) pushChat(`${leader.species.replace(/_/g, " ")} já está satisfeito.`, "info");
       return;
     }
     const fedAt = trustedNow().now;
@@ -15181,8 +15182,32 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     idleRef.current = next;
     setIdle(next);
     pushFxAt(trainerPos.x, trainerPos.y - 48, kind === "morango" ? "🍓 +30" : "🍋 +20", "capture");
-    pushChat(`${kind === "morango" ? "🍓 Morango" : "🍋 Limão"}: ${leader.species.replace(/_/g, " ")} alimentado! Fome ${Math.round(fed.pet.fome ?? 0)}/100.`, "cap");
+    pushChat(`${kind === "morango" ? "🍓 Morango" : "🍋 Limão"}: ${leader.species.replace(/_/g, " ")} ${automatic ? "alimentado automaticamente pelo VIP GOLD" : "alimentado"}! Fome ${Math.round(fed.pet.fome ?? 0)}/100.`, "cap");
   };
+
+  // VIP GOLD cuida do líder automaticamente: quando a fome entra na faixa
+  // "com fome"/"faminto"/"crítica" (ou o pet está bloqueado), usa 1 Morango
+  // e, se não houver, 1 Limão. Sem fruta na mochila, fica em silêncio.
+  const lastAutoFeedAtRef = useRef(0);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const leader = teamRef.current[0] as CaredPet | undefined;
+      const nowMs = Date.now();
+      if (!shouldAutoFeedPet({
+        isVipGold: hasVipGoldGroundPickup(),
+        fome: leader?.fome,
+        needFeeding: leader?.needFeeding,
+        items: idleRef.current.items,
+        nowMs,
+        lastAutoFeedAtMs: lastAutoFeedAtRef.current,
+      })) return;
+      lastAutoFeedAtRef.current = nowMs;
+      feedLeaderWithFruit(true);
+    }, 5000);
+    return () => window.clearInterval(timer);
+    // feedLeaderWithFruit usa refs; o intervalo lê o estado atual do VIP e da mochila.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Usar item da mochila
   const useItem = (id: string, qty: number = 1) => {
@@ -32507,8 +32532,8 @@ function TabOverlay({
           book_exp_max: "Livro de EXP Lendário · +30% EXP por 1 hora.",
           book_vip: "Livro VIP EPIC ✦ · +20% Ouro e EXP por 1 hora.",
           book_vip_30: "Livro VIP CRISTAL ✦✦ · +30% Ouro e EXP por 30 dias.",
-          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 1 ANO. Com AUTO ligado, recolhe automaticamente todos os drops do chão sem interromper a batalha do Pokémon.",
-          book_vip_gold_30: "Livro VIP GOLD 30 dias ✦✦✦ · +40% Ouro e EXP por 30 dias. Com AUTO ligado, recolhe automaticamente todos os drops do chão.",
+          book_vip_60: "Livro VIP GOLD ✦✦✦ · +40% Ouro e EXP por 1 ANO. Com AUTO ligado, recolhe automaticamente todos os drops do chão sem interromper a batalha do Pokémon e alimenta o líder quando ele fica com fome.",
+          book_vip_gold_30: "Livro VIP GOLD 30 dias ✦✦✦ · +40% Ouro e EXP por 30 dias. Com AUTO ligado, recolhe automaticamente todos os drops do chão e alimenta o líder quando ele fica com fome.",
           orb_xp_minor: "Orb Menor ✦ · +10% EXP por 1 hora (stack com livro).",
           orb_xp_major: "Orb Maior ✦✦ · +20% EXP por 1 hora (stack com livro).",
           orb_xp_supreme: "Orb Supremo ✦✦✦ · +30% EXP por 1 hora (stack com livro).",

@@ -334,6 +334,36 @@ export const PET_HUNGER_LABEL: Record<HungerState, string> = {
   critica: "Fome crítica",
 };
 
+/** Intervalo mínimo entre duas alimentações automáticas (VIP GOLD). */
+export const AUTO_FEED_COOLDOWN_MS = 60 * 1000;
+
+export type AutoFeedCheck = {
+  /** Somente VIP GOLD tem alimentação automática. */
+  isVipGold: boolean;
+  fome: number | undefined;
+  needFeeding: boolean | undefined;
+  items: Record<string, number> | undefined;
+  nowMs: number;
+  lastAutoFeedAtMs: number;
+};
+
+/**
+ * Decide se o líder deve comer sozinho agora (VIP GOLD).
+ * - Só nas faixas "com fome"/"muito faminto"/"fome crítica" ou bloqueado.
+ * - Precisa de Morango ou Limão na mochila.
+ * - Cooldown evita gastar várias frutas de uma vez na mesma crise de fome.
+ */
+export function shouldAutoFeedPet(check: AutoFeedCheck): boolean {
+  if (!check.isVipGold) return false;
+  const hunger = petHungerState(check.fome ?? 100);
+  const hungry = !!check.needFeeding
+    || hunger === "fome" || hunger === "faminto" || hunger === "critica";
+  if (!hungry) return false;
+  const items = check.items;
+  if (!items || ((items.morango ?? 0) < 1 && (items.limao ?? 0) < 1)) return false;
+  return check.nowMs - check.lastAutoFeedAtMs >= AUTO_FEED_COOLDOWN_MS;
+}
+
 export type PetCareEvent = "locked";
 export type PetCareResult = { pet: CaredPet; locked: boolean };
 
