@@ -224,6 +224,11 @@ export function getCheckpointStatus(): CheckpointStatus {
   return status;
 }
 
+/** Read-only guard for safe client reloads; never interrupt a save or purchase. */
+export function isCheckpointBusy(): boolean {
+  return pushing || serverMutationBusy;
+}
+
 export function getLastError(): string | null {
   return lastError;
 }

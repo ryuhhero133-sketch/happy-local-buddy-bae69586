@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameHud } from "@/components/hud/GameHud";
+import { GameAutoUpdate } from "@/components/GameAutoUpdate";
 import { getHudMapBounds } from "@/components/hud/hudLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
@@ -264,7 +265,7 @@ import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
-import { runCheckpointMutation, alignServerCheckpoint, adoptAuthoritativeCheckpoint } from "@/lib/saveManager";
+import { runCheckpointMutation, alignServerCheckpoint, adoptAuthoritativeCheckpoint, getSnapshotOwner, isCheckpointBusy } from "@/lib/saveManager";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -4971,6 +4972,7 @@ const confirmName = () => {
 
   // Auto-battle / chat / WASD
   const [auto, setAuto] = useState(true);
+  const appUpdateWasAutoRef = useRef<boolean | null>(null);
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
@@ -19255,6 +19257,50 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     pushChat(`Cristal ${data.label} aprimorado para Nv. ${level + 1}!`, "cap");
   };
 
+  const canAutomaticallyUpdate = () => Boolean(
+    cloudBlobReady && serverSync.status === "ready" && setupDone && starterChosen
+    && identity?.id && getSnapshotOwner() === identity.id && !isCheckpointBusy()
+    && tab === "batalha" && !mapEditorOpen && !mapLoading && !teleportTransition
+    && !codeOpen && !cashShopOpen && !nevezinhaOpen && !fishingOpen
+    && !blackEggHudOpen && !emeraldEggHudOpen && !forgeWindowOpen
+    && !preregBusy && !levelResetBusyRef.current && !starterPickPendingRef.current
+    && !pvpTarget && !captureAnim
+  );
+  const cancelAutomaticUpdate = () => {
+    const previous = appUpdateWasAutoRef.current;
+    appUpdateWasAutoRef.current = null;
+    if (previous !== null) { autoRef.current = previous; setAuto(previous); }
+  };
+  const persistBeforeAutomaticUpdate = () => {
+    if (!identity?.id || getSnapshotOwner() !== identity.id || isCheckpointBusy()) return false;
+    try {
+      persistTrainerPosition();
+      const blob = { idle: idleRef.current, team: teamRef.current, restingBench: benchRef.current, savedAt: Date.now() };
+      const local = loadLatestValid<SaveShape>() ?? {};
+      restoreLocalSave({ ...local, ...blob, activeTeam: blob.team, party: [...blob.team, ...blob.restingBench] });
+      localStorage.setItem(IDLE_KEY, JSON.stringify({ ...blob.idle, savedAt: blob.savedAt }));
+      scheduleCloudSync(blob); // Durable queue also preserves any last frame after the cloud acknowledgement.
+      vaultPut(blob);
+      return JSON.parse(localStorage.getItem("rubym.save.v2") ?? "null")?.savedAt === blob.savedAt
+        && JSON.parse(localStorage.getItem(IDLE_KEY) ?? "null")?.savedAt === blob.savedAt;
+    } catch { return false; }
+  };
+  const prepareAutomaticUpdate = async () => {
+    if (!canAutomaticallyUpdate()) return false;
+    appUpdateWasAutoRef.current = auto;
+    autoRef.current = false;
+    setAuto(false); // Runtime pause only: do not change the player's saved Auto preference.
+    keysRef.current.clear();
+    walkTargetRef.current = null;
+    setWalkingTo(null);
+    onJoystickMove(0, 0);
+    setMoving(false);
+    // Let the saving overlay and paused combat commit before taking the checkpoint.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    if (appUpdateWasAutoRef.current === null || !canAutomaticallyUpdate() || !persistBeforeAutomaticUpdate()) return false;
+    return pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench: benchRef.current, savedAt: Date.now() });
+  };
+
   return (
     <div className="revo-game" style={{
       height: "100vh",
@@ -19263,6 +19309,11 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
+      <GameAutoUpdate enabled={import.meta.env.PROD && !isOfflineTest()}
+        canReload={canAutomaticallyUpdate}
+        prepareReload={prepareAutomaticUpdate}
+        persistLatest={persistBeforeAutomaticUpdate}
+        cancelReload={cancelAutomaticUpdate} />
       {temporarilyClosed && <div role="dialog" aria-modal="true" aria-labelledby="temporarily-closed-title" onClick={() => setTemporarilyClosed(null)} style={{ position: "fixed", inset: 0, zIndex: 30000, display: "grid", placeItems: "center", padding: 20, background: "rgba(0,0,0,.8)" }}>
         <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 100%)", padding: 24, border: "2px solid #f5cf6b", borderRadius: 16, background: "linear-gradient(160deg,#172638,#111324)", boxShadow: "0 0 35px rgba(245,207,107,.3)", textAlign: "center" }}>
           <h2 id="temporarily-closed-title" style={{ color: "#ffe18b", fontSize: 20, fontWeight: 900 }}>{temporarilyClosed} indisponível</h2>

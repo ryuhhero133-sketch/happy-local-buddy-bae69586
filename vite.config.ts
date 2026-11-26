@@ -6,6 +6,13 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import type { Plugin } from "vite";
+import { execFileSync } from "node:child_process";
+
+// One immutable identity shared by browser and Worker, including CI deployments.
+const appReleaseId = process.env.WORKERS_CI_COMMIT_SHA || process.env.CF_PAGES_COMMIT_SHA || (() => {
+  try { return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(); }
+  catch { return `build-${Date.now().toString(36)}`; }
+})();
 
 // Navegações interrompidas durante recompilações do Vite podem emitir
 // ECONNRESET num socket sem listener (Node 24), encerrando o servidor local.
@@ -24,7 +31,10 @@ const ignoreDisconnectedDevClients: Plugin = {
 };
 
 export default defineConfig({
-  vite: { plugins: [ignoreDisconnectedDevClients] },
+  vite: {
+    plugins: [ignoreDisconnectedDevClients],
+    define: { __APP_RELEASE_ID__: JSON.stringify(appReleaseId) },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

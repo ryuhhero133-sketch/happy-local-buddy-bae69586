@@ -6,6 +6,7 @@ const repository = fileURLToPath(new URL("../../", import.meta.url));
 export default defineConfig({
   root: fileURLToPath(new URL("./", import.meta.url)),
   plugins: [react()],
+  define: { __APP_RELEASE_ID__: JSON.stringify("preview-current") },
   resolve: { alias: { "@": fileURLToPath(new URL("../../src", import.meta.url)) } },
   server: { host: "127.0.0.1", port: 5176, strictPort: true, fs: { allow: [repository] } },
 });
