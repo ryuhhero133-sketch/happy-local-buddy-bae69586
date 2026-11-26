@@ -46,6 +46,9 @@ export type GameHudProps = {
   epicPlantCooldownLabel?: string;
   onEpicPlant?: () => void;
   onMapEditor: () => void; mapEditorActive: boolean; mapEditorEnabled?: boolean;
+  /** Conta principal: botão manual de reinício para todos os jogadores online. */
+  canRestartPlayers?: boolean;
+  onRestartPlayers?: () => void;
   onPvpMode: () => void;
   onCapture: () => void; onTargets: () => void; targetsOpen: boolean;
   onForge: () => void; onSave: () => void; onShop: () => void; onGuild: () => void; onCode: () => void;

@@ -56,6 +56,9 @@ export function MainMenu({ hud, open, onOpenChange, onResetLayout }: { hud: Game
     { label: "Código", action: () => act(hud.onCode) },
     { label: "Salvar", action: () => act(hud.onSave) },
     { label: "Restaurar HUD", action: () => act(onResetLayout) },
+    ...(hud.canRestartPlayers && hud.onRestartPlayers
+      ? [{ label: "Reiniciar jogadores", action: () => act(hud.onRestartPlayers!) }]
+      : []),
   ];
 
   return <>

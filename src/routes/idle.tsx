@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameHud } from "@/components/hud/GameHud";
-import { GameAutoUpdate } from "@/components/GameAutoUpdate";
+import { GameRestartPrompt } from "@/components/GameRestartPrompt";
+import { APP_RELEASE_SHORT } from "@/lib/appRelease";
 import { getHudMapBounds } from "@/components/hud/hudLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { generateMapIcon } from "@/lib/icons.functions";
@@ -4972,7 +4973,11 @@ const confirmName = () => {
 
   // Auto-battle / chat / WASD
   const [auto, setAuto] = useState(true);
-  const appUpdateWasAutoRef = useRef<boolean | null>(null);
+  const restartWasAutoRef = useRef<boolean | null>(null);
+  const [restartSignal, setRestartSignal] = useState<number | null>(null);
+  const [globalRestartOpen, setGlobalRestartOpen] = useState(false);
+  const [globalRestartBusy, setGlobalRestartBusy] = useState(false);
+  const [globalRestartError, setGlobalRestartError] = useState("");
   const autoRef = useRef(true);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   const [blackEggHudOpen, setBlackEggHudOpen] = useState(false);
@@ -19257,7 +19262,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     pushChat(`Cristal ${data.label} aprimorado para Nv. ${level + 1}!`, "cap");
   };
 
-  const canAutomaticallyUpdate = () => Boolean(
+  const canSafelyRestart = () => Boolean(
     cloudBlobReady && serverSync.status === "ready" && setupDone && starterChosen
     && identity?.id && getSnapshotOwner() === identity.id && !isCheckpointBusy()
     && tab === "batalha" && !mapEditorOpen && !mapLoading && !teleportTransition
@@ -19266,12 +19271,12 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     && !preregBusy && !levelResetBusyRef.current && !starterPickPendingRef.current
     && !pvpTarget && !captureAnim
   );
-  const cancelAutomaticUpdate = () => {
-    const previous = appUpdateWasAutoRef.current;
-    appUpdateWasAutoRef.current = null;
+  const cancelPendingRestart = () => {
+    const previous = restartWasAutoRef.current;
+    restartWasAutoRef.current = null;
     if (previous !== null) { autoRef.current = previous; setAuto(previous); }
   };
-  const persistBeforeAutomaticUpdate = () => {
+  const persistBeforeRestart = () => {
     if (!identity?.id || getSnapshotOwner() !== identity.id || isCheckpointBusy()) return false;
     try {
       persistTrainerPosition();
@@ -19285,9 +19290,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         && JSON.parse(localStorage.getItem(IDLE_KEY) ?? "null")?.savedAt === blob.savedAt;
     } catch { return false; }
   };
-  const prepareAutomaticUpdate = async () => {
-    if (!canAutomaticallyUpdate()) return false;
-    appUpdateWasAutoRef.current = auto;
+  const prepareRestart = async () => {
+    if (!canSafelyRestart()) return false;
+    restartWasAutoRef.current = auto;
     autoRef.current = false;
     setAuto(false); // Runtime pause only: do not change the player's saved Auto preference.
     keysRef.current.clear();
@@ -19297,9 +19302,58 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     setMoving(false);
     // Let the saving overlay and paused combat commit before taking the checkpoint.
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-    if (appUpdateWasAutoRef.current === null || !canAutomaticallyUpdate() || !persistBeforeAutomaticUpdate()) return false;
+    if (restartWasAutoRef.current === null || !canSafelyRestart() || !persistBeforeRestart()) return false;
     return pushCloudSaveNow({ idle: idleRef.current, team: teamRef.current, restingBench: benchRef.current, savedAt: Date.now() });
   };
+  const restartThisDevice = async () => {
+    if (globalRestartBusy) return;
+    setGlobalRestartBusy(true);
+    setGlobalRestartError("");
+    const saved = await prepareRestart();
+    if (!saved || !persistBeforeRestart()) {
+      cancelPendingRestart();
+      setGlobalRestartError("Não foi possível salvar agora. Saia de compras/janelas, espere a batalha e tente de novo.");
+      setGlobalRestartBusy(false);
+      return;
+    }
+    window.location.reload();
+  };
+  const requestGlobalRestart = async () => {
+    if (globalRestartBusy) return;
+    setGlobalRestartBusy(true);
+    setGlobalRestartError("");
+    try {
+      const { data, error } = await (supabase as any).rpc("request_game_client_refresh", { p_message: "Atualização importante" });
+      const version = Number((data as { version?: unknown } | null)?.version);
+      if (error || (data as { ok?: unknown } | null)?.ok !== true || !Number.isSafeInteger(version)) {
+        throw new Error(error?.message ?? "request_failed");
+      }
+      setGlobalRestartOpen(false);
+      setRestartSignal(version);
+      pushChat("🔄 Reinício solicitado para todos os jogadores online. Salvando e atualizando…", "info");
+    } catch {
+      setGlobalRestartError("Não foi possível pedir o reinício. Confirme se você está na conta principal e tente de novo.");
+    } finally {
+      setGlobalRestartBusy(false);
+    }
+  };
+
+  // Nenhuma consulta periódica: quem está online escuta só o evento manual do dono.
+  useEffect(() => {
+    if (!identity?.id || isOfflineTest()) return;
+    let active = true;
+    const channel = (supabase as any)
+      .channel("game-client-restart-v1")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "game_client_refresh" }, (payload: any) => {
+        const version = Number(payload?.new?.version);
+        if (active && Number.isSafeInteger(version) && version > 0) setRestartSignal(version);
+      })
+      .subscribe();
+    return () => {
+      active = false;
+      void (supabase as any).removeChannel(channel);
+    };
+  }, [identity?.id]);
 
   return (
     <div className="revo-game" style={{
@@ -19309,11 +19363,26 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       fontFamily: "'Trebuchet MS', system-ui, sans-serif",
       overflow: "hidden",
     }}>
-      <GameAutoUpdate enabled={import.meta.env.PROD && !isOfflineTest()}
-        canReload={canAutomaticallyUpdate}
-        prepareReload={prepareAutomaticUpdate}
-        persistLatest={persistBeforeAutomaticUpdate}
-        cancelReload={cancelAutomaticUpdate} />
+      <GameRestartPrompt enabled={import.meta.env.PROD && !isOfflineTest() && !!identity?.id}
+        signal={restartSignal}
+        canRestart={canSafelyRestart}
+        prepareRestart={prepareRestart}
+        persistLatest={persistBeforeRestart}
+        cancelRestart={cancelPendingRestart} />
+      {globalRestartOpen && canUseMapEditor && <div role="presentation" style={{ position: "fixed", inset: 0, zIndex: 30000, display: "grid", placeItems: "center", padding: 20, background: "rgba(0,0,0,.78)" }} onClick={() => { if (!globalRestartBusy) setGlobalRestartOpen(false); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="global-restart-title" onClick={(event) => event.stopPropagation()} style={{ width: "min(470px, 100%)", padding: 24, border: "2px solid #b7d9c4", borderRadius: 20, background: "linear-gradient(160deg,#fffafd,#eff9f1)", color: "#345d48", boxShadow: "0 18px 50px #0008", textAlign: "center" }}>
+          <h2 id="global-restart-title" style={{ color: "#8e5071", fontSize: 20, fontWeight: 900 }}>Reiniciar jogadores?</h2>
+          <p style={{ margin: "12px 0 8px", lineHeight: 1.5, fontSize: 14 }}>Salva o progresso e recarrega o jogo de <strong>todos que estão online</strong>. Use só numa atualização importante.</p>
+          <small style={{ display: "block", marginBottom: 14, color: "#688579" }}>Versão atual: {APP_RELEASE_SHORT}</small>
+          {globalRestartError && <p role="alert" style={{ margin: "0 0 14px", padding: 9, borderRadius: 9, background: "#ffe6ec", color: "#9c3358", fontSize: 12 }}>{globalRestartError}</p>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <button type="button" disabled={globalRestartBusy} onClick={() => setGlobalRestartOpen(false)} style={{ minHeight: 44, gridColumn: "1 / -1", padding: "8px 12px", borderRadius: 12, border: "1px solid #c5dccc", background: "#fff", color: "#52705f", fontWeight: 800, cursor: "pointer" }}>Cancelar</button>
+            <button type="button" disabled={globalRestartBusy} onClick={() => { void restartThisDevice(); }} style={{ minHeight: 48, padding: "8px 10px", borderRadius: 12, border: "1px solid #a4cbb5", background: "#e4f2e8", color: "#32634d", fontWeight: 900, cursor: "pointer" }}>Só meu jogo</button>
+            <button type="button" disabled={globalRestartBusy} onClick={() => { void requestGlobalRestart(); }} style={{ minHeight: 48, padding: "8px 10px", borderRadius: 12, border: "1px solid #e6bbcf", background: "#fce3ef", color: "#8e5071", fontWeight: 900, cursor: "pointer" }}>{globalRestartBusy ? "Salvando…" : "Todos online"}</button>
+          </div>
+          <p style={{ margin: "12px 0 0", fontSize: 11, color: "#688579" }}>O código novo já precisa estar publicado. Compras, formulários e ações em andamento seguram o reinício até terminarem.</p>
+        </section>
+      </div>}
       {temporarilyClosed && <div role="dialog" aria-modal="true" aria-labelledby="temporarily-closed-title" onClick={() => setTemporarilyClosed(null)} style={{ position: "fixed", inset: 0, zIndex: 30000, display: "grid", placeItems: "center", padding: 20, background: "rgba(0,0,0,.8)" }}>
         <div onClick={(event) => event.stopPropagation()} style={{ width: "min(420px, 100%)", padding: 24, border: "2px solid #f5cf6b", borderRadius: 16, background: "linear-gradient(160deg,#172638,#111324)", boxShadow: "0 0 35px rgba(245,207,107,.3)", textAlign: "center" }}>
           <h2 id="temporarily-closed-title" style={{ color: "#ffe18b", fontSize: 20, fontWeight: 900 }}>{temporarilyClosed} indisponível</h2>
@@ -20007,6 +20076,8 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         // O editor é pessoal: somente a conta proprietária pode abrir e alterar
         // objetos ou spawns, inclusive em produção.
         mapEditorEnabled={canUseMapEditor}
+        canRestartPlayers={canUseMapEditor}
+        onRestartPlayers={() => { playClick(); setGlobalRestartError(""); setGlobalRestartOpen(true); }}
         onMapEditor={() => {
           if (!canUseMapEditor) return;
           playClick();
