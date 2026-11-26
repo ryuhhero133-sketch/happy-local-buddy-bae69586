@@ -23,7 +23,7 @@ import "./main-menu.css";
 
 type MenuItem = { label: string; icon: string; color: string; x: number; y: number; action: () => void };
 
-export function MainMenu({ hud, open, onOpenChange }: { hud: GameHudProps; open: boolean; onOpenChange: (open: boolean) => void }) {
+export function MainMenu({ hud, open, onOpenChange, onResetLayout }: { hud: GameHudProps; open: boolean; onOpenChange: (open: boolean) => void; onResetLayout: () => void }) {
 
   useEffect(() => {
     if (!open) return;
@@ -55,15 +55,17 @@ export function MainMenu({ hud, open, onOpenChange }: { hud: GameHudProps; open:
     { label: "Mercado", icon: iconMercado, action: () => navigate("market") },
     { label: "Código", action: () => act(hud.onCode) },
     { label: "Salvar", action: () => act(hud.onSave) },
+    { label: "Restaurar HUD", action: () => act(onResetLayout) },
   ];
 
   return <>
-    <button className="revo-mobile-bag" type="button" title="Mochila" aria-label="Abrir ou fechar Mochila" onClick={() => navigate("mochila")}>
+    <button data-hud-id="bag" className="revo-mobile-bag" type="button" title="Mochila · Segure e arraste para mover" aria-label="Abrir ou fechar Mochila" onClick={() => navigate("mochila")}>
       <img src={iconMochila} alt="" /><span>Mochila</span>
     </button>
     {hud.mountActive && (
       <button
         className={`revo-mount-toggle${hud.mountOn ? " is-on" : ""}`}
+        data-hud-id="mount"
         type="button"
         title={hud.mountOn ? `Montaria SAWSBUCK-S3 ligada · ${hud.mountLabel} restantes. Clique para desmontar.` : `Montaria SAWSBUCK-S3 desligada · ${hud.mountLabel} restantes. Clique para montar.`}
         aria-label={hud.mountOn ? "Desmontar montaria" : "Montar montaria"}
@@ -74,7 +76,7 @@ export function MainMenu({ hud, open, onOpenChange }: { hud: GameHudProps; open:
         <span>{hud.mountLabel}</span>
       </button>
     )}
-    <button className="revo-main-menu-trigger" type="button" aria-label={open ? "Fechar menu principal" : "Abrir menu principal"} aria-expanded={open} onClick={() => onOpenChange(!open)}>
+    <button data-hud-id="menu" className="revo-main-menu-trigger" type="button" title="Menu · Segure e arraste para mover" aria-label={open ? "Fechar menu principal" : "Abrir menu principal"} aria-expanded={open} onClick={() => onOpenChange(!open)}>
       <img className="revo-main-menu-trigger__art" src={menuTriggerIcon} alt="" /><span>MENU</span>
     </button>
     {open && createPortal(<div className="revo-main-menu-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onOpenChange(false); }}>

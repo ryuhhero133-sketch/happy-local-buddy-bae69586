@@ -33,6 +33,7 @@ export function TargetHud({ target }: { target: HudTarget }) {
   const description = `${target.name} · Lv. ${target.level} · ${tier.label}${target.elite ? " · Elite" : ""} · HP ${Math.round(hp)}/${target.maxHp}`;
 
   return <section
+    data-hud-id="target"
     className="revo-target revo-panel"
     data-tier={target.rarity}
     style={{ "--target-tier": tier.color } as CSSProperties}

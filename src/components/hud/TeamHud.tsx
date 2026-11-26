@@ -50,7 +50,7 @@ export function TeamHud({ members, selectedUid, onSelect, onManage, newHud, onOp
   newHud?: boolean;
 }) {
   const [compact, setCompact] = useState(!!newHud);
-  return <section className={`revo-team ${compact ? "is-compact" : ""}`} aria-label="Equipe Pokémon">
+  return <section data-hud-id="team" data-hud-scrollable className={`revo-team ${compact ? "is-compact" : ""}`} aria-label="Equipe Pokémon">
     <header className="revo-team__header revo-panel">
       <button type="button" onClick={onManage} title="Gerenciar equipe" aria-label={`Gerenciar equipe, ${members.length} de 6 Pokémon`}>
         <Users /><strong>EQUIPE</strong><span>{members.length}/6</span>
@@ -59,7 +59,7 @@ export function TeamHud({ members, selectedUid, onSelect, onManage, newHud, onOp
         {compact ? <ChevronRight /> : <ChevronLeft />}
       </button>
     </header>
-    <div className="revo-team__list">
+    <div data-hud-no-drag className="revo-team__list">
       {members.map((member, index) => {
         const tier = TIERS[member.rarity] ?? TIERS.common;
         const hp = Math.max(0, Math.min(member.maxHp, member.hp));

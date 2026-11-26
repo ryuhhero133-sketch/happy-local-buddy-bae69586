@@ -25,7 +25,7 @@ export function ChatHud({ messages, pvpActive = false, pvpWindowLabel }: {
     if (feed.current) feed.current.scrollTop = feed.current.scrollHeight;
   }, [messages, filter, collapsed]);
 
-  return <section className={`revo-chat revo-panel ${collapsed ? "is-collapsed" : ""} ${pvpActive ? "is-pvp-active" : ""}`} aria-label={pvpActive ? "Chat e eventos — PvP ativo" : "Chat e eventos"}>
+  return <section data-hud-id="chat" data-hud-scrollable className={`revo-chat revo-panel ${collapsed ? "is-collapsed" : ""} ${pvpActive ? "is-pvp-active" : ""}`} aria-label={pvpActive ? "Chat e eventos — PvP ativo" : "Chat e eventos"}>
     <div className="revo-chat__tabs" role="tablist" aria-label="Canais de mensagens">
       {([["all", "Global"], ["system", "Sistema"], ["world", "Mundo"], ["captures", "Capturas"]] as const).map(([id, label]) =>
         <button key={id} type="button" role="tab" aria-selected={filter === id} onClick={() => { setFilter(id); setCollapsed(false); }}>{label}</button>)}
@@ -35,7 +35,7 @@ export function ChatHud({ messages, pvpActive = false, pvpWindowLabel }: {
       </button>
     </div>
     {!collapsed && <>
-      <div ref={feed} className="revo-chat__feed" role="log" aria-label="Mensagens recentes">
+      <div ref={feed} data-hud-no-drag className="revo-chat__feed" role="log" aria-label="Mensagens recentes">
         {visible.slice(-30).map((message) => <p key={message.id} data-kind={message.kind}>
           <span className="revo-chat__tag">[{classify(message) === "world" ? "Mundo" : classify(message) === "captures" ? "Captura" : "Sistema"}]</span>{" "}
           {message.text.replace(/^[💬🌍]\s*/u, "")}

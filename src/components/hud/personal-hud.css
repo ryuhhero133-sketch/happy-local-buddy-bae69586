@@ -1,0 +1,278 @@
+/* User-positioned blocks retain their own responsive CSS anchors until moved. */
+.revo-hud [data-hud-id] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.revo-hud [data-hud-id]:not([data-hud-scrollable]),
+.revo-hud [data-hud-scrollable] header,
+.revo-hud [data-hud-scrollable] .revo-chat__tabs { touch-action: none; }
+.revo-hud [data-hud-id] img { -webkit-user-drag: none; }
+.revo-hud [data-hud-no-drag] { touch-action: pan-y; }
+.revo-hud .is-hud-dragging {
+  z-index: 500 !important;
+  cursor: grabbing !important;
+  will-change: translate;
+  transition: none !important;
+  outline: 2px dashed #ff9fc8;
+  outline-offset: 5px;
+}
+.revo-hud.is-rearranging,
+.revo-hud.is-rearranging button { cursor: grabbing !important; }
+.revo-hud.is-rearranging .revo-actions:has(.is-hud-dragging),
+.revo-hud.is-rearranging .revo-right-stack:has(.is-hud-dragging) { z-index: 499; }
+
+/* Porcelain, strawberry milk and soft mint. No animated blur on mobile. */
+.revo-hud.is-newhud .revo-player--ring {
+  width: 320px !important;
+  min-width: 0;
+  height: 96px !important;
+  min-height: 0;
+  padding: 9px 7px 9px 11px !important;
+  gap: 3px;
+  border: 2px solid #b7d9c4 !important;
+  border-radius: 30px 24px 24px 30px !important;
+  background: linear-gradient(120deg, #fffafd, #ffffff 53%, #eff9f1) !important;
+  box-shadow: inset 0 0 0 3px #ffffff, inset 0 -5px 0 #f4e4eb80, 0 4px 0 #6f9c7e30, 0 7px 16px #163d382b !important;
+  color: #315c49;
+}
+.revo-player__open {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  gap: 11px;
+  text-align: left;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+}
+.revo-hud.is-newhud .revo-player--ring .revo-player__ring {
+  width: 65px;
+  height: 65px;
+  background: conic-gradient(from -90deg, #ffc2da, #eb759f calc(var(--pct, 100) * 3.6deg), #e6eee7 calc(var(--pct, 100) * 3.6deg));
+  box-shadow: inset 0 0 0 2px #ffe7ef, 0 0 0 3px #fff, 0 0 0 4px #f0cddc;
+}
+.revo-hud.is-newhud .revo-player--ring .revo-player__ring-inner {
+  width: 54px;
+  height: 54px;
+  border-color: #b8d8c4;
+  background: radial-gradient(circle at 40% 25%, #fff, #def1df);
+}
+.revo-player__level {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  min-width: 24px;
+  padding: 2px 5px;
+  border: 2px solid #fff;
+  border-radius: 10px;
+  background: #dcefe2;
+  color: #326146;
+  font-size: 10px;
+  font-weight: 900;
+}
+.revo-hud.is-newhud .revo-player--ring .revo-player__info { min-width: 0; gap: 5px; }
+.revo-player__kicker { display: flex; align-items: center; gap: 4px; color: #749986; font-size: 8px; letter-spacing: 1.1px; font-weight: 800; }
+.revo-player__kicker svg { width: 10px; height: 10px; }
+.revo-player__kicker svg:last-child { color: #eaa7bd; fill: #ffe1ec; margin-left: auto; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__name { flex-wrap: wrap; justify-content: flex-start; gap: 5px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__name strong { min-width: 0; max-width: 125px; font-size: 17px; color: #32634d; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__name > b { border: 1px solid #f3c9d9; border-radius: 8px; padding: 2px 5px; color: #ac5d7c; background: #fff0f5; font-size: 10px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__hp { gap: 3px; font-size: 10px; }
+.revo-hud.is-newhud .revo-player--ring .revo-player__hp b { font-size: 15px; color: #c15f82; }
+.revo-player__hp > svg { width: 11px; height: 11px; color: #df8baa; fill: #f8d3e3; margin-right: 1px; }
+.revo-player__toggle {
+  flex: 0 0 25px;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #f0ccdc;
+  border-radius: 17px;
+  background: linear-gradient(#fff9fc, #fbe5ef);
+  color: #9e5b79 !important;
+}
+.revo-player__toggle svg { width: 17px; height: 17px; }
+.revo-hud.is-newhud .revo-player--ring.is-collapsed { width: 111px !important; height: 88px !important; }
+.revo-player--ring.is-collapsed .revo-player__info { display: none !important; }
+
+/* The source cloud is nv.png, cropped/resized to a 10.7 kB reusable WebP. */
+.revo-hud .revo-wallet {
+  position: absolute;
+  top: 17px;
+  left: 358px;
+  width: min(660px, calc(100% - 500px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #355a50;
+  pointer-events: auto;
+}
+.revo-hud .revo-wallet.is-collapsed { width: 145px; }
+.revo-wallet__toggle {
+  position: relative;
+  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 29px;
+  height: 32px;
+  gap: 4px;
+  padding: 0;
+  border: 1px solid #efc8db;
+  border-radius: 15px;
+  background: #fff4f9;
+  color: #a36584 !important;
+  box-shadow: 0 3px 7px #27473525, inset 0 1px #fff;
+}
+.revo-wallet__toggle > svg { width: 20px; height: 20px; flex-shrink: 0; }
+.revo-wallet__toggle > span { font-size: 13px; font-weight: 900; }
+.revo-wallet.is-collapsed .revo-wallet__toggle { flex-basis: 145px; height: 53px; padding: 4px 15px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.revo-wallet.is-collapsed .revo-wallet__toggle::before,
+.revo-hud .revo-wallet .revo-resource::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--resource-cloud) center / 100% 100% no-repeat;
+  filter: hue-rotate(110deg) saturate(.38) drop-shadow(0 3px 2px #24463526);
+  pointer-events: none;
+}
+.revo-wallet.is-collapsed .revo-wallet__toggle > * { position: relative; z-index: 1; }
+.revo-wallet.is-collapsed .revo-wallet__toggle > svg:first-child { color: #8baf88; fill: #ebf5dd; }
+.revo-hud .revo-wallet .revo-resources {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  gap: 3px;
+  margin: 0;
+  overflow: visible;
+}
+.revo-hud .revo-wallet .revo-resources .revo-resource {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: auto;
+  height: 36px;
+  max-width: none;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.revo-hud .revo-wallet .revo-resource:nth-child(even)::before { filter: hue-rotate(-65deg) saturate(.35) drop-shadow(0 3px 2px #24463526); }
+.revo-hud .revo-wallet .revo-resource > * { position: relative; z-index: 1; }
+.revo-hud .revo-wallet .revo-resource > img,
+.revo-hud .revo-wallet .revo-resource > svg { width: 16px; height: 16px; filter: drop-shadow(0 1px 1px #fff); }
+.revo-hud .revo-wallet .revo-resource strong { font-size: 12px; text-align: center; font-weight: 900; }
+.revo-hud .revo-wallet .revo-resource small { display: none; }
+.revo-wallet .revo-energy-icon { color: #b48f38; fill: #f7d985; }
+.revo-wallet .revo-gold { color: #b19240; }
+
+/* Match the nearby shortcut buttons without changing any combat callbacks. */
+.revo-hud.is-newhud .revo-systems > .revo-icon,
+.revo-hud.is-newhud .revo-minimap__tools .revo-icon,
+.revo-hud.is-newhud .revo-actions__secondary .revo-icon:not(.revo-pvp-active) {
+  border-color: #c5dccc;
+  background: linear-gradient(#fffdfd, #eef7f0);
+  color: #4a7c60;
+  box-shadow: inset 0 1px #fff, 0 3px 0 #8aaa902e, 0 4px 8px #20463726;
+}
+.revo-hud.is-newhud .revo-systems > .revo-icon:nth-child(2) { background: linear-gradient(#fffcfd, #fce7f0); border-color: #edbfd3; color: #b56c8d; }
+.revo-hud.is-newhud .revo-actions__secondary .revo-icon.is-active:not(.revo-pvp-active) { border-color: #8dbba3; background: #d9f1e4; color: #357559; }
+.revo-hud.is-newhud .revo-main-menu-trigger,
+.revo-hud.is-newhud .revo-mobile-bag {
+  border: 2px solid #dcb2c5;
+  background: radial-gradient(circle at 40% 25%, #fff, #fce9f1 70%);
+  color: #4e715a;
+  text-shadow: 0 1px #fff;
+  box-shadow: inset 0 0 0 3px #fff, 0 4px 0 #c0d8c555, 0 5px 12px #2148393b;
+}
+.revo-hud.is-newhud .revo-mobile-bag { border-color: #a9ceb7; background: radial-gradient(circle at 40% 25%, #fff, #e4f2e5 70%); }
+.revo-hud.is-newhud .revo-auto:not(.is-pvp-targeted) > span,
+.revo-hud.is-newhud .revo-potion > span {
+  border-color: #a4cbb5;
+  background: radial-gradient(circle at 35% 25%, #fff, #e0f0e8 80%);
+  box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 6px #bbd9c8, 0 5px 12px #204b373b;
+}
+.revo-hud.is-newhud .revo-potion > span { border-color: #e7b8cd; background: radial-gradient(circle at 35% 25%, #fff, #fce3ef 80%); }
+.revo-hud.is-newhud .revo-auto:not(.is-pvp-targeted) > strong,
+.revo-hud.is-newhud .revo-potion > strong { color: #446652; background: #fffafc; border-color: #c1d9c9; text-shadow: none; }
+.revo-hud.is-newhud .revo-auto.is-active:not(.is-pvp-targeted) > strong::after { color: #378667; }
+.revo-hud.is-newhud .revo-potion.is-active > strong::after { color: #ba5c89; }
+.revo-hud.is-newhud .revo-minimap__preview { border-color: #add0b2; box-shadow: 0 0 0 2px #fff6ed, 0 5px 12px #234d3a42; }
+.revo-hud.is-newhud .revo-minimap.revo-panel { padding-bottom: 20px !important; }
+.revo-hud.is-newhud .revo-minimap > footer { bottom: 0; }
+.revo-hud.is-newhud .revo-minimap > footer > span { color: #406952; border-color: #bfd9c7; background: #fffaf5; }
+
+@media (max-width: 1200px) {
+  .revo-hud .revo-wallet { width: min(600px, calc(100% - 500px)); }
+}
+@media (max-width: 1000px) {
+  .revo-hud .revo-wallet { top: 119px; left: 18px; width: min(520px, calc(100% - 285px)); }
+}
+@media (max-width: 768px) {
+  .revo-hud.is-newhud .revo-player--ring { top: 10px; left: 10px; width: 273px !important; height: 86px !important; padding: 7px 6px 7px 9px !important; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__name strong { max-width: 120px; font-size: 15px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__ring { width: 56px; height: 56px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__ring-inner { width: 46px; height: 46px; }
+  .revo-player__open { gap: 9px; }
+  .revo-player__kicker { font-size: 6px; letter-spacing: .8px; }
+  .revo-hud.is-newhud .revo-player--ring.is-collapsed { width: 101px !important; height: 79px !important; }
+  .revo-hud .revo-wallet { top: 105px; left: 10px; width: calc(100% - 20px); z-index: 3; }
+  .revo-hud .revo-wallet.is-collapsed { width: 132px; }
+  .revo-wallet.is-collapsed .revo-wallet__toggle { flex-basis: 132px; height: 48px; }
+  .revo-hud .revo-wallet .revo-resource strong { font-size: 9px; }
+  .revo-hud .revo-wallet .revo-resources .revo-resource { height: 30px; grid-template-columns: 12px minmax(0, 1fr); padding: 4px; gap: 2px; }
+  .revo-hud .revo-wallet .revo-resource > img,
+  .revo-hud .revo-wallet .revo-resource > svg { width: 12px; height: 12px; }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  .revo-hud.is-newhud .revo-player--ring { top: max(6px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); width: 208px !important; height: 67px !important; padding: 6px !important; border-radius: 22px !important; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__ring { width: 43px; height: 43px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__ring-inner { width: 35px; height: 35px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__name strong { max-width: 95px; font-size: 12px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__name > b { font-size: 8px; padding: 0 3px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__info { gap: 2px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__hp b { font-size: 12px; }
+  .revo-hud.is-newhud .revo-player--ring .revo-player__hp { font-size: 8px; }
+  .revo-player__open { gap: 7px; }
+  .revo-player__kicker { display: none; }
+  .revo-player__level { min-width: 18px; padding: 0 3px; font-size: 8px; }
+  .revo-player__toggle { flex-basis: 23px; }
+  .revo-hud.is-newhud .revo-player--ring.is-collapsed { width: 85px !important; height: 64px !important; }
+  .revo-hud .revo-wallet { top: max(8px, env(safe-area-inset-top)); left: 227px; width: calc(100% - 399px); }
+  .revo-hud .revo-wallet.is-collapsed { width: 130px; }
+  .revo-hud .revo-wallet .revo-resources { gap: 2px; }
+  .revo-hud .revo-wallet .revo-resources .revo-resource { height: 30px; grid-template-columns: 12px minmax(0, 1fr); padding: 4px; gap: 2px; }
+  .revo-hud .revo-wallet .revo-resource strong { font-size: 9px; }
+  .revo-hud .revo-wallet .revo-resource > img,
+  .revo-hud .revo-wallet .revo-resource > svg { width: 12px; height: 12px; }
+  .revo-hud .revo-wallet .revo-wallet__toggle { width: 25px; flex-basis: 25px; }
+  .revo-hud .revo-wallet.is-collapsed .revo-wallet__toggle { flex-basis: 130px; height: 46px; }
+  .revo-hud .revo-right-stack { top: 82px; overflow: visible; }
+  .revo-hud .revo-team { top: 83px; }
+  .revo-hud .capture-quest-orb { position: fixed; top: auto; right: calc(118px + env(safe-area-inset-right)); bottom: calc(112px + env(safe-area-inset-bottom)); margin: 0; }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) and (max-width: 760px) {
+  .revo-hud .revo-wallet:not(.is-collapsed) { top: 83px; left: 80px; width: calc(100% - 254px); }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) and (max-width: 600px) {
+  .revo-hud .revo-wallet .revo-resources .revo-resource { grid-template-columns: 10px minmax(0, 1fr); padding-inline: 2px; gap: 1px; }
+  .revo-hud .revo-wallet .revo-resource strong { font-size: 8px; }
+  .revo-hud .revo-wallet .revo-resource > img,
+  .revo-hud .revo-wallet .revo-resource > svg { width: 10px; height: 10px; }
+  .revo-hud .revo-wallet:not(.is-collapsed) .revo-wallet__toggle { width: 20px; flex-basis: 20px; }
+}

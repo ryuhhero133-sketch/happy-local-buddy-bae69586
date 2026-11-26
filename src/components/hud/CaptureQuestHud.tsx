@@ -43,6 +43,7 @@ export function CaptureQuestHud({ quests, milestones, pokemonImages, pokemonShee
     <button
       type="button"
       className="capture-quest-orb"
+      data-hud-id="capture-quests"
       onClick={() => setOpen(true)}
       title={`Missões 20 · ${completed}/20 concluídas${readyChests ? ` · ${readyChests} baú(s) para abrir` : ""}`}
       aria-label={`Abrir as 20 missões: ${completed} de 20 concluídas${readyChests ? `, ${readyChests} baú(s) pronto(s)` : ""}`}

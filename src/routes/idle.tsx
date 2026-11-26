@@ -19863,6 +19863,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       )}
       <GameHud
         newHud
+        layoutAccountId={identity?.id}
         guideAccountId={identity?.id && starterChosen ? identity.id : undefined}
         onJoystickMove={onJoystickMove}
         mapBounds={getHudMapBounds(viewSize, { w: curWorldW, h: curWorldH }, zoom, { x: renderCamX, y: renderCamY }, { x: centerOffX, y: centerOffY })}
@@ -19884,7 +19885,7 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         trainerHp={idle.currentMap === "sa" ? idle.safariTrainerHp ?? SAFARI_TRAINER_MAX_HP : undefined}
         energy={trainerEnergy} hunger={idle.trainerHunger ?? 100}
         ballCount={idle.items?.pokeball ?? 0} throws={Math.max(0, Math.floor(idle.throwsLeft ?? MAX_THROW_COUNT))} maxThrows={MAX_THROW_COUNT}
-        gold={idle.bank.gold} crystals={idle.bank.crystals} rubies={idle.pending.rubies} pepitas={(idle.bank?.pepita??0)}
+        gold={idle.bank.gold} crystals={idle.bank.crystals} redCrystals={idle.items?.cr_red ?? 0} rubies={idle.pending.rubies} pepitas={idle.items?.pepita ?? 0}
         pvpTargeted={!!pvpTarget} pvpMode={emeraldPvpActive ? idle.pvpMode ?? "peace" : "peace"}
         pvpActive={emeraldPvpActive} pvpWindowLabel={emeraldPvpLabel}
         region={publicMapName(idle.currentMap)} mapImage={map.bg} world={{ width: curWorldW, height: curWorldH }} player={trainerPos}
