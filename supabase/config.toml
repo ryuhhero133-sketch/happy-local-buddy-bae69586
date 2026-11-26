@@ -1,1 +1,10 @@
-project_id = "lgbcornkaspoxqkyoiuj"
+project_id = "zdeduwsbzupulomxvfmb"
+
+[functions.cakto-create-payment]
+verify_jwt = false
+
+[functions.cakto-webhook]
+verify_jwt = false
+
+[functions.cakto-sync-catalog]
+verify_jwt = false

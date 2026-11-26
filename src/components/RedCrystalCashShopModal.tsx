@@ -18,6 +18,7 @@ import orbMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
 import orbTeamAsset from "@/assets/orb-xp-team.png.asset.json";
+import { CaktoPixShop } from "@/components/CaktoPixShop";
 
 const orbMinorImg = assetUrlFromJson(orbMinorAsset);
 const orbMajorImg = assetUrlFromJson(orbMajorAsset);
@@ -203,7 +204,9 @@ type Props = {
   ready: boolean;
   ownsVegeta: boolean;
   ownsGoku: boolean;
+  playerName: string;
   onPurchase: (productId: RedCrystalShopProductId) => Promise<RedCrystalPurchaseResult>;
+  onCrystalsCredited: (redCrystals: number) => void;
 };
 
 export function RedCrystalCashShopModal({
@@ -213,7 +216,9 @@ export function RedCrystalCashShopModal({
   ready,
   ownsVegeta,
   ownsGoku,
+  playerName,
   onPurchase,
+  onCrystalsCredited,
 }: Props) {
   const [pendingId, setPendingId] = useState<RedCrystalShopProductId | null>(null);
   const [notice, setNotice] = useState<RedCrystalPurchaseResult | null>(null);
@@ -337,6 +342,8 @@ export function RedCrystalCashShopModal({
               ⏳ Entre em uma conta e aguarde o save carregar para comprar com segurança.
             </div>
           )}
+          <CaktoPixShop playerName={playerName} redCrystals={redCrystals} onCredited={onCrystalsCredited} />
+
           {notice && (
             <div
               role="status"

@@ -266,7 +266,7 @@ import { loadLatestValid, saveNow, restoreLocalSave } from "@/lib/localSave";
 import { loadBattleScene, saveBattleScene, clearBattleScene } from "@/lib/battleScenePersist";
 import { useServerSync, type LocalSnapshotForPush } from "@/hooks/useServerSync";
 import { fetchCloudSave, getCloudSaveLastError, pushCloudSaveNow, scheduleCloudSync } from "@/lib/cloudSave";
-import { runCheckpointMutation, alignServerCheckpoint, adoptAuthoritativeCheckpoint, getSnapshotOwner, isCheckpointBusy } from "@/lib/saveManager";
+import { runCheckpointMutation, alignServerCheckpoint, adoptAuthoritativeCheckpoint, fetchServer, getSnapshotOwner, isCheckpointBusy } from "@/lib/saveManager";
 import { vaultPut } from "@/lib/emergencyVault";
 import { fetchServerBalances, applyServerBalances } from "@/lib/economySync";
 import { fetchTopRanked, type RankedRow, submitOddishCaptures, fetchOddishTop, type OddishRankRow } from "@/lib/rankedApi";
@@ -31699,7 +31699,19 @@ onClick={(e) => {
         ready={cloudBlobReady && !!identity?.id}
         ownsVegeta={idle.unlockedSkins?.includes("vegeta") ?? false}
         ownsGoku={idle.unlockedSkins?.includes("goku") ?? false}
+        playerName={identity?.name ?? "Treinador"}
         onPurchase={buyRedCrystalCashProduct}
+        onCrystalsCredited={(redCrystals) => {
+          setIdle((current) => {
+            const next = { ...current, items: { ...current.items, cr_red: redCrystals } };
+            idleRef.current = next;
+            saveIdle(next);
+            return next;
+          });
+          // O webhook altera a versão oficial do save. Alinha o checkpoint para
+          // o próximo autosave não parecer um save antigo em conflito.
+          if (identity?.id) void fetchServer(identity.id).catch(() => {});
+        }}
       />
 
       <BlackMiticEggHud
