@@ -11,11 +11,12 @@ Implementado no banco e no cliente:
 - Assinatura HMAC oficial `X-Cakto-Signature` + `X-Cakto-Timestamp` com janela de 5 minutos.
 - Idempotência por `requestId` no pedido e por `event_key` no webhook.
 - Loja Cash com área de Diamantes Vermelhos, formulário de CPF/telefone, QR Code, copia-e-cola, status e mensagem de aprovação.
+- Botão **CARTÃO** abre o checkout oficial da Cakto em outra aba; nenhum dado de cartão passa pelo jogo.
 - Atualização da HUD após confirmação, sem novo login.
 
 Publicado e ativo:
 
-- Edge Functions `cakto-create-payment`, `cakto-webhook` e `cakto-sync-catalog` no projeto `zdeduwsbzupulomxvfmb`.
+- Edge Functions `cakto-create-payment`, `cakto-create-checkout`, `cakto-webhook` e `cakto-sync-catalog` no projeto `zdeduwsbzupulomxvfmb`.
 - Secrets `CAKTO_CLIENT_ID`, `CAKTO_CLIENT_SECRET` e `CAKTO_WEBHOOK_SECRET` gravados no Supabase.
 - Webhook ativo na Cakto (id `88497`), com os três produtos e os eventos `purchase_approved`, `refund`, `chargeback`, `pix_gerado`, `pix_expirado` e `purchase_refused`.
 - Ofertas reais gravadas no catálogo:
@@ -25,25 +26,26 @@ Publicado e ativo:
 
 Pendente de validação final:
 
-- Um `purchase_approved` real, feito pelo jogo, com conferência de crédito único e atualização da HUD.
+- Um `purchase_approved` real de PIX, feito pelo jogo, com conferência de crédito único e atualização da HUD.
+- Um pagamento real de cartão pelo checkout hospedado, com `callback`/`sck` localizando o pedido e crédito único.
 - Rotacionar o `client_secret` da Cakto, que apareceu no chat durante a configuração.
 
 ## Arquitetura
 
 1. Jogador autenticado escolhe um dos três pacotes.
-2. `cakto-create-payment` valida o JWT, o pacote e os dados do comprador; cria um pedido `created`; obtém token OAuth2 da Cakto; cria o PIX com `X-Idempotency-Key = requestId`.
-3. O pedido guarda `cakto_payment_id`, QR, expiração e valor.
+2. **PIX:** `cakto-create-payment` valida o JWT, o pacote e os dados do comprador; cria um pedido; obtém token OAuth2 da Cakto; cria o PIX com `X-Idempotency-Key = requestId`.
+3. **Cartão:** `cakto-create-checkout` cria o pedido e um token aleatório, e devolve `https://pay.cakto.com.br/{oferta}?callback={token}&sck={pedido}`. O jogador paga na página oficial da Cakto; o jogo nunca recebe dados do cartão.
 4. A Cakto envia o webhook para `cakto-webhook`.
-5. A função valida assinatura, corpo e janela temporal; em `purchase_approved` com `status = paid` e `paymentMethod = pix`, chama `cakto_deliver_order`.
+5. A função valida assinatura, corpo e janela temporal; localiza o pedido por `sck`, `callback` ou `checkoutUrl`; em `purchase_approved` com `status = paid`, oferta principal (`offer_type = main`) e produto único, chama `cakto_deliver_order`.
 6. A entrega bloqueia o pedido e o save, valida oferta/valor/moeda, credita uma única vez e grava o histórico. Um Pix aprovado depois de `pix_expirado` também é creditado, como o próprio fluxo da Cakto prevê.
-7. O cliente consulta `get_my_cakto_order` e hidrata o checkpoint oficial para atualizar a HUD sem novo login.
+7. O cliente consulta `get_my_cakto_order` e hidrata o checkpoint oficial para atualizar a HUD sem novo login, tanto no PIX quanto no checkout de cartão.
 
 ## Banco
 
 Tabelas:
 
 - `public.cakto_packages` — catálogo público de leitura.
-- `private.cakto_orders`
+- `private.cakto_orders` — inclui `checkout_token` único para o checkout hospedado.
 - `private.cakto_order_customers`
 - `private.cakto_deliveries`
 - `private.cakto_webhook_events`
@@ -54,6 +56,8 @@ RPCs:
 - `public.get_my_cakto_order(uuid)` — somente o dono lê.
 - `public.cakto_server_create_order(...)` — somente `service_role`.
 - `public.cakto_server_save_payment(...)` — somente `service_role`.
+- `public.cakto_server_prepare_checkout(uuid, text)` — cria/reaproveita o token e a URL do checkout hospedado.
+- `public.cakto_server_order_by_checkout(text)` — localiza o pedido pelo token do webhook.
 - `public.cakto_deliver_order(...)` — somente `service_role`.
 - `public.cakto_mark_order_event(...)` — somente `service_role`.
 - `public.cakto_mark_order_reversed(...)` — somente `service_role`.
@@ -93,7 +97,7 @@ npx supabase secrets set --remote=zdeduwsbzupulomxvfmb `
   --env-file supabase/.env.cakto.local --yes
 
 npx supabase functions deploy --remote=zdeduwsbzupulomxvfmb --use-api --yes `
-  cakto-create-payment cakto-webhook cakto-sync-catalog
+  cakto-create-payment cakto-create-checkout cakto-webhook cakto-sync-catalog
 ```
 
 URL do webhook:

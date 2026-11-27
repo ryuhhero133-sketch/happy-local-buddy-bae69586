@@ -11,23 +11,48 @@ function eventKey(event: string, data: OrderData): string {
   return `${event}:${id}`;
 }
 
+function checkoutToken(value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
+  if (/^[a-f0-9]{32}$/.test(value)) return value;
+  try {
+    const url = new URL(value.includes("://") ? value : `https://${value}`);
+    const token = url.searchParams.get("callback") ?? "";
+    return /^[a-f0-9]{32}$/.test(token) ? token : null;
+  } catch {
+    return null;
+  }
+}
+
 async function processOrder(event: string, data: OrderData, payloadHash: string) {
   const admin = adminClient();
   const caktoId = typeof data.id === "string" ? data.id : "";
   if (!caktoId) return { event, ok: false, reason: "missing_order_id" };
-  const orderId = validUuid(data.sck) ? data.sck : null;
   const key = eventKey(event, data);
   const offerId = data.offer && typeof data.offer.id === "string" ? data.offer.id : null;
   const amount = data.amount == null ? null : Number(data.amount);
   const currency = typeof data.currency === "string" ? data.currency : null;
-  const paymentMethod = typeof data.paymentMethod === "string" ? data.paymentMethod : "";
   const paidAt = typeof data.paidAt === "string" ? data.paidAt : null;
 
+  let orderId = validUuid(data.sck) ? data.sck : null;
+  if (!orderId) {
+    const token = checkoutToken(data.callback) ?? checkoutToken(data.checkoutUrl);
+    if (token) {
+      const { data: lookup, error } = await admin.rpc("cakto_server_order_by_checkout", {
+        p_checkout_token: token,
+      });
+      if (!error && validUuid(lookup?.order_id)) orderId = lookup.order_id;
+    }
+  }
+
   if (event === "purchase_approved") {
-    if (data.status !== "paid" || paymentMethod !== "pix") {
+    const productType = data.product && typeof data.product.type === "string" ? data.product.type : "";
+    const offerType = typeof data.offer_type === "string" ? data.offer_type : "main";
+    if (data.status !== "paid"
+      || (productType && productType !== "unique")
+      || (offerType && offerType !== "main")) {
       await admin.rpc("cakto_mark_order_event", {
         p_event_key: key, p_event_type: event, p_payment_id: caktoId, p_order_id: orderId,
-        p_target_status: "ignored", p_payload_hash: payloadHash, p_error: "not_a_paid_pix",
+        p_target_status: "ignored", p_payload_hash: payloadHash, p_error: "not_a_paid_one_time_sale",
       });
       return { event, ok: true, ignored: true };
     }

@@ -87,17 +87,45 @@ test("create-payment uses OAuth, one server offer, idempotency and real PIX fiel
   assert.doesNotMatch(source, /diamonds\s*[:=]\s*Number\(body/);
 });
 
-test("webhook only credits on purchase_approved paid PIX and rejects bad signatures", () => {
+test("webhook only credits on paid one-time purchase_approved and maps hosted callbacks", () => {
   const source = read("supabase/functions/cakto-webhook/index.ts");
   assert.match(source, /X-Cakto-Signature|x-cakto-signature/);
   assert.match(source, /x-cakto-timestamp/);
   assert.match(source, /verifyCaktoSignature/);
   assert.match(source, /event === "purchase_approved"/);
   assert.match(source, /data\.status !== "paid"/);
+  assert.match(source, /offerType !== "main"/);
+  assert.match(source, /productType !== "unique"/);
+  assert.match(source, /cakto_server_order_by_checkout/);
   assert.match(source, /cakto_deliver_order/);
   assert.match(source, /refund|chargeback/);
   assert.match(source, /pix_gerado/);
+  assert.doesNotMatch(source, /paymentMethod !== "pix"/);
   assert.doesNotMatch(source, /pix_gerado[\s\S]{0,200}cakto_deliver_order/);
+});
+
+test("hosted checkout carries a random callback token and never handles card data", () => {
+  const sql = read("supabase/migrations/20261126170000_cakto_hosted_checkout.sql");
+  for (const text of [
+    "checkout_token",
+    "cakto_server_prepare_checkout",
+    "cakto_server_order_by_checkout",
+    "pay.cakto.com.br",
+    "'?callback='",
+    "'&sck='",
+  ]) assert.ok(sql.includes(text), text);
+  assert.match(sql, /grant execute on function public\.cakto_server_prepare_checkout\(uuid, text\)\s+to service_role/);
+  assert.match(sql, /grant execute on function public\.cakto_server_order_by_checkout\(text\)\s+to service_role/);
+
+  const edge = read("supabase/functions/cakto-create-checkout/index.ts");
+  for (const text of [
+    "cakto_server_create_order",
+    "cakto_server_prepare_checkout",
+    "crypto.getRandomValues",
+    "checkoutUrl",
+    "auth.getUser()",
+  ]) assert.ok(edge.includes(text), text);
+  assert.doesNotMatch(edge, /cardNumber|cvv|cvc|credit_card/i);
 });
 
 test("cash shop exposes PIX, QR, polling and the approved message", () => {
@@ -111,5 +139,9 @@ test("cash shop exposes PIX, QR, polling and the approved message", () => {
   assert.match(shop, /Boa aventura, treinador!/);
   assert.match(shop, /EM CONFIGURAÇÃO/);
   assert.match(shop, /!hasAvailablePackage/);
+  assert.match(shop, /cakto-create-checkout/);
+  assert.match(shop, /CARTÃO/);
+  assert.match(shop, /ABRIR CHECKOUT DA CAKTO/);
+  assert.doesNotMatch(shop, /cardNumber|cvv|cvc/i);
   assert.match(read("src/components/RedCrystalCashShopModal.tsx"), /CaktoPixShop/);
 });

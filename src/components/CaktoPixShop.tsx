@@ -22,6 +22,7 @@ type PixCheckout = {
   pixExpiration: string | null;
   checkoutUrl: string | null;
   status: string;
+  mode: "pix" | "hosted";
 };
 
 type MyOrder = {
@@ -65,7 +66,10 @@ function errorMessage(code: unknown): string {
     case "phone_required": return "Informe um celular válido com DDD.";
     case "document_required": return "Informe um CPF ou CNPJ válido.";
     case "email_required": return "Sua conta precisa ter um e-mail para gerar o PIX.";
-    default: return "Não foi possível gerar o PIX. Tente novamente.";
+    case "checkout_create_failed": return "Não foi possível abrir o checkout da Cakto. Tente novamente.";
+    case "order_expired": return "Este pedido expirou. Feche e tente novamente.";
+    case "token_conflict": return "Não foi possível reservar este checkout. Tente novamente.";
+    default: return "Não foi possível iniciar o pagamento. Tente novamente.";
   }
 }
 
@@ -201,6 +205,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
           pixExpiration: null,
           checkoutUrl: null,
           status: "paid",
+          mode: "pix",
         });
         creditedRef.current(redCrystals + credited);
         setFormOpen(false);
@@ -217,8 +222,87 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
         pixExpiration: result.pixExpiration ?? null,
         checkoutUrl: result.checkoutUrl ?? null,
         status: result.status ?? "pending",
+        mode: "pix",
       });
       setFormOpen(false);
+    } catch (caught) {
+      const candidate = caught as { message?: string; context?: { error?: string } };
+      setError(errorMessage(candidate?.context?.error ?? candidate?.message));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const createHostedCheckout = async (pkg: CaktoPackage) => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const hostedRequestId = crypto.randomUUID();
+      const { data, error: invokeError } = await supabase.functions.invoke("cakto-create-checkout", {
+        body: { packageId: pkg.id, requestId: hostedRequestId, name: playerName },
+      });
+      if (invokeError) throw invokeError;
+      const result = data as {
+        ok?: boolean; error?: string; status?: string; orderId?: string; diamonds?: number;
+        amountCents?: number; currency?: string; checkoutUrl?: string;
+      } | null;
+      if (!result?.ok || !result.orderId) throw new Error(result?.error ?? "checkout_create_failed");
+
+      setSelected(pkg);
+      setFormOpen(false);
+
+      if (result.status === "paid") {
+        const credited = result.diamonds ?? pkg.diamonds;
+        const paidAt = new Date().toISOString();
+        setOrder({
+          order_id: result.orderId,
+          package_id: pkg.id,
+          package_name: pkg.name,
+          diamonds: pkg.diamonds,
+          status: "paid",
+          pix_qr_code: null,
+          pix_expiration: null,
+          amount_cents: result.amountCents ?? pkg.price_cents ?? 0,
+          currency: result.currency ?? "BRL",
+          credited_diamonds: credited,
+          overflow_diamonds: 0,
+          red_crystals: redCrystals + credited,
+          created_at: paidAt,
+          paid_at: paidAt,
+        });
+        setPix({
+          orderId: result.orderId,
+          packageId: pkg.id,
+          diamonds: pkg.diamonds,
+          amountCents: result.amountCents ?? pkg.price_cents ?? 0,
+          currency: result.currency ?? "BRL",
+          pixQrCode: "",
+          pixExpiration: null,
+          checkoutUrl: null,
+          status: "paid",
+          mode: "hosted",
+        });
+        creditedRef.current(redCrystals + credited);
+        return;
+      }
+
+      if (!result.checkoutUrl || !result.checkoutUrl.startsWith("https://pay.cakto.com.br/")) {
+        throw new Error("checkout_create_failed");
+      }
+      setOrder(null);
+      setPix({
+        orderId: result.orderId,
+        packageId: pkg.id,
+        diamonds: result.diamonds ?? pkg.diamonds,
+        amountCents: result.amountCents ?? pkg.price_cents ?? 0,
+        currency: result.currency ?? "BRL",
+        pixQrCode: "",
+        pixExpiration: null,
+        checkoutUrl: result.checkoutUrl,
+        status: result.status ?? "pending",
+        mode: "hosted",
+      });
     } catch (caught) {
       const candidate = caught as { message?: string; context?: { error?: string } };
       setError(errorMessage(candidate?.context?.error ?? candidate?.message));
@@ -246,7 +330,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
       <img src={crystalRedImg} alt="" width={24} height={24} style={{ width: 24, height: 24, objectFit: "contain", filter: "drop-shadow(0 0 8px #ff4559)" }} />
       <div>
         <strong style={{ color: "#ffe3df", fontSize: 15, letterSpacing: ".04em" }}>DIAMANTES VERMELHOS</strong>
-        <span style={{ display: "block", color: "#ffb7b0", fontSize: 10 }}>Pague com PIX e receba automaticamente · saldo {Math.max(0, redCrystals).toLocaleString("pt-BR")}</span>
+        <span style={{ display: "block", color: "#ffb7b0", fontSize: 10 }}>PIX ou cartão, com entrega automática · saldo {Math.max(0, redCrystals).toLocaleString("pt-BR")}</span>
       </div>
     </div>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 9 }}>
@@ -260,17 +344,24 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
               <span style={{ color: "#ffc7c2", fontSize: 10 }}>{pkg.name}</span>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 10 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8, marginTop: 10 }}>
             <b style={{ color: "#ffe7a2", fontSize: 14 }}>{money(pkg.price_cents)}</b>
-            <button type="button" disabled={!available || busy} onClick={() => openForm(pkg)}
-              style={{ padding: "9px 12px", minHeight: 38, borderRadius: 9, border: 0, background: available ? "linear-gradient(135deg,#ffcf66,#dc7b2f)" : "rgba(255,255,255,.1)", color: available ? "#231405" : "#c7aeb0", fontWeight: 950, fontSize: 10, cursor: available ? "pointer" : "not-allowed" }}>
-              {available ? "COMPRAR PIX" : "EM CONFIGURAÇÃO"}
-            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 104 }}>
+              <button type="button" disabled={!available || busy} onClick={() => openForm(pkg)}
+                style={{ padding: "9px 12px", minHeight: 38, borderRadius: 9, border: 0, background: available ? "linear-gradient(135deg,#ffcf66,#dc7b2f)" : "rgba(255,255,255,.1)", color: available ? "#231405" : "#c7aeb0", fontWeight: 950, fontSize: 10, cursor: available ? "pointer" : "not-allowed" }}>
+                {available ? "COMPRAR PIX" : "EM CONFIGURAÇÃO"}
+              </button>
+              {available && <button type="button" disabled={busy} onClick={() => { void createHostedCheckout(pkg); }}
+                style={{ padding: "7px 10px", minHeight: 32, borderRadius: 8, border: "1px solid #78b7ff", background: "#14283f", color: "#c6e3ff", fontWeight: 900, fontSize: 9, cursor: busy ? "wait" : "pointer" }}>
+                CARTÃO
+              </button>}
+            </div>
           </div>
         </article>;
       })}
     </div>
-    {!hasAvailablePackage && <p style={{ margin: "8px 0 0", color: "#ffc2bc", fontSize: 11 }}>Pagamento PIX em configuração.</p>}
+    {!hasAvailablePackage && <p style={{ margin: "8px 0 0", color: "#ffc2bc", fontSize: 11 }}>Pagamentos em configuração.</p>}
+    {error && !formOpen && !pix && <p role="alert" style={{ margin: "8px 0 0", padding: 8, borderRadius: 7, background: "#4f1222", color: "#ffd4dc", fontSize: 11 }}>{error}</p>}
     {formOpen && selected && <div role="dialog" aria-modal="true" aria-label={`Pagamento PIX de ${selected.name}`} style={{ position: "fixed", inset: 0, zIndex: 60002, display: "grid", placeItems: "center", padding: 14, background: "rgba(2,5,12,.82)", backdropFilter: "blur(6px)" }}>
       <div style={{ width: "min(430px, 100%)", padding: 17, borderRadius: 14, border: "2px solid #e6b85e", background: "linear-gradient(160deg,#1b1222,#0a101d)", color: "#fff" }}>
         <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>PAGAMENTO PIX</div>
@@ -290,7 +381,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
       </div>
     </div>}
 
-    {pix && !formOpen && <div role="dialog" aria-modal="true" aria-label="PIX gerado" style={{ position: "fixed", inset: 0, zIndex: 60002, display: "grid", placeItems: "center", padding: 14, background: "rgba(2,5,12,.86)", backdropFilter: "blur(7px)" }}>
+    {pix && !formOpen && <div role="dialog" aria-modal="true" aria-label="Pagamento gerado" style={{ position: "fixed", inset: 0, zIndex: 60002, display: "grid", placeItems: "center", padding: 14, background: "rgba(2,5,12,.86)", backdropFilter: "blur(7px)" }}>
       <div style={{ width: "min(470px, 100%)", maxHeight: "92dvh", overflowY: "auto", padding: 18, borderRadius: 16, border: `2px solid ${order?.status === "paid" ? "#7dffb0" : "#e6b85e"}`, background: "linear-gradient(160deg,#161b26,#0a101d)", color: "#fff", textAlign: "center" }}>
         {order?.status === "paid" ? <>
           <div style={{ fontSize: 36 }}>💎</div>
@@ -301,16 +392,22 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
           <p style={{ color: "#ffe3a0", fontSize: 13, fontWeight: 800 }}>✨ Boa aventura, treinador!</p>
           <button type="button" onClick={closeAll} style={{ marginTop: 8, padding: "10px 18px", borderRadius: 9, border: "1px solid #9ce7bd", background: "#1d6646", color: "#fff", fontWeight: 900 }}>Continuar</button>
         </> : <>
-          <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>PIX GERADO</div>
+          <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>{pix.mode === "hosted" ? "PAGAMENTO COM CARTÃO" : "PIX GERADO"}</div>
           <h3 style={{ margin: "3px 0", fontSize: 18 }}>{selected?.name ?? "Pacote de Diamantes"}</h3>
           <p style={{ margin: "0 0 10px", color: "#cbd6e8", fontSize: 11 }}>{pix.diamonds.toLocaleString("pt-BR")} 💎 · {money(pix.amountCents)}</p>
-          {qrDataUrl && <img src={qrDataUrl} alt="QR Code PIX" width={220} height={220} style={{ width: 220, height: 220, margin: "4px auto", background: "#fff", borderRadius: 10, padding: 5 }} />}
-          {(order?.status === "expired" || (pix.pixExpiration && Date.parse(pix.pixExpiration) <= Date.now()))
-            ? <p style={{ margin: "4px 0", color: "#ff9da8", fontSize: 12, fontWeight: 800 }}>PIX expirado. Feche e gere outro código.</p>
-            : <p style={{ margin: "4px 0", color: "#ffd48d", fontSize: 11 }}>Aguardando confirmação do pagamento…</p>}
-          <textarea readOnly value={pix.pixQrCode} aria-label="Código PIX copia e cola" style={{ width: "100%", height: 64, padding: 7, borderRadius: 7, border: "1px solid #596b84", background: "#07101d", color: "#cfe5ff", fontSize: 9, resize: "none" }} />
-          <button type="button" onClick={() => { void copyPix(); }} style={{ marginTop: 6, width: "100%", padding: 9, borderRadius: 8, border: "1px solid #ffe3a0", background: "#3b2a16", color: "#ffe3a0", fontWeight: 900 }}>{copied ? "COPIADO!" : "COPIAR PIX"}</button>
-          {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 8, color: "#9fd8ff", fontSize: 11 }}>Abrir checkout da Cakto</a>}
+          {pix.mode === "hosted" ? <>
+            <p style={{ margin: "4px 0 8px", color: "#cfe5ff", fontSize: 12 }}>Finalize o pagamento na página segura da Cakto. O checkout aceita cartão e os demais meios habilitados no produto.</p>
+            {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", margin: "4px 0 8px", padding: "11px 12px", borderRadius: 9, border: "1px solid #ffe3a0", background: "linear-gradient(180deg,#ffe3a0,#c8902f)", color: "#241604", fontWeight: 950, fontSize: 12, textDecoration: "none" }}>ABRIR CHECKOUT DA CAKTO</a>}
+            <p style={{ margin: "4px 0", color: "#ffd48d", fontSize: 11 }}>Depois de pagar, esta janela atualiza sozinha.</p>
+          </> : <>
+            {qrDataUrl && <img src={qrDataUrl} alt="QR Code PIX" width={220} height={220} style={{ width: 220, height: 220, margin: "4px auto", background: "#fff", borderRadius: 10, padding: 5 }} />}
+            <textarea readOnly value={pix.pixQrCode} aria-label="Código PIX copia e cola" style={{ width: "100%", height: 64, padding: 7, borderRadius: 7, border: "1px solid #596b84", background: "#07101d", color: "#cfe5ff", fontSize: 9, resize: "none" }} />
+            <button type="button" onClick={() => { void copyPix(); }} style={{ marginTop: 6, width: "100%", padding: 9, borderRadius: 8, border: "1px solid #ffe3a0", background: "#3b2a16", color: "#ffe3a0", fontWeight: 900 }}>{copied ? "COPIADO!" : "COPIAR PIX"}</button>
+            {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 8, color: "#9fd8ff", fontSize: 11 }}>Abrir checkout da Cakto</a>}
+          </>}
+          {(order?.status === "expired" || (pix.mode === "pix" && pix.pixExpiration && Date.parse(pix.pixExpiration) <= Date.now()))
+            ? <p style={{ margin: "8px 0 4px", color: "#ff9da8", fontSize: 12, fontWeight: 800 }}>{pix.mode === "pix" ? "PIX expirado. Feche e gere outro código." : "Pagamento expirado. Feche e gere outro checkout."}</p>
+            : <p style={{ margin: "8px 0 4px", color: "#ffd48d", fontSize: 11 }}>Aguardando confirmação do pagamento…</p>}
           {error && <p style={{ color: "#ffb5bf", fontSize: 11 }}>{error}</p>}
           <button type="button" onClick={closeAll} style={{ marginTop: 10, padding: 8, width: "100%", borderRadius: 8, border: "1px solid #53657e", background: "#18253a", color: "#dce8f8", fontWeight: 800 }}>Fechar</button>
         </>}
