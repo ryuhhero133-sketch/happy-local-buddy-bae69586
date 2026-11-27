@@ -55,6 +55,15 @@
   overflow: hidden;
   box-shadow: inset 0 0 0 3px #fffdf6;
 }
+.pc-portrait__sheet {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: 400% 400%;
+  background-position: 0 0;
+  image-rendering: pixelated;
+}
 .pc-portrait img {
   width: 100%;
   height: 100%;

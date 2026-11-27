@@ -3420,6 +3420,20 @@ function IdlePage() {
   // e sobrescreve o cache local — evita rollback após F5 / trocar de dispositivo.
   const cloudBlobHydratedRef = useRef(false);
   const [cloudBlobReady, setCloudBlobReady] = useState(false);
+  const careReadyNoticeRef = useRef(false);
+  const careLockedNoticeRef = useRef<Set<string>>(new Set());
+  // Ao voltar ao jogo, avisa que os pets bloqueados por fome continuam no time
+  // (evita a impressão de que sumiram enquanto o jogador deixou farmando).
+  useEffect(() => {
+    if (!cloudBlobReady || careReadyNoticeRef.current) return;
+    careReadyNoticeRef.current = true;
+    const locked = team.filter((pet) => (pet as CaredPet).needFeeding);
+    if (locked.length > 0) {
+      for (const pet of locked) careLockedNoticeRef.current.add(pet.uid);
+      pushChat(`🔒 ${locked.length} Pokémon do time estão com fome crítica. Eles CONTINUAM no time; alimente na Casa Azul ou com uma fruta para voltar a batalhar.`, "info");
+    }
+  }, [cloudBlobReady, team]);
+
   // Ovos antigos (12/16 slots ou rerolls roxos) passam a 13 traits dourados.
   // Mantém UID, nível, XP, time, itens e todo o restante do save.
   useEffect(() => {
@@ -4318,7 +4332,7 @@ const confirmName = () => {
     img.onload = () => setTpPreviewDims((prev) => ({ ...prev, [mapId]: { w: img.naturalWidth, h: img.naturalHeight } }));
     img.src = IDLE_MAPS[mapId].bg;
   }, [mapEditorSelectedTeleportId, mapEditorTeleports, idle.currentMap, tpPreviewDims]);
-  const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx } | null>(null);
+  const [attackAnim, setAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; crit: boolean; element: ElementFx; lunge?: number } | null>(null);
   const [enemyAttackAnim, setEnemyAttackAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const [captureAnim, setCaptureAnim] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; ts: number; ballImg: string; success: boolean } | null>(null);
   const [, setAnimTick] = useState(0);
@@ -7923,16 +7937,23 @@ const confirmName = () => {
           return np as PetInstance;
         });
         if (locked.length > 0) {
-          const lockedUids = new Set(locked.map((l) => l.uid));
-          setRestingBench((b) => [...b.filter((x) => !lockedUids.has(x.uid)), ...locked]);
-          const kept = next.filter((p) => !lockedUids.has(p.uid));
-          setTeam(kept);
-          if (kept[0]) setLeaderHp(calcIdleMaxHp(kept[0]));
-          for (const l of locked) {
-            pushChat(`🔒 ${(l.species as string).replace(/_/g, " ").toUpperCase()} precisa ser alimentado antes de voltar para a batalha!`, "hit");
-          }
-        } else if (changed) {
+          // A fome/lealdade bloqueia o combate, mas NÃO remove o Pokémon do
+          // time. Antes ele era mandado automaticamente para a Casa Azul e o
+          // jogador tinha a impressão de que havia sumido após deixar o jogo
+          // farmando. Agora ele permanece no time, marcado para alimentar.
           setTeam(next);
+          const currentLocked = new Set(locked.map((l) => l.uid));
+          for (const l of locked) {
+            if (careLockedNoticeRef.current.has(l.uid)) continue;
+            careLockedNoticeRef.current.add(l.uid);
+            pushChat(`🔒 ${(l.species as string).replace(/_/g, " ").toUpperCase()} está com fome crítica e CONTINUA no time, mas não pode batalhar até ser alimentado. Use a Casa Azul ou uma fruta.`, "hit");
+          }
+          for (const uid of [...careLockedNoticeRef.current]) {
+            if (!currentLocked.has(uid)) careLockedNoticeRef.current.delete(uid);
+          }
+        } else {
+          careLockedNoticeRef.current.clear();
+          if (changed) setTeam(next);
         }
       }
     };
@@ -11065,6 +11086,9 @@ const confirmName = () => {
   const [pvpTargetUserId, setPvpTargetUserId] = useState<string | null>(null);
   const pvpTargetUserIdRef = useRef<string | null>(null);
   const [pvpDamageFlash, setPvpDamageFlash] = useState(false);
+  const [pvpHitTarget, setPvpHitTarget] = useState<{ userId: string; ts: number } | null>(null);
+  const pvpHitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pvpAttackingRef = useRef(false);
   const pvpLastHitRef = useRef<string | null>(null);
   const ownPvpFaintedRef = useRef(false);
   const ownPvpWasFaintedRef = useRef(false);
@@ -11476,37 +11500,72 @@ const confirmName = () => {
       return;
     }
     let cancelled = false;
+    const targetUserId = pvpTargetUserId as string;
     const attack = async () => {
+      if (pvpAttackingRef.current) return;
       if ((idleRef.current.trainerLevel ?? 1) <= 10 || !autoRef.current || !(autoBattleRef.current?.enabled ?? true)) return;
-      const { data } = await (gameDb as any).rpc("pvp_attack", { p_target_user_id: pvpTargetUserId });
-      const result = Array.isArray(data) ? data[0] : data;
-      if (cancelled || !result) return;
-      if (result.ok) {
-        setPvpPresence((prev) => prev.map((p) => p.user_id === pvpTargetUserId ? { ...p, hp: result.target_hp } : p));
-        if (result.reason === "defeated") {
-          pushChat(`🏆 Você derrotou o Pokémon de ${result.target_name}!`, "cap");
+      pvpAttackingRef.current = true;
+      try {
+        const target = pvpPresenceRef.current.find((p) => p.user_id === targetUserId);
+        const leader = teamRef.current[0];
+        const fromX = followerStateRef.current.x;
+        const fromY = followerStateRef.current.y;
+        const { data } = await (gameDb as any).rpc("pvp_attack", { p_target_user_id: targetUserId });
+        const result = Array.isArray(data) ? data[0] : data;
+        if (cancelled || !result) return;
+        if (result.ok) {
+          // Animação completa no mapa: líder avança, skill elemental voa e o
+          // alvo leva o impacto. O dano/HP continuam autoritativos do servidor.
+          const applyResult = () => {
+            if (cancelled) return;
+            setPvpPresence((prev) => prev.map((p) => p.user_id === targetUserId ? { ...p, hp: result.target_hp } : p));
+            if (result.reason === "defeated") {
+              pushChat(`🏆 Você derrotou o Pokémon de ${result.target_name}!`, "cap");
+              setPvpTargetUserId(null);
+            }
+          };
+          if (target && leader) {
+            const toX = target.x + 25;
+            const toY = target.y + 11;
+            const element = elementOf(leader.species);
+            const animId = attackAnimIdRef.current++;
+            setAttackAnim({ id: animId, fromX, fromY, toX, toY, ts: Date.now(), crit: false, element, lunge: 0.92 });
+            setTimeout(() => setAttackAnim((a) => (a?.id === animId ? null : a)), 420);
+            fireSkillFx("offensive", element, ELEMENT_SKILL[element] ?? null, fromX, fromY, toX, toY);
+            if (pvpHitTimerRef.current) clearTimeout(pvpHitTimerRef.current);
+            setPvpHitTarget({ userId: targetUserId, ts: Date.now() });
+            pvpHitTimerRef.current = setTimeout(() => setPvpHitTarget(null), 320);
+            setTimeout(() => {
+              if (cancelled) return;
+              const dmg = Math.max(0, Number(result.damage) || 0);
+              pushFxAt(toX, toY - 34, result.reason === "miss" ? "ERROU!" : dmg > 0 ? `-${dmg}` : "0", result.reason === "miss" ? "xp" : "myDmg");
+            }, 180);
+            // O HP do alvo desce no impacto visual, não antes do avanço.
+            setTimeout(applyResult, 180);
+          } else {
+            applyResult();
+          }
+        } else if (["pvp_peace_window", "pvp_map_required"].includes(result.reason)) {
           setPvpTargetUserId(null);
-        } else if (result.reason === "miss") {
-          // O servidor errou o golpe (tier/nível do alvo acima do atacante).
-          const targetPos = pvpPresenceRef.current.find((p) => p.user_id === pvpTargetUserId);
-          if (targetPos) pushFxAt(targetPos.x, targetPos.y - 34, "ERROU!", "xp");
+          setIdle((state) => state.pvpMode === "peace" ? state : { ...state, pvpMode: "peace" });
+          pushChat("🕊️ O servidor encerrou este combate: PvP só funciona na janela ativa dos mapas de caça.", "pvp");
+        } else if (result.reason === "target_pvp_protected") {
+          pushChat("🔒 Este jogador ainda está protegido: PvP só libera no nível 11 do treinador.", "info");
+          setPvpTargetUserId(null);
+        } else if (result.reason === "pvp_level_required") {
+          pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
+          setPvpTargetUserId(null);
+        } else if (result.reason === "attacker_fainted") {
+          pushChat("💀 Seu Pokémon está derrotado no PvP. Aguarde 3 minutos para ele retornar.", "info");
+          setPvpTargetUserId(null);
+        } else if (["offline", "different_map", "out_of_range", "target_fainted"].includes(result.reason)) {
+          if (result.reason !== "target_fainted") pushChat("🎯 Alvo PvP saiu do alcance.", "info");
+          setPvpTargetUserId(null);
         }
-      } else if (["pvp_peace_window", "pvp_map_required"].includes(result.reason)) {
-        setPvpTargetUserId(null);
-        setIdle((state) => state.pvpMode === "peace" ? state : { ...state, pvpMode: "peace" });
-        pushChat("🕊️ O servidor encerrou este combate: PvP só funciona na janela ativa dos mapas de caça.", "pvp");
-      } else if (result.reason === "target_pvp_protected") {
-        pushChat("🔒 Este jogador ainda está protegido: PvP só libera no nível 11 do treinador.", "info");
-        setPvpTargetUserId(null);
-      } else if (result.reason === "pvp_level_required") {
-        pushChat("🔒 O PvP é liberado a partir do nível 11 do treinador.", "info");
-        setPvpTargetUserId(null);
-      } else if (result.reason === "attacker_fainted") {
-        pushChat("💀 Seu Pokémon está derrotado no PvP. Aguarde 3 minutos para ele retornar.", "info");
-        setPvpTargetUserId(null);
-      } else if (["offline", "different_map", "out_of_range", "target_fainted"].includes(result.reason)) {
-        if (result.reason !== "target_fainted") pushChat("🎯 Alvo PvP saiu do alcance.", "info");
-        setPvpTargetUserId(null);
+      } catch {
+        // Rede oscilou: o próximo tick tenta de novo.
+      } finally {
+        pvpAttackingRef.current = false;
       }
     };
     const iv = window.setInterval(() => void attack(), 950);
@@ -24919,6 +24978,7 @@ A sucata afundou com o casco.
               const pvpSelected = pvpTargetUserId === rp.userId;
               const remoteLowHp = !!remotePvp && remotePvp.hp / Math.max(1, remotePvp.max_hp) <= 0.25;
               const remotePvpEligible = !!remotePvp && remotePvp.hp > 0 && remotePvp.trainer_level >= 11;
+              const pvpHit = pvpHitTarget?.userId === rp.userId && Date.now() - pvpHitTarget.ts < 320;
               const actionMenuOpen = remotePlayerAction?.userId === rp.userId;
               const remoteVipImg = rp.vipTier ? PROFILE_SPRITES.books[VIP_BOOK_BY_TIER[rp.vipTier]] : null;
               const remoteMount = !!rp.mountActive;
@@ -24964,9 +25024,11 @@ A sucata afundou com o casco.
                   position: "absolute",
                   left: rp.x, top: rp.y,
                   width: remoteMount ? 76 : 56, height: remoteMount ? 76 : 56,
-                  transform: "translate(-50%, -50%)",
-                  transition: "left 220ms linear, top 220ms linear",
-                  filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
+                  transform: `translate(-50%, -50%)${pvpHit ? " scale(1.08)" : ""}`,
+                  transition: "left 220ms linear, top 220ms linear, transform 80ms, filter 80ms",
+                  filter: pvpHit
+                    ? "brightness(1.8) drop-shadow(0 0 12px #ff1935) drop-shadow(0 3px 3px rgba(0,0,0,0.6))"
+                    : "drop-shadow(0 3px 3px rgba(0,0,0,0.6))",
                   zIndex: Math.round(rp.y) + (actionMenuOpen ? 20000 : 0),
                   pointerEvents: "auto",
                   cursor: "pointer",
@@ -25158,8 +25220,9 @@ A sucata afundou com o casco.
               if (attackAnim) {
                 const dt = Math.min(1, (Date.now() - attackAnim.ts) / 380);
                 const wave = Math.sin(dt * Math.PI); // 0 → 1 → 0
-                lungeX = (attackAnim.toX - attackAnim.fromX) * 0.45 * wave;
-                lungeY = (attackAnim.toY - attackAnim.fromY) * 0.45 * wave;
+                const lunge = attackAnim.lunge ?? 0.45;
+                lungeX = (attackAnim.toX - attackAnim.fromX) * lunge * wave;
+                lungeY = (attackAnim.toY - attackAnim.fromY) * lunge * wave;
               }
               const leaderX = renderFollowerX + lungeX;
               const leaderY = renderFollowerY + lungeY;
@@ -31348,6 +31411,7 @@ onClick={(e) => {
           level={pet.level}
           rarity={pet.rarity}
           image={GIF[pet.species]}
+          sheet={SPRITE_SHEET[pet.species] ?? zoneSheet(pet.species)}
           hp={idx === 0 ? leaderHp : (pet.hp ?? calcIdleMaxHp(pet))}
           maxHp={calcIdleMaxHp(pet)}
           stars={starsOf(pet)}
@@ -31382,7 +31446,8 @@ onClick={(e) => {
           species={shown.species}
           level={shown.level}
           rarity={shown.rarity}
-          image={gifMap[shown.species]}
+          image={GIF[shown.species]}
+          sheet={SPRITE_SHEET[shown.species] ?? zoneSheet(shown.species)}
           hp={shown.hp ?? calcIdleMaxHp(shown)}
           maxHp={calcIdleMaxHp(shown)}
           stars={starsOf(shown)}

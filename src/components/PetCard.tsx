@@ -20,6 +20,8 @@ export type PetCardProps = {
   level: number;
   rarity: string;
   image?: string;
+  /** Spritesheet 4x4 usada quando a espécie não tem GIF/retrato próprio. */
+  sheet?: string;
   hp: number;
   maxHp: number;
   stars?: number;
@@ -33,7 +35,7 @@ export type PetCardProps = {
 };
 
 export function PetCard({
-  name, species, level, rarity, image, hp, maxHp,
+  name, species, level, rarity, image, sheet, hp, maxHp,
   stars = 0, rebirths = 0, traits = [], ancestral = false, isLeader, onClose, onMakeLeader, onRebirth,
 }: PetCardProps) {
   const [page, setPage] = useState<1 | 2>(1);
@@ -65,7 +67,9 @@ export function PetCard({
       {page === 1 ? <>
         <div className="pc-top">
           <div className="pc-portrait">
-            {image ? <img src={image} alt={name} draggable={false} /> : <span>?</span>}
+            {image ? <img src={image} alt={name} draggable={false} />
+              : sheet ? <span className="pc-portrait__sheet" role="img" aria-label={name} style={{ backgroundImage: `url(${sheet})` }} />
+              : <span>?</span>}
           </div>
           <div className="pc-head">
             <div className="pc-name"><span className="pc-ball" /><strong>{name}</strong>
