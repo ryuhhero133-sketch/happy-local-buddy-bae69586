@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { CAPTURE_QUEST_MILESTONES, type CaptureChestReward, type CaptureChestView } from "@/game/captureQuests";
+import {
+  EVENT_NOTICE_STORAGE_KEY,
+  eventNoticeStatus,
+  readEventNoticeLastOpened,
+  writeEventNoticeLastOpened,
+} from "@/game/eventNotice";
 import ballIcon from "@/assets/items/icon-pokeball.webp";
+import eventoDesembarqueImg from "@/assets/evento-desembarque.webp";
 import chestGreenImg from "@/ambiente/map/bb/bau_verde.webp";
 import chestEpicImg from "@/ambiente/map/bb/bau_epic.webp";
 import "./capture-quests.css";
+import "./event-notice.css";
 
 export type CaptureQuestView = {
   id: string;
@@ -19,6 +27,14 @@ export type CaptureQuestView = {
 
 const speciesLabel = (id: string) => id.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const getBrowserStorage = () => {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+};
+
 export function CaptureQuestHud({ quests, milestones, pokemonImages, pokemonSheets, chests, onOpenChest }: {
   quests: CaptureQuestView[];
   milestones: number[];
@@ -30,8 +46,50 @@ export function CaptureQuestHud({ quests, milestones, pokemonImages, pokemonShee
 }) {
   const [open, setOpen] = useState(false);
   const [reward, setReward] = useState<CaptureChestReward | null>(null);
+  const [eventClock, setEventClock] = useState(0);
+  const [lastOpenedAt, setLastOpenedAt] = useState<number | null>(
+    () => readEventNoticeLastOpened(getBrowserStorage()),
+  );
+  const [eventBannerOpen, setEventBannerOpen] = useState(false);
   const completed = quests.filter((quest) => quest.done).length;
   const readyChests = (chests ?? []).filter((chest) => chest.ready).length;
+  const notice = eventClock > 0 ? eventNoticeStatus(eventClock, lastOpenedAt) : null;
+  const eventDue = !!notice?.due;
+
+  useEffect(() => {
+    const tick = () => setEventClock(Date.now());
+    tick();
+    const timer = window.setInterval(tick, 15_000);
+    const refresh = () => tick();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === EVENT_NOTICE_STORAGE_KEY) {
+        setLastOpenedAt(readEventNoticeLastOpened(getBrowserStorage()));
+      }
+    };
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!eventBannerOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setEventBannerOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [eventBannerOpen]);
 
   const openChest = (chest: CaptureChestView) => {
     if (!chest.ready || !onOpenChest) return;
@@ -39,17 +97,36 @@ export function CaptureQuestHud({ quests, milestones, pokemonImages, pokemonShee
     if (result) setReward(result);
   };
 
+  const handleOrbClick = () => {
+    const now = Date.now();
+    setEventClock(now);
+    if (eventNoticeStatus(now, lastOpenedAt).due) {
+      setLastOpenedAt(now);
+      writeEventNoticeLastOpened(now, getBrowserStorage());
+      setEventBannerOpen(true);
+      return;
+    }
+    setOpen(true);
+  };
+
   return <>
     <button
       type="button"
-      className="capture-quest-orb"
+      className={`capture-quest-orb${eventDue ? " is-event-due" : ""}`}
       data-hud-id="capture-quests"
-      onClick={() => setOpen(true)}
-      title={`Missões 20 · ${completed}/20 concluídas${readyChests ? ` · ${readyChests} baú(s) para abrir` : ""}`}
-      aria-label={`Abrir as 20 missões: ${completed} de 20 concluídas${readyChests ? `, ${readyChests} baú(s) pronto(s)` : ""}`}
+      data-event-notice={eventDue ? "due" : "idle"}
+      onClick={handleOrbClick}
+      title={eventDue
+        ? "Evento Desembarque disponível! Clique para ver o aviso."
+        : `Missões 20 · ${completed}/20 concluídas${readyChests ? ` · ${readyChests} baú(s) para abrir` : ""}`}
+      aria-label={eventDue
+        ? "Abrir o aviso do Evento Desembarque"
+        : `Abrir as 20 missões: ${completed} de 20 concluídas${readyChests ? `, ${readyChests} baú(s) pronto(s)` : ""}`}
+      aria-haspopup="dialog"
     >
       <img src={ballIcon} alt="" draggable={false} />
       <span className="capture-quest-orb__badge">{completed}/20</span>
+      {eventDue && <span className="capture-quest-orb__event" aria-hidden="true">!</span>}
       {readyChests > 0 && <span className="capture-quest-orb__gift" aria-hidden="true">🎁</span>}
     </button>
 
@@ -135,6 +212,43 @@ export function CaptureQuestHud({ quests, milestones, pokemonImages, pokemonShee
               <button type="button" onClick={() => setReward(null)}>Continuar</button>
             </div>
           </div>}
+        </section>
+      </div>,
+      document.body,
+    )}
+
+    {eventBannerOpen && typeof document !== "undefined" && createPortal(
+      <div
+        className="evento-desembarque"
+        role="presentation"
+        onClick={(event) => { if (event.target === event.currentTarget) setEventBannerOpen(false); }}
+      >
+        <section className="evento-desembarque__box" role="dialog" aria-modal="true" aria-labelledby="evento-desembarque-title">
+          <button
+            type="button"
+            className="evento-desembarque__x"
+            onClick={() => setEventBannerOpen(false)}
+            aria-label="Fechar aviso do evento"
+          >
+            <X size={18} />
+          </button>
+          <img
+            className="evento-desembarque__art"
+            src={eventoDesembarqueImg}
+            alt="Banner do Evento Desembarque — Um novo capítulo começa!"
+            width={1600}
+            height={534}
+            draggable={false}
+          />
+          <div className="evento-desembarque__copy">
+            <span className="evento-desembarque__kicker">AVISO DE EVENTO</span>
+            <h2 id="evento-desembarque-title">Evento Desembarque</h2>
+            <p>Um novo capítulo começa!</p>
+          </div>
+          <button type="button" className="evento-desembarque__close" onClick={() => setEventBannerOpen(false)} autoFocus>
+            Fechar
+          </button>
+          <small className="evento-desembarque__hint">Este aviso volta a aparecer em 2 horas.</small>
         </section>
       </div>,
       document.body,
