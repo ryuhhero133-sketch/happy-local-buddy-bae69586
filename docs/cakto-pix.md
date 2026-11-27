@@ -13,13 +13,20 @@ Implementado no banco e no cliente:
 - Loja Cash com área de Diamantes Vermelhos, formulário de CPF/telefone, QR Code, copia-e-cola, status e mensagem de aprovação.
 - Atualização da HUD após confirmação, sem novo login.
 
-Não publicado ainda:
+Publicado e ativo:
 
-- Edge Functions `cakto-create-payment`, `cakto-webhook` e `cakto-sync-catalog`.
-- Secrets da Cakto.
-- Oferta/preço de cada pacote no catálogo.
+- Edge Functions `cakto-create-payment`, `cakto-webhook` e `cakto-sync-catalog` no projeto `zdeduwsbzupulomxvfmb`.
+- Secrets `CAKTO_CLIENT_ID`, `CAKTO_CLIENT_SECRET` e `CAKTO_WEBHOOK_SECRET` gravados no Supabase.
+- Webhook ativo na Cakto (id `88497`), com os três produtos e os eventos `purchase_approved`, `refund`, `chargeback`, `pix_gerado`, `pix_expirado` e `purchase_refused`.
+- Ofertas reais gravadas no catálogo:
+  - Baú Inicial: oferta `32wppyv`, R$ 25,00.
+  - Baú Avançado: oferta `69zbhbz`, R$ 48,00.
+  - Baú Supremo: oferta `3e8aise`, R$ 69,90.
 
-O cliente já foi publicado na Cloudflare, mas a seção PIX fica **oculta** enquanto não houver pacote ativo com preço e oferta. Nada de preço ou ID inventado aparece para o jogador. O código das Functions está em `supabase/functions/`; o banco já foi migrado e testado.
+Pendente de validação final:
+
+- Um `purchase_approved` real, feito pelo jogo, com conferência de crédito único e atualização da HUD.
+- Rotacionar o `client_secret` da Cakto, que apareceu no chat durante a configuração.
 
 ## Arquitetura
 
@@ -61,34 +68,18 @@ Testes executados no banco:
 - Jogador não pode criar pedido, entregar diamantes ou alterar catálogo.
 - Todas as alterações de teste foram revertidas.
 
-## Pendências de acesso
+## Configuração aplicada
 
-### 1. Login do Supabase CLI
+- [x] Login do Supabase CLI concluído.
+- [x] Escopos da chave Cakto: `read`, `write`, `products`, `offers`, `payments` e `webhooks`.
+- [x] Secrets gravados no projeto `zdeduwsbzupulomxvfmb` (valores nunca versionados).
+- [x] Webhook ativo na Cakto, id `88497`, com os três produtos e os seis eventos.
+- [x] Functions publicadas.
+- [x] Ofertas e preços reais gravados no catálogo e pacotes ativados.
 
-O ambiente atual não tem token de acesso para publicar Functions nem gravar secrets.
+### Reaplicar configuração
 
-Em um terminal interativo:
-
-```powershell
-npx supabase login
-```
-
-Ou crie um token scoped com `edge_functions_write`, `secrets_write` e `projects_read` e configure `SUPABASE_ACCESS_TOKEN`.
-
-### 2. Escopos da chave Cakto
-
-A chave usada em `CAKTO_CLIENT_ID`/`CAKTO_CLIENT_SECRET` precisa dos escopos:
-
-- `read products` — validar os três produtos.
-- `read offers` — ler oferta padrão e preço real.
-- `write payments` — criar a cobrança PIX.
-- `write webhooks` — criar/consultar o webhook (também `read webhooks` para auditoria).
-
-Sem `write payments` a criação do PIX responde `403`; sem `read offers` a sincronização do catálogo não consegue os IDs reais.
-
-### 3. Secrets
-
-Depois do login, crie um arquivo local ignorado pelo Git (nunca cole valores no chat):
+Arquivo local (ignorado pelo Git, nunca cole valores no chat):
 
 ```powershell
 # supabase/.env.cakto.local
@@ -97,46 +88,21 @@ CAKTO_CLIENT_SECRET=...
 CAKTO_WEBHOOK_SECRET=...
 ```
 
-E envie os três de uma vez:
-
 ```powershell
-npx supabase secrets set --project-ref zdeduwsbzupulomxvfmb `
+npx supabase secrets set --remote=zdeduwsbzupulomxvfmb `
   --env-file supabase/.env.cakto.local --yes
+
+npx supabase functions deploy --remote=zdeduwsbzupulomxvfmb --use-api --yes `
+  cakto-create-payment cakto-webhook cakto-sync-catalog
 ```
 
-O segredo do webhook é gerado pela própria Cakto ao criar o webhook. Copie `fields.secret` da resposta (ou do painel) para `CAKTO_WEBHOOK_SECRET`.
-
-Status: **pendente**. Nenhum valor foi exibido ou versionado.
-
-### 4. Webhook na Cakto
-
-URL definitiva:
+URL do webhook:
 
 ```
 https://zdeduwsbzupulomxvfmb.supabase.co/functions/v1/cakto-webhook
 ```
 
-Eventos:
-
-- `purchase_approved` (obrigatório para entrega)
-- `refund`
-- `chargeback`
-- `pix_gerado`
-- `pix_expirado`
-- `purchase_refused`
-
-Produtos: os três produtos dos pacotes. A Cakto exige produtos explícitos no webhook.
-
-### 5. Publicar Functions
-
-```powershell
-npx supabase functions deploy --project-ref zdeduwsbzupulomxvfmb --use-api --yes `
-  cakto-create-payment cakto-webhook cakto-sync-catalog
-```
-
-### 6. Descobrir IDs e preços reais
-
-Com as credenciais configuradas e as Functions publicadas, entre na conta principal e chame `cakto-sync-catalog`. Ela lê produtos/ofertas reais da Cakto e grava `cakto_offer_id` e `price_cents`. Não há IDs ou preços inventados no projeto.
+Eventos: `purchase_approved`, `refund`, `chargeback`, `pix_gerado`, `pix_expirado` e `purchase_refused`.
 
 ## Verificação local
 
@@ -151,8 +117,10 @@ Os testes cobrem HMAC, janela temporal, UUID, os três pacotes, SQL de entrega �
 
 Não considerar o pagamento automático ativo antes de:
 
-1. publicar as três Functions;
-2. configurar `CAKTO_CLIENT_ID`, `CAKTO_CLIENT_SECRET` e `CAKTO_WEBHOOK_SECRET`;
-3. cadastrar o webhook e os três produtos;
-4. rodar o catálogo e confirmar preço/oferta;
-5. testar um `purchase_approved` real ou de teste com entrega única.
+- [x] publicar as três Functions;
+- [x] configurar `CAKTO_CLIENT_ID`, `CAKTO_CLIENT_SECRET` e `CAKTO_WEBHOOK_SECRET`;
+- [x] cadastrar o webhook e os três produtos;
+- [x] confirmar preço/oferta no catálogo;
+- [ ] testar um `purchase_approved` real com entrega única e HUD atualizada.
+
+Depois do teste, rotacionar o `client_secret` da Cakto porque ele apareceu no chat durante a configuração.
