@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import crystalRedImg from "@/assets/materials/cristal-red.png";
+import { DIAMOND_PACKAGE_ART } from "@/components/cash-shop/cashShopArt";
+import "@/components/cash-shop/cash-shop.css";
 
 type CaktoPackage = {
   id: string;
@@ -61,14 +63,14 @@ function errorMessage(code: unknown): string {
     case "packages_not_configured": return "Os pacotes PIX ainda estão sendo configurados no servidor.";
     case "cakto_not_configured": return "O pagamento PIX ainda não foi habilitado nesta conta.";
     case "payment_processing_or_conflict": return "O PIX anterior ainda está sendo processado. Aguarde alguns segundos.";
-    case "cakto_payment_failed": return "A Cakto não conseguiu gerar o PIX agora. Tente novamente.";
+    case "cakto_payment_failed": return "Não foi possível gerar o PIX agora. Tente novamente.";
     case "name_required": return "Informe seu nome completo.";
     case "phone_required": return "Informe um celular válido com DDD.";
     case "document_required": return "Informe um CPF ou CNPJ válido.";
     case "email_required": return "Sua conta precisa ter um e-mail para gerar o PIX.";
-    case "checkout_create_failed": return "Não foi possível abrir o checkout da Cakto. Tente novamente.";
+    case "checkout_create_failed": return "Não foi possível abrir a página de pagamento. Tente novamente.";
     case "order_expired": return "Este pedido expirou. Feche e tente novamente.";
-    case "token_conflict": return "Não foi possível reservar este checkout. Tente novamente.";
+    case "token_conflict": return "Não foi possível iniciar esta compra. Tente novamente.";
     default: return "Não foi possível iniciar o pagamento. Tente novamente.";
   }
 }
@@ -77,6 +79,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
   const [packages, setPackages] = useState<CaktoPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<CaktoPackage | null>(null);
+  const [choosingMethod, setChoosingMethod] = useState<CaktoPackage | null>(null);
   const [form, setForm] = useState({ name: playerName, phone: "", docType: "cpf", docNumber: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -139,6 +142,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
   }, [pix?.orderId, order?.status]);
 
   const openForm = (pkg: CaktoPackage) => {
+    setChoosingMethod(null);
     requestId.current = crypto.randomUUID();
     setSelected(pkg);
     setForm({ name: playerName, phone: "", docType: "cpf", docNumber: "" });
@@ -149,6 +153,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
   };
 
   const closeAll = () => {
+    setChoosingMethod(null);
     setSelected(null);
     setFormOpen(false);
     setPix(null);
@@ -250,6 +255,7 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
       if (!result?.ok || !result.orderId) throw new Error(result?.error ?? "checkout_create_failed");
 
       setSelected(pkg);
+      setChoosingMethod(null);
       setFormOpen(false);
 
       if (result.status === "paid") {
@@ -326,42 +332,58 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
   if (loading || packages.length === 0) return null;
 
   return <section style={{ marginBottom: 18 }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
+    <div className="cash-shop-package-heading">
       <img src={crystalRedImg} alt="" width={24} height={24} style={{ width: 24, height: 24, objectFit: "contain", filter: "drop-shadow(0 0 8px #ff4559)" }} />
       <div>
         <strong style={{ color: "#ffe3df", fontSize: 15, letterSpacing: ".04em" }}>DIAMANTES VERMELHOS</strong>
         <span style={{ display: "block", color: "#ffb7b0", fontSize: 10 }}>PIX ou cartão, com entrega automática · saldo {Math.max(0, redCrystals).toLocaleString("pt-BR")}</span>
       </div>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 9 }}>
+    <div className="cash-shop-package-grid">
       {packages.map((pkg) => {
         const available = pkg.active && pkg.price_cents != null;
-        return <article key={pkg.id} style={{ padding: 11, borderRadius: 12, border: "1px solid rgba(255,113,113,.5)", background: "linear-gradient(150deg, rgba(145,24,38,.36), rgba(12,12,30,.76))", boxShadow: "inset 0 1px #fff2, 0 5px 18px #0005" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={crystalRedImg} alt="" width={38} height={38} style={{ width: 38, height: 38, objectFit: "contain" }} />
-            <div style={{ minWidth: 0 }}>
-              <strong style={{ display: "block", color: "#fff", fontSize: 13 }}>{pkg.diamonds.toLocaleString("pt-BR")} 💎</strong>
-              <span style={{ color: "#ffc7c2", fontSize: 10 }}>{pkg.name}</span>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8, marginTop: 10 }}>
-            <b style={{ color: "#ffe7a2", fontSize: 14 }}>{money(pkg.price_cents)}</b>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 104 }}>
-              <button type="button" disabled={!available || busy} onClick={() => openForm(pkg)}
-                style={{ padding: "9px 12px", minHeight: 38, borderRadius: 9, border: 0, background: available ? "linear-gradient(135deg,#ffcf66,#dc7b2f)" : "rgba(255,255,255,.1)", color: available ? "#231405" : "#c7aeb0", fontWeight: 950, fontSize: 10, cursor: available ? "pointer" : "not-allowed" }}>
-                {available ? "COMPRAR PIX" : "EM CONFIGURAÇÃO"}
+        const artwork = DIAMOND_PACKAGE_ART[pkg.id];
+        const choosePayment = () => {
+          setError("");
+          setChoosingMethod(pkg);
+        };
+        return <article key={pkg.id} className="cash-shop-package" style={{ "--package-accent": artwork?.accent ?? "#e5b967" } as CSSProperties}>
+          <button type="button" className="cash-shop-package__art" disabled={!available || busy} onClick={choosePayment} aria-label={`Comprar ${pkg.name}`}>
+            <img src={artwork?.image ?? crystalRedImg} alt={pkg.name} loading="lazy" decoding="async" />
+          </button>
+          <div className="cash-shop-package__details">
+            <h3>{pkg.name}</h3>
+            <span className="cash-shop-package__amount">{pkg.diamonds.toLocaleString("pt-BR")} Diamantes Vermelhos</span>
+            <div className="cash-shop-package__footer">
+              <b className="cash-shop-package__price">{money(pkg.price_cents)}</b>
+              <button type="button" className="cash-shop-package__buy" disabled={!available || busy} onClick={choosePayment}>
+                {available ? "COMPRAR" : "EM CONFIGURAÇÃO"}
               </button>
-              {available && <button type="button" disabled={busy} onClick={() => { void createHostedCheckout(pkg); }}
-                style={{ padding: "7px 10px", minHeight: 32, borderRadius: 8, border: "1px solid #78b7ff", background: "#14283f", color: "#c6e3ff", fontWeight: 900, fontSize: 9, cursor: busy ? "wait" : "pointer" }}>
-                CARTÃO
-              </button>}
             </div>
+            <span className="cash-shop-package__methods">PIX · CARTÃO</span>
           </div>
         </article>;
       })}
     </div>
     {!hasAvailablePackage && <p style={{ margin: "8px 0 0", color: "#ffc2bc", fontSize: 11 }}>Pagamentos em configuração.</p>}
-    {error && !formOpen && !pix && <p role="alert" style={{ margin: "8px 0 0", padding: 8, borderRadius: 7, background: "#4f1222", color: "#ffd4dc", fontSize: 11 }}>{error}</p>}
+    {error && !choosingMethod && !formOpen && !pix && <p role="alert" style={{ margin: "8px 0 0", padding: 8, borderRadius: 7, background: "#4f1222", color: "#ffd4dc", fontSize: 11 }}>{error}</p>}
+    {choosingMethod && <div role="dialog" aria-modal="true" aria-label="Escolher forma de pagamento" style={{ position: "fixed", inset: 0, zIndex: 60002, display: "grid", placeItems: "center", padding: 14, background: "rgba(2,5,12,.86)", backdropFilter: "blur(7px)" }}>
+      <div style={{ width: "min(410px, 100%)", maxHeight: "92dvh", overflowY: "auto", padding: 20, borderRadius: 16, border: "2px solid #e6b85e", background: "linear-gradient(160deg,#241323,#0a101d)", color: "#fff" }}>
+        <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>COMPRAR DIAMANTES</div>
+        <h3 style={{ margin: "6px 0", fontSize: 18 }}>{choosingMethod.name}</h3>
+        <p style={{ margin: 0, color: "#cbd6e8", fontSize: 12 }}>{choosingMethod.diamonds.toLocaleString("pt-BR")} 💎 · {money(choosingMethod.price_cents)}</p>
+        <div className="cash-shop-methods">
+          <button type="button" disabled={busy} onClick={() => openForm(choosingMethod)}>
+            <strong>PIX</strong><span>QR Code e código copia e cola.</span>
+          </button>
+          <button type="button" disabled={busy} onClick={() => { void createHostedCheckout(choosingMethod); }}>
+            <strong>{busy ? "AGUARDE…" : "CARTÃO"}</strong><span>Finalize na página segura de pagamento.</span>
+          </button>
+        </div>
+        {error && <p role="alert" style={{ color: "#ffb5bf", fontSize: 11 }}>{error}</p>}
+        <button type="button" disabled={busy} onClick={() => { setChoosingMethod(null); setError(""); }} style={{ width: "100%", padding: 9, borderRadius: 8, border: "1px solid #53657e", background: "#18253a", color: "#dce8f8", fontWeight: 900 }}>Voltar</button>
+      </div>
+    </div>}
     {formOpen && selected && <div role="dialog" aria-modal="true" aria-label={`Pagamento PIX de ${selected.name}`} style={{ position: "fixed", inset: 0, zIndex: 60002, display: "grid", placeItems: "center", padding: 14, background: "rgba(2,5,12,.82)", backdropFilter: "blur(6px)" }}>
       <div style={{ width: "min(430px, 100%)", padding: 17, borderRadius: 14, border: "2px solid #e6b85e", background: "linear-gradient(160deg,#1b1222,#0a101d)", color: "#fff" }}>
         <div style={{ color: "#ffe3a0", fontSize: 11, fontWeight: 900, letterSpacing: ".1em" }}>PAGAMENTO PIX</div>
@@ -396,17 +418,17 @@ export function CaktoPixShop({ playerName, redCrystals, onCredited }: Props) {
           <h3 style={{ margin: "3px 0", fontSize: 18 }}>{selected?.name ?? "Pacote de Diamantes"}</h3>
           <p style={{ margin: "0 0 10px", color: "#cbd6e8", fontSize: 11 }}>{pix.diamonds.toLocaleString("pt-BR")} 💎 · {money(pix.amountCents)}</p>
           {pix.mode === "hosted" ? <>
-            <p style={{ margin: "4px 0 8px", color: "#cfe5ff", fontSize: 12 }}>Finalize o pagamento na página segura da Cakto. O checkout aceita cartão e os demais meios habilitados no produto.</p>
-            {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", margin: "4px 0 8px", padding: "11px 12px", borderRadius: 9, border: "1px solid #ffe3a0", background: "linear-gradient(180deg,#ffe3a0,#c8902f)", color: "#241604", fontWeight: 950, fontSize: 12, textDecoration: "none" }}>ABRIR CHECKOUT DA CAKTO</a>}
+            <p style={{ margin: "4px 0 8px", color: "#cfe5ff", fontSize: 12 }}>Finalize sua compra na página segura de pagamento.</p>
+            {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", margin: "4px 0 8px", padding: "11px 12px", borderRadius: 9, border: "1px solid #ffe3a0", background: "linear-gradient(180deg,#ffe3a0,#c8902f)", color: "#241604", fontWeight: 950, fontSize: 12, textDecoration: "none" }}>COMPRAR</a>}
             <p style={{ margin: "4px 0", color: "#ffd48d", fontSize: 11 }}>Depois de pagar, esta janela atualiza sozinha.</p>
           </> : <>
             {qrDataUrl && <img src={qrDataUrl} alt="QR Code PIX" width={220} height={220} style={{ width: 220, height: 220, margin: "4px auto", background: "#fff", borderRadius: 10, padding: 5 }} />}
             <textarea readOnly value={pix.pixQrCode} aria-label="Código PIX copia e cola" style={{ width: "100%", height: 64, padding: 7, borderRadius: 7, border: "1px solid #596b84", background: "#07101d", color: "#cfe5ff", fontSize: 9, resize: "none" }} />
             <button type="button" onClick={() => { void copyPix(); }} style={{ marginTop: 6, width: "100%", padding: 9, borderRadius: 8, border: "1px solid #ffe3a0", background: "#3b2a16", color: "#ffe3a0", fontWeight: 900 }}>{copied ? "COPIADO!" : "COPIAR PIX"}</button>
-            {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 8, color: "#9fd8ff", fontSize: 11 }}>Abrir checkout da Cakto</a>}
+            {pix.checkoutUrl && <a href={pix.checkoutUrl} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 8, color: "#9fd8ff", fontSize: 11 }}>COMPRAR</a>}
           </>}
           {(order?.status === "expired" || (pix.mode === "pix" && pix.pixExpiration && Date.parse(pix.pixExpiration) <= Date.now()))
-            ? <p style={{ margin: "8px 0 4px", color: "#ff9da8", fontSize: 12, fontWeight: 800 }}>{pix.mode === "pix" ? "PIX expirado. Feche e gere outro código." : "Pagamento expirado. Feche e gere outro checkout."}</p>
+            ? <p style={{ margin: "8px 0 4px", color: "#ff9da8", fontSize: 12, fontWeight: 800 }}>{pix.mode === "pix" ? "PIX expirado. Feche e gere outro código." : "Pagamento expirado. Feche e inicie outra compra."}</p>
             : <p style={{ margin: "8px 0 4px", color: "#ffd48d", fontSize: 11 }}>Aguardando confirmação do pagamento…</p>}
           {error && <p style={{ color: "#ffb5bf", fontSize: 11 }}>{error}</p>}
           <button type="button" onClick={closeAll} style={{ marginTop: 10, padding: 8, width: "100%", borderRadius: 8, border: "1px solid #53657e", background: "#18253a", color: "#dce8f8", fontWeight: 800 }}>Fechar</button>

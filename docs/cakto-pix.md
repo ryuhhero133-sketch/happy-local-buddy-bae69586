@@ -10,8 +10,11 @@ Implementado no banco e no cliente:
 - `purchase_approved` é o único evento que credita diamantes.
 - Assinatura HMAC oficial `X-Cakto-Signature` + `X-Cakto-Timestamp` com janela de 5 minutos.
 - Idempotência por `requestId` no pedido e por `event_key` no webhook.
-- Loja Cash com área de Diamantes Vermelhos, formulário de CPF/telefone, QR Code, copia-e-cola, status e mensagem de aprovação.
-- Botão **CARTÃO** abre o checkout oficial da Cakto em outra aba; nenhum dado de cartão passa pelo jogo.
+- Loja Cash com carrossel de banners no topo e abas **CARDS** / **ITENS**; os banners abrem os cards dos pacotes.
+- Cards com as três artes dos baús, preço vindo do servidor e botão **COMPRAR** para escolher PIX ou cartão.
+- Formulário de CPF/telefone, QR Code, copia-e-cola, status e mensagem de aprovação.
+- A opção **CARTÃO** leva à página oficial de pagamento em outra aba pelo botão **COMPRAR**; nenhum dado de cartão passa pelo jogo.
+- Textos visíveis da loja não exibem o nome do provedor. URLs reais, assinatura e integração continuam inalteradas.
 - Atualização da HUD após confirmação, sem novo login.
 
 Publicado e ativo:

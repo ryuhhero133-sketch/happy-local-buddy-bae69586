@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 import crystalRedImg from "@/assets/materials/cristal-red.png";
@@ -19,6 +19,8 @@ import orbMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
 import orbTeamAsset from "@/assets/orb-xp-team.png.asset.json";
 import { CaktoPixShop } from "@/components/CaktoPixShop";
+import { CashShopBannerCarousel } from "@/components/cash-shop/CashShopBannerCarousel";
+import "@/components/cash-shop/cash-shop.css";
 
 const orbMinorImg = assetUrlFromJson(orbMinorAsset);
 const orbMajorImg = assetUrlFromJson(orbMajorAsset);
@@ -223,6 +225,21 @@ export function RedCrystalCashShopModal({
   const [pendingId, setPendingId] = useState<RedCrystalShopProductId | null>(null);
   const [notice, setNotice] = useState<RedCrystalPurchaseResult | null>(null);
   const [confirming, setConfirming] = useState<RedCrystalShopProductId | null>(null);
+  const [shopTab, setShopTab] = useState<"cards" | "items">("items");
+  const contentRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const tabTopRef = useRef<HTMLDivElement>(null);
+
+  const openShopTab = (next: "cards" | "items") => {
+    setShopTab(next);
+    const content = contentRef.current;
+    const anchor = tabTopRef.current;
+    if (content && anchor) {
+      const top = content.scrollTop + anchor.getBoundingClientRect().top - content.getBoundingClientRect().top;
+      content.scrollTo({ top, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+    }
+    tabsRef.current?.querySelector<HTMLButtonElement>(`#cash-shop-tab-${next}`)?.focus({ preventScroll: true });
+  };
 
   if (!open || typeof document === "undefined") return null;
   const confirmProduct = confirming ? RED_CRYSTAL_SHOP_PRODUCTS.find((product) => product.id === confirming) : null;
@@ -296,7 +313,7 @@ export function RedCrystalCashShopModal({
               LOJA CASH
             </h2>
             <p style={{ margin: "2px 0 0", color: "#ffc2bc", fontSize: 12, lineHeight: 1.35 }}>
-              Use Cristais Vermelhos coletados nos mapas. Entrega imediata na Mochila.
+              Cards de diamantes e itens para sua aventura.
             </p>
           </div>
           <div
@@ -336,14 +353,35 @@ export function RedCrystalCashShopModal({
           >×</button>
         </header>
 
-        <div style={{ overflowY: "auto", padding: "14px 16px 20px" }}>
+        <div ref={contentRef} style={{ minHeight: 0, overflowY: "auto", padding: "14px 16px 20px" }}>
+          <CashShopBannerCarousel onOpenCards={() => openShopTab("cards")} />
+          <div ref={tabTopRef} aria-hidden="true" />
+          <div
+            ref={tabsRef}
+            className="cash-shop-tabs"
+            role="tablist"
+            aria-label="Categorias da Loja Cash"
+            onKeyDown={(event) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const next = event.key === "Home" ? "cards" : event.key === "End" ? "items" : shopTab === "cards" ? "items" : "cards";
+              openShopTab(next);
+            }}
+          >
+            <button type="button" role="tab" id="cash-shop-tab-cards" aria-controls="cash-shop-panel-cards" aria-selected={shopTab === "cards"} tabIndex={shopTab === "cards" ? 0 : -1} onClick={() => openShopTab("cards")}>💎 CARDS</button>
+            <button type="button" role="tab" id="cash-shop-tab-items" aria-controls="cash-shop-panel-items" aria-selected={shopTab === "items"} tabIndex={shopTab === "items" ? 0 : -1} onClick={() => openShopTab("items")}>🎒 ITENS</button>
+          </div>
           {!ready && (
             <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255, 207, 103, .5)", color: "#ffe09b", background: "rgba(108, 72, 22, .28)", fontSize: 12, fontWeight: 700 }}>
               ⏳ Entre em uma conta e aguarde o save carregar para comprar com segurança.
             </div>
           )}
-          <CaktoPixShop playerName={playerName} redCrystals={redCrystals} onCredited={onCrystalsCredited} />
+          {/* Keep the payment component mounted across tabs so an open order keeps updating. */}
+          <div role="tabpanel" id="cash-shop-panel-cards" aria-labelledby="cash-shop-tab-cards" hidden={shopTab !== "cards"}>
+            <CaktoPixShop playerName={playerName} redCrystals={redCrystals} onCredited={onCrystalsCredited} />
+          </div>
 
+          <div role="tabpanel" id="cash-shop-panel-items" aria-labelledby="cash-shop-tab-items" hidden={shopTab !== "items"}>
           {notice && (
             <div
               role="status"
@@ -434,6 +472,7 @@ export function RedCrystalCashShopModal({
                 </article>
               );
             })}
+          </div>
           </div>
         </div>
       </section>

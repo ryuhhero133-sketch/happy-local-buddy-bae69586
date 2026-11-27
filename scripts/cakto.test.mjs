@@ -141,7 +141,8 @@ test("cash shop exposes PIX, QR, polling and the approved message", () => {
   assert.match(shop, /!hasAvailablePackage/);
   assert.match(shop, /cakto-create-checkout/);
   assert.match(shop, /CARTÃO/);
-  assert.match(shop, /ABRIR CHECKOUT DA CAKTO/);
+  assert.match(shop, />COMPRAR<\/a>/);
+  assert.doesNotMatch(shop, /ABRIR CHECKOUT DA CAKTO|checkout da Cakto|página segura da Cakto|A Cakto não conseguiu/);
   assert.doesNotMatch(shop, /cardNumber|cvv|cvc/i);
   assert.match(read("src/components/RedCrystalCashShopModal.tsx"), /CaktoPixShop/);
 });
