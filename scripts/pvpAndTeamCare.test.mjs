@@ -18,6 +18,20 @@ test("PvP mostra o líder avançando, skill elemental e impacto no alvo", () => 
   assert.match(idle, /pushFxAt\(toX, toY - 34/);
 });
 
+test("vítima vê o Pokémon do atacante avançando e usando a skill", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261127080849_pvp_attacker_id.sql", import.meta.url), "utf8");
+  assert.match(sql, /add column if not exists last_attacker_user_id uuid/);
+  assert.match(sql, /new\.last_attacker_user_id := auth\.uid\(\)/);
+  assert.match(idle, /last_attacker_user_id\?: string \| null/);
+  assert.match(idle, /last_attacker_user_id,last_death_at/);
+  assert.match(idle, /const \[pvpRemoteAttack, setPvpRemoteAttack\]/);
+  assert.match(idle, /const fromX = attacker\.x \+ 25/);
+  assert.match(idle, /setPvpRemoteAttack\(\{ id: attackId, userId: attacker\.user_id, species, fromX, fromY, toX, toY/);
+  assert.match(idle, /pvpRemoteAttack && \(\(\) => \{/);
+  assert.match(idle, /facingRight \? 2 : 1/);
+  assert.match(idle, /pushFxAt\(toX, toY - 34, damage > 0 \? `-\$\{damage\}` : "HIT!"/);
+});
+
 test("fome crítica mantém o Pokémon no time em vez de mandar para a Casa Azul", () => {
   assert.doesNotMatch(idle, /setTeam\(kept\)/);
   assert.doesNotMatch(idle, /\[\.\.\.b\.filter\(\(x\) => !lockedUids\.has\(x\.uid\)\), \.\.\.locked\]/);

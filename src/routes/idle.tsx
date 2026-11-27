@@ -11091,14 +11091,19 @@ const confirmName = () => {
     mountActive?: boolean;
     mountUntil?: number;
   };
-  type PvpPresence = { user_id: string; player_name: string; map_id: string; x: number; y: number; leader_species?: Species; leader_level: number; trainer_level: number; hp: number; max_hp: number; last_hit_at?: string | null; last_attacker_name?: string | null; last_death_at?: string | null; updated_at: string };
+  type PvpPresence = { user_id: string; player_name: string; map_id: string; x: number; y: number; leader_species?: Species; leader_level: number; trainer_level: number; hp: number; max_hp: number; last_hit_at?: string | null; last_attacker_name?: string | null; last_attacker_user_id?: string | null; last_death_at?: string | null; updated_at: string };
   const [remotePlayers, setRemotePlayers] = useState<RemotePlayer[]>([]);
   const [pvpPresence, setPvpPresence] = useState<PvpPresence[]>([]);
   const [pvpTargetUserId, setPvpTargetUserId] = useState<string | null>(null);
   const pvpTargetUserIdRef = useRef<string | null>(null);
   const [pvpDamageFlash, setPvpDamageFlash] = useState(false);
   const [pvpHitTarget, setPvpHitTarget] = useState<{ userId: string; ts: number } | null>(null);
+  const [pvpRemoteAttack, setPvpRemoteAttack] = useState<{ id: number; userId: string; species: Species; fromX: number; fromY: number; toX: number; toY: number; ts: number; element: ElementFx } | null>(null);
   const pvpHitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pvpRemoteAttackIdRef = useRef(1);
+  const pvpRemoteAttackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pvpPrevHpRef = useRef<number | null>(null);
+  const pvpPresenceInitRef = useRef(false);
   const pvpAttackingRef = useRef(false);
   const pvpLastHitRef = useRef<string | null>(null);
   const ownPvpFaintedRef = useRef(false);
@@ -11458,7 +11463,7 @@ const confirmName = () => {
       });
       const since = new Date(Date.now() - 15_000).toISOString();
       const { data } = await (gameDb as any).from("pvp_presence")
-        .select("user_id,player_name,map_id,x,y,leader_species,leader_level,trainer_level,hp,max_hp,last_hit_at,last_attacker_name,last_death_at,updated_at")
+        .select("user_id,player_name,map_id,x,y,leader_species,leader_level,trainer_level,hp,max_hp,last_hit_at,last_attacker_name,last_attacker_user_id,last_death_at,updated_at")
         .eq("map_id", idle.currentMap).gte("updated_at", since);
       if (!cancelled && data) setPvpPresence(data as PvpPresence[]);
     };
@@ -11487,16 +11492,53 @@ const confirmName = () => {
     return () => { void (gameDb as any).removeChannel(channel); };
   }, [identity?.id, idle.currentMap]);
 
-  // A vítima recebe o flash e a mensagem lendo o evento que o servidor gravou.
+  // A vítima vê o Pokémon do outro jogador avançando, usando a skill e
+  // causando o dano no líder dela — além do flash e da mensagem.
   useEffect(() => {
     if (!identity?.id) return;
     const mine = pvpPresence.find((p) => p.user_id === identity.id);
-    const hit = mine?.last_hit_at ?? null;
-    if (!hit || hit === pvpLastHitRef.current) return;
+    if (!mine) return;
+    // O primeiro heartbeat apenas marca a linha de base; não anima um hit antigo.
+    if (!pvpPresenceInitRef.current) {
+      pvpPresenceInitRef.current = true;
+      pvpLastHitRef.current = mine.last_hit_at ?? null;
+      pvpPrevHpRef.current = mine.hp;
+      return;
+    }
+    const hit = mine.last_hit_at ?? null;
+    if (!hit || hit === pvpLastHitRef.current) {
+      pvpPrevHpRef.current = mine.hp;
+      return;
+    }
+    const previousHp = pvpPrevHpRef.current;
+    pvpPrevHpRef.current = mine.hp;
     pvpLastHitRef.current = hit;
-    if (mine?.hp === 0) pushChat(`💀 ${mine.last_attacker_name ?? "Outro treinador"} derrotou seu Pokémon ლიდer!`, "hit");
-    else pushChat(`⚠️ ${mine?.last_attacker_name ?? "Outro treinador"} está atacando seu Pokémon!`, "hit");
-    if ((mine?.hp ?? 100) / Math.max(1, mine?.max_hp ?? 100) > 0.25) return;
+    const damage = previousHp == null ? 0 : Math.max(0, previousHp - mine.hp);
+    const attacker = mine.last_attacker_user_id
+      ? pvpPresence.find((p) => p.user_id === mine.last_attacker_user_id)
+      : pvpPresence.find((p) => p.player_name === mine.last_attacker_name);
+    if (attacker) {
+      const species = (attacker.leader_species ?? "pidgey") as Species;
+      const fromX = attacker.x + 25;
+      const fromY = attacker.y + 11;
+      const victim = followerStateRef.current;
+      const toX = victim.x;
+      const toY = victim.y;
+      const element = elementOf(species);
+      const attackId = pvpRemoteAttackIdRef.current++;
+      setPvpRemoteAttack({ id: attackId, userId: attacker.user_id, species, fromX, fromY, toX, toY, ts: Date.now(), element });
+      if (pvpRemoteAttackTimerRef.current) clearTimeout(pvpRemoteAttackTimerRef.current);
+      pvpRemoteAttackTimerRef.current = setTimeout(() => {
+        setPvpRemoteAttack((current) => (current?.id === attackId ? null : current));
+      }, 420);
+      fireSkillFx("offensive", element, ELEMENT_SKILL[element] ?? null, fromX, fromY, toX, toY);
+      setTimeout(() => {
+        pushFxAt(toX, toY - 34, damage > 0 ? `-${damage}` : "HIT!", "enemyDmg");
+      }, 180);
+    }
+    if (mine.hp === 0) pushChat(`💀 ${mine.last_attacker_name ?? "Outro treinador"} derrotou seu Pokémon líder!`, "hit");
+    else pushChat(`⚠️ ${mine.last_attacker_name ?? "Outro treinador"} está atacando seu Pokémon!`, "hit");
+    if (mine.hp / Math.max(1, mine.max_hp) > 0.25) return;
     setPvpDamageFlash(true);
     const timer = window.setTimeout(() => setPvpDamageFlash(false), 750);
     return () => clearTimeout(timer);
@@ -25606,6 +25648,44 @@ A sucata afundou com o casco.
             })()}
 
 
+
+            {/* PvP: o Pokémon do outro jogador avança até o seu e usa a skill. */}
+            {pvpRemoteAttack && (() => {
+              const dt = Math.min(1, (Date.now() - pvpRemoteAttack.ts) / 380);
+              const wave = Math.sin(dt * Math.PI);
+              const x = pvpRemoteAttack.fromX + (pvpRemoteAttack.toX - pvpRemoteAttack.fromX) * 0.92 * wave;
+              const y = pvpRemoteAttack.fromY + (pvpRemoteAttack.toY - pvpRemoteAttack.fromY) * 0.92 * wave;
+              const sheet = SPRITE_SHEET[pvpRemoteAttack.species] ?? zoneSheet(pvpRemoteAttack.species);
+              const src = GIF[pvpRemoteAttack.species] ?? sheet;
+              const facingRight = pvpRemoteAttack.toX >= pvpRemoteAttack.fromX;
+              if (!src) return null;
+              return (
+                <div key={`pvp-remote-${pvpRemoteAttack.id}`} style={{
+                  position: "absolute",
+                  left: x, top: y,
+                  width: 54, height: 54,
+                  transform: "translate(-50%, -50%)",
+                  zIndex: Math.round(y) + 2,
+                  pointerEvents: "none",
+                  filter: "drop-shadow(0 0 8px #ff3131) drop-shadow(0 3px 3px #000a)",
+                }}>
+                  {sheet ? (
+                    <div style={{
+                      width: "100%", height: "100%",
+                      backgroundImage: `url(${sheet})`,
+                      backgroundSize: "400% 400%",
+                      backgroundPosition: `0% ${(facingRight ? 2 : 1) * 33.333}%`,
+                      imageRendering: "pixelated",
+                    }} />
+                  ) : (
+                    <img src={src} alt="" style={{
+                      width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated",
+                      transform: `scaleX(${facingRight ? 1 : -1})`,
+                    }} />
+                  )}
+                </div>
+              );
+            })()}
 
             {/* 💎 Balãozinho de Stone Elemental dropada */}
             {stonePops.map((s) => (
