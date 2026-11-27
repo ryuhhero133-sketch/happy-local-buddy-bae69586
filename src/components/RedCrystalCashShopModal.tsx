@@ -11,9 +11,12 @@ import slimeBallImg from "@/assets/items/icon-slime.webp";
 import bookAtkImg from "@/assets/icons/book-atk.webp";
 import bookExpImg from "@/assets/icons/book-exp.webp";
 import vipEpicImg from "@/ambiente/Vip Epic.png";
+import vipGoldImg from "@/ambiente/Vip Gold.png";
 import vegetaImg from "@/CHAR/vegeta-profile.png";
 import gokuImg from "@/CHAR/goku-profile.png";
 import eggImg from "@/CHAR/kg/Drop card/CARD EGG.webp";
+import cashShopDiamondImg from "@/assets/cash-shop/dnm-diamond.webp";
+import shopBagImg from "@/ambiente/aba/men ic/Mochila.webp";
 import orbMinorAsset from "@/assets/orb-xp-minor.png.asset.json";
 import orbMajorAsset from "@/assets/orb-xp-major.png.asset.json";
 import orbSupremeAsset from "@/assets/orb-xp-supreme.png.asset.json";
@@ -152,6 +155,15 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     price: 10_000,
     image: vipEpicImg,
     accent: "#f7c948",
+    tag: "VIP",
+  },
+  {
+    id: "vip_gold_30",
+    name: "VIP GOLD · 30 dias",
+    description: "Livro VIP GOLD: +40% de Ouro e EXP por 30 dias. Com AUTO ligado, coleta drops e alimenta o líder automaticamente.",
+    price: 2_000,
+    image: vipGoldImg,
+    accent: "#ffd166",
     tag: "VIP",
   },
   {
@@ -368,8 +380,18 @@ export function RedCrystalCashShopModal({
               openShopTab(next);
             }}
           >
-            <button type="button" role="tab" id="cash-shop-tab-cards" aria-controls="cash-shop-panel-cards" aria-selected={shopTab === "cards"} tabIndex={shopTab === "cards" ? 0 : -1} onClick={() => openShopTab("cards")}>💎 CARDS</button>
-            <button type="button" role="tab" id="cash-shop-tab-items" aria-controls="cash-shop-panel-items" aria-selected={shopTab === "items"} tabIndex={shopTab === "items" ? 0 : -1} onClick={() => openShopTab("items")}>🎒 ITENS</button>
+            <button type="button" role="tab" id="cash-shop-tab-cards" aria-controls="cash-shop-panel-cards" aria-selected={shopTab === "cards"} tabIndex={shopTab === "cards" ? 0 : -1} onClick={() => openShopTab("cards")}>
+              <span className="cash-shop-tab__icon cash-shop-tab__icon--cards" aria-hidden="true">
+                <img src={cashShopDiamondImg} alt="" width={40} height={40} draggable={false} />
+              </span>
+              <span>CASH SHOP</span>
+            </button>
+            <button type="button" role="tab" id="cash-shop-tab-items" aria-controls="cash-shop-panel-items" aria-selected={shopTab === "items"} tabIndex={shopTab === "items" ? 0 : -1} onClick={() => openShopTab("items")}>
+              <span className="cash-shop-tab__icon cash-shop-tab__icon--items" aria-hidden="true">
+                <img src={shopBagImg} alt="" width={40} height={40} draggable={false} />
+              </span>
+              <span>SHOP ITENS</span>
+            </button>
           </div>
           {!ready && (
             <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255, 207, 103, .5)", color: "#ffe09b", background: "rgba(108, 72, 22, .28)", fontSize: 12, fontWeight: 700 }}>

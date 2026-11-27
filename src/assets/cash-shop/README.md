@@ -13,7 +13,9 @@ Os PNGs originais não foram modificados.
 | `122.png` | `banner-gold-time.webp` |
 | `1123.png` | `banner-gold-progresso.webp` |
 | `13234.png` | `banner-gold-luffy.webp` |
+| `DNM.png` | `dnm-diamond.webp` |
 
-Qualidade 84: baús com 640 px de largura e banners com 1.400 px.
+Qualidade 84: baús com 640 px de largura e banners com 1.400 px. O diamante usa 256 px e qualidade 86.
 O banner `122.png` teve apenas a margem branca externa removida.
+O diamante é usado no ícone da aba **CASH SHOP**.
 As artes não definem preços, disponibilidade ou recompensas.

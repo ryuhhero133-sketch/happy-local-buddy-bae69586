@@ -6,6 +6,7 @@ import ts from "typescript";
 const read = (file) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 const shop = read("src/components/CaktoPixShop.tsx");
 const modal = read("src/components/RedCrystalCashShopModal.tsx");
+const idle = read("src/routes/idle.tsx");
 const carousel = read("src/components/cash-shop/CashShopBannerCarousel.tsx");
 const art = read("src/components/cash-shop/cashShopArt.ts");
 const css = read("src/components/cash-shop/cash-shop.css");
@@ -61,6 +62,40 @@ test("banners are above both tabs and open the package cards at the top", () => 
   assert.match(modal, /ArrowLeft.*ArrowRight.*Home.*End/);
   assert.match(modal, /<CaktoPixShop/);
   assert.doesNotMatch(modal, /shopTab === "cards" &&.*CaktoPixShop/);
+});
+
+test("category tabs use the DNM diamond and game bag with decorative motion", () => {
+  for (const [asset, name] of [
+    ["src/assets/cash-shop/dnm-diamond.webp", "cashShopDiamondImg"],
+    ["src/ambiente/aba/men ic/Mochila.webp", "shopBagImg"],
+  ]) {
+    assert.ok(modal.includes(`import ${name} from "@/${asset.slice(4)}"`));
+    assert.ok(statSync(new URL(`../${asset}`, import.meta.url)).size < 128 * 1024);
+    assert.ok(modal.includes(`<img src={${name}} alt="" width={40} height={40} draggable={false} />`));
+  }
+  for (const tab of ["cards", "items"]) {
+    assert.ok(modal.includes(`className="cash-shop-tab__icon cash-shop-tab__icon--${tab}" aria-hidden="true"`));
+  }
+  assert.match(modal, /<span>CASH SHOP<\/span>/);
+  assert.match(modal, /<span>SHOP ITENS<\/span>/);
+  assert.doesNotMatch(modal, /<span>CARDS<\/span>|<span>ITENS<\/span>|💎 CARDS|🎒 ITENS/);
+  assert.match(css, /animation: cash-shop-card-float 3\.6s ease-in-out infinite/);
+  assert.match(css, /animation: cash-shop-bag-sway 3\.2s ease-in-out infinite/);
+  assert.match(css, /white-space: nowrap/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\s*\.cash-shop-tab__icon img, \.cash-shop-tab__icon::before \{ animation: none; \}/);
+});
+
+test("VIP GOLD 30 days costs 2.000 red crystals and is delivered by the server", () => {
+  const sql = read("supabase/migrations/20261127015426_cash_shop_vip_gold_30.sql");
+  assert.match(modal, /id: "vip_gold_30"/);
+  assert.match(modal, /name: "VIP GOLD · 30 dias"/);
+  assert.match(modal, /price: 2_000/);
+  assert.match(modal, /image: vipGoldImg/);
+  assert.match(modal, /\+40% de Ouro e EXP por 30 dias/);
+  assert.match(idle, /vip_gold_30: "book_vip_gold_30"/);
+  assert.match(idle, /"book_vip_gold_30"/);
+  assert.match(sql, /when 'vip_gold_30' then\s+v_price := 2000; v_granted_item := 'book_vip_gold_30'; v_granted_qty := 1;/);
+  assert.doesNotMatch(sql, /p_price|price_cents/);
 });
 
 test("carousel supports swipe, looping, controls, pause and reduced motion", () => {

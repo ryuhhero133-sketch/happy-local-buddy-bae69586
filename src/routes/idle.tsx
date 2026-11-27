@@ -3642,7 +3642,7 @@ function IdlePage() {
     if (mutation.item_id != null) {
       const allowedItems = new Set([
         "pokeball", "greatball", "ultraball", "masterball", "potion", "slimeball", "combo_revo",
-        "book_atk", "book_exp", "book_vip", "book_vip_30",
+        "book_atk", "book_exp", "book_vip", "book_vip_30", "book_vip_gold_30",
         "egg_epic", "egg_mystic", "revive", "rare_candy",
         "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
       ]);
@@ -3687,6 +3687,7 @@ function IdlePage() {
       orb_xp_supreme: "orb_xp_supreme",
       orb_team: "orb_team",
       vip_epic: "book_vip_30",
+      vip_gold_30: "book_vip_gold_30",
       egg_epic: "egg_epic",
       egg_mythic: "egg_mystic",
       vegeta_skin: null,

@@ -26,6 +26,13 @@ test("VIP GOLD 60d grants 60 days of +40% and does not hand out a 1-year book", 
   assert.doesNotMatch(sql, /book_vip_gold_30/);
 });
 
+test("new owner code hash is registered without versioning the readable code", () => {
+  const sql = read("supabase/migrations/20261127015431_vipgold60_owner_code.sql");
+  assert.match(sql, /insert into private\.vipgold60_reward_codes \(code_hash\) values/);
+  assert.match(sql, /4fcbbc325bfefb0b52951910bf962fe5ae3298070f8e701798b198123ffb1347/);
+  assert.doesNotMatch(sql, /VIPGOLD60[A-Z2-9]{20}/);
+});
+
 test("client validates the server result and activates the buff locally", () => {
   const idle = read("src/routes/idle.tsx");
   assert.match(idle, /\^VIPGOLD60\[A-Z2-9\]\{20\}\$/);
