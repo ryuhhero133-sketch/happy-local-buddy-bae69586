@@ -4,6 +4,9 @@ import { assetUrlFromJson } from "@/lib/assetUrl";
 import crystalRedImg from "@/assets/materials/cristal-red.png";
 import pokeballImg from "@/assets/items/icon-pokeball.webp";
 import ultraballImg from "@/assets/items/icon-ultraball.webp";
+import masterballImg from "@/assets/ball-master.png";
+import mountImg from "@/CHAR/montaria.webp";
+import oneSkinImg from "@/assets/skins/one-portrait.png";
 import reviveImg from "@/assets/items/icon-revive.webp";
 import potionImg from "@/assets/items/icon-potion.webp";
 import comboFoodImg from "@/assets/comida/cake_strawberry.png";
@@ -53,10 +56,28 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "ultraball_50",
     name: "Pacote Ultra Ball ×50",
     description: "50 Ultra Balls com alta chance de captura.",
-    price: 2_500,
+    price: 1_500,
     image: ultraballImg,
     accent: "#ffd166",
     tag: "BOLAS",
+  },
+  {
+    id: "ultraball_100",
+    name: "Pacote Ultra Ball ×100",
+    description: "100 Ultra Balls em promoção.",
+    price: 2_300,
+    image: ultraballImg,
+    accent: "#ffe29a",
+    tag: "BOLAS · PROMO",
+  },
+  {
+    id: "masterball",
+    name: "Master Ball",
+    description: "Captura 100% garantida contra qualquer Pokémon selvagem. 1 unidade.",
+    price: 10_000,
+    image: masterballImg,
+    accent: "#c084fc",
+    tag: "BOLA 100%",
   },
   {
     id: "revive_pack_10",
@@ -125,7 +146,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "orb_xp_major",
     name: "Orb Maior",
     description: "Use na Mochila: +20% de EXP por 1 hora.",
-    price: 1_000,
+    price: 500,
     image: orbMajorImg,
     accent: "#b78cff",
     tag: "ORB",
@@ -134,7 +155,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "orb_xp_supreme",
     name: "Orb Supremo",
     description: "Use na Mochila: +30% de EXP por 1 hora.",
-    price: 2_000,
+    price: 500,
     image: orbSupremeImg,
     accent: "#ffd166",
     tag: "ORB",
@@ -143,7 +164,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "orb_team",
     name: "Orb de Time",
     description: "Use na Mochila: todo o time ganha EXP por 3 horas.",
-    price: 2_000,
+    price: 500,
     image: orbTeamImg,
     accent: "#fb8cff",
     tag: "ORB",
@@ -170,7 +191,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "egg_epic",
     name: "Ovo Épico Aleatório",
     description: "Chocar na Mochila para sortear um Pokémon de alto nível de raridade.",
-    price: 10_000,
+    price: 1_000,
     image: eggImg,
     accent: "#bd8cff",
     tag: "OVO",
@@ -179,16 +200,25 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "egg_mythic",
     name: "Ovo Mítico Aleatório",
     description: "Chocar na Mochila para sortear um Pokémon de alta raridade, incluindo míticos.",
-    price: 150_000,
+    price: 8_000,
     image: eggImg,
     accent: "#ff8cdb",
     tag: "OVO",
   },
   {
+    id: "mount_30",
+    name: "Montaria Épica · 30 dias",
+    description: "Carta SAWSBUCK-S3: ativa a montaria épica por 30 dias e dá +5 de agilidade. Use na Mochila.",
+    price: 3_000,
+    image: mountImg,
+    accent: "#ffd166",
+    tag: "MONTARIA",
+  },
+  {
     id: "vegeta_skin",
     name: "Skin Vegeta",
     description: "Desbloqueio permanente e exclusivo para usar na aba Início.",
-    price: 50_000,
+    price: 3_000,
     image: vegetaImg,
     accent: "#f6bd60",
     tag: "SKIN ÚNICA",
@@ -197,9 +227,18 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
     id: "goku_skin",
     name: "Skin Goku",
     description: "Desbloqueio permanente e exclusivo para usar na aba Início.",
-    price: 200_000,
+    price: 4_000,
     image: gokuImg,
     accent: "#ff9f43",
+    tag: "SKIN ÚNICA",
+  },
+  {
+    id: "one_skin",
+    name: "Skin One",
+    description: "Desbloqueio permanente da skin One para usar na aba Início.",
+    price: 3_000,
+    image: oneSkinImg,
+    accent: "#7dd3fc",
     tag: "SKIN ÚNICA",
   },
 ] as const;
@@ -218,6 +257,7 @@ type Props = {
   ready: boolean;
   ownsVegeta: boolean;
   ownsGoku: boolean;
+  ownsOne: boolean;
   playerName: string;
   onPurchase: (productId: RedCrystalShopProductId) => Promise<RedCrystalPurchaseResult>;
   onCrystalsCredited: (redCrystals: number) => void;
@@ -230,6 +270,7 @@ export function RedCrystalCashShopModal({
   ready,
   ownsVegeta,
   ownsGoku,
+  ownsOne,
   playerName,
   onPurchase,
   onCrystalsCredited,
@@ -432,7 +473,9 @@ export function RedCrystalCashShopModal({
             {RED_CRYSTAL_SHOP_PRODUCTS.map((product) => {
               const alreadyOwned = product.id === "vegeta_skin"
                 ? ownsVegeta
-                : product.id === "goku_skin" && ownsGoku;
+                : product.id === "goku_skin"
+                  ? ownsGoku
+                  : product.id === "one_skin" && ownsOne;
               const unaffordable = redCrystals < product.price;
               const buying = pendingId === product.id;
               const disabled = !ready || alreadyOwned || unaffordable || !!pendingId;

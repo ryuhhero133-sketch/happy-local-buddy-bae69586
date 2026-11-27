@@ -184,6 +184,7 @@ import ballPokeImg from "@/assets/items/icon-pokeball.webp";
 import slimeBallImg from "@/assets/items/icon-slime.webp";
 import ballGreatImg from "@/assets/items/icon-greatball.webp";
 import ballUltraImg from "@/assets/items/icon-ultraball.webp";
+import ballMasterImg from "@/assets/ball-master.png";
 import potionNewImg from "@/assets/items/icon-potion.webp";
 import premiumBoxImg from "@/assets/items/icon-premium-box.webp";
 import chestEmeraldImg from "@/assets/chest-emerald.webp";
@@ -2446,7 +2447,7 @@ type IdleState = {
   trainerEnergy?: number;
   globalStats?: { attack: number; speed: number; synergy: number; resistance: number; mastery: number };
   autoHeal: { enabled: boolean; threshold: number };
-  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball" | "safariball"; captureHpPct: number };
+  autoBattle?: { enabled: boolean; useBall: boolean; preferredBall: "auto" | "pokeball" | "greatball" | "ultraball" | "safariball" | "masterball"; captureHpPct: number };
   trainerLevel?: number;
   trainerStars?: number;
   journey?: { version: string; completed: boolean; resetAppliedAt?: number };
@@ -2607,7 +2608,7 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
 };
 const ITEM_COLORS: Record<string, string> = {
   potion: "#ff6b8a", pokeball: "#ff5252",
-  greatball: "#4a7bff", ultraball: "#f5cf6b",
+  greatball: "#4a7bff", ultraball: "#f5cf6b", masterball: "#c084fc",
   chest_amulet: "#f5cf6b",
   revive: "#ff5b8a", berry: "#4a7bff", key: "#f5cf6b",
   book_atk: "#ff5252", book_def: "#4a7bff", book_exp: "#5ec26a",
@@ -2616,10 +2617,11 @@ const ITEM_COLORS: Record<string, string> = {
   book_exp_big: "#8bffb0", book_exp_max: "#ffd94d", book_vip: "#ffb347",
   ticket_ancestral: "#ffd94d",
   carta_montaria: "#ffd94d",
+  carta_montaria_30: "#ffd166",
 };
 const ITEM_IMG: Record<string, string> = {
   potion: potionNewImg,
-  pokeball: ballPokeImg, greatball: ballGreatImg, ultraball: ballUltraImg, safariball: safariBallImg,
+  pokeball: ballPokeImg, greatball: ballGreatImg, ultraball: ballUltraImg, masterball: ballMasterImg, safariball: safariBallImg,
   slimeball: slimeBallImg, slime_pet: slimeBallImg,
   chest_amulet: chestAmuletImg,
   revive: reviveIconImg, berry: berryIconImg, key: keyIconImg,
@@ -2643,6 +2645,7 @@ const ITEM_IMG: Record<string, string> = {
   egg_sprigatito: cardEggUrl,
   egg_mew_7: cardEggUrl, egg_lucario_7: cardEggUrl, egg_ditto_shiny_1: cardEggUrl,
   carta_montaria: montariaIconPng,
+  carta_montaria_30: montariaIconPng,
 };
 const ITEM_POOL: { id: string; name: string; icon: string; chance: number }[] = [
   { id: "potion",    name: "Poção",     icon: "🧪", chance: 0.30 },
@@ -2667,7 +2670,7 @@ const ALL_BALLS: ShopBall[] = [
   { id: "pokeball",   name: "Pokébola",   price: 500,    img: ballPokeImg,  captureMult: 1 },
   { id: "greatball",  name: "Great Ball", price: 5000,   img: ballGreatImg, captureMult: 2 },
   { id: "ultraball",  name: "Ultra Ball", price: 15000,  img: ballUltraImg, captureMult: 3.5 },
-  { id: "masterball", name: "Master Ball", price: 999999, img: ballUltraImg, captureMult: 999 },
+  { id: "masterball", name: "Master Ball", price: 999999, img: ballMasterImg, captureMult: 999 },
   { id: "slimeball", name: "Pokébola Slime", price: 50, img: slimeBallImg, captureMult: 1 },
 ];
 
@@ -3664,7 +3667,7 @@ function IdlePage() {
       const allowedItems = new Set([
         "pokeball", "greatball", "ultraball", "masterball", "potion", "slimeball", "combo_revo",
         "book_atk", "book_exp", "book_vip", "book_vip_30", "book_vip_gold_30",
-        "egg_epic", "egg_mystic", "revive", "rare_candy",
+        "egg_epic", "egg_mystic", "revive", "rare_candy", "carta_montaria_30",
         "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team",
       ]);
       const itemQty = redCrystalCashAmount(mutation.item_qty);
@@ -3678,9 +3681,9 @@ function IdlePage() {
 
     let unlockedSkins = Array.isArray(save.idle.unlockedSkins) ? [...save.idle.unlockedSkins] : [];
     if (!unlockedSkins.includes("default")) unlockedSkins.unshift("default");
-    if ((mutation.skin === "vegeta" || mutation.skin === "goku") && !unlockedSkins.includes(mutation.skin)) {
+    if ((mutation.skin === "vegeta" || mutation.skin === "goku" || mutation.skin === "one") && !unlockedSkins.includes(mutation.skin)) {
       unlockedSkins.push(mutation.skin);
-    } else if (mutation.skin != null && mutation.skin !== "vegeta" && mutation.skin !== "goku") {
+    } else if (mutation.skin != null && mutation.skin !== "vegeta" && mutation.skin !== "goku" && mutation.skin !== "one") {
       throw new Error("cash_shop_skin_invalid");
     }
 
@@ -3697,6 +3700,8 @@ function IdlePage() {
       pokeball_50: "pokeball",
       pokeball_100: "pokeball",
       ultraball_50: "ultraball",
+      ultraball_100: "ultraball",
+      masterball: "masterball",
       revive_pack_10: "revive",
       potion_20: "potion",
       combo_revo: "combo_revo",
@@ -3709,10 +3714,12 @@ function IdlePage() {
       orb_team: "orb_team",
       vip_epic: "book_vip_30",
       vip_gold_30: "book_vip_gold_30",
+      mount_30: "carta_montaria_30",
       egg_epic: "egg_epic",
       egg_mythic: "egg_mystic",
       vegeta_skin: null,
       goku_skin: null,
+      one_skin: null,
     };
     let confirmed: RedCrystalCashShopMutation | null = null;
     let checkpointIdle: IdleState | null = null;
@@ -3730,7 +3737,9 @@ function IdlePage() {
           ? "vegeta"
           : productId === "goku_skin"
             ? "goku"
-            : null;
+            : productId === "one_skin"
+              ? "one"
+              : null;
         if (response.server_version !== expectedVersion + 1
           || redCrystalCashAmount(response.red_crystals) === null
           || response.item_id !== expectedItems[productId]
@@ -3779,6 +3788,8 @@ function IdlePage() {
       ? "Skin Vegeta desbloqueada permanentemente!"
       : confirmedPurchase.skin === "goku"
         ? "Skin Goku desbloqueada permanentemente!"
+        : confirmedPurchase.skin === "one"
+          ? "Skin One desbloqueada permanentemente!"
       : "Compra confirmada e item entregue na Mochila.";
     pushChat(`🔴 ${message}`, "cap");
     return { ok: true, message };
@@ -14365,7 +14376,11 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
               const autoThrowCount = isExempt10(target) ? 0 : bumpEnemyThrow(target.id);
               const masteryBonus = (idle.globalStats?.mastery ?? 0) * 0.005;
             const baseChance = 0.020 + masteryBonus; // mais difícil: 2.0% base (com bola comum) + Mastery
-              if (isSlime) {
+              if (usedBall.id === "masterball" && !target.menace) {
+                // Master Ball é 100% de captura (exceto criaturas abissais,
+                // que são impossíveis por design e continuam repelindo).
+                captured = true;
+              } else if (isSlime) {
                 captured = usedBall.id === "slimeball";
               } else if (safariTarget) {
                 if (usedBall.id === "ultraball") safariUltraThrows += 1;
@@ -15413,7 +15428,9 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     }
     if (!usedBall) {
       for (const b of [...ALL_BALLS].reverse()) {
-        if (b.id === "slimeball") continue;
+        // Master Ball só é gasta quando escolhida de propósito (evita
+        // consumir a bola 100% em uma captura manual comum).
+        if (b.id === "slimeball" || b.id === "masterball") continue;
         if ((idle.items[b.id] ?? 0) > 0) { usedBall = b; break; }
       }
     }
@@ -15447,7 +15464,10 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     // chance manual: base 8%, escala até 45% conforme hp% baixa; multiplicada pelo bônus da bola
     let chance: number;
     const safariUltraThrows = (idle.safariUltraThrows ?? 0) + (safariTarget && usedBall.id === "ultraball" ? 1 : 0);
-    if (isSlime) {
+    if (usedBall.id === "masterball" && !target.menace) {
+      // Master Ball é 100% de captura no lançamento manual também.
+      chance = 1;
+    } else if (isSlime) {
       chance = usedBall.id === "slimeball" ? 1 : 0;
     } else if (safariTarget) {
       chance = safariCatchChance(usedBall.id, safariUltraThrows);
@@ -16005,6 +16025,16 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
       }));
       pushFxAt(trainerPos.x, trainerPos.y - 40, "MONTARIA 24h", "capture");
       pushChat("Montaria SAWSBUCK-S3 ativada por 24 horas! +5 de agilidade.", "cap");
+    } else if (id === "carta_montaria_30") {
+      const nowT = Date.now();
+      setIdle((s) => ({
+        ...s,
+        items: { ...s.items, carta_montaria_30: Math.max(0, (s.items.carta_montaria_30 ?? 0) - 1) },
+        mountUntil: Math.max(nowT, s.mountUntil ?? 0) + 30 * 24 * 60 * 60 * 1000,
+        mountOn: true,
+      }));
+      pushFxAt(trainerPos.x, trainerPos.y - 40, "MONTARIA 30 DIAS", "capture");
+      pushChat("Montaria SAWSBUCK-S3 ativada por 30 dias! +5 de agilidade.", "cap");
     } else if (id === "stone_pack_all") {
       setIdle((s) => ({
         ...s,
@@ -25767,8 +25797,8 @@ A sucata afundou com o casco.
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <span style={{ color: "#c8b8d0" }}>Pokébola preferida</span>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                      {(["auto","pokeball","greatball","ultraball","safariball"] as const).map((p) => {
-                        const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : p === "safariball" ? "Safari" : "Ultra";
+                      {(["auto","pokeball","greatball","ultraball","safariball","masterball"] as const).map((p) => {
+                        const label = p === "auto" ? "Auto" : p === "pokeball" ? "Poké" : p === "greatball" ? "Great" : p === "safariball" ? "Safari" : p === "masterball" ? "Master" : "Ultra";
                         const sel = ab.preferredBall === p;
                         return (
                           <button key={p} onClick={() => setAB({ preferredBall: p })} disabled={!ab.useBall} style={{
@@ -31830,6 +31860,7 @@ onClick={(e) => {
         ready={cloudBlobReady && !!identity?.id}
         ownsVegeta={idle.unlockedSkins?.includes("vegeta") ?? false}
         ownsGoku={idle.unlockedSkins?.includes("goku") ?? false}
+        ownsOne={idle.unlockedSkins?.includes("one") ?? false}
         playerName={identity?.name ?? "Treinador"}
         onPurchase={buyRedCrystalCashProduct}
         onCrystalsCredited={(redCrystals) => {
@@ -33204,7 +33235,7 @@ function TabOverlay({
 
       {tab === "mochila" && (() => {
         const NAMES: Record<string, string> = {
-          potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+          potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball", masterball: "Master Ball",
           slimeball: "Pokébola Slime", slime_pet: "Slime",
           book_atk: "Livro Ataque", book_def: "Livro Defesa", book_exp: "Livro EXP",
           book_exp_big: "Livro EXP Raro", book_exp_max: "Livro EXP Lendário", book_vip: "Livro VIP EPIC ✦",
@@ -33227,6 +33258,7 @@ function TabOverlay({
           safira_verde: "Safira Verde 💚",
           carta_governante: "Carta do Governante 👑",
           carta_montaria: "Carta Montaria SAWSBUCK-S3 🦌",
+          carta_montaria_30: "Carta Montaria SAWSBUCK-S3 · 30 dias 🦌",
           carta_incubadora: "Carta da Incubadora Lendária 🔮",
           carta_plus: "Carta Suprema Plus ✦",
           carta_riolu: "Carta Riolu Suprema 🐺✦",
@@ -33266,6 +33298,7 @@ function TabOverlay({
           pokeball: "Pokébola padrão. Chance base de captura.",
           greatball: "Great Ball. Melhor chance de captura contra pokémon fortes.",
           ultraball: "Ultra Ball. Alta chance de captura, essencial contra míticos.",
+          masterball: "Master Ball · captura 100% garantida (exceto criaturas abissais).",
           book_atk: "Aumenta o Ataque do time em batalha (permanente ao usar).",
           book_def: "Aumenta a Defesa do time em batalha (permanente ao usar).",
           book_exp: "Livro de EXP · +10% EXP por 1 hora.",
@@ -33312,6 +33345,7 @@ function TabOverlay({
           chest_amulet: "Amuleto do Baú · aumenta a chance de baús aparecerem.",
           carta_governante: "Carta do Governante 👑 · libera viagem ao Continente do Governante (Absol). NÃO é consumida — mantenha na mochila para entrar/sair livremente.",
           carta_montaria: "Carta Montaria SAWSBUCK-S3 · ativa a montaria épica por 24 horas e dá +5 de agilidade. É consumida ao usar.",
+          carta_montaria_30: "Carta Montaria SAWSBUCK-S3 · ativa a montaria épica por 30 dias e dá +5 de agilidade. É consumida ao usar.",
           carta_incubadora: "Carta da Incubadora Lendária 🔮 · entregue ao Governante no Salão para receber 1 Black Mitic Plus Egg (consumida). Limite de 6 ovos simultâneos.",
           carta_plus: "Carta Suprema Plus ✦ · leve ao Governante para materializar 1 Black Mitic Plus direto na Coleção, VERSÁTIL com 6 traits. Uso único.",
           carta_riolu: "Carta Riolu Suprema 🐺✦ · leve ao Governante para materializar 1 Riolu Black Mitic Brilhant Plus (Lv 1000, 6 traits) direto na Coleção. Uso único.",
@@ -33411,7 +33445,7 @@ function TabOverlay({
            "egg_sprigatito", "egg_common", "egg_rare", "egg_epic", "egg_mystic", "egg_aura", "egg_charizard", "egg_charizard_epic", "egg_gengar_epic", "egg_lugia", "egg_dragonite", "egg_mew_7", "egg_lucario_7", "egg_ditto_shiny_1", ...(import.meta.env.DEV ? ["egg_pinsir", "egg_venusaur_shiny"] : []),
           "fruta", "suco", "energetico", "refeicao", "morango", "banana", "limao", "maca", "laranja", "picole", "refrigerante", "cafe", "cha_verde", "bolo_morango", "leite_manga", "combo_revo",
           "orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_xp_supreme_24h", "incenso_xp_24h", "orb_team",
-          "carta_montaria",
+          "carta_montaria", "carta_montaria_30",
         ]);
         const upgrades: Record<string, { cost: number; level: number; label: string }> = {
           book_exp: { cost: 3, level: 10, label: "EXP Raro" }, book_exp_big: { cost: 3, level: 25, label: "EXP Lendário" },
@@ -35640,7 +35674,7 @@ function WalletScreen({
   const sellGain = sellAmt * 800;
 
   const ITEM_NAMES: Record<string, string> = {
-    potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+    potion: "Poção", pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball", masterball: "Master Ball",
     stone_grass: "Stone Verdejante 🌿", stone_fire: "Stone Ígnea 🔥", stone_water: "Stone Aquática 💧",
     stone_electric: "Stone Elétrica ⚡", stone_dark: "Stone Sombria 🌑", stone_dragon: "Stone Dragão 🐉",
     egg_common: "Ovo Comum", egg_rare: "Ovo Raro", egg_epic: "Ovo �0pico", egg_mystic: "Ovo Místico",
@@ -35805,7 +35839,7 @@ function MarketScreen({
   npcPrices: Record<string, number>;
 }) {
   const LABELS: Record<string, string> = {
-    pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball",
+    pokeball: "Pokébola", greatball: "Great Ball", ultraball: "Ultra Ball", masterball: "Master Ball",
     chest_amulet: "Amuleto do Baú",
     potion: "Poção",
     stone_grass: "Stone Verdejante �xR�", stone_fire: "Stone Ígnea �x�",
@@ -35813,7 +35847,7 @@ function MarketScreen({
     stone_dark: "Stone Sombria �xR", stone_dragon: "Stone Dragão �x�0",
   };
   const ICONS: Record<string, string> = {
-    pokeball: "⚪", greatball: "🔴", ultraball: "🟡",
+    pokeball: "⚪", greatball: "🔴", ultraball: "🟡", masterball: "🟣",
     chest_amulet: "�x}", potion: "�x��",
     stone_grass: "🌿", stone_fire: "🔥", stone_water: "💧",
     stone_electric: "⚡", stone_dark: "🌑", stone_dragon: "🐉",

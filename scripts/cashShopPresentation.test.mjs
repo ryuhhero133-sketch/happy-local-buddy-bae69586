@@ -98,6 +98,46 @@ test("VIP GOLD 30 days costs 2.000 red crystals and is delivered by the server",
   assert.doesNotMatch(sql, /p_price|price_cents/);
 });
 
+test("nova tabela de precos da Loja Cash e entregas especiais", () => {
+  const sql = read("supabase/migrations/20261127060610_cash_shop_new_prices.sql");
+  const branches = [
+    ["ultraball_50", "1500", "ultraball", "50"],
+    ["ultraball_100", "2300", "ultraball", "100"],
+    ["masterball", "10000", "masterball", "1"],
+    ["mount_30", "3000", "carta_montaria_30", "1"],
+    ["egg_epic", "1000", "egg_epic", "1"],
+    ["egg_mythic", "8000", "egg_mystic", "1"],
+    ["vegeta_skin", "3000", "vegeta"],
+    ["goku_skin", "4000", "goku"],
+    ["one_skin", "3000", "one"],
+  ];
+  for (const [id, price, item, qty] of branches) {
+    assert.match(sql, new RegExp(`when '${id}' then\\s+v_price := ${price};`), id);
+    if (qty) assert.match(sql, new RegExp(`v_granted_item := '${item}'; v_granted_qty := ${qty};`), id);
+    else assert.match(sql, new RegExp(`v_skin := '${item}';`), id);
+  }
+  for (const id of ["orb_xp_minor", "orb_xp_major", "orb_xp_supreme", "orb_team"]) {
+    assert.match(sql, new RegExp(`when '${id}' then\\s+v_price := 500;`), id);
+  }
+  assert.match(sql, /v_skin = 'one' and \(/);
+  assert.match(modal, /id: "ultraball_100"/);
+  assert.match(modal, /price: 2_300/);
+  assert.match(modal, /id: "masterball"/);
+  assert.match(modal, /price: 10_000/);
+  assert.match(modal, /id: "mount_30"/);
+  assert.match(modal, /price: 3_000/);
+  assert.match(modal, /id: "one_skin"/);
+  assert.match(modal, /price: 4_000/);
+  assert.match(idle, /mount_30: "carta_montaria_30"/);
+  assert.match(idle, /productId === "one_skin"[\s\S]{0,80}"one"/);
+  assert.match(idle, /carta_montaria_30: Math\.max\(0/);
+  assert.match(idle, /usedBall\.id === "masterball" && !target\.menace\) \{\s*\/\/[\s\S]{0,220}captured = true;/);
+  assert.equal((idle.match(/usedBall\.id === "masterball" && !target\.menace/g) ?? []).length, 2);
+  assert.match(idle, /preferredBall: "auto" \| "pokeball" \| "greatball" \| "ultraball" \| "safariball" \| "masterball"/);
+  assert.match(idle, /p === "masterball" \? "Master"/);
+  assert.match(idle, /mutation\.skin === "one"[\s\S]{0,120}unlockedSkins\.includes\(mutation\.skin\)/);
+});
+
 test("carousel supports swipe, looping, controls, pause and reduced motion", () => {
   assert.match(carousel, /useEmblaCarousel\(\{ loop: true \}\)/);
   assert.match(carousel, /onClick=\{onOpenCards\}/);

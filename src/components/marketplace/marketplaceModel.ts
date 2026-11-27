@@ -45,7 +45,7 @@ export const MARKET_ITEM_NAMES: Record<string, string> = {
   egg_anc_selado: "Ovo Ancestral Selado", egg_anc_plus: "Ovo Ancestral Plus", egg_anc_luck: "Ovo Ancestral Luck",
   black_mitic_egg: "Black Mitic Egg", emerald_egg: "Ovo Emerald", egg_boost_69: "Cristal do Despertar",
   esfera_safira: "Esfera de Safira", ticket_ancestral: "Ticket Ancestral", skin_ticket: "Ticket de Skin",
-  carta_montaria: "Carta de Montaria", carta_incubadora: "Carta da Incubadora", carta_plus: "Carta Suprema Plus",
+  carta_montaria: "Carta de Montaria", carta_montaria_30: "Carta de Montaria 30d", carta_incubadora: "Carta da Incubadora", carta_plus: "Carta Suprema Plus",
   carta_riolu: "Carta Riolu", nevezinha_doll: "Nevezinha", premium_box: "Caixa Premium", bau_esmeralda: "Baú de Esmeralda",
   fibra: "Fibra", ferro: "Ferro", agua: "Água", bronze: "Bronze", buque: "Buquê", chicote: "Chicote",
   escamas: "Escamas", perola: "Pérola", pepita: "Pepita de Ouro", flor: "Flor", lenha: "Lenha",
