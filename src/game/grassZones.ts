@@ -13,6 +13,21 @@ export const GRASS_ZONE_BY_MAP: Record<string, number> = {
   bobo_mmmm: 9,
 };
 
+export type ZoneRareSpawn = { species: string; level: number; weight: number };
+
+/** Spawns raros por mapa, liberados em marcos de abates (500, 1000...). */
+export const GRASS_RARE_SPAWNS: Record<string, Partial<Record<number, ZoneRareSpawn[]>>> = {
+  bobo_transicao_gelo: {
+    500: [
+      { species: "charizard_shiny", level: 90, weight: 1 },
+    ],
+    1000: [
+      { species: "dragonair_shiny", level: 92, weight: 3 },
+      { species: "dragonite_primitive", level: 95, weight: 1 },
+    ],
+  },
+};
+
 export const GRASS_ZONES: Record<number, ZoneSpawn[]> = {
   1: [
     { species: "pidgey", min: 1, max: 4, pct: 25 },

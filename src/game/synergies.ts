@@ -111,7 +111,7 @@ export const SPECIES_ELEMENTS: Partial<Record<Species, Element[]>> = {
   meowth: ["normal"], persian: ["normal"], rattata_f: ["normal"], raticate_f: ["normal"],
   snorlax: ["normal"], snorlax_mythic: ["normal"],
   // Dragão
-  dragonair: ["dragao"], dragonite: ["dragao","voador"], dragonite_shiny: ["dragao","voador"],
+  dragonair: ["dragao"], dragonair_shiny: ["dragao"], dragonite: ["dragao","voador"], dragonite_shiny: ["dragao","voador"], dragonite_primitive: ["dragao","voador"],
   // Aura / especial
   lucario: ["lutador"],
   lugia: ["psiquico","voador"],

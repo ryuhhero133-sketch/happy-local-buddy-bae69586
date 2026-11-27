@@ -118,7 +118,7 @@ export type Species =
   | "magmar" | "hitmonchan" | "golem" | "aerodactyl"
   | "arbok" | "charizard_shiny" | "charizard_alt"
   | "moltres" | "zapdos" | "articuno"
-  | "mew" | "dragonite" | "lucario"
+  | "mew" | "dragonite" | "dragonite_primitive" | "lucario"
   | "metapod" | "beedrill" | "pidgey" | "pidgeot" | "vileplume" | "tangela" | "kabutops" | "kabutops_shiny"
   | "lapras" | "vaporeon" | "dragonair"
   | "gyarados" | "jolteon" | "jolteon_shiny" | "vaporeon_shiny"
@@ -447,6 +447,7 @@ export const SPECIES_BASE: Record<Species, { hp: number; atk: number; def: numbe
   luxray_f:        { hp: 80, atk: 120, def: 79, spa: 95, spd: 79, spe: 70, rarity: "epic", goldRange: [42, 75], crystalChance: 0.25, catchMod: 2.0, minLv: 78 },
 
   dragonite:       { hp: 91, atk: 134, def: 95, spa: 100, spd: 100, spe: 80, rarity: "mythic", goldRange: [55, 90], crystalChance: 0.325, catchMod: 2.3, minLv: 90 },
+  dragonite_primitive: { hp: 100, atk: 145, def: 100, spa: 105, spd: 105, spe: 80, rarity: "mythic", goldRange: [70, 110], crystalChance: 0.375, catchMod: 2.6, minLv: 90 },
   metapod:    { hp: 50, atk: 20, def: 55, spa: 25, spd: 25, spe: 30, rarity: "common", goldRange: [2, 4], crystalChance: 0, catchMod: 0.7, minLv: 4 },
   beedrill:   { hp: 65, atk: 90, def: 40, spa: 45, spd: 80, spe: 75, rarity: "rare", goldRange: [9, 15], crystalChance: 0.045, catchMod: 1.25, minLv: 12 },
   beedrill_shiny: { hp: 72, atk: 100, def: 46, spa: 52, spd: 88, spe: 82, rarity: "epic", goldRange: [18, 32], crystalChance: 0.10, catchMod: 1.4, minLv: 18 },

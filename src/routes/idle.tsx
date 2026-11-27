@@ -57,7 +57,7 @@ import {
   type CaptureQuestProgress,
 } from "@/game/captureQuests";
 import { starsOf } from "@/game/systems";
-import { zoneForMap, zoneSheet, type ZoneSpawn } from "@/game/grassZones";
+import { GRASS_RARE_SPAWNS, zoneForMap, zoneSheet, type ZoneRareSpawn, type ZoneSpawn } from "@/game/grassZones";
 import { buildGrassPatches, createGrassHuntState, GRASS_ARRIVAL_RADIUS, GRASS_SPOT_RADIUS, grassHuntEnemies, grassTileCenter, isInGrassPatch, isOnGrassTile, nearestGrassPatch, tickGrassHunt } from "@/game/grassHunt";
 import emeraldColisaoUrl from "@/ambiente/map/colisao/emerald.jpg";
 import rota1ColisaoUrl from "@/ambiente/map/colisao/rota1.jpg";
@@ -1567,12 +1567,19 @@ const GIF: Partial<Record<Species, string>> = {
 
 
 
+import charizardShinySheetPng from "@/ambiente/map/zonas/charizard_shiny.png";
+import dragonairShinySheetPng from "@/ambiente/map/zonas/dragonair_shiny.png";
+import dragonitePrimitiveSheetPng from "@/ambiente/map/zonas/dragonite_primitive.png";
+
 // Pokémons cujo sprite é uma spritesheet 4x4 (linhas = down/left/right/up, 4 frames de walk)
 const SPRITE_SHEET: Partial<Record<Species, string>> = {
   giratina: ancGiratinaPng, cresselia: ancCresseliaPng, kyurem: ancKyuremPng,
   reshiram: ancReshiramPng, zekrom: ancZekromPng,
   groudon_shiny: ancGroudonShinyPng, rayquaza_shiny: ancRayquazaShinyPng,
   dragonite_mg: ancDragoniteMgPng,
+  charizard_shiny: charizardShinySheetPng,
+  dragonair_shiny: dragonairShinySheetPng,
+  dragonite_primitive: dragonitePrimitiveSheetPng,
   mewtwo_ancestral: mewtwoAncestralSheet, dragonite_ancestral: dragoniteAncestralSheet,
   latias_ancestral: ancLatiasAncestralPng, latios_ancestral: ancLatiosAncestralPng,
   lugia_m_shiny: ancLugiaShinyPng, lugia_shiny_ancestral: ancLugiaAncestralShinyPng,
@@ -7744,6 +7751,9 @@ const confirmName = () => {
   const orangeShinyDueRef = useRef(false);
   const orangeZardKillsRef = useRef(0);
   const orangeZardDueRef = useRef(false);
+  // Transição Gelo — especiais raros a cada 500/1000 abates no mapa.
+  const geloRareKillsRef = useRef(0);
+  const geloRareDueRef = useRef<500 | 1000 | null>(null);
   // Venenot + Monte Floreto oculto: shiny 1º aos 1000 kills e depois a cada 2000;
   // RAID Arbok (Venenot) a cada 1000 e RAID Golem (Monte Floreto) a cada 3000 (SEM aviso).
   const venenotKillsRef = useRef(0);
@@ -11518,6 +11528,7 @@ const confirmName = () => {
   const BOSS_MIN_SPECIES: Record<string, true> = {
     mewtwo_event: true, dragonite_shiny: true, zapdos: true, blastoise_shiny: true,
     rayquaza: true, onix_shiny: true, riolu: true,
+    charizard_shiny: true, dragonair_shiny: true, dragonite_primitive: true,
   };
   const isExempt10 = (t: { sp: Species; rarity: Rarity; level: number; menace?: boolean; mtcBoss?: boolean; eventLegendary?: boolean }) =>
     !!t.menace || !!t.mtcBoss || !!t.eventLegendary || (t.level ?? 0) >= 500 ||
@@ -13722,6 +13733,14 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
             // Drop de orb de energia removido — só existem orbs de mapa que spawnam pokémon
             // Orbs de mapa: a cada ~15 kills nasce 1 orb comum; a cada 60 kills nasce 1 épico
             killCountRef.current += 1;
+            // Transição Gelo — a cada 500 abates alterna Charizard Shiny (500)
+            // e o pool raro Dragonair Shiny/Dragonite Primitive (1000).
+            if (idle.currentMap === "bobo_transicao_gelo") {
+              geloRareKillsRef.current += 1;
+              if (geloRareKillsRef.current % 500 === 0) {
+                geloRareDueRef.current = geloRareKillsRef.current % 1000 === 0 ? 1000 : 500;
+              }
+            }
             // Contador OCULTO de shiny da Florest Ice (100-300 kills → próximo spawn shiny, sem aviso)
             if (idle.currentMap === "florest_ice") {
               florestIceKillsRef.current += 1;
@@ -14358,6 +14377,18 @@ const camY = Math.max(0, Math.min(Math.max(0, curWorldH - viewH), trainerPos.y -
                     const catchChance = (isRaichuMy || isRayquaza || isOnixShiny || isRiolu || isDragoShinyGrass) ? 0.003 : 0.02;
                     captured = Math.random() < adjustedCaptureChance(catchChance, target);
                   }
+                }
+              } else if (idle.currentMap === "bobo_transicao_gelo"
+                && (target.sp === "charizard_shiny" || target.sp === "dragonair_shiny" || target.sp === "dragonite_primitive")) {
+                // ❄️ Especiais da Transição Gelo: só Ultra Ball e chance MUITO baixa.
+                if (usedBall.id !== "ultraball") {
+                  captured = false;
+                  pushFxAt(target.x, target.y - 70, "Só Ultra Ball!", "enemyDmg");
+                } else {
+                  const chance = target.sp === "dragonair_shiny" ? 0.003
+                    : target.sp === "dragonite_primitive" ? 0.002
+                    : 0.004;
+                  captured = Math.random() < adjustedCaptureChance(chance, target);
                 }
               } else if (target.mtcBoss) {
                 // ✦ MTC — só ultra ball; ~1.7% por lançamento (média ~60 tentativas)
@@ -17408,35 +17439,59 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
     const alive = enemiesRef.current.filter((enemy) => enemy.hp > 0).length;
     if (alive >= cap) return [];
     const shinyAlive = enemiesRef.current.some((enemy) => enemy.hp > 0 && String(enemy.sp).includes("shiny"));
+    // Especiais da Transição Gelo: o marco de abates libera UM encontro raro.
+    const rareMilestone = geloRareDueRef.current;
+    const rarePool = rareMilestone ? GRASS_RARE_SPAWNS[idle.currentMap]?.[rareMilestone] : undefined;
+    let rarePick: ZoneRareSpawn | null = null;
+    if (rarePool && rarePool.length > 0 && !shinyAlive
+      && !enemiesRef.current.some((enemy) => enemy.hp > 0
+        && (enemy.sp === "charizard_shiny" || enemy.sp === "dragonair_shiny" || enemy.sp === "dragonite_primitive"))) {
+      const rareTotal = rarePool.reduce((sum, entry) => sum + entry.weight, 0);
+      let rareRoll = Math.random() * rareTotal;
+      for (const entry of rarePool) { rareRoll -= entry.weight; if (rareRoll <= 0) { rarePick = entry; break; } }
+      rarePick ??= rarePool[0];
+    }
     const total = list.reduce((sum, entry) => sum + entry.pct, 0);
     // 70% das vezes vem em trio (para o ataque em area valer), respeitando o teto.
-    const querTrio = Math.random() < 0.7 && cap - alive >= 3;
-    const count = Math.min(cap - alive, querTrio ? 3 : 1);
-    const out: Enemy[] = [];
-    for (let k = 0; k < count; k++) {
-      let roll = Math.random() * total;
-      let pick = list[0];
-      for (const entry of list) { roll -= entry.pct; if (roll <= 0) { pick = entry; break; } }
-      const level = pick.min + Math.floor(Math.random() * Math.max(1, pick.max - pick.min + 1));
-      let point: { x: number; y: number } | null = null;
+    // Encontro raro vem sozinho para não esconder o brilho no meio da mato.
+    const querTrio = !rarePick && Math.random() < 0.7 && cap - alive >= 3;
+    const count = Math.min(cap - alive, rarePick ? 1 : querTrio ? 3 : 1);
+    const findPoint = () => {
       for (let attempt = 0; attempt < 12; attempt++) {
         const tile = grass[Math.floor(Math.random() * grass.length)];
         const center = grassTileCenter(tile, 24);
         const candidate = { x: center.x + (Math.random() - 0.5) * tile.w * 0.55,
           y: center.y + (Math.random() - 0.5) * tile.h * 0.24 };
         if (candidate.x < 24 || candidate.y < 24 || candidate.x > curWorldW - 24 || candidate.y > curWorldH - 24) continue;
-        if (isOnGrassTile(tile, candidate, 24) && !collidesWithAny(candidate.x, candidate.y)) { point = candidate; break; }
+        if (isOnGrassTile(tile, candidate, 24) && !collidesWithAny(candidate.x, candidate.y)) return candidate;
       }
+      return null;
+    };
+    const out: Enemy[] = [];
+    for (let k = 0; k < count; k++) {
+      const isRare = !!rarePick && k === 0;
+      let pick: ZoneSpawn;
+      if (isRare) {
+        pick = { species: rarePick!.species, min: rarePick!.level, max: rarePick!.level, pct: 1 };
+      } else {
+        let roll = Math.random() * total;
+        pick = list[0];
+        for (const entry of list) { roll -= entry.pct; if (roll <= 0) { pick = entry; break; } }
+      }
+      const level = pick.min + Math.floor(Math.random() * Math.max(1, pick.max - pick.min + 1));
+      const point = findPoint();
       if (!point) continue;
       const { x, y } = point;
       // Shiny: no maximo 1 vivo por mapa. 1,2% por spawn; 10% depois de 220 abates.
       const pity = totalKillsRef.current - lastShinyKillRef.current >= 220;
-      const shiny = !shinyAlive && Math.random() < (pity ? 0.10 : 0.012)
+      const shiny = !isRare && !shinyAlive && Math.random() < (pity ? 0.10 : 0.012)
         && !!zoneSheet(pick.species + "_shiny");
-      const species = (shiny ? pick.species + "_shiny" : pick.species) as Species;
+      const species = (isRare ? pick.species : shiny ? pick.species + "_shiny" : pick.species) as Species;
       if (shiny) lastShinyKillRef.current = totalKillsRef.current;
-      const baseRarity = (SPECIES_BASE as Record<string, { rarity?: Rarity }>)[species]?.rarity ?? "common";
-      const hp = Math.round(40 + level * 24 + (shiny ? level * 10 : 0));
+      const baseRarity: Rarity = isRare
+        ? "mythic"
+        : (SPECIES_BASE as Record<string, { rarity?: Rarity }>)[species]?.rarity ?? "common";
+      const hp = Math.round(40 + level * 24 + (isRare || shiny ? level * 10 : 0));
       out.push({
         id: enemyIdRef.current++, sp: species, hp, maxHp: hp, x, y,
         face: Math.random() < 0.5 ? "left" : "right",
@@ -17444,6 +17499,13 @@ const rarityMult = target.rarity === "legendary" ? 0.35 : target.rarity === "epi
         aggressive: true, aggroR: 240, detectionRadius: 240, maxChaseDistance: 360,
         spawnX: x, spawnY: y, grassPatchId: patch.id, wanderRadius: 72,
       });
+      if (isRare) {
+        geloRareDueRef.current = null;
+        const label = species === "charizard_shiny" ? "CHARIZARD SHINY"
+          : species === "dragonair_shiny" ? "DRAGONAIR SHINY"
+          : "DRAGONITE PRIMITIVE";
+        setTimeout(() => pushChat(`❄️✨ ${label} apareceu na Transição Gelo!`, "cap"), 80);
+      }
     }
     return out;
   }
@@ -24126,7 +24188,10 @@ A sucata afundou com o casco.
               const face = e.face ?? "left";
                             const sheetSprite = !!SPRITE_SHEET[showSp] || !!zoneSheet(showSp);
               const sx = sheetSprite ? 1 : (face === "left" ? 1 : -1);
-              const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2 : (e.sp === "dragonite" || e.sp === "charizard") ? 1.7 : (e.sp === "golem" ? 1.15 : 1);
+              const scale = (e.sp === "venusaur" || e.sp === "venusaur_shiny") ? 2
+                : (e.sp === "dragonite" || e.sp === "charizard" || e.sp === "charizard_shiny" || e.sp === "dragonite_primitive") ? 1.7
+                : (e.sp === "dragonite_shiny" || e.sp === "dragonair_shiny") ? 1.5
+                : (e.sp === "golem" ? 1.15 : 1);
               const size = Math.round((safariWild ? (e.sp === "aerodactyl" ? 88 : 72) : 46 * scale * (e.giant ? 2 : 1)) * (e.editorSizePercent ?? 100) / 100);
               // Cristal + aura por raridade — cristal vermelho = raro+, verde = comum/incomum
               const rarityAura: Record<Rarity, string> = {
