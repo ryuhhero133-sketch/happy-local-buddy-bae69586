@@ -625,7 +625,9 @@ import dialogoBoxUrl from "@/ambiente/map/bb/dialogo_box.webp";
 import dialogoUrl from "@/ambiente/map/bb/dialogo.webp";
 import vipMemberUrl from "@/ambiente/map/bb/vip_member.webp";
 import slimeSheetUrl from "@/ambiente/map/pets/slime_sheet.webp";
-import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, mapEntryError, applyMapEntry, canSeeTestMaps, isTestMap, canSeeNissanKlowMaps } from "@/game/mapAccess";
+import { NISSAN_KLOW_MAPS } from "@/game/nissanKlowMaps";
+import { NISSAN_KLOW_MAP_IDS, isNissanKlowMap } from "@/game/nissanKlowIds";
 import { getGlobalPvpWindow, isPvpActiveOnMap, isScheduledPvpMap } from "@/game/pvpSchedule";
 import { SAFARI_SPECIES, SAFARI_PLANT_SPECIES, safariSpecialsEarned, isSafariEncounter, safariRarity, safariLevel, safariCatchChance, safariEvent, safariSkillIds, safariSpreadPoint, SAFARI_TRAINER_MAX_HP, SAFARI_TRAINER_HIT } from "@/game/safari";
 import safariSnorlaxSheet from "@/ambiente/xz/Snorlax.png";
@@ -1244,6 +1246,22 @@ type IdleMapDef = {
   /** Mapa de RAID: níveis exibidos não indicam progressão de treinador, e sim faixa dos chefes/encontros. */
   raid?: boolean;
 };
+
+// Mapas privados da conta "Nissan Klow". A arte completa só é carregada ao
+// viajar; o Mapa Mundi usa as miniaturas leves do catálogo.
+const NISSAN_KLOW_IDLE_MAPS = Object.fromEntries(
+  NISSAN_KLOW_MAPS.map((map) => [map.id, {
+    name: map.name,
+    diff: "Privado",
+    bg: map.bg,
+    rate: 1.0,
+    minLevel: 1,
+    maxLevel: 1,
+    element: "Normal",
+    stars: 1,
+  } satisfies IdleMapDef]),
+) as Record<IdleMapId, IdleMapDef>;
+
 const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   mapinha6: { name: "Revoland",        diff: "Inicial", bg: mapinha6Url,  rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Normal",  stars: 1 },
   arena:    { name: "Vale Verdejante",         diff: "Fácil",     bg: idleArenaUrl,    rate: 1.0, minLevel: 1,  maxLevel: 30, element: "Grama", stars: 1 },
@@ -1331,6 +1349,7 @@ const IDLE_MAPS: Record<IdleMapId, IdleMapDef> = {
   map_0055: { name: "Trilha 0055", diff: "Especial", bg: mapa0055Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Terra", stars: 1 },
   map_0066: { name: "Lagoa 0066", diff: "Especial", bg: mapa0066Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Água", stars: 1 },
   map_0077: { name: "Bosque 0077", diff: "Especial", bg: mapa0077Url, rate: 1.0, minLevel: 1, maxLevel: 1, element: "Planta", stars: 1 },
+  ...NISSAN_KLOW_IDLE_MAPS,
 };
 
 // ⚖️ BALANCEAMENTO GLOBAL DE XP — multiplicador por mapa (calibrado p/ Lv70 em ~72h ativas).
@@ -2121,7 +2140,7 @@ function buildObstacles(worldW: number, worldH: number, mapId: IdleMapId = "aren
     ];
   }
   // Novos mapas grátis + evento Torre: sem colisão, sem objetos (só máscara).
-  if (["mk1","guildas","mwt","emy","emy_1","casinha","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"].includes(mapId)) {
+  if (["mk1","guildas","mwt","emy","emy_1","casinha","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077", ...NISSAN_KLOW_MAP_IDS].includes(mapId)) {
     return [];
   }
   // MP Plus (mapinha13): colisão invisível no lago em cruz
@@ -2732,6 +2751,7 @@ function loadIdle(): IdleState {
       // Mapas de teste: save de outra conta nunca mantém o mapa (falha fechada).
       if (isTestMap(s.currentMap) && !canSeeTestMaps(loadIdentity()?.id)
         && !(s.currentMap === "emerald" && s.journey?.version === JOURNEY_VERSION && s.journey.completed)) s.currentMap = "mapinha6";
+      if (isNissanKlowMap(s.currentMap) && !canSeeNissanKlowMaps(loadIdentity()?.id)) s.currentMap = "mapinha6";
       // Presente de boas-vindas (evento): 1x Caixa Premium
       const flags = (s as unknown as { flags?: Record<string, boolean> }).flags ?? {};
       if (!flags.giftPremiumBoxV1) {
@@ -3556,6 +3576,7 @@ function IdlePage() {
             if (isMapBlocked(merged.currentMap)) merged.currentMap = "laboratorio";
             if (isTestMap(merged.currentMap) && !canSeeTestMaps(identity?.id)
               && !(merged.currentMap === "emerald" && merged.journey?.version === JOURNEY_VERSION && merged.journey.completed)) merged.currentMap = "mapinha6";
+            if (isNissanKlowMap(merged.currentMap) && !canSeeNissanKlowMaps(identity?.id)) merged.currentMap = "mapinha6";
             if (!merged.saga) merged.saga = freshSaga();
             if (!merged.sideQuests) merged.sideQuests = freshSideQuests();
     if (!merged.captureQuests) merged.captureQuests = { completed: [], milestones: [] };
@@ -6762,6 +6783,7 @@ const confirmName = () => {
     bobo_transicao_gelo: boboTransGeloUrl,
     bobo_transicao: boboTransicaoUrl,
     bobo_viridian: boboViridianUrl,
+    ...Object.fromEntries(NISSAN_KLOW_MAPS.map((map) => [map.id, map.bg])),
   };
   const [customDims, setCustomDims] = useState<{ w: number; h: number; mapId: IdleMapId } | null>(null);
   // HALLOW: camadas de efeito extraídas da máscara (rosa = água, amarelo = luz).
@@ -6931,10 +6953,10 @@ const confirmName = () => {
     return dispose;
   }, [idle.currentMap]);
   // PLAYABLE BOUNDS por mapa: evita spawn/batalha no canto verde
-  const FREE_WALK_MAPS = ["emerald","emerald_01","rota1","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const FREE_WALK_MAPS = ["emerald","emerald_01","rota1","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cave01","cristal_cave","florest_bone","florest_ice","florest_shiny","ruinas_de_venus","ruinas","valley_plume","revo_rout","cidade_principal","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077", ...NISSAN_KLOW_MAP_IDS];
   // MAPAS SEM EVENTOS high-level (Dialga/roamers/MTC/menace/guardians/apex/riders/lendários):
   // cidades, zonas seguras e Esfera Ancestral. Eventos só nos mapas de caça.
-  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","rota1","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077"];
+  const NO_HIGH_EVENT_MAPS = ["emerald","emerald_01","rota1","mk1","guildas","mwt","emy","emy_1","casinha","mapinha6","cidade_principal","mapinha7","mapinha9","mapinha10","mapinha11","mapinha12","mapinha13","esfera_ancestral","land_revo","land_gelo","casa1","casa2","rota_pinsir","deserto_alaka","areia_de_anubis","torre_verdejante","torre_ancestral","elementure","laboratorio","iceblow","monte_floreto","rayow","sakura_city","venenot","azulante","margrande","navegante","hallow","caverna_brok","map_0000","map_0055","map_0066","map_0077", ...NISSAN_KLOW_MAP_IDS];
   const getPlayableBounds = (w: number, h: number, mapId: string) => {
     if (isTestMap(mapId)) {
       // Mapas de teste: mapa inteiro liberado (sem conteúdo, só cenário).
@@ -27638,6 +27660,7 @@ A sucata afundou com o casco.
           <WorldMapV2
             onClose={() => setMapTeleportOpen(false)}
             onTravel={() => setMapTeleportOpen(false)}
+            identityId={identity?.id}
             onTravelTo={(mapId) => {
               const destination = IDLE_MAPS[mapId];
               if (!destination) return;

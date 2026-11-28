@@ -1,3 +1,5 @@
+import { isNissanKlowMap } from "@/game/nissanKlowIds";
+
 // Mapa Mundi público: os mapas da saga e as rotas BOBO ficam disponíveis para
 // todas as contas. Mapas internos/de evento continuam bloqueados no atlas e só
 // entram pelos caminhos próprios (NPC, evento ou conta do dono).
@@ -32,8 +34,12 @@ export const isTestMap = (id: string) => (TEST_MAP_IDS as readonly string[]).inc
 export const TEST_MAP_OWNER_ID = "16d47359-8fbb-4a81-9596-918b2d53b75b";
 export const canSeeTestMaps = (identityId?: string | null) => identityId === TEST_MAP_OWNER_ID;
 
+/** Mapas privados "Nissan Klow": só a conta do dono vê e entra. */
+export const canSeeNissanKlowMaps = (identityId?: string | null) => identityId === TEST_MAP_OWNER_ID;
+
 // No dev o atlas libera todos os destinos; em produção valem as listas acima.
 export const isWorldMapDestinationUnlocked = (id: string, identityId?: string | null) => {
+  if (isNissanKlowMap(id)) return canSeeNissanKlowMaps(identityId);
   if (isTestMap(id)) return canSeeTestMaps(identityId);
   if (isMapBlocked(id)) return false;
   if (import.meta.env.DEV) return true;
@@ -50,6 +56,7 @@ export const isMapBlocked = (id: string) => (BLOCKED_LAB_MAPS as readonly string
 type TravelState = { currentMap: string; bank: { gold: number }; items: Record<string, number> };
 export function mapEntryError(state: TravelState, target: string, identityId?: string | null): string | null {
   if (isMapBlocked(target)) return "🔒 Este mapa está temporariamente bloqueado.";
+  if (isNissanKlowMap(target) && !canSeeNissanKlowMaps(identityId)) return "🔒 Mapa privado — acesso restrito.";
   if (isTestMap(target) && !canSeeTestMaps(identityId)) return "🔒 Mapa privado — acesso restrito.";
   if (target === state.currentMap) return "Você já está neste mapa.";
   return null;

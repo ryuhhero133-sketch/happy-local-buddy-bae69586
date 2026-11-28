@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { isMapBlocked, isWorldMapDestinationUnlocked, canSeeTestMaps, isTestMap } from "@/game/mapAccess";
+import { isMapBlocked, isWorldMapDestinationUnlocked, canSeeTestMaps, isTestMap, canSeeNissanKlowMaps } from "@/game/mapAccess";
+import { isNissanKlowMap } from "@/game/nissanKlowIds";
 import { loadIdentity } from "@/components/AuthGate";
 import { Map, Sparkles, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,9 @@ export function WorldMapTeleportHud({ destinations, currentMap, trainerEnergy, o
   const costFor = (id: string) => (energyCostFor ? energyCostFor(id) : 5);
   // Mapas de teste só existem para a conta dona — nem aparecem para os outros.
   const identityId = loadIdentity()?.id;
-  const pool = destinations.filter((d) => canSeeTestMaps(identityId) || !isTestMap(d.id));
+  const pool = destinations.filter((d) =>
+    (canSeeTestMaps(identityId) || !isTestMap(d.id))
+    && (canSeeNissanKlowMaps(identityId) || !isNissanKlowMap(d.id)));
   const visible = pool.filter((d) =>
     filter === "village" ? VILLAGE_IDS.has(d.id) : !VILLAGE_IDS.has(d.id),
   );

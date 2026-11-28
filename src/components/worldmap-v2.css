@@ -528,3 +528,67 @@
   .wm2-season__rewards strong { font-size: 8px; }
   .wm2-season__rewards span { width: 24px; height: 24px; font-size: 11px; }
 }
+
+/* ===== Mapas privados Nissan Klow (somente a conta do dono) ===== */
+.wm2-private { display: flex; flex-direction: column; gap: 8px; }
+.wm2-private__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 217, 77, .38);
+  background: linear-gradient(180deg, rgba(22, 42, 84, .72), rgba(8, 18, 36, .72));
+}
+.wm2-private__head strong { color: #ffe9a8; font-size: 12px; letter-spacing: .02em; }
+.wm2-private__head small { color: #a9c2e8; font-size: 9px; }
+.wm2-private__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.wm2-private__map {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 9px;
+  border: 1px solid #3f5c96;
+  background: linear-gradient(180deg, #16254a, #0c1832);
+  color: #eaf2ff;
+  cursor: pointer;
+  text-align: left;
+}
+.wm2-private__map:hover { border-color: #ffd94d; background: #1c315f; }
+.wm2-private__map:focus-visible { outline: 2px solid #ffd94d; outline-offset: 2px; }
+.wm2-private__thumb {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 217, 77, .25);
+  background: #071427;
+}
+.wm2-private__thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.wm2-private__map strong { font-size: 10px; line-height: 1.2; }
+.wm2-private .wm2-soon { margin: 0; padding: 4px 6px; font-size: 9.5px; color: #a9c2e8; }
+
+.wm2-private-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #ffd94d;
+  background: linear-gradient(180deg, #3a2d58, #1b1730);
+  color: #ffe9a8;
+  font: 900 9px/1.2 "Segoe UI", system-ui, sans-serif;
+  cursor: pointer;
+}
+.wm2-private-shortcut svg { width: 14px; height: 14px; flex-shrink: 0; }
+.wm2-private-shortcut:hover { filter: brightness(1.12); }
+.wm2-private-shortcut:focus-visible { outline: 2px solid #ffd94d; outline-offset: 2px; }

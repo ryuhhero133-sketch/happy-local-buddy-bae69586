@@ -15,6 +15,8 @@ import coinImg from "@/assets/emerald-coin.webp";
 import eggImg from "@/assets/egg-dragonite-shiny.webp";
 import bookImg from "@/assets/icons/book-exp.webp";
 import crystalImg from "@/ambiente/aba/men ic/nhuni/10_Icones/gem_azul.png";
+import { NISSAN_KLOW_MAPS } from "@/game/nissanKlowMaps";
+import { canSeeNissanKlowMaps } from "@/game/mapAccess";
 import "./worldmap-v2.css";
 
 export type WorldMapDestination = {
@@ -47,6 +49,16 @@ const REGIONS: Region[] = [
   { id: "paldea", name: "Paldea", sub: "Em breve", image: hiveImg, x: 73, y: 74, locked: true },
 ];
 
+const NISSAN_KLOW_REGION: Region = {
+  id: "nissan_klow",
+  name: "Nissan Klow",
+  sub: "Mapas privados",
+  image: NISSAN_KLOW_MAPS[0]?.thumb ?? "",
+  x: 11,
+  y: 48,
+  locked: false,
+};
+
 const BADGES = [
   { label: "Pedra", Icon: Mountain },
   { label: "Cascata", Icon: Droplets },
@@ -66,18 +78,21 @@ const REWARDS = [
 ];
 const TABS = ["Campanha", "Ginásios", "Temporada", "Recompensas"] as const;
 
-export function WorldMapV2({ onClose, onTravel, onTravelTo }: {
+export function WorldMapV2({ onClose, onTravel, onTravelTo, identityId }: {
   onClose: () => void;
   onTravel: () => void;
   /** Viaja direto para um mapa (usado pelos pontos de rota). */
   onTravelTo?: (mapId: string) => void;
+  identityId?: string | null;
 }) {
   const [selectedId, setSelectedId] = useState("kanto");
   const [tab, setTab] = useState<(typeof TABS)[number]>("Campanha");
   const [notice, setNotice] = useState<string | null>(null);
   // Painel lateral sempre visível (fecha só se o jogador quiser ver o mapa inteiro).
   const [panelOpen, setPanelOpen] = useState(true);
-  const selected = REGIONS.find((region) => region.id === selectedId) ?? REGIONS[0];
+  const canSeePrivateMaps = canSeeNissanKlowMaps(identityId);
+  const visibleRegions = canSeePrivateMaps ? [...REGIONS, NISSAN_KLOW_REGION] : REGIONS;
+  const selected = visibleRegions.find((region) => region.id === selectedId) ?? visibleRegions[0];
 
   const pick = (region: Region) => {
     if (region.locked) {
@@ -101,7 +116,7 @@ export function WorldMapV2({ onClose, onTravel, onTravelTo }: {
         <img className="wm2-bg" src={mundiBg} alt="" draggable={false} />
         <div className="wm2-vignette" />
 
-        {REGIONS.map((region) => (
+        {visibleRegions.map((region) => (
           <button
             type="button"
             key={region.id}
@@ -132,30 +147,70 @@ export function WorldMapV2({ onClose, onTravel, onTravelTo }: {
             <strong>Região de {selected.name}</strong>
             <button type="button" className="wm2-panel__x" onClick={() => setPanelOpen(false)} aria-label="Fechar detalhes"><X aria-hidden="true" /></button>
           </header>
-          <p className="wm2-panel__tag">A Jornada das Insígnias</p>
+          <p className="wm2-panel__tag">{selected.id === "nissan_klow" ? "Arquivo privado" : "A Jornada das Insígnias"}</p>
 
           <div className="wm2-hero">
-            <img src={kantoThumb} alt={`Mapa de ${selected.name}`} draggable={false} />
+            <img
+              src={selected.id === "nissan_klow" ? (NISSAN_KLOW_MAPS[0]?.thumb ?? selected.image) : kantoThumb}
+              alt={`Mapa de ${selected.name}`}
+              draggable={false}
+            />
           </div>
 
-          <nav className="wm2-tabs">
-            {TABS.map((item) => (
-              <button type="button" key={item} className={tab === item ? "is-on" : ""} onClick={() => setTab(item)}>{item}</button>
-            ))}
-            {onTravelTo && (
-              <button
-                type="button"
-                className="wm2-revo"
-                onClick={() => onTravelTo("land_revo")}
-                title="Ir para Land Revo"
-                aria-label="Ir para Land Revo"
-              >
-                <MapPin aria-hidden="true" /> Land Revo
-              </button>
-            )}
-          </nav>
+          {selected.id !== "nissan_klow" && (
+            <>
+              <nav className="wm2-tabs">
+                {TABS.map((item) => (
+                  <button type="button" key={item} className={tab === item ? "is-on" : ""} onClick={() => setTab(item)}>{item}</button>
+                ))}
+                {onTravelTo && (
+                  <button
+                    type="button"
+                    className="wm2-revo"
+                    onClick={() => onTravelTo("land_revo")}
+                    title="Ir para Land Revo"
+                    aria-label="Ir para Land Revo"
+                  >
+                    <MapPin aria-hidden="true" /> Land Revo
+                  </button>
+                )}
+              </nav>
+              {canSeePrivateMaps && (
+                <button
+                  type="button"
+                  className="wm2-private-shortcut"
+                  onClick={() => { setSelectedId("nissan_klow"); setPanelOpen(true); }}
+                >
+                  <MapPin aria-hidden="true" /> Nissan Klow · mapas privados
+                </button>
+              )}
+            </>
+          )}
 
-          {tab === "Campanha" ? <>
+          {selected.id === "nissan_klow" ? (
+            <div className="wm2-private">
+              <div className="wm2-private__head">
+                <strong>Mapas da conta Nissan Klow</strong>
+                <small>Visível apenas para você.</small>
+              </div>
+              <div className="wm2-private__grid">
+                {NISSAN_KLOW_MAPS.map((map) => (
+                  <button
+                    type="button"
+                    key={map.id}
+                    className="wm2-private__map"
+                    onClick={() => onTravelTo?.(map.id)}
+                  >
+                    <span className="wm2-private__thumb">
+                      <img src={map.thumb} alt="" loading="lazy" draggable={false} />
+                    </span>
+                    <strong>{map.name}</strong>
+                  </button>
+                ))}
+              </div>
+              <p className="wm2-soon">Toque em um mapa para viajar. Esta área não aparece para outras contas.</p>
+            </div>
+          ) : tab === "Campanha" ? <>
             <div className="wm2-card">
               <div className="wm2-card__thumb"><img src={kantoThumb} alt="" draggable={false} /></div>
               <div className="wm2-card__info">
@@ -182,23 +237,46 @@ export function WorldMapV2({ onClose, onTravel, onTravelTo }: {
             </div>
           </> : <p className="wm2-soon">{tab} — em breve.</p>}
 
-          <button type="button" className="wm2-go" onClick={() => (onTravelTo ? onTravelTo("rota1") : onTravel())}><Swords aria-hidden="true" /> Ir para o Mapa</button>
+          {selected.id === "nissan_klow" ? (
+            <button
+              type="button"
+              className="wm2-go"
+              onClick={() => { const first = NISSAN_KLOW_MAPS[0]; if (first) onTravelTo?.(first.id); }}
+            >
+              <Swords aria-hidden="true" /> Entrar em Nissan Klow
+            </button>
+          ) : (
+            <button type="button" className="wm2-go" onClick={() => (onTravelTo ? onTravelTo("rota1") : onTravel())}><Swords aria-hidden="true" /> Ir para o Mapa</button>
+          )}
         </aside>}
       </div>
 
       <footer className="wm2-foot">
-        <div className="wm2-season">
-          <span className="wm2-season__icon"><img src={medalIcon} alt="" draggable={false} /></span>
-          <div>
-            <strong>Temporada 01</strong>
-            <em>Liga de Kanto</em>
-            <small><Clock aria-hidden="true" /> Duração: 30 dias</small>
+        {selected.id === "nissan_klow" ? (
+          <div className="wm2-season">
+            <span className="wm2-season__icon"><img src={medalIcon} alt="" draggable={false} /></span>
+            <div>
+              <strong>Nissan Klow</strong>
+              <em>Mapas privados</em>
+              <small><LockKeyhole aria-hidden="true" /> Visível só para a sua conta</small>
+            </div>
           </div>
-        </div>
-        <div className="wm2-season__rewards">
-          <strong>Recompensas da Temporada</strong>
-          <div>{REWARDS.map((reward) => <span key={reward.label} title={reward.label}><img src={reward.image} alt={reward.label} draggable={false} /></span>)}</div>
-        </div>
+        ) : (
+          <div className="wm2-season">
+            <span className="wm2-season__icon"><img src={medalIcon} alt="" draggable={false} /></span>
+            <div>
+              <strong>Temporada 01</strong>
+              <em>Liga de Kanto</em>
+              <small><Clock aria-hidden="true" /> Duração: 30 dias</small>
+            </div>
+          </div>
+        )}
+        {selected.id !== "nissan_klow" && (
+          <div className="wm2-season__rewards">
+            <strong>Recompensas da Temporada</strong>
+            <div>{REWARDS.map((reward) => <span key={reward.label} title={reward.label}><img src={reward.image} alt={reward.label} draggable={false} /></span>)}</div>
+          </div>
+        )}
       </footer>
     </div>
   </div>;
