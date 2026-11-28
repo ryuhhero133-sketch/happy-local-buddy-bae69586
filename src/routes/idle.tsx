@@ -3770,6 +3770,7 @@ function IdlePage() {
         already_owned: "Essa skin já foi adquirida nesta conta.",
         inventory_cap: "Sua mochila atingiu o limite desse item.",
         stale: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
+        journey_reset_requires_reload: "Atualize a página para sincronizar o progresso da Jornada e tente novamente.",
         save_conflict: "Seu save mudou em outra aba. Recarregue antes de tentar novamente.",
         save_unavailable: "O save não está pronto. Aguarde carregar e tente novamente.",
         checkpoint_unavailable: "Não foi possível confirmar o save. Recarregue e tente novamente.",
@@ -31976,6 +31977,7 @@ onClick={(e) => {
             });
           })();
         }}
+        onOpenBag={() => { playClick(); setCashShopOpen(false); setTab("mochila"); }}
       />
 
       <BlackMiticEggHud

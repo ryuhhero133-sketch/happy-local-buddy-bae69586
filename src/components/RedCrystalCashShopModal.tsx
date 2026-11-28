@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { assetUrlFromJson } from "@/lib/assetUrl";
 import crystalRedImg from "@/assets/materials/cristal-red.png";
@@ -244,6 +244,7 @@ export const RED_CRYSTAL_SHOP_PRODUCTS = [
 ] as const;
 
 export type RedCrystalShopProductId = typeof RED_CRYSTAL_SHOP_PRODUCTS[number]["id"];
+export type RedCrystalShopProduct = typeof RED_CRYSTAL_SHOP_PRODUCTS[number];
 
 export type RedCrystalPurchaseResult = {
   ok: boolean;
@@ -261,6 +262,7 @@ type Props = {
   playerName: string;
   onPurchase: (productId: RedCrystalShopProductId) => Promise<RedCrystalPurchaseResult>;
   onCrystalsCredited: (redCrystals: number) => void;
+  onOpenBag?: () => void;
 };
 
 export function RedCrystalCashShopModal({
@@ -274,10 +276,12 @@ export function RedCrystalCashShopModal({
   playerName,
   onPurchase,
   onCrystalsCredited,
+  onOpenBag,
 }: Props) {
   const [pendingId, setPendingId] = useState<RedCrystalShopProductId | null>(null);
   const [notice, setNotice] = useState<RedCrystalPurchaseResult | null>(null);
   const [confirming, setConfirming] = useState<RedCrystalShopProductId | null>(null);
+  const [celebration, setCelebration] = useState<{ product: RedCrystalShopProduct; result: RedCrystalPurchaseResult } | null>(null);
   const [shopTab, setShopTab] = useState<"cards" | "items">("items");
   const contentRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -302,7 +306,12 @@ export function RedCrystalCashShopModal({
     setPendingId(productId);
     setNotice(null);
     try {
-      setNotice(await onPurchase(productId));
+      const result = await onPurchase(productId);
+      setNotice(result);
+      if (result.ok) {
+        const product = RED_CRYSTAL_SHOP_PRODUCTS.find((entry) => entry.id === productId);
+        if (product) setCelebration({ product, result });
+      }
     } catch {
       setNotice({ ok: false, message: "Não foi possível concluir a compra. Tente novamente." });
     } finally {
@@ -597,6 +606,60 @@ export function RedCrystalCashShopModal({
                 }}
                 style={{ flex: 1.4, padding: "9px 8px", borderRadius: 8, border: "1px solid #ffe3a0", background: "linear-gradient(180deg, #ffe3a0, #c8902f)", color: "#241604", fontWeight: 950, cursor: "pointer" }}
               >Confirmar compra</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {celebration && (
+        <div
+          className="cash-shop-celebration"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cash-shop-celebration-title"
+          onMouseDown={(event) => { if (event.target === event.currentTarget) setCelebration(null); }}
+        >
+          <div
+            className="cash-shop-celebration__card"
+            style={{ "--shop-accent": celebration.product.accent } as CSSProperties}
+          >
+            <span className="cash-shop-celebration__glow" aria-hidden="true" />
+            <span className="cash-shop-celebration__rays" aria-hidden="true" />
+            {Array.from({ length: 8 }, (_, index) => (
+              <span key={index} className={`cash-shop-celebration__spark is-${index + 1}`} aria-hidden="true" />
+            ))}
+            <span className="cash-shop-celebration__kicker">COMPRA CONFIRMADA</span>
+            <h3 id="cash-shop-celebration-title" className="cash-shop-celebration__title">PARABÉNS!</h3>
+            <div className="cash-shop-celebration__image">
+              <img src={celebration.product.image} alt="" width={88} height={88} draggable={false} />
+            </div>
+            <strong className="cash-shop-celebration__product">{celebration.product.name}</strong>
+            <p className="cash-shop-celebration__message">{celebration.result.message}</p>
+            <span className="cash-shop-celebration__bag">
+              {celebration.product.id.endsWith("_skin")
+                ? "Desbloqueado na sua conta"
+                : celebration.product.id === "vip_gold_30"
+                  ? "Livro na Mochila · use para ativar os 30 dias"
+                  : "Já está na sua Mochila"}
+            </span>
+            <div className="cash-shop-celebration__actions">
+              {onOpenBag && !celebration.product.id.endsWith("_skin") && (
+                <button
+                  type="button"
+                  className="cash-shop-celebration__bag-button"
+                  onClick={() => { setCelebration(null); onOpenBag(); }}
+                >
+                  Ver na Mochila
+                </button>
+              )}
+              <button
+                type="button"
+                className="cash-shop-celebration__close"
+                onClick={() => setCelebration(null)}
+                autoFocus
+              >
+                Continuar
+              </button>
             </div>
           </div>
         </div>
