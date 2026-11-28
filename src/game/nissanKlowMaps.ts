@@ -32,7 +32,21 @@ const DEFS = [
   ["nissan_klow_e", "Nissan Klow E", "nissan-klow-e"],
   ["nissan_klow_f", "Nissan Klow F", "nissan-klow-f"],
   ["nissan_klow_g", "Nissan Klow G", "nissan-klow-g"],
+  ["nissan_klow_h", "Nissan Klow H", "nissan-klow-h"],
+  ["nissan_klow_i", "Nissan Klow I", "nissan-klow-i"],
+  ["nissan_klow_j", "Nissan Klow J", "nissan-klow-j"],
+  ["nissan_klow_k", "Nissan Klow K", "nissan-klow-k"],
+  ["nissan_klow_l", "Nissan Klow L", "nissan-klow-l"],
+  ["nissan_klow_m", "Nissan Klow M", "nissan-klow-m"],
+  ["nissan_klow_n", "Nissan Klow N", "nissan-klow-n"],
+  ["nissan_klow_o", "Nissan Klow O", "nissan-klow-o"],
+  ["nissan_klow_p", "Nissan Klow P", "nissan-klow-p"],
+  ["nissan_klow_q", "Nissan Klow Q", "nissan-klow-q"],
   ["nissan_klow_florest_r3", "Nissan Klow · Florest R3", "nissan-klow-florest-r3"],
+  ["nissan_klow_geluh_pass", "Nissan Klow · Geluh Pass", "nissan-klow-geluh-pass"],
+  ["nissan_klow_pantano_1", "Nissan Klow · Pântano 1", "nissan-klow-pantano-1"],
+  ["nissan_klow_pantano_2", "Nissan Klow · Pântano 2", "nissan-klow-pantano-2"],
+  ["nissan_klow_pantano_3", "Nissan Klow · Pântano 3", "nissan-klow-pantano-3"],
 ] as const satisfies ReadonlyArray<readonly [NissanKlowMapId, string, string]>;
 
 export const NISSAN_KLOW_MAPS: NissanKlowMap[] = DEFS.map(([id, name, file]) => ({

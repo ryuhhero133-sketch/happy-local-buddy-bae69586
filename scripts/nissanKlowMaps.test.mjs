@@ -17,10 +17,12 @@ const worldMap = read("src/components/WorldMapV2.tsx");
 const idle = read("src/routes/idle.tsx");
 const assetDir = new URL("../src/assets/nissan-klow/", import.meta.url);
 
-test("16 mapas privados Nissan Klow, todos com arte completa e miniatura", () => {
-  assert.equal(NISSAN_KLOW_MAP_IDS.length, 16);
-  assert.equal(new Set(NISSAN_KLOW_MAP_IDS).size, 16);
+test("30 mapas privados Nissan Klow, todos com arte completa e miniatura", () => {
+  assert.equal(NISSAN_KLOW_MAP_IDS.length, 30);
+  assert.equal(new Set(NISSAN_KLOW_MAP_IDS).size, 30);
   assert.equal(isNissanKlowMap("nissan_klow_0"), true);
+  assert.equal(isNissanKlowMap("nissan_klow_q"), true);
+  assert.equal(isNissanKlowMap("nissan_klow_pantano_3"), true);
   assert.equal(isNissanKlowMap("nissan_klow_florest_r3"), true);
   assert.equal(isNissanKlowMap("mapinha6"), false);
 
@@ -36,7 +38,7 @@ test("16 mapas privados Nissan Klow, todos com arte completa e miniatura", () =>
     assert.match(catalog, new RegExp(`"${id}"`));
   }
   const total = [...files].reduce((sum, file) => sum + statSync(new URL(file, assetDir)).size, 0);
-  assert.ok(total < 9 * 1024 * 1024, `assets muito grandes: ${total}`);
+  assert.ok(total < 16 * 1024 * 1024, `assets muito grandes: ${total}`);
 });
 
 test("acesso aos mapas Nissan Klow é exclusivo da conta do dono", () => {

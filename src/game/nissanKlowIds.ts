@@ -21,7 +21,21 @@ export const NISSAN_KLOW_MAP_IDS = [
   "nissan_klow_e",
   "nissan_klow_f",
   "nissan_klow_g",
+  "nissan_klow_h",
+  "nissan_klow_i",
+  "nissan_klow_j",
+  "nissan_klow_k",
+  "nissan_klow_l",
+  "nissan_klow_m",
+  "nissan_klow_n",
+  "nissan_klow_o",
+  "nissan_klow_p",
+  "nissan_klow_q",
   "nissan_klow_florest_r3",
+  "nissan_klow_geluh_pass",
+  "nissan_klow_pantano_1",
+  "nissan_klow_pantano_2",
+  "nissan_klow_pantano_3",
 ] as const;
 
 export type NissanKlowMapId = typeof NISSAN_KLOW_MAP_IDS[number];
