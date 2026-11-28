@@ -314,8 +314,8 @@ import type { PartyInviteRow, PartyState } from "@/game/party";
 import {
   PARTY_MAX, isPartyMemberOnline, getMyParty, listInvitesFor,
   invitePlayerToParty, acceptInvite as acceptPartyInviteRemote,
-  declineInvite as declinePartyInviteRemote, leaveParty as leavePartyRemote,
-  kickMember as kickPartyMemberRemote, pingPresence as pingPartyPresence,
+  declineInvite as declinePartyInviteRemote, cancelPartyInvite as cancelPartyInviteRemote,
+  leaveParty as leavePartyRemote, kickMember as kickPartyMemberRemote, pingPresence as pingPartyPresence,
 } from "@/game/party";
 import { PokemonStatsCard } from "@/components/PokemonStatsCard";
 import { NpcDialog, NpcPagedLine, NpcRewardPanel, npcThemeFor } from "@/components/NpcDialog";
@@ -4876,6 +4876,15 @@ const confirmName = () => {
       await refreshParty();
     } catch (error) {
       pushChat(`Não foi possível recusar o convite: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
+    }
+  };
+  const handleCancelPartyInvite = async (id: string) => {
+    try {
+      await cancelPartyInviteRemote(id);
+      await refreshParty();
+      pushChat("Convite de party cancelado; a vaga foi liberada.", "info");
+    } catch (error) {
+      pushChat(`Não foi possível cancelar o convite: ${error instanceof Error ? error.message : "falha de conexão"}`, "info");
     }
   };
   const handleLeaveParty = async () => {
@@ -26509,14 +26518,16 @@ A sucata afundou com o casco.
               toggleTrainerTheme={toggleTrainerTheme}
               guildPanelProps={{
                 guild, guildLoading, invites: guildInvites, friends, party,
-                partyInvites, partyOnlineMemberCount, partyRewardMultiplier, missionProgress, claimedMissions,
+                partyInvites, partyOutgoingInvites: party?.outgoingInvites ?? [],
+                partyOnlineMemberCount, partyRewardMultiplier, missionProgress, claimedMissions,
                 myId, myName, myLevel, myGold, mySpecies,
                 onCreateGuild: handleCreateGuild, onInviteUsername: handleInviteUsername,
                 onAcceptInvite: handleAcceptInvite, onDeclineInvite: handleDeclineInvite,
                 onClaimMission: handleClaimMission, onAddFriend: handleAddFriend,
                 onRemoveFriend: handleRemoveFriend, onPartyAdd: handlePartyAdd,
                 onPartyRemove: handlePartyRemove, onAcceptPartyInvite: handleAcceptPartyInvite,
-                onDeclinePartyInvite: handleDeclinePartyInvite, onLeaveParty: handleLeaveParty,
+                onDeclinePartyInvite: handleDeclinePartyInvite, onCancelPartyInvite: handleCancelPartyInvite,
+                onLeaveParty: handleLeaveParty,
                 onLeaveGuild: handleLeaveGuild, onKickMember: handleKickMember,
                 onRefresh: () => { void refreshGuild(); void refreshParty(); },
               }}

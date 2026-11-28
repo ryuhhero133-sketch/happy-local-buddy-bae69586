@@ -42,7 +42,12 @@ export type PartyInviteRow = {
   created_at: string;
 };
 
-export type PartyState = { party: PartyRow; members: PartyMemberRow[] };
+export type PartyState = {
+  party: PartyRow;
+  members: PartyMemberRow[];
+  /** Convites pendentes enviados pela party; só o líder recebe a lista. */
+  outgoingInvites?: PartyInviteRow[];
+};
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -190,6 +195,11 @@ export async function acceptInvite(
 
 export async function declineInvite(inviteId: string): Promise<boolean> {
   return rpc<boolean>("decline_party_invite", { p_invite: inviteId });
+}
+
+/** Líder cancela um convite enviado e libera a vaga reservada. */
+export async function cancelPartyInvite(inviteId: string): Promise<boolean> {
+  return rpc<boolean>("cancel_party_invite", { p_invite: inviteId });
 }
 
 /** Updates the caller's own party heartbeat, level and map. */

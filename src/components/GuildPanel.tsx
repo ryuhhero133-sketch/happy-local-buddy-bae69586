@@ -16,6 +16,8 @@ type Props = {
   friends: FriendEntry[];
   party: { party: PartyRow; members: PartyMemberRow[] } | null;
   partyInvites: PartyInviteRow[];
+  /** Convites enviados pela própria party; o servidor só devolve ao líder. */
+  partyOutgoingInvites: PartyInviteRow[];
   partyOnlineMemberCount: number;
   partyRewardMultiplier: number;
   missionProgress: Record<string, number>;
@@ -37,6 +39,7 @@ type Props = {
   onPartyRemove: (targetId: string) => void;
   onAcceptPartyInvite: (inv: PartyInviteRow) => void;
   onDeclinePartyInvite: (id: string) => void;
+  onCancelPartyInvite: (id: string) => void;
   onLeaveParty: () => void;
   onLeaveGuild: () => void;
   onKickMember: (memberId: string) => void;
@@ -307,6 +310,24 @@ export function GuildPanel(p: Props) {
                   </div>
                 );
               })}
+              {isPartyLeader && safePartyInvites(p.partyOutgoingInvites).length > 0 && (
+                <div style={{ background: "rgba(245,207,107,0.08)", border: "1px solid #f5cf6b", borderRadius: 8, padding: 6, marginTop: 4 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, color: "#f5cf6b", marginBottom: 4 }}>
+                    ✉️ CONVITES ENVIADOS · {safePartyInvites(p.partyOutgoingInvites).length}
+                  </div>
+                  {safePartyInvites(p.partyOutgoingInvites).map((inv) => (
+                    <div key={inv.id} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {inv.target_name}
+                      </span>
+                      <button style={btn("#c46a6a", "#fff")} onClick={() => p.onCancelPartyInvite(inv.id)}>CANCELAR</button>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 8, color: "#9ab8d8", marginTop: 2 }}>
+                    Cada convite pendente reserva uma das 5 vagas.
+                  </div>
+                </div>
+              )}
               <button style={{ ...btn("#3a3a5a", "#e6ecff"), width: "100%", marginTop: 3 }} onClick={p.onLeaveParty}>SAIR DA PARTY</button>
             </div>
           )}
