@@ -617,12 +617,10 @@ export function RedCrystalCashShopModal({
           role="dialog"
           aria-modal="true"
           aria-labelledby="cash-shop-celebration-title"
+          style={{ "--shop-accent": celebration.product.accent } as CSSProperties}
           onMouseDown={(event) => { if (event.target === event.currentTarget) setCelebration(null); }}
         >
-          <div
-            className="cash-shop-celebration__card"
-            style={{ "--shop-accent": celebration.product.accent } as CSSProperties}
-          >
+          <div className="cash-shop-celebration__card">
             <span className="cash-shop-celebration__glow" aria-hidden="true" />
             <span className="cash-shop-celebration__rays" aria-hidden="true" />
             {Array.from({ length: 8 }, (_, index) => (
