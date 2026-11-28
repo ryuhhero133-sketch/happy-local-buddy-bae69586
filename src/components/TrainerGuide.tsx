@@ -9,7 +9,7 @@ const pages = [
   { text: "Comece em Verdejante 1 e explore Valley Plume, Florest Ice e Florest Bone conforme seu time fica mais forte. Os números no mapa são níveis dos Pokémon encontrados.", target: "world-map" },
   { text: "Para chegar ao Pokemarkt, use o Mapa Mundi ou a porta em Revoland. Escolha seus itens e confirme a compra. Para sair, pise na luz junto à porta e confirme a volta a Revoland.", target: "world-map" },
   { text: "Leve Pokébolas na Mochila e ative o botão de captura destacado. Nas batalhas, a captura automática tentará pegar Pokémon conforme as regras do encontro.", target: "capture" },
-  { text: "Abra o MENU para organizar seu time em Pokémon e Coleção, consultar a Mochila e ajustar as Configurações.", target: "menu" },
+  { text: "Abra o MENU para organizar seu time em Pokémon e Coleção, consultar a Mochila e acessar Mercado e Sinergia.", target: "menu" },
   { text: "Em Eventos você encontra recompensas, incluindo o ovo de pré-registro quando alcançar o nível necessário. Boa jornada!", target: "events" },
 ] as const;
 
