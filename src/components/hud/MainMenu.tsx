@@ -14,10 +14,8 @@ import iconMapa from "@/ambiente/aba/men ic/Mapa.webp";
 import iconLoja from "@/ambiente/aba/men ic/Loja.webp";
 import iconForja from "@/ambiente/aba/men ic/Forja.webp";
 import iconBanco from "@/ambiente/aba/men ic/Banco.webp";
-import iconConfig from "@/ambiente/aba/men ic/Opções.webp";
-import iconPerfil from "@/ambiente/aba/men ic/Perfil.webp";
 import iconSinergia from "@/ambiente/aba/men ic/Sinergia.webp";
-import iconMercado from "@/ambiente/aba/men ic/Markt.webp";
+import iconMercado from "@/ambiente/aba/men ic/Mercado.webp";
 import iconMontaria from "@/CHAR/montaria.webp";
 import "./main-menu.css";
 
@@ -47,12 +45,10 @@ export function MainMenu({ hud, open, onOpenChange, onResetLayout }: { hud: Game
     { label: "Loja", icon: iconLoja, color: "#efb768", x: 50, y: 65.5, action: () => act(hud.onShop) },
     { label: "Forja", icon: iconForja, color: "#aaa9f1", x: 77.5, y: 65.5, action: () => act(hud.onForge) },
     { label: "Banco", icon: iconBanco, color: "#f8d476", x: 22.7, y: 79.5, action: () => navigate("wallet") },
-    { label: "Configurações", icon: iconConfig, color: "#a6d4ef", x: 50, y: 79.5, action: () => act(hud.onSettings) },
-    { label: "Perfil", icon: iconPerfil, color: "#f6a6a9", x: 77.5, y: 79.5, action: () => act(hud.onProfile) },
+    { label: "Mercado", icon: iconMercado, color: "#6bbaf5", x: 50, y: 79.5, action: () => navigate("market") },
+    { label: "Sinergia", icon: iconSinergia, color: "#f6a6a9", x: 77.5, y: 79.5, action: () => navigate("sinergia") },
   ];
   const extras: { label: string; icon?: string; action: () => void }[] = [
-    { label: "Sinergia", icon: iconSinergia, action: () => navigate("sinergia") },
-    { label: "Mercado", icon: iconMercado, action: () => navigate("market") },
     { label: "Código", action: () => act(hud.onCode) },
     { label: "Salvar", action: () => act(hud.onSave) },
     { label: "Restaurar HUD", action: () => act(onResetLayout) },
